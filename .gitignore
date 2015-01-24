@@ -1,0 +1,63 @@
+# Xcode
+#
+build/
+!/build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+
+# Mac
+.DS_Store
+#ignore thumbnails created by windows
+Thumbs.db
+#Ignore Podfile.lock
+Podfile.lock
+#Ignore files build by Visual Studio
+*.user
+*.aps
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.bak
+*.cache
+*.ilk
+*.log
+[Bb]in
+libs/
+[Dd]ebug*/
+*.sbr
+obj/
+[Rr]elease*/
+_ReSharper*/
+ipch/
+*.ipch
+*.sdf
+
+# Mac OS X and Xcode stuff
+*.swp
+*~.nib
+/.metadata/
+
+# Node
+node_modules/
+
+# Build
+/dist/
+/lib/
+junit-result.xml
+gamera-startup-result.xml
+build-stats.csv
