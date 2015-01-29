@@ -1,0 +1,17 @@
+//
+//  TNSDebugging.h
+//  TNSDebugging
+//
+//  Created by Ivan Buhov on 10/10/14.
+//  Copyright (c) 2014 Telerik. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import <JavaScriptCore/JavaScriptCore.h>
+#import <NativeScript/NativeScript.h>
+
+@interface TNSRuntime (WebSocketDebugging)
+
+- (id)startWebSocketServerOnPort:(NSUInteger)port;
+
+@end

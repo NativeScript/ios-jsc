@@ -39,6 +39,7 @@ Podfile.lock
 [Bb]in
 libs/
 [Dd]ebug*/
+!/src/debugging/
 *.sbr
 obj/
 [Rr]elease*/

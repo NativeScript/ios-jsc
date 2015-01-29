@@ -1,0 +1,490 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C9A9169619E7C14F002B1CC5 /* TNSDebugging.m in Sources */ = {isa = PBXBuildFile; fileRef = C9A9169519E7C14F002B1CC5 /* TNSDebugging.m */; };
+		C9A9179819ED2E06002B1CC5 /* libPocketSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9A9179319ED2DF1002B1CC5 /* libPocketSocket.a */; };
+		C9A917A119ED362C002B1CC5 /* TNSDebugging.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = C9A9169319E7C14F002B1CC5 /* TNSDebugging.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C9A916BB19E7C174002B1CC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A916B619E7C174002B1CC5 /* NativeScript.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 85B2A6BA197528FF00616E60;
+			remoteInfo = NativeScript;
+		};
+		C9A916BD19E7C174002B1CC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A916B619E7C174002B1CC5 /* NativeScript.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 85B2A6CA197528FF00616E60;
+			remoteInfo = NativeScriptTests;
+		};
+		C9A9179219ED2DF1002B1CC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EEE5E30A18B37DD500BAE47A;
+			remoteInfo = PocketSocket;
+		};
+		C9A9179419ED2DF1002B1CC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EEE5E36018B37F8700BAE47A;
+			remoteInfo = PSAutobahnClientTests;
+		};
+		C9A9179619ED2E00002B1CC5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = EEE5E30918B37DD500BAE47A;
+			remoteInfo = PocketSocket;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C9A9168E19E7C14F002B1CC5 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+				C9A917A119ED362C002B1CC5 /* TNSDebugging.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		C9A9169019E7C14F002B1CC5 /* libTNSDebugging.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTNSDebugging.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9A9169319E7C14F002B1CC5 /* TNSDebugging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TNSDebugging.h; sourceTree = "<group>"; };
+		C9A9169519E7C14F002B1CC5 /* TNSDebugging.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TNSDebugging.m; sourceTree = "<group>"; };
+		C9A9169B19E7C150002B1CC5 /* TNSDebuggingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TNSDebuggingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9A9169E19E7C150002B1CC5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C9A916B619E7C174002B1CC5 /* NativeScript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NativeScript.xcodeproj; path = ../../NativeScript/NativeScript.xcodeproj; sourceTree = "<group>"; };
+		C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = PocketSocket.xcodeproj; path = "../PocketSocket-0.6.4/PocketSocket.xcodeproj"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C9A9168D19E7C14F002B1CC5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9A9179819ED2E06002B1CC5 /* libPocketSocket.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9A9169819E7C150002B1CC5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C9A9168719E7C14F002B1CC5 = {
+			isa = PBXGroup;
+			children = (
+				C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */,
+				C9A916B619E7C174002B1CC5 /* NativeScript.xcodeproj */,
+				C9A9169219E7C14F002B1CC5 /* TNSDebugging */,
+				C9A9169C19E7C150002B1CC5 /* TNSDebuggingTests */,
+				C9A9169119E7C14F002B1CC5 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C9A9169119E7C14F002B1CC5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C9A9169019E7C14F002B1CC5 /* libTNSDebugging.a */,
+				C9A9169B19E7C150002B1CC5 /* TNSDebuggingTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C9A9169219E7C14F002B1CC5 /* TNSDebugging */ = {
+			isa = PBXGroup;
+			children = (
+				C9A9169319E7C14F002B1CC5 /* TNSDebugging.h */,
+				C9A9169519E7C14F002B1CC5 /* TNSDebugging.m */,
+			);
+			path = TNSDebugging;
+			sourceTree = "<group>";
+		};
+		C9A9169C19E7C150002B1CC5 /* TNSDebuggingTests */ = {
+			isa = PBXGroup;
+			children = (
+				C9A9169D19E7C150002B1CC5 /* Supporting Files */,
+			);
+			path = TNSDebuggingTests;
+			sourceTree = "<group>";
+		};
+		C9A9169D19E7C150002B1CC5 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				C9A9169E19E7C150002B1CC5 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		C9A916B719E7C174002B1CC5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C9A916BC19E7C174002B1CC5 /* libNativeScript.a */,
+				C9A916BE19E7C174002B1CC5 /* NativeScriptTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C9A9178D19ED2DF1002B1CC5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C9A9179319ED2DF1002B1CC5 /* libPocketSocket.a */,
+				C9A9179519ED2DF1002B1CC5 /* PSAutobahnClientTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C9A9168F19E7C14F002B1CC5 /* TNSDebugging */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9A916A119E7C150002B1CC5 /* Build configuration list for PBXNativeTarget "TNSDebugging" */;
+			buildPhases = (
+				C9A9168C19E7C14F002B1CC5 /* Sources */,
+				C9A9168D19E7C14F002B1CC5 /* Frameworks */,
+				C9A9168E19E7C14F002B1CC5 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C9A9179719ED2E00002B1CC5 /* PBXTargetDependency */,
+			);
+			name = TNSDebugging;
+			productName = TNSDebugging;
+			productReference = C9A9169019E7C14F002B1CC5 /* libTNSDebugging.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		C9A9169A19E7C150002B1CC5 /* TNSDebuggingTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C9A916A419E7C150002B1CC5 /* Build configuration list for PBXNativeTarget "TNSDebuggingTests" */;
+			buildPhases = (
+				C9A9169719E7C150002B1CC5 /* Sources */,
+				C9A9169819E7C150002B1CC5 /* Frameworks */,
+				C9A9169919E7C150002B1CC5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TNSDebuggingTests;
+			productName = TNSDebuggingTests;
+			productReference = C9A9169B19E7C150002B1CC5 /* TNSDebuggingTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C9A9168819E7C14F002B1CC5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0600;
+				ORGANIZATIONNAME = Telerik;
+				TargetAttributes = {
+					C9A9168F19E7C14F002B1CC5 = {
+						CreatedOnToolsVersion = 6.0;
+					};
+					C9A9169A19E7C150002B1CC5 = {
+						CreatedOnToolsVersion = 6.0;
+					};
+				};
+			};
+			buildConfigurationList = C9A9168B19E7C14F002B1CC5 /* Build configuration list for PBXProject "TNSDebugging" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = C9A9168719E7C14F002B1CC5;
+			productRefGroup = C9A9169119E7C14F002B1CC5 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = C9A916B719E7C174002B1CC5 /* Products */;
+					ProjectRef = C9A916B619E7C174002B1CC5 /* NativeScript.xcodeproj */;
+				},
+				{
+					ProductGroup = C9A9178D19ED2DF1002B1CC5 /* Products */;
+					ProjectRef = C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				C9A9168F19E7C14F002B1CC5 /* TNSDebugging */,
+				C9A9169A19E7C150002B1CC5 /* TNSDebuggingTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		C9A916BC19E7C174002B1CC5 /* libNativeScript.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libNativeScript.a;
+			remoteRef = C9A916BB19E7C174002B1CC5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C9A916BE19E7C174002B1CC5 /* NativeScriptTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = NativeScriptTests.xctest;
+			remoteRef = C9A916BD19E7C174002B1CC5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C9A9179319ED2DF1002B1CC5 /* libPocketSocket.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libPocketSocket.a;
+			remoteRef = C9A9179219ED2DF1002B1CC5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C9A9179519ED2DF1002B1CC5 /* PSAutobahnClientTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = PSAutobahnClientTests.xctest;
+			remoteRef = C9A9179419ED2DF1002B1CC5 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C9A9169919E7C150002B1CC5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C9A9168C19E7C14F002B1CC5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C9A9169619E7C14F002B1CC5 /* TNSDebugging.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9A9169719E7C150002B1CC5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C9A9179719ED2E00002B1CC5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = PocketSocket;
+			targetProxy = C9A9179619ED2E00002B1CC5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		C9A9169F19E7C150002B1CC5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VALID_ARCHS = "arm64 armv7";
+			};
+			name = Debug;
+		};
+		C9A916A019E7C150002B1CC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = "arm64 armv7";
+			};
+			name = Release;
+		};
+		C9A916A219E7C150002B1CC5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode6.0.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../NativeScript,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/buhov/Desktop/tns-ios-my/tns-ios/Source/NativeScript/deps/lib",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				USER_HEADER_SEARCH_PATHS = "";
+				VALID_ARCHS = "arm64 armv7";
+			};
+			name = Debug;
+		};
+		C9A916A319E7C150002B1CC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode6.0.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../NativeScript,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/buhov/Desktop/tns-ios-my/tns-ios/Source/NativeScript/deps/lib",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				USER_HEADER_SEARCH_PATHS = "";
+				VALID_ARCHS = "arm64 armv7";
+			};
+			name = Release;
+		};
+		C9A916A519E7C150002B1CC5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(inherited)",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = TNSDebuggingTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		C9A916A619E7C150002B1CC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(inherited)",
+				);
+				INFOPLIST_FILE = TNSDebuggingTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C9A9168B19E7C14F002B1CC5 /* Build configuration list for PBXProject "TNSDebugging" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9A9169F19E7C150002B1CC5 /* Debug */,
+				C9A916A019E7C150002B1CC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9A916A119E7C150002B1CC5 /* Build configuration list for PBXNativeTarget "TNSDebugging" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9A916A219E7C150002B1CC5 /* Debug */,
+				C9A916A319E7C150002B1CC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C9A916A419E7C150002B1CC5 /* Build configuration list for PBXNativeTarget "TNSDebuggingTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C9A916A519E7C150002B1CC5 /* Debug */,
+				C9A916A619E7C150002B1CC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C9A9168819E7C14F002B1CC5 /* Project object */;
+}
