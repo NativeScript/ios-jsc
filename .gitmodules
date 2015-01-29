@@ -1,6 +1,3 @@
-[submodule "src/webkit"]
-	path = src/webkit
-	url = https://github.com/NativeScript/webkit
 [submodule "src/metadata-generator"]
 	path = src/metadata-generator
 	url = git@github.com:NativeScript/ios-metadata-generator.git
