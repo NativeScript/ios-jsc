@@ -1,0 +1,72 @@
+//
+//  RecordField.h
+//  NativeScript
+//
+//  Created by Jason Zhekov on 10/13/14.
+//  Copyright (c) 2014 Telerik. All rights reserved.
+//
+
+#ifndef __NativeScript__RecordField__
+#define __NativeScript__RecordField__
+
+#include "FFIType.h"
+
+namespace NativeScript {
+
+class RecordField : public JSC::JSNonFinalObject {
+public:
+    typedef JSC::JSNonFinalObject Base;
+
+    static RecordField* create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& fieldName, JSCell* fieldType, ptrdiff_t offset) {
+        RecordField* cell = new (NotNull, JSC::allocateCell<RecordField>(vm.heap)) RecordField(vm, structure);
+        cell->finishCreation(vm, fieldName, fieldType, offset);
+        vm.heap.addFinalizer(cell, destroy);
+        return cell;
+    }
+
+    DECLARE_INFO;
+
+    static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
+    }
+
+    const WTF::String& fieldName() const {
+        return this->_fieldName;
+    }
+
+    JSC::JSCell* fieldType() const {
+        return this->_fieldType.get();
+    }
+
+    ptrdiff_t offset() const {
+        return this->_offset;
+    }
+
+    const FFITypeMethodTable& ffiTypeMethodTable() const {
+        return this->_ffiTypeMethodTable;
+    }
+
+private:
+    RecordField(JSC::VM& vm, JSC::Structure* structure)
+        : Base(vm, structure) {
+    }
+
+    static void destroy(JSC::JSCell* cell) {
+        JSC::jsCast<RecordField*>(cell)->~RecordField();
+    }
+
+    void finishCreation(JSC::VM&, const WTF::String& fieldName, JSCell* fieldType, ptrdiff_t offset);
+
+    static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
+
+    WTF::String _fieldName;
+
+    JSC::WriteBarrier<JSC::JSCell> _fieldType;
+
+    FFITypeMethodTable _ffiTypeMethodTable;
+
+    ptrdiff_t _offset;
+};
+}
+
+#endif /* defined(__NativeScript__RecordField__) */

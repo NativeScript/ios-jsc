@@ -1,0 +1,425 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C90B548E1A7A0F9700167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B54881A7A0F6300167E14 /* libNativeScript.a */; };
+		C9E0D9131A63D55700A80E1F /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D9111A63D55700A80E1F /* metadata-arm64.bin */; };
+		C9E0D9141A63D55700A80E1F /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D9121A63D55700A80E1F /* metadata-armv7.bin */; };
+		F95581C5198FCA64007CC2AF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F95581C4198FCA64007CC2AF /* UIKit.framework */; };
+		F95581C7198FCA6F007CC2AF /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F95581C6198FCA6F007CC2AF /* CoreFoundation.framework */; };
+		F9817ECE1988FBC60073E328 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9817ECD1988FBC60073E328 /* Foundation.framework */; };
+		F9817ED81988FBC60073E328 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = F9817ED61988FBC60073E328 /* InfoPlist.strings */; };
+		F9817EDA1988FBC60073E328 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F9817ED91988FBC60073E328 /* main.m */; };
+		F9817EE91988FBC60073E328 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F9817EE81988FBC60073E328 /* Images.xcassets */; };
+		F9817F1C198904270073E328 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9817F1B198904270073E328 /* libicucore.dylib */; };
+		F9817F1E1989043C0073E328 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9817F1D1989043C0073E328 /* libz.dylib */; };
+		F9817F20198904600073E328 /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9817F1F198904600073E328 /* libc++.dylib */; };
+		F9817F23198906040073E328 /* app in Resources */ = {isa = PBXBuildFile; fileRef = F9817F22198906040073E328 /* app */; };
+		F9817F2819893F6C0073E328 /* tns_modules in Resources */ = {isa = PBXBuildFile; fileRef = F9817F2719893F6C0073E328 /* tns_modules */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C90B54871A7A0F6300167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 85B2A6BA197528FF00616E60;
+			remoteInfo = NativeScript;
+		};
+		C90B54891A7A0F6300167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 85B2A6CA197528FF00616E60;
+			remoteInfo = NativeScriptTests;
+		};
+		C90B548C1A7A0F9200167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
+			remoteInfo = NativeScript;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		C48F2B261994F03800A015FE /* NativeScript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NativeScript.xcodeproj; path = ../../src/NativeScript/NativeScript.xcodeproj; sourceTree = "<group>"; };
+		C9E0D9111A63D55700A80E1F /* metadata-arm64.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-arm64.bin"; path = "../../dist/metadata/iPhoneSDK/metadata-arm64.bin"; sourceTree = "<group>"; };
+		C9E0D9121A63D55700A80E1F /* metadata-armv7.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-armv7.bin"; path = "../../dist/metadata/iPhoneSDK/metadata-armv7.bin"; sourceTree = "<group>"; };
+		F95581C4198FCA64007CC2AF /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		F95581C6198FCA6F007CC2AF /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		F9817ECA1988FBC60073E328 /* TNSApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TNSApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F9817ECD1988FBC60073E328 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		F9817ED51988FBC60073E328 /* TNSApp-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "TNSApp-Info.plist"; sourceTree = "<group>"; };
+		F9817ED71988FBC60073E328 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		F9817ED91988FBC60073E328 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		F9817EDB1988FBC60073E328 /* TNSApp-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TNSApp-Prefix.pch"; sourceTree = "<group>"; };
+		F9817EE81988FBC60073E328 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		F9817F1B198904270073E328 /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
+		F9817F1D1989043C0073E328 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		F9817F1F198904600073E328 /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
+		F9817F22198906040073E328 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
+		F9817F2719893F6C0073E328 /* tns_modules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tns_modules; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F9817EC71988FBC60073E328 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C90B548E1A7A0F9700167E14 /* libNativeScript.a in Frameworks */,
+				F9817F20198904600073E328 /* libc++.dylib in Frameworks */,
+				F9817F1E1989043C0073E328 /* libz.dylib in Frameworks */,
+				F9817F1C198904270073E328 /* libicucore.dylib in Frameworks */,
+				F9817ECE1988FBC60073E328 /* Foundation.framework in Frameworks */,
+				F95581C5198FCA64007CC2AF /* UIKit.framework in Frameworks */,
+				F95581C7198FCA6F007CC2AF /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C90B54831A7A0F6300167E14 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C90B54881A7A0F6300167E14 /* libNativeScript.a */,
+				C90B548A1A7A0F6300167E14 /* NativeScriptTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F9817EC11988FBC60073E328 = {
+			isa = PBXGroup;
+			children = (
+				C9E0D9111A63D55700A80E1F /* metadata-arm64.bin */,
+				C9E0D9121A63D55700A80E1F /* metadata-armv7.bin */,
+				C48F2B261994F03800A015FE /* NativeScript.xcodeproj */,
+				F9817ED31988FBC60073E328 /* TNSApp */,
+				F9817ECC1988FBC60073E328 /* Frameworks */,
+				F9817ECB1988FBC60073E328 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F9817ECB1988FBC60073E328 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F9817ECA1988FBC60073E328 /* TNSApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F9817ECC1988FBC60073E328 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F9817F1F198904600073E328 /* libc++.dylib */,
+				F9817F1D1989043C0073E328 /* libz.dylib */,
+				F9817F1B198904270073E328 /* libicucore.dylib */,
+				F9817ECD1988FBC60073E328 /* Foundation.framework */,
+				F95581C6198FCA6F007CC2AF /* CoreFoundation.framework */,
+				F95581C4198FCA64007CC2AF /* UIKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F9817ED31988FBC60073E328 /* TNSApp */ = {
+			isa = PBXGroup;
+			children = (
+				F9817F2719893F6C0073E328 /* tns_modules */,
+				F9817F22198906040073E328 /* app */,
+				F9817EE81988FBC60073E328 /* Images.xcassets */,
+				F9817ED41988FBC60073E328 /* Supporting Files */,
+			);
+			path = TNSApp;
+			sourceTree = "<group>";
+		};
+		F9817ED41988FBC60073E328 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				F9817ED51988FBC60073E328 /* TNSApp-Info.plist */,
+				F9817ED61988FBC60073E328 /* InfoPlist.strings */,
+				F9817ED91988FBC60073E328 /* main.m */,
+				F9817EDB1988FBC60073E328 /* TNSApp-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F9817EC91988FBC60073E328 /* TNSApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F9817EFF1988FBC60073E328 /* Build configuration list for PBXNativeTarget "TNSApp" */;
+			buildPhases = (
+				F9817EC61988FBC60073E328 /* Sources */,
+				F9817EC71988FBC60073E328 /* Frameworks */,
+				F9817F24198907A50073E328 /* Update JavaScript */,
+				F9817EC81988FBC60073E328 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C90B548D1A7A0F9200167E14 /* PBXTargetDependency */,
+			);
+			name = TNSApp;
+			productName = TNSApp;
+			productReference = F9817ECA1988FBC60073E328 /* TNSApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F9817EC21988FBC60073E328 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = TNS;
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = TNS;
+			};
+			buildConfigurationList = F9817EC51988FBC60073E328 /* Build configuration list for PBXProject "TNSApp" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F9817EC11988FBC60073E328;
+			productRefGroup = F9817ECB1988FBC60073E328 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = C90B54831A7A0F6300167E14 /* Products */;
+					ProjectRef = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				F9817EC91988FBC60073E328 /* TNSApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		C90B54881A7A0F6300167E14 /* libNativeScript.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libNativeScript.a;
+			remoteRef = C90B54871A7A0F6300167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B548A1A7A0F6300167E14 /* NativeScriptTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = NativeScriptTests.xctest;
+			remoteRef = C90B54891A7A0F6300167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F9817EC81988FBC60073E328 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9817F23198906040073E328 /* app in Resources */,
+				F9817EE91988FBC60073E328 /* Images.xcassets in Resources */,
+				C9E0D9141A63D55700A80E1F /* metadata-armv7.bin in Resources */,
+				F9817F2819893F6C0073E328 /* tns_modules in Resources */,
+				F9817ED81988FBC60073E328 /* InfoPlist.strings in Resources */,
+				C9E0D9131A63D55700A80E1F /* metadata-arm64.bin in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F9817F24198907A50073E328 /* Update JavaScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Update JavaScript";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "find \"${SRCROOT}/TNSApp/app/\". -exec touch {} \\;\nfind \"${SRCROOT}/TNSApp/tns_modules/\". -exec touch {} \\;";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F9817EC61988FBC60073E328 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9817EDA1988FBC60073E328 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C90B548D1A7A0F9200167E14 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = NativeScript;
+			targetProxy = C90B548C1A7A0F9200167E14 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		F9817ED61988FBC60073E328 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F9817ED71988FBC60073E328 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		F9817EFD1988FBC60073E328 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 armv7";
+			};
+			name = Debug;
+		};
+		F9817EFE1988FBC60073E328 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = "arm64 armv7";
+			};
+			name = Release;
+		};
+		F9817F001988FBC60073E328 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "TNSApp/TNSApp-Prefix.pch";
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = "TNSApp/TNSApp-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				VALID_ARCHS = "arm64 armv7";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		F9817F011988FBC60073E328 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "TNSApp/TNSApp-Prefix.pch";
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = "TNSApp/TNSApp-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				VALID_ARCHS = "arm64 armv7";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F9817EC51988FBC60073E328 /* Build configuration list for PBXProject "TNSApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F9817EFD1988FBC60073E328 /* Debug */,
+				F9817EFE1988FBC60073E328 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F9817EFF1988FBC60073E328 /* Build configuration list for PBXNativeTarget "TNSApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F9817F001988FBC60073E328 /* Debug */,
+				F9817F011988FBC60073E328 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F9817EC21988FBC60073E328 /* Project object */;
+}

@@ -1,3 +1,15 @@
 [submodule "src/webkit"]
 	path = src/webkit
 	url = https://github.com/NativeScript/webkit
+[submodule "src/metadata-generator"]
+	path = src/metadata-generator
+	url = git@github.com:NativeScript/ios-metadata-generator.git
+[submodule "tests/NativeScriptTests/NativeScriptTests/app/shared"]
+	path = tests/NativeScriptTests/NativeScriptTests/app/shared
+	url = git@github.com:NativeScript/common-runtime-tests-app.git
+[submodule "tests/NativeScriptTests/NativeScriptTests/tns_modules/shared"]
+	path = tests/NativeScriptTests/NativeScriptTests/tns_modules/shared
+	url = git@github.com:NativeScript/common-runtime-tests-modules.git
+[submodule "src/ios-runtime-jsc"]
+	path = src/ios-runtime-jsc
+	url = git@github.com:NativeScript/ios-runtime-jsc.git
