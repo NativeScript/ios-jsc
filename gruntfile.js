@@ -295,15 +295,30 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-grunt");
 
     grunt.registerTask("default", [
-        "jsc",
         "build"
     ]);
 
     grunt.registerTask("build", [
+        "jsc",
+        "buildNoJsc"
+    ]);
+
+    grunt.registerTask('test', [
+        "jsc",
+        "testNoJsc"
+    ]);
+
+    grunt.registerTask("buildNoJsc", [
         "package",
         "shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa",
         "exec:tnsAppBuildStats",
         "metadataGeneratorPackage"
+    ]);
+
+    grunt.registerTask('testNoJsc', [
+        'test-metadata',
+        'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
+        util.format('shell:runTests:./tests/NativeScriptTests/build/NativeScriptTests.app:./junit-result.xml:%s', DEVICE_UDID)
     ]);
 
     grunt.registerTask("package", [
@@ -386,12 +401,6 @@ module.exports = function (grunt) {
         "clean:outWebInspectorUIChrome",
         "mkdir:outWebInspectorUIChrome",
         "exec:webInspectorUIChrome"
-    ]);
-
-    grunt.registerTask('test', [
-        'test-metadata',
-        'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
-        util.format('shell:runTests:./tests/NativeScriptTests/build/NativeScriptTests.app:./junit-result.xml:%s', DEVICE_UDID)
     ]);
 
     grunt.registerTask('build-gameraww-ipa', [
