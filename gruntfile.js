@@ -185,6 +185,11 @@ module.exports = function (grunt) {
                 cmd: 'echo "TNS_IPA_SIZE:" $(du -k TNSApp.ipa | awk \'{print $1}\')KB && ' +
                     'echo "TNS_IPA_SIZE_KB\\n"$(du -k TNSApp.ipa | awk \'{print $1}\') > ../../../build-stats.csv',
                 cwd: path.join(srcDir, 'examples/TNSApp/build')
+            },
+
+            npmInstallMetadataGenerator: {
+                cmd: 'npm install',
+                cwd: 'src/metadata-generator'
             }
         },
         copy: {
@@ -344,6 +349,7 @@ module.exports = function (grunt) {
     grunt.registerTask("metadataGeneratorPackage", [
         "clean:outMetadataGenerator",
         "mkdir:outMetadataGenerator",
+        "exec:npmInstallMetadataGenerator",
         "grunt:metadataGeneratorPackage",
         "copy:metadataGenerator"
     ]);
@@ -351,12 +357,14 @@ module.exports = function (grunt) {
     grunt.registerTask("dist-metadata", [
         "clean:outSDKMetadata",
         "mkdir:outSDKMetadata",
+        "exec:npmInstallMetadataGenerator",
         "grunt:distMetadata"
     ]);
 
     grunt.registerTask("test-metadata", [
         "clean:outTestsMetadata",
         "mkdir:outTestsMetadata",
+        "exec:npmInstallMetadataGenerator",
         "grunt:testMetadata"
     ]);
 
