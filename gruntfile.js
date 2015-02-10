@@ -161,6 +161,10 @@ module.exports = function (grunt) {
             libJavaScriptCore_copyHeaders: {
                 cmd: "<%= srcDir %>/build/scripts/JSCCopyHeaders.sh"
             },
+            libJavaScriptCore_archive: {
+                cmd: "tar -cvzf jsc.tgz ./jsc",
+                cwd: "<%= outDistDir %>"
+            },
 
             libNativeScript_i386_x86_64: {
                 cmd: "xcodebuild -configuration Release -sdk iphonesimulator -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace SYMROOT=../../<%= outNativeScriptIntermediateDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" clean build > <%= outBuildLog %>"
@@ -320,7 +324,8 @@ module.exports = function (grunt) {
         "exec:libJavaScriptCore_armv7_arm64",
         "exec:libJavaScriptCore_universal",
         "exec:libJavaScriptCore_copyHeaders",
-        "clean:outJscIntermediates"
+        "clean:outJscIntermediates",
+        "exec:libJavaScriptCore_archive"
     ]);
 
     grunt.registerTask("build", [
