@@ -895,11 +895,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(PROJECT_DIR)/deps/include\"",
+					"\"$(PROJECT_DIR)/../../dist/jsc/include\"",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/deps/lib",
+					"\"$(PROJECT_DIR)/../../dist/jsc/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -936,11 +938,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(PROJECT_DIR)/deps/include\"",
+					"\"$(PROJECT_DIR)/../../dist/jsc/include\"",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/deps/lib",
+					"\"$(PROJECT_DIR)/../../dist/jsc/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1136,11 +1140,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(PROJECT_DIR)/deps/include\"",
+					"\"$(PROJECT_DIR)/../../dist/jsc/include\"",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/deps/lib",
+					"\"$(PROJECT_DIR)/../../dist/jsc/lib\"",
 				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";

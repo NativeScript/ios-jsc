@@ -13,6 +13,8 @@ module.exports = function (grunt) {
     // build outputs
     var outDistDir = srcDir + "/dist";
     var outJscDir = outDistDir + "/jsc";
+    var outJscLibDir = outJscDir + "/lib";
+    var outJscHeadersDir = outJscDir + "/include";
     var outNativeScriptDir = outDistDir + "/NativeScript.framework";
     var outNativeScriptIntermediateDir = outNativeScriptDir + "/intermediate";
     var outTNSDebuggingDir = outDistDir + "/TNSDebugging.framework";
@@ -56,6 +58,8 @@ module.exports = function (grunt) {
     grunt.initConfig({
         srcDir: srcDir,
         outJscDir: outJscDir,
+        outJscLibDir: outJscLibDir,
+        outJscHeadersDir: outJscHeadersDir,
         metadataGeneratorRepository: metadataGeneratorRepository,
         outDistDir: outDistDir,
         outNativeScriptDir: outNativeScriptDir,
@@ -85,6 +89,7 @@ module.exports = function (grunt) {
         clean: {
             outDist: [outDistDir],
             outJsc: [outJscDir],
+            outJscIntermediates: [outJscDir + "/JavaScriptCore.build", outJscDir + "/Production-iphonesimulator", outJscDir + "/WTF.build", outJscDir + "/Production-iphoneos"],
             outNativeScript: [outNativeScriptDir],
             outNativeScriptIntermediate: [outNativeScriptIntermediateDir],
             outTNSDebugging: [outTNSDebuggingDir],
@@ -105,6 +110,12 @@ module.exports = function (grunt) {
             },
             outJsc: {
                 options: { create: [outJscDir] }
+            },
+            outJscLib: {
+                options: { create: [outJscLibDir] }
+            },
+            outJscHeaders: {
+                options: { create: [outJscHeadersDir] }
             },
             outNativeScript: {
                 options: { create: [outNativeScriptDir] }
@@ -145,7 +156,7 @@ module.exports = function (grunt) {
                 cmd: "xcodebuild -project ./src/ios-runtime-jsc/JavaScriptCore/JavaScriptCore.xcodeproj -target \"JavaScriptCore iOS\" -sdk iphoneos -configuration Production SYMROOT=../../../<%= outJscDir %> ARCHS=\"armv7 arm64\" clean build | xcpretty"
             },
             libJavaScriptCore_universal: {
-                cmd: "lipo -create -output <%= srcDir %>/src/NativeScript/deps/lib/libJavaScriptCore.a <%= outJscDir %>/Production-iphonesimulator/libJavaScriptCore.a <%= outJscDir %>/Production-iphoneos/libJavaScriptCore.a"
+                cmd: "lipo -create -output <%= outJscDir %>/lib/libJavaScriptCore.a <%= outJscDir %>/Production-iphonesimulator/libJavaScriptCore.a <%= outJscDir %>/Production-iphoneos/libJavaScriptCore.a"
             },
             libJavaScriptCore_copyHeaders: {
                 cmd: "<%= srcDir %>/build/scripts/JSCCopyHeaders.sh"
@@ -294,28 +305,32 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-shell");
     grunt.loadNpmTasks("grunt-grunt");
 
+    // All grunt commands assume that JavaScriptCore is already built (grunt jsc)
+
     grunt.registerTask("default", [
         "build"
     ]);
 
+    grunt.registerTask("jsc", [
+        "clean:outJsc",
+        "mkdir:outJsc",
+        "mkdir:outJscLib",
+        "mkdir:outJscHeaders",
+        "exec:libJavaScriptCore_i386_x86_64",
+        "exec:libJavaScriptCore_armv7_arm64",
+        "exec:libJavaScriptCore_universal",
+        "exec:libJavaScriptCore_copyHeaders",
+        "clean:outJscIntermediates"
+    ]);
+
     grunt.registerTask("build", [
-        "jsc",
-        "buildNoJsc"
-    ]);
-
-    grunt.registerTask('test', [
-        "jsc",
-        "testNoJsc"
-    ]);
-
-    grunt.registerTask("buildNoJsc", [
         "package",
         "shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa",
         "exec:tnsAppBuildStats",
         "metadataGeneratorPackage"
     ]);
 
-    grunt.registerTask('testNoJsc', [
+    grunt.registerTask('test', [
         'test-metadata',
         'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
         util.format('shell:runTests:./tests/NativeScriptTests/build/NativeScriptTests.app:./junit-result.xml:%s', DEVICE_UDID)
@@ -330,15 +345,6 @@ module.exports = function (grunt) {
         "mkdir:outPackageFramework",
         "copy:packageComponents",
         "exec:npmPackPackage"
-    ]);
-
-    grunt.registerTask("jsc", [
-        "clean:outJsc",
-        "mkdir:outJsc",
-        "exec:libJavaScriptCore_i386_x86_64",
-        "exec:libJavaScriptCore_armv7_arm64",
-        "exec:libJavaScriptCore_universal",
-        "exec:libJavaScriptCore_copyHeaders"
     ]);
 
     grunt.registerTask("NativeScript", [

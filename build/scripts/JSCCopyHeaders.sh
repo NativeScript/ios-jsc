@@ -1,7 +1,7 @@
 #!/bin/bash
 
 JSC_HEADERS_SOURCE_PATH=./dist/jsc/Production-iphoneos/usr/local/include
-JSC_HEADERS_DEST_PATH=./src/NativeScript/deps/include
+JSC_HEADERS_DEST_PATH=./dist/jsc/include
 
 # Copy JavaScriptCode headers in JavaScriptCore folder
 cp -rf $JSC_HEADERS_SOURCE_PATH/ $JSC_HEADERS_DEST_PATH/JavaScriptCore

@@ -62,7 +62,4 @@ node_modules/
 junit-result.xml
 gamera-startup-result.xml
 build-stats.csv
-lib/libJavaScriptCore.a
-/src/NativeScript/deps/include/JavaScriptCore
-/src/NativeScript/deps/include/wtf
 
