@@ -347,8 +347,6 @@ module.exports = function (grunt) {
     grunt.registerTask("prepare", [
         // All tasks assume that JavaScriptCore is already built
         //"jsc",
-        "metadataGenerator",
-        "metadataMerger",
     ]);
 
     grunt.registerTask("build", [
@@ -404,6 +402,8 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask("package", [
+        "metadataGenerator",
+        "metadataMerger",
         "NativeScript",
         "TNSDebugging",
         "dist-metadata",
@@ -416,6 +416,8 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask('test', [
+        "metadataGenerator",
+        "metadataMerger",
         'test-metadata',
         'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
         util.format('shell:runTests:./tests/NativeScriptTests/build/NativeScriptTests.app:./junit-result.xml:%s', DEVICE_UDID)
@@ -463,11 +465,16 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask('build-gameraww-ipa', [
-        'dist-metadata',
-        'shell:archiveApp:examples/Gameraww/Gameraww.xcodeproj:Gameraww:examples/Gameraww/build/Gameraww.ipa'
+        "metadataGenerator",
+        "metadataMerger",
+        "dist-metadata",
+        "shell:archiveApp:examples/Gameraww/Gameraww.xcodeproj:Gameraww:examples/Gameraww/build/Gameraww.ipa"
     ]);
 
     grunt.registerTask('build-tnsapp-ipa', [
+        "metadataGenerator",
+        "metadataMerger",
+        'dist-metadata',
         'shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa'
     ]);
 };
