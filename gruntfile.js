@@ -339,14 +339,10 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-shell");
     grunt.loadNpmTasks("grunt-grunt");
 
-    grunt.registerTask("default", [
-        "prepare",
-        "build"
-    ]);
+    // All tasks assume that JavaScriptCore is already built
 
-    grunt.registerTask("prepare", [
-        // All tasks assume that JavaScriptCore is already built
-        //"jsc",
+    grunt.registerTask("default", [
+        "build"
     ]);
 
     grunt.registerTask("build", [
