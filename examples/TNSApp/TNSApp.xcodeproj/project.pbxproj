@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C90B553C1A96301200167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B55331A96300000167E14 /* libNativeScript.a */; };
 		C9E0D9131A63D55700A80E1F /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D9111A63D55700A80E1F /* metadata-arm64.bin */; };
 		C9E0D9141A63D55700A80E1F /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D9121A63D55700A80E1F /* metadata-armv7.bin */; };
 		F95581C5198FCA64007CC2AF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F95581C4198FCA64007CC2AF /* UIKit.framework */; };
@@ -37,6 +38,34 @@
 			remoteGlobalIDString = C9A9169B19E7C150002B1CC5;
 			remoteInfo = TNSDebuggingTests;
 		};
+		C90B55321A96300000167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 85B2A6BA197528FF00616E60;
+			remoteInfo = NativeScript;
+		};
+		C90B55341A96300000167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 85B2A6CA197528FF00616E60;
+			remoteInfo = NativeScriptTests;
+		};
+		C90B55381A96300A00167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
+			remoteInfo = NativeScript;
+		};
+		C90B553A1A96300C00167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F93AF0FF1A7BB90800F8E7F8 /* TNSDebugging.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = C9A9168F19E7C14F002B1CC5;
+			remoteInfo = TNSDebugging;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +94,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C90B553C1A96301200167E14 /* libNativeScript.a in Frameworks */,
 				F9817F20198904600073E328 /* libc++.dylib in Frameworks */,
 				F9817F1E1989043C0073E328 /* libz.dylib in Frameworks */,
 				F9817F1C198904270073E328 /* libicucore.dylib in Frameworks */,
@@ -82,6 +112,15 @@
 			children = (
 				C90B55171A96159E00167E14 /* libTNSDebugging.a */,
 				C90B55191A96159E00167E14 /* TNSDebuggingTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C90B552E1A96300000167E14 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C90B55331A96300000167E14 /* libNativeScript.a */,
+				C90B55351A96300000167E14 /* NativeScriptTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -157,6 +196,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				C90B553B1A96300C00167E14 /* PBXTargetDependency */,
+				C90B55391A96300A00167E14 /* PBXTargetDependency */,
 			);
 			name = TNSApp;
 			productName = TNSApp;
@@ -186,6 +227,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = C90B552E1A96300000167E14 /* Products */;
+					ProjectRef = C48F2B261994F03800A015FE /* NativeScript.xcodeproj */;
+				},
+				{
 					ProductGroup = C90B55121A96159E00167E14 /* Products */;
 					ProjectRef = F93AF0FF1A7BB90800F8E7F8 /* TNSDebugging.xcodeproj */;
 				},
@@ -210,6 +255,20 @@
 			fileType = wrapper.cfbundle;
 			path = TNSDebuggingTests.xctest;
 			remoteRef = C90B55181A96159E00167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55331A96300000167E14 /* libNativeScript.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libNativeScript.a;
+			remoteRef = C90B55321A96300000167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55351A96300000167E14 /* NativeScriptTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = NativeScriptTests.xctest;
+			remoteRef = C90B55341A96300000167E14 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -257,6 +316,19 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C90B55391A96300A00167E14 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = NativeScript;
+			targetProxy = C90B55381A96300A00167E14 /* PBXContainerItemProxy */;
+		};
+		C90B553B1A96300C00167E14 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = TNSDebugging;
+			targetProxy = C90B553A1A96300C00167E14 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F9817ED61988FBC60073E328 /* InfoPlist.strings */ = {

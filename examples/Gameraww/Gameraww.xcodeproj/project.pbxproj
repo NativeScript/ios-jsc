@@ -24,6 +24,7 @@
 		85BACA24194A094100D7BF8F /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85BACA23194A094100D7BF8F /* libc++.dylib */; };
 		C908F4641A5EC27B005401A3 /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4621A5EC27B005401A3 /* metadata-arm64.bin */; };
 		C908F4661A5EC27B005401A3 /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4631A5EC27B005401A3 /* metadata-armv7.bin */; };
+		C90B552A1A962F0A00167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B54F71A9607D800167E14 /* libNativeScript.a */; };
 		CD6782E519826B7500C9D350 /* tns_modules in Resources */ = {isa = PBXBuildFile; fileRef = CD6782E419826B7500C9D350 /* tns_modules */; };
 		CDFA780A18DB354B0035D043 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CDFA780918DB354B0035D043 /* app */; };
 /* End PBXBuildFile section */
@@ -63,6 +64,20 @@
 			proxyType = 2;
 			remoteGlobalIDString = 85B2A6CA197528FF00616E60;
 			remoteInfo = NativeScriptTests;
+		};
+		C90B55221A962EF300167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 85B2A76A197811C200616E60 /* NativeScript.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
+			remoteInfo = NativeScript;
+		};
+		C90B55281A962EF600167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = C9A9168F19E7C14F002B1CC5;
+			remoteInfo = TNSDebugging;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -149,6 +164,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C90B552A1A962F0A00167E14 /* libNativeScript.a in Frameworks */,
 				85B2A7691978119E00616E60 /* libicucore.dylib in Frameworks */,
 				85B2A7671978119900616E60 /* libz.dylib in Frameworks */,
 				85BACA24194A094100D7BF8F /* libc++.dylib in Frameworks */,
@@ -332,6 +348,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				C90B55291A962EF600167E14 /* PBXTargetDependency */,
+				C90B55231A962EF300167E14 /* PBXTargetDependency */,
 			);
 			name = Gameraww;
 			productName = Gameraww;
@@ -482,6 +500,16 @@
 			isa = PBXTargetDependency;
 			target = 85574E5318894B28005EC840 /* Gameraww */;
 			targetProxy = 85574E7418894B28005EC840 /* PBXContainerItemProxy */;
+		};
+		C90B55231A962EF300167E14 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = NativeScript;
+			targetProxy = C90B55221A962EF300167E14 /* PBXContainerItemProxy */;
+		};
+		C90B55291A962EF600167E14 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = TNSDebugging;
+			targetProxy = C90B55281A962EF600167E14 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
