@@ -1,9 +1,9 @@
-describe(module.id, function() {
-    afterEach(function() {
+describe(module.id, function () {
+    afterEach(function () {
         TNSClearOutput();
     });
 
-    it("SimpleRecord", function() {
+    it("SimpleRecord", function () {
         var record = new TNSSimpleStruct();
         expect(record instanceof TNSSimpleStruct).toBe(true);
 
@@ -11,38 +11,38 @@ describe(module.id, function() {
         expect(record.y).toBe(0);
     });
 
-    it("SimpleRecordEqualsFastPath", function() {
+    it("SimpleRecordEqualsFastPath", function () {
         var record1 = new TNSSimpleStruct();
         var record2 = new TNSSimpleStruct();
         expect(TNSSimpleStruct.equals(record1, record2)).toBe(true);
     });
 
-    it("SimpleRecordEqualsSlowPath", function() {
-        var record1 = { x: 1, y: 2 };
-        var record2 = { x: 1, y: 2 };
+    it("SimpleRecordEqualsSlowPath", function () {
+        var record1 = {x: 1, y: 2};
+        var record2 = {x: 1, y: 2};
         expect(TNSSimpleStruct.equals(record1, record2)).toBe(true);
     });
 
-    it("NestedRecordEqualsSlowPath1", function() {
+    it("NestedRecordEqualsSlowPath1", function () {
         var record1 = new TNSNestedStruct();
-        var record2 = { a: { x: 0, y: 0 }, b: { x: 0, y: 0 }};
+        var record2 = {a: {x: 0, y: 0}, b: {x: 0, y: 0}};
         expect(TNSNestedStruct.equals(record1, record2)).toBe(true);
     });
 
-    it("NestedRecordEqualsSlowPath2", function() {
-        var record1 = { a: { x: 0, y: 0 }, b: { x: 0, y: 0 }};
-        var record2 = { a: { x: 0, y: 0 }, b: { x: 0, y: 0 }};
+    it("NestedRecordEqualsSlowPath2", function () {
+        var record1 = {a: {x: 0, y: 0}, b: {x: 0, y: 0}};
+        var record2 = {a: {x: 0, y: 0}, b: {x: 0, y: 0}};
         expect(TNSNestedStruct.equals(record1, record2)).toBe(true);
     });
 
-    it("RecordConstructorLiteral", function() {
-        var record = new TNSNestedStruct({ a: { x: 1, y: 2 }, b: { x: 3, y: 4 }});
+    it("RecordConstructorLiteral", function () {
+        var record = new TNSNestedStruct({a: {x: 1, y: 2}, b: {x: 3, y: 4}});
         TNSTestNativeCallbacks.recordsNestedStruct(record);
         expect(TNSGetOutput()).toBe('1 2 3 4');
     });
 
-    it("RecordConstructorPointer", function() {
-        (function(){
+    it("RecordConstructorPointer", function () {
+        (function () {
             var size = interop.sizeof(TNSNestedStruct);
             expect(size).toBeGreaterThan(0);
             var buffer = interop.alloc(size);
@@ -53,8 +53,8 @@ describe(module.id, function() {
         __collect();
     });
 
-    it("RecordFunctionPointer", function() {
-        (function(){
+    it("RecordFunctionPointer", function () {
+        (function () {
             var size = interop.sizeof(TNSNestedStruct);
             expect(size).toBeGreaterThan(0);
             var buffer = interop.alloc(size);
@@ -66,13 +66,13 @@ describe(module.id, function() {
         __collect();
     });
 
-    it("RecordStrings", function() {
+    it("RecordStrings", function () {
         var record = new TNSNestedStruct();
         expect(JSON.stringify(record)).toBe('{"a":{"x":0,"y":0},"b":{"x":0,"y":0}}');
         expect(record.toString()).toMatch(/^<struct TNSNestedStruct: 0x\w+>$/)
     });
 
-    it("SimpleStructWraper", function() {
+    it("SimpleStructWraper", function () {
         var record = new TNSSimpleStruct();
         record.x = 7;
         record.y = 8;
@@ -84,7 +84,7 @@ describe(module.id, function() {
         expect(result.y).toBe(record.y);
     });
 
-    it("SimpleStructLiteral", function() {
+    it("SimpleStructLiteral", function () {
         var object = {
             x: 7,
             y: 8
@@ -110,7 +110,7 @@ describe(module.id, function() {
     //     expect(result).toEqual(object);
     // });
 
-    it("NestedAnonymousStruct", function() {
+    it("NestedAnonymousStruct", function () {
         var object = {
             x1: 1,
             y1: {
@@ -129,14 +129,14 @@ describe(module.id, function() {
         expect(result.y1.y2.x3).toBe(object.y1.y2.x3);
     });
 
-    it("NSRangeMake", function() {
+    it("NSRangeMake", function () {
         expect(NSRange.equals(NSMakeRange(1, 2), {
             location: 1,
             length: 2
         })).toBe(true);
     });
 
-    it("LinkedList", function() {
+    it("LinkedList", function () {
         var record = new TNSStructWithPointers();
         record.z = new TNSStructWithPointers();
         expect(record.z.value.z).toBe(null);

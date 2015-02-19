@@ -1,16 +1,20 @@
 // TODO: Use TypeScript definitions when they get ready
 var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
+        for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+        function __() {
+            this.constructor = d;
+        }
+
+        __.prototype = b.prototype;
+        d.prototype = new __();
+    };
 
 var TSObject = (function (_super) {
     __extends(TSObject, _super);
     function TSObject() {
         _super.apply(this, arguments);
     }
+
     TSObject.prototype.initBaseMethod = function () {
         var self = _super.prototype.initBaseMethod.call(this);
         TNSLog('js initBaseMethod called');
@@ -76,8 +80,8 @@ var TSObject = (function (_super) {
     TSObject.property = 1;
 
     TSObject.ObjCExposedMethods = {
-        'voidSelector': 'v',
-        'variadicSelector:x:': '@@i'
+        'voidSelector': {returns: interop.types.void},
+        'variadicSelector:x:': {returns: NSObject, params: [NSString, interop.types.int32]}
     };
     return TSObject;
 })(TNSDerivedInterface);
@@ -87,6 +91,7 @@ var TSObject1 = (function (_super) {
     function TSObject1() {
         _super.apply(this, arguments);
     }
+
     TSObject1.prototype.baseProtocolMethod1 = function () {
         TNSLog('baseProtocolMethod1 called');
     };
@@ -128,6 +133,7 @@ var TSObject1 = (function (_super) {
 var A = (function () {
     function A() {
     }
+
     return A;
 })();
 
@@ -136,6 +142,7 @@ var B = (function (_super) {
     function B() {
         _super.apply(this, arguments);
     }
+
     return B;
 })(A);
 
@@ -145,6 +152,7 @@ var UnusedConstructor = (function (_super) {
         _super.apply(this, arguments);
         this.x = 3;
     }
+
     return UnusedConstructor;
 })(NSObject);
 

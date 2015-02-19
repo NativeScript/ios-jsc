@@ -102,6 +102,10 @@ bool ObjCBlockType::canConvert(ExecState* execState, const JSValue& value, JSCel
     return value.isUndefinedOrNull();
 }
 
+const char* ObjCBlockType::encode(JSCell* cell) {
+    return "@?";
+}
+
 void ObjCBlockType::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes) {
     Base::finishCreation(vm);
 
@@ -110,6 +114,7 @@ void ObjCBlockType::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector
     this->_ffiTypeMethodTable.write = &write;
     this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
+    this->_ffiTypeMethodTable.encode = &encode;
 
     this->_returnType.set(vm, this, returnType);
 

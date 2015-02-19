@@ -56,11 +56,11 @@ var JSDetailViewController = UIViewController.extend({
 }, {
   name: "JSDetailViewController",
   exposedMethods: {
-    "toggleTopBarVisibility": "v",
-    "imageView": "@",
-    "setImageView:": "v@",
-    "activityIndicator": "@",
-    "setActivityIndicator:": "v@"
+    "toggleTopBarVisibility": { returns: interop.types.void },
+    "imageView": { returns: UIImageView },
+    "setImageView:": { returns: interop.types.void, params: [ UIImageView ] },
+    "activityIndicator": { returns: UIActivityIndicatorView },
+    "setActivityIndicator:": { returns: interop.types.void, params: [ UIActivityIndicatorView ] }
   },
-  protocols: [UIScrollViewDelegate]
+  protocols: [ UIScrollViewDelegate ]
 });

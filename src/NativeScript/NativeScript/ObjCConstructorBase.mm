@@ -63,6 +63,10 @@ bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value,
     return false;
 }
 
+const char* ObjCConstructorBase::encode(JSCell* cell) {
+    return "@";
+}
+
 void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Class klass) {
     Base::finishCreation(vm, WTF::String(class_getName(klass)));
 
@@ -76,6 +80,7 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
     this->_ffiTypeMethodTable.write = &write;
     this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
+    this->_ffiTypeMethodTable.encode = &encode;
 }
 
 WTF::String ObjCConstructorBase::className(const JSObject* object) {

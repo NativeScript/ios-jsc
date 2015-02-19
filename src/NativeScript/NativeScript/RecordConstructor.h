@@ -10,6 +10,7 @@
 #define __NativeScript__RecordConstructor__
 
 #include "FFIType.h"
+#include <string>
 
 namespace NativeScript {
 class RecordPrototype;
@@ -72,11 +73,15 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
+    static const char* encode(JSC::JSCell*);
+
     JSC::WriteBarrier<JSC::Structure> _instancesStructure;
 
     RecordType _recordType;
 
     FFITypeMethodTable _ffiTypeMethodTable;
+
+    std::string _compilerEncoding;
 };
 }
 

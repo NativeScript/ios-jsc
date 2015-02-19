@@ -50,12 +50,16 @@ static void voidType_postCall(ExecState* execState, const JSValue& value, void* 
 static bool voidType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isUndefinedOrNull();
 }
+static const char* voidType_encode(JSC::JSCell* self) {
+    return "v";
+}
 const FFITypeMethodTable voidTypeMethodTable = {
     .read = &voidType_read,
     .write = &voidType_write,
     .postCall = &voidType_postCall,
     .canConvert = &voidType_canConvert,
-    .ffiType = &ffi_type_void
+    .ffiType = &ffi_type_void,
+    .encode = &voidType_encode
 };
 
 #pragma mark boolType
@@ -70,12 +74,16 @@ static void boolType_postCall(ExecState* execState, const JSValue& value, void* 
 static bool boolType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return true;
 }
+static const char* boolType_encode(JSC::JSCell* self) {
+    return "B";
+}
 const FFITypeMethodTable boolTypeMethodTable = {
     .read = &boolType_read,
     .write = &boolType_write,
     .postCall = &boolType_postCall,
     .canConvert = &boolType_canConvert,
-    .ffiType = &ffi_type_sint8
+    .ffiType = &ffi_type_sint8,
+    .encode = &boolType_encode
 };
 
 #pragma mark unicharType
@@ -99,12 +107,16 @@ static void unicharType_postCall(ExecState* execState, const JSValue& value, voi
 static bool unicharType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isCell() && value.toString(execState)->length() == 1;
 }
+static const char* unicharType_encode(JSC::JSCell* self) {
+    return "S";
+}
 const FFITypeMethodTable unicharTypeMethodTable = {
     .read = &unicharType_read,
     .write = &unicharType_write,
     .postCall = &unicharType_postCall,
     .canConvert = &unicharType_canConvert,
-    .ffiType = &ffi_type_ushort
+    .ffiType = &ffi_type_ushort,
+    .encode = &unicharType_encode
 };
 
 #pragma mark cStringType
@@ -153,11 +165,15 @@ static void cStringType_postCall(ExecState* execState, const JSValue& value, voi
 static bool cStringType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return true;
 }
+static const char* cStringType_encode(JSC::JSCell* self) {
+    return "*";
+}
 const FFITypeMethodTable utf8CStringTypeMethodTable = {
     .read = &cStringType_read,
     .write = &cStringType_write,
     .postCall = &cStringType_postCall,
     .canConvert = &cStringType_canConvert,
-    .ffiType = &ffi_type_pointer
+    .ffiType = &ffi_type_pointer,
+    .encode = &cStringType_encode
 };
 }

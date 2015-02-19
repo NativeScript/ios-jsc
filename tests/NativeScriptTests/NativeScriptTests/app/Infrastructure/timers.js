@@ -8,7 +8,7 @@ var TimerCallbackTarget = NSObject.extend({
     }
 }, {
     exposedMethods: {
-        "tick:": "v@"
+        "tick:": { returns: interop.types.void, params: [ NSTimer ] }
     }
 });
 

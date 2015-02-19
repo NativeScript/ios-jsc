@@ -23,24 +23,7 @@
 		85B2A7691978119E00616E60 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85B2A7681978119E00616E60 /* libicucore.dylib */; };
 		85BACA24194A094100D7BF8F /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85BACA23194A094100D7BF8F /* libc++.dylib */; };
 		C908F4641A5EC27B005401A3 /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4621A5EC27B005401A3 /* metadata-arm64.bin */; };
-		C908F4651A5EC27B005401A3 /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4621A5EC27B005401A3 /* metadata-arm64.bin */; };
 		C908F4661A5EC27B005401A3 /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4631A5EC27B005401A3 /* metadata-armv7.bin */; };
-		C908F4671A5EC27B005401A3 /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4631A5EC27B005401A3 /* metadata-armv7.bin */; };
-		C90B547B1A7946FF00167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B545F1A793F3B00167E14 /* libNativeScript.a */; };
-		C90B54BA1A7A55EA00167E14 /* libTNSDebugging.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B54B51A7A55C500167E14 /* libTNSDebugging.a */; };
-		C90B54C11A7A568400167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B545F1A793F3B00167E14 /* libNativeScript.a */; };
-		C9A6601119FA73C700CC14D3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 85574E6318894B28005EC840 /* main.m */; };
-		C9A6601519FA73C700CC14D3 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85B2A7681978119E00616E60 /* libicucore.dylib */; };
-		C9A6601619FA73C700CC14D3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85B2A7661978119900616E60 /* libz.dylib */; };
-		C9A6601719FA73C700CC14D3 /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 85BACA23194A094100D7BF8F /* libc++.dylib */; };
-		C9A6601819FA73C700CC14D3 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85574E5918894B28005EC840 /* CoreGraphics.framework */; };
-		C9A6601919FA73C700CC14D3 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85574E5B18894B28005EC840 /* UIKit.framework */; };
-		C9A6601A19FA73C700CC14D3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85574E5718894B28005EC840 /* Foundation.framework */; };
-		C9A6601C19FA73C700CC14D3 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CDFA780918DB354B0035D043 /* app */; };
-		C9A6601D19FA73C700CC14D3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 85574E6018894B28005EC840 /* InfoPlist.strings */; };
-		C9A6601E19FA73C700CC14D3 /* GAMApplication.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 85736C341889F8A1006B1201 /* GAMApplication.storyboard */; };
-		C9A6601F19FA73C700CC14D3 /* tns_modules in Resources */ = {isa = PBXBuildFile; fileRef = CD6782E419826B7500C9D350 /* tns_modules */; };
-		C9A6602119FA73C700CC14D3 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 85574E6918894B28005EC840 /* Images.xcassets */; };
 		CD6782E519826B7500C9D350 /* tns_modules in Resources */ = {isa = PBXBuildFile; fileRef = CD6782E419826B7500C9D350 /* tns_modules */; };
 		CDFA780A18DB354B0035D043 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CDFA780918DB354B0035D043 /* app */; };
 /* End PBXBuildFile section */
@@ -53,47 +36,33 @@
 			remoteGlobalIDString = 85574E5318894B28005EC840;
 			remoteInfo = Gameraww;
 		};
-		C90B545E1A793F3B00167E14 /* PBXContainerItemProxy */ = {
+		C90B54E71A96078E00167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C9A9169019E7C14F002B1CC5;
+			remoteInfo = TNSDebugging;
+		};
+		C90B54E91A96078E00167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C9A9169B19E7C150002B1CC5;
+			remoteInfo = TNSDebuggingTests;
+		};
+		C90B54F61A9607D800167E14 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 85B2A76A197811C200616E60 /* NativeScript.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 85B2A6BA197528FF00616E60;
 			remoteInfo = NativeScript;
 		};
-		C90B54601A793F3B00167E14 /* PBXContainerItemProxy */ = {
+		C90B54F81A9607D800167E14 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 85B2A76A197811C200616E60 /* NativeScript.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 85B2A6CA197528FF00616E60;
 			remoteInfo = NativeScriptTests;
-		};
-		C90B54771A7946F500167E14 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 85B2A76A197811C200616E60 /* NativeScript.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
-			remoteInfo = NativeScript;
-		};
-		C90B54B41A7A55C500167E14 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C90B54AC1A7A55C400167E14 /* TNSDebugging.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C9A9169019E7C14F002B1CC5;
-			remoteInfo = TNSDebugging;
-		};
-		C90B54B61A7A55C500167E14 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C90B54AC1A7A55C400167E14 /* TNSDebugging.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C9A9169B19E7C150002B1CC5;
-			remoteInfo = TNSDebuggingTests;
-		};
-		C90B54B81A7A55E600167E14 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C90B54AC1A7A55C400167E14 /* TNSDebugging.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = C9A9168F19E7C14F002B1CC5;
-			remoteInfo = TNSDebugging;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -117,11 +86,9 @@
 		85B2A7681978119E00616E60 /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
 		85B2A76A197811C200616E60 /* NativeScript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NativeScript.xcodeproj; path = ../../src/NativeScript/NativeScript.xcodeproj; sourceTree = "<group>"; };
 		85BACA23194A094100D7BF8F /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
-		C908F4621A5EC27B005401A3 /* metadata-arm64.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-arm64.bin"; path = "../../dist/metadata/iPhoneSDK/metadata-arm64.bin"; sourceTree = "<group>"; };
-		C908F4631A5EC27B005401A3 /* metadata-armv7.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-armv7.bin"; path = "../../dist/metadata/iPhoneSDK/metadata-armv7.bin"; sourceTree = "<group>"; };
-		C90B54AC1A7A55C400167E14 /* TNSDebugging.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = TNSDebugging.xcodeproj; path = ../../src/debugging/TNSDebugging/TNSDebugging.xcodeproj; sourceTree = "<group>"; };
-		C9A6602519FA73C700CC14D3 /* GamerawwGamerawwWithInspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GamerawwGamerawwWithInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C9A6602619FA73C800CC14D3 /* GamerawwWithInspector-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GamerawwWithInspector-Info.plist"; sourceTree = "<group>"; };
+		C908F4621A5EC27B005401A3 /* metadata-arm64.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-arm64.bin"; path = "../../dist/metadata/iPhoneSDK/bin/metadata-arm64.bin"; sourceTree = "<group>"; };
+		C908F4631A5EC27B005401A3 /* metadata-armv7.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-armv7.bin"; path = "../../dist/metadata/iPhoneSDK/bin/metadata-armv7.bin"; sourceTree = "<group>"; };
+		C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = TNSDebugging.xcodeproj; path = ../../src/debugging/TNSDebugging/TNSDebugging.xcodeproj; sourceTree = "<group>"; };
 		CD45F05D18DC5FE700FB50C0 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		CD45F05E18DC5FE700FB50C0 /* Accounts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accounts.framework; path = System/Library/Frameworks/Accounts.framework; sourceTree = SDKROOT; };
 		CD45F05F18DC5FE700FB50C0 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
@@ -182,7 +149,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C90B547B1A7946FF00167E14 /* libNativeScript.a in Frameworks */,
 				85B2A7691978119E00616E60 /* libicucore.dylib in Frameworks */,
 				85B2A7671978119900616E60 /* libz.dylib in Frameworks */,
 				85BACA24194A094100D7BF8F /* libc++.dylib in Frameworks */,
@@ -202,28 +168,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C9A6601219FA73C700CC14D3 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C90B54C11A7A568400167E14 /* libNativeScript.a in Frameworks */,
-				C90B54BA1A7A55EA00167E14 /* libTNSDebugging.a in Frameworks */,
-				C9A6601519FA73C700CC14D3 /* libicucore.dylib in Frameworks */,
-				C9A6601619FA73C700CC14D3 /* libz.dylib in Frameworks */,
-				C9A6601719FA73C700CC14D3 /* libc++.dylib in Frameworks */,
-				C9A6601819FA73C700CC14D3 /* CoreGraphics.framework in Frameworks */,
-				C9A6601919FA73C700CC14D3 /* UIKit.framework in Frameworks */,
-				C9A6601A19FA73C700CC14D3 /* Foundation.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		85574E4B18894B28005EC840 = {
 			isa = PBXGroup;
 			children = (
-				C90B54AC1A7A55C400167E14 /* TNSDebugging.xcodeproj */,
+				C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */,
 				C908F4621A5EC27B005401A3 /* metadata-arm64.bin */,
 				C908F4631A5EC27B005401A3 /* metadata-armv7.bin */,
 				85B2A76A197811C200616E60 /* NativeScript.xcodeproj */,
@@ -239,7 +190,6 @@
 			children = (
 				85574E5418894B28005EC840 /* Gameraww.app */,
 				85574E6F18894B28005EC840 /* GamerawwTests.xctest */,
-				C9A6602519FA73C700CC14D3 /* GamerawwGamerawwWithInspector.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -324,7 +274,6 @@
 		85574E5E18894B28005EC840 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				C9A6602619FA73C800CC14D3 /* GamerawwWithInspector-Info.plist */,
 				85574E5F18894B28005EC840 /* Gameraww-Info.plist */,
 				85574E6018894B28005EC840 /* InfoPlist.strings */,
 				85574E6318894B28005EC840 /* main.m */,
@@ -351,20 +300,20 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		C90B545A1A793F3B00167E14 /* Products */ = {
+		C90B54E31A96078E00167E14 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C90B545F1A793F3B00167E14 /* libNativeScript.a */,
-				C90B54611A793F3B00167E14 /* NativeScriptTests.xctest */,
+				C90B54E81A96078E00167E14 /* libTNSDebugging.a */,
+				C90B54EA1A96078E00167E14 /* TNSDebuggingTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C90B54AD1A7A55C400167E14 /* Products */ = {
+		C90B54F21A9607D800167E14 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C90B54B51A7A55C500167E14 /* libTNSDebugging.a */,
-				C90B54B71A7A55C500167E14 /* TNSDebuggingTests.xctest */,
+				C90B54F71A9607D800167E14 /* libNativeScript.a */,
+				C90B54F91A9607D800167E14 /* NativeScriptTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -383,7 +332,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				C90B54781A7946F500167E14 /* PBXTargetDependency */,
 			);
 			name = Gameraww;
 			productName = Gameraww;
@@ -407,24 +355,6 @@
 			productName = GamerawwTests;
 			productReference = 85574E6F18894B28005EC840 /* GamerawwTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		C9A6600B19FA73C700CC14D3 /* GamerawwWithInspector */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C9A6602219FA73C700CC14D3 /* Build configuration list for PBXNativeTarget "GamerawwWithInspector" */;
-			buildPhases = (
-				C9A6601019FA73C700CC14D3 /* Sources */,
-				C9A6601219FA73C700CC14D3 /* Frameworks */,
-				C9A6601B19FA73C700CC14D3 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				C90B54B91A7A55E600167E14 /* PBXTargetDependency */,
-			);
-			name = GamerawwWithInspector;
-			productName = Gameraww;
-			productReference = C9A6602519FA73C700CC14D3 /* GamerawwGamerawwWithInspector.app */;
-			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
@@ -456,50 +386,49 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = C90B545A1A793F3B00167E14 /* Products */;
+					ProductGroup = C90B54F21A9607D800167E14 /* Products */;
 					ProjectRef = 85B2A76A197811C200616E60 /* NativeScript.xcodeproj */;
 				},
 				{
-					ProductGroup = C90B54AD1A7A55C400167E14 /* Products */;
-					ProjectRef = C90B54AC1A7A55C400167E14 /* TNSDebugging.xcodeproj */;
+					ProductGroup = C90B54E31A96078E00167E14 /* Products */;
+					ProjectRef = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
 				},
 			);
 			projectRoot = "";
 			targets = (
 				85574E5318894B28005EC840 /* Gameraww */,
 				85574E6E18894B28005EC840 /* GamerawwTests */,
-				C9A6600B19FA73C700CC14D3 /* GamerawwWithInspector */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		C90B545F1A793F3B00167E14 /* libNativeScript.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libNativeScript.a;
-			remoteRef = C90B545E1A793F3B00167E14 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		C90B54611A793F3B00167E14 /* NativeScriptTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = NativeScriptTests.xctest;
-			remoteRef = C90B54601A793F3B00167E14 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		C90B54B51A7A55C500167E14 /* libTNSDebugging.a */ = {
+		C90B54E81A96078E00167E14 /* libTNSDebugging.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libTNSDebugging.a;
-			remoteRef = C90B54B41A7A55C500167E14 /* PBXContainerItemProxy */;
+			remoteRef = C90B54E71A96078E00167E14 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		C90B54B71A7A55C500167E14 /* TNSDebuggingTests.xctest */ = {
+		C90B54EA1A96078E00167E14 /* TNSDebuggingTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = TNSDebuggingTests.xctest;
-			remoteRef = C90B54B61A7A55C500167E14 /* PBXContainerItemProxy */;
+			remoteRef = C90B54E91A96078E00167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B54F71A9607D800167E14 /* libNativeScript.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libNativeScript.a;
+			remoteRef = C90B54F61A9607D800167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B54F91A9607D800167E14 /* NativeScriptTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = NativeScriptTests.xctest;
+			remoteRef = C90B54F81A9607D800167E14 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -527,20 +456,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C9A6601B19FA73C700CC14D3 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C9A6601C19FA73C700CC14D3 /* app in Resources */,
-				C908F4651A5EC27B005401A3 /* metadata-arm64.bin in Resources */,
-				C9A6601D19FA73C700CC14D3 /* InfoPlist.strings in Resources */,
-				C9A6601E19FA73C700CC14D3 /* GAMApplication.storyboard in Resources */,
-				C908F4671A5EC27B005401A3 /* metadata-armv7.bin in Resources */,
-				C9A6601F19FA73C700CC14D3 /* tns_modules in Resources */,
-				C9A6602119FA73C700CC14D3 /* Images.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -560,14 +475,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C9A6601019FA73C700CC14D3 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C9A6601119FA73C700CC14D3 /* main.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -575,16 +482,6 @@
 			isa = PBXTargetDependency;
 			target = 85574E5318894B28005EC840 /* Gameraww */;
 			targetProxy = 85574E7418894B28005EC840 /* PBXContainerItemProxy */;
-		};
-		C90B54781A7946F500167E14 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = NativeScript;
-			targetProxy = C90B54771A7946F500167E14 /* PBXContainerItemProxy */;
-		};
-		C90B54B91A7A55E600167E14 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = TNSDebugging;
-			targetProxy = C90B54B81A7A55E600167E14 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -695,6 +592,11 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Gameraww/Gameraww-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+					"NATIVESCRIPT_DEBUGGING=1",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Applications/Xcode\\ 5.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
@@ -702,7 +604,10 @@
 				);
 				INFOPLIST_FILE = "Gameraww/Gameraww-Info.plist";
 				OTHER_CFLAGS = "-Werror-implicit-function-declaration";
-				OTHER_LDFLAGS = "-all_load";
+				OTHER_LDFLAGS = (
+					"-all_load",
+					"-lTNSDebugging",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				VALID_ARCHS = "arm64 armv7";
@@ -728,7 +633,10 @@
 				);
 				INFOPLIST_FILE = "Gameraww/Gameraww-Info.plist";
 				OTHER_CFLAGS = "-Werror-implicit-function-declaration";
-				OTHER_LDFLAGS = "-all_load";
+				OTHER_LDFLAGS = (
+					"-all_load",
+					"-lTNSDebugging",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				VALID_ARCHS = "arm64 armv7";
@@ -778,64 +686,6 @@
 			};
 			name = Release;
 		};
-		C9A6602319FA73C700CC14D3 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "Gameraww/Gameraww-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-					WAIT_FOR_INSPECTOR,
-				);
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Applications/Xcode\\ 5.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
-					"$(SRCROOT)/../../TNSBridgeInfrastructure/deps/libffi/include",
-				);
-				INFOPLIST_FILE = "Gameraww/GamerawwWithInspector-Info.plist";
-				OTHER_CFLAGS = "-Werror-implicit-function-declaration";
-				OTHER_LDFLAGS = "-all_load";
-				PRODUCT_NAME = GamerawwGamerawwWithInspector;
-				PROVISIONING_PROFILE = "";
-				VALID_ARCHS = "arm64 armv7";
-				WRAPPER_EXTENSION = app;
-			};
-			name = Debug;
-		};
-		C9A6602419FA73C700CC14D3 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "Gameraww/Gameraww-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = WAIT_FOR_INSPECTOR;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Applications/Xcode\\ 5.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include",
-					"$(SRCROOT)/../../TNSBridgeInfrastructure/deps/libffi/include",
-				);
-				INFOPLIST_FILE = "Gameraww/GamerawwWithInspector-Info.plist";
-				OTHER_CFLAGS = "-Werror-implicit-function-declaration";
-				OTHER_LDFLAGS = "-all_load";
-				PRODUCT_NAME = GamerawwGamerawwWithInspector;
-				PROVISIONING_PROFILE = "";
-				VALID_ARCHS = "arm64 armv7";
-				WRAPPER_EXTENSION = app;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -862,15 +712,6 @@
 			buildConfigurations = (
 				85574E8418894B28005EC840 /* Debug */,
 				85574E8518894B28005EC840 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		C9A6602219FA73C700CC14D3 /* Build configuration list for PBXNativeTarget "GamerawwWithInspector" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C9A6602319FA73C700CC14D3 /* Debug */,
-				C9A6602419FA73C700CC14D3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

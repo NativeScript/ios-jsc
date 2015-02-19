@@ -20,11 +20,10 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     this->_klass = klass;
 
     const char* jsName = metadata->jsName();
-    const char* methodEncoding = metadata->encoding();
+    Metadata::MetaFileOffset cursor = metadata->encodingOffset();
 
-    ptrdiff_t consumed = 0;
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, methodEncoding, &consumed);
-    const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, methodEncoding + consumed);
+    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
+    const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, metadata->encodingCount() - 1);
 
     Base::finishCreation(vm, jsName, returnType, parametersTypes, 2);
     Base::setArgument(1, metadata->selector());

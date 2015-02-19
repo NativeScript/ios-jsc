@@ -211,10 +211,10 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     case MetaType::Function: {
         void* functionSymbol = SymbolLoader::instance().loadFunctionSymbol(symbolMeta->framework(), symbolMeta->name());
         if (functionSymbol) {
-            ptrdiff_t consumed = 0;
             const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, functionMeta->encoding(), &consumed);
-            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, functionMeta->encoding() + consumed);
+            Metadata::MetaFileOffset cursor = functionMeta->encodingOffset();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
+            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, functionMeta->encodingCount() - 1);
             symbolWrapper = FFIFunctionCall::create(vm, globalObject->ffiFunctionCallStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
         }
         break;
@@ -223,7 +223,8 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         const VarMeta* varMeta = static_cast<const VarMeta*>(symbolMeta);
         void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->framework(), varMeta->name());
         if (varSymbol) {
-            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, varMeta->encoding());
+            MetaFileOffset cursor = varMeta->encodingOffset();
+            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, cursor);
             symbolWrapper = getFFITypeMethodTable(symbolType).read(execState, varSymbol, symbolType);
         }
         break;

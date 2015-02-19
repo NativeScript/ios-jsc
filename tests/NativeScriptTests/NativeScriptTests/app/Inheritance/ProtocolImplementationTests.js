@@ -1,11 +1,11 @@
-describe(module.id, function() {
+describe(module.id, function () {
     afterEach(function () {
         TNSClearOutput();
     });
 
-    it('Methods', function() {
+    it('Methods', function () {
         var object = NSObject.extend({
-            baseProtocolMethod1: function() {
+            baseProtocolMethod1: function () {
                 TNSLog('baseProtocolMethod1 called');
             }
         }, {
@@ -28,7 +28,7 @@ describe(module.id, function() {
         TNSClearOutput();
     });
 
-    it('Properties', function() {
+    it('Properties', function () {
         var object = NSObject.extend({
             get baseProtocolProperty1() {
                 TNSLog('baseProtocolProperty1 called');
@@ -70,12 +70,12 @@ describe(module.id, function() {
         TNSClearOutput();
     });
 
-    it("ProtocolInheritance", function() {
+    it("ProtocolInheritance", function () {
         var object = NSObject.extend({
-            baseProtocolMethod1: function() {
+            baseProtocolMethod1: function () {
                 TNSLog('baseProtocolMethod1 called');
             },
-            baseProtocolMethod2: function() {
+            baseProtocolMethod2: function () {
                 TNSLog('baseProtocolMethod2 called');
             },
         }, {
@@ -101,9 +101,9 @@ describe(module.id, function() {
         TNSClearOutput();
     });
 
-    it('OptionalMethods', function() {
+    it('OptionalMethods', function () {
         var object = NSObject.extend({
-            baseProtocolMethod1Optional: function() {
+            baseProtocolMethod1Optional: function () {
                 TNSLog('baseProtocolMethod1Optional called');
             },
         }, {
@@ -126,7 +126,7 @@ describe(module.id, function() {
         TNSClearOutput();
     });
 
-    it('AlreadyImplementedProtocol', function() {
+    it('AlreadyImplementedProtocol', function () {
         TNSDerivedInterface.extend({}, {
             protocols: [TNSBaseProtocol1]
         });

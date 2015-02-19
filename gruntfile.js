@@ -21,7 +21,9 @@ module.exports = function (grunt) {
     var outTNSDebuggingIntermediateDir = outTNSDebuggingDir + "/intermediate";
     var outPackageDir = outDistDir + "/package";
     var outPackageFrameworkDir = outPackageDir + "/framework";
+    var outPackageFrameworkMetadataDir = outPackageFrameworkDir + "/Metadata";
     var outMetadataGeneratorDir = outDistDir + "/metadataGenerator";
+    var outMetadataMergerDir = outDistDir + "/metadataMerger";
     var outMetadataDir = outDistDir + "/metadata";
     var outSDKMetadataDir = outMetadataDir + "/iPhoneSDK";
     var outTestsMetadataDir = outMetadataDir + "/tests";
@@ -68,7 +70,9 @@ module.exports = function (grunt) {
         outTNSDebuggingIntermediateDir: outTNSDebuggingIntermediateDir,
         outPackageDir: outPackageDir,
         outPackageFrameworkDir: outPackageFrameworkDir,
+        outPackageFrameworkMetadataDir: outPackageFrameworkMetadataDir,
         outMetadataGeneratorDir: outMetadataGeneratorDir,
+        outMetadataMergerDir: outMetadataMergerDir,
         outMetadataDir: outMetadataDir,
         outSDKMetadataDir: outSDKMetadataDir,
         outTestsMetadataDir: outTestsMetadataDir,
@@ -96,7 +100,9 @@ module.exports = function (grunt) {
             outTNSDebuggingIntermediate: [outTNSDebuggingIntermediateDir],
             outPackage: [outPackageDir],
             outPackageFramework: [outPackageFrameworkDir],
+            outPackageFrameworkMetadata: [outPackageFrameworkMetadataDir],
             outMetadataGenerator: [outMetadataGeneratorDir],
+            outMetadataMerger: [outMetadataMergerDir],
             outSDKMetadata: [outSDKMetadataDir],
             outTestsMetadata: [outTestsMetadataDir],
             outWebInspectorUI: [outWebInspectorUIDir],
@@ -129,8 +135,14 @@ module.exports = function (grunt) {
             outPackageFramework : {
                 options: { create: [outPackageFrameworkDir] }
             },
+            outPackageFrameworkMetadata : {
+                options: { create: [outPackageFrameworkMetadataDir] }
+            },
             outMetadataGenerator: {
                 options: { create: [outMetadataGeneratorDir] }
+            },
+            outMetadataMerger : {
+                options: { create: [outMetadataMergerDir] }
             },
             outSDKMetadata: {
                 options: { create: [outSDKMetadataDir] }
@@ -216,12 +228,6 @@ module.exports = function (grunt) {
                 ]
             },
 
-            metadataGenerator: {
-                files: [
-                    { expand: true, cwd: "<%= metadataGeneratorRepository %>/build", src: "MetadataGenerator", dest: "<%= outMetadataGeneratorDir %>" }
-                ]
-            },
-
             webInspectorUISafari: {
                 files: [
                     { expand: true, cwd: "<%= outWebInspectorUISafariIntermediateDir %>/Release/WebInspectorUI.framework/Resources", src: "**", dest: "<%= outWebInspectorUISafariDir %>" }
@@ -233,7 +239,9 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= outDistDir %>", src: ["TNSDebugging.framework", "TNSDebugging.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= outDistDir %>", src: ["WebInspectorUI", "WebInspectorUI/**"], dest: "<%= outPackageDir %>" },
-                    { expand: true, cwd: "<%= outSDKMetadataDir %>", src: "**", dest: "<%= outPackageFrameworkDir %>" },
+                    { expand: true, cwd: "<%= outSDKMetadataDir %>/yaml", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
+                    { expand: true, cwd: "<%= outMetadataGeneratorDir %>", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
+                    { expand: true, cwd: "<%= outMetadataMergerDir %>", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
                 ]
@@ -250,6 +258,36 @@ module.exports = function (grunt) {
                     outputPath = path.join('../../', outputPath);
 
                     return util.format('xcodebuild -project %s -target %s -configuration Release -sdk iphoneos ARCHS=armv7 VALID_ARCHS=armv7 CONFIGURATION_BUILD_DIR="%s" clean build | xcpretty', project, target, outputPath);
+                }
+            },
+
+            generateYamlMetadata: {
+                command: function (umbrellaHeader, outputPath, clangArgs) {
+                    umbrellaHeader = path.resolve(umbrellaHeader);
+                    outputPath = path.resolve(outputPath);
+                    return util.format('MetadataGenerator -s "%s" -u "%s" -o "%s" -cflags="%s"', IPHONEOS_SDK_PATH, umbrellaHeader, outputPath, clangArgs);
+                },
+                options: {
+                    execOptions: {
+                        cwd: outMetadataGeneratorDir,
+                        env: {
+                            'DYLD_LIBRARY_PATH': path.join(XCODE_PATH, 'Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib')
+                        }
+                    }
+                }
+            },
+
+            generateBinMetadata: {
+                command: function (inputPath, outputPath) {
+                    inputPath = path.resolve(inputPath);
+                    outputPath = path.resolve(outputPath);
+                    return util.format('./MetaMerge %s %s', inputPath, outputPath) +
+                        util.format('&& echo "TNS_METADATA_SIZE:" $(du -k %s | awk \'{print $1}\')KB', outputPath);
+                },
+                options: {
+                    execOptions: {
+                        cwd: outMetadataMergerDir,
+                    }
                 }
             },
 
@@ -283,17 +321,13 @@ module.exports = function (grunt) {
         },
 
         grunt: {
-            metadataGeneratorPackage: {
+            metadataGenerator: {
                 gruntfile: metadataGeneratorRepository + "/gruntfile.js",
-                task: "package"
+                task: util.format("packageGenerator:%s", path.resolve(outMetadataGeneratorDir))
             },
-            distMetadata: {
+            metadataMerger: {
                 gruntfile: metadataGeneratorRepository + "/gruntfile.js",
-                task: util.format("generate:%s:%s", path.resolve(srcDir + "/build/ios-sdk-umbrella-headers/ios8.0.h"), path.resolve(outSDKMetadataDir))
-            },
-            testMetadata: {
-                gruntfile: metadataGeneratorRepository + "/gruntfile.js",
-                task: util.format("generate:%s:%s", path.resolve(srcDir + "/tests/NativeScriptTests/NativeScriptTests/TNSTestCases.h"), path.resolve(outTestsMetadataDir))
+                task: util.format("packageMerger:%s", path.resolve(outMetadataMergerDir))
             }
         }
     });
@@ -305,10 +339,22 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-shell");
     grunt.loadNpmTasks("grunt-grunt");
 
-    // All grunt commands assume that JavaScriptCore is already built (grunt jsc)
-
     grunt.registerTask("default", [
+        "prepare",
         "build"
+    ]);
+
+    grunt.registerTask("prepare", [
+        // All tasks assume that JavaScriptCore is already built
+        //"jsc",
+        "metadataGenerator",
+        "metadataMerger",
+    ]);
+
+    grunt.registerTask("build", [
+        "package",
+        "shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa",
+        "exec:tnsAppBuildStats"
     ]);
 
     grunt.registerTask("jsc", [
@@ -323,28 +369,18 @@ module.exports = function (grunt) {
         "clean:outJscIntermediates"
     ]);
 
-    grunt.registerTask("build", [
-        "package",
-        "shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa",
-        "exec:tnsAppBuildStats",
-        "metadataGeneratorPackage"
+    grunt.registerTask("metadataGenerator", [
+        "clean:outMetadataGenerator",
+        "mkdir:outMetadataGenerator",
+        "exec:npmInstallMetadataGenerator",
+        "grunt:metadataGenerator"
     ]);
 
-    grunt.registerTask('test', [
-        'test-metadata',
-        'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
-        util.format('shell:runTests:./tests/NativeScriptTests/build/NativeScriptTests.app:./junit-result.xml:%s', DEVICE_UDID)
-    ]);
-
-    grunt.registerTask("package", [
-        "NativeScript",
-        "TNSDebugging",
-        "dist-metadata",
-        "WebInspectorUI",
-        "clean:outPackage",
-        "mkdir:outPackageFramework",
-        "copy:packageComponents",
-        "exec:npmPackPackage"
+    grunt.registerTask("metadataMerger", [
+        "clean:outMetadataMerger",
+        "mkdir:outMetadataMerger",
+        "exec:npmInstallMetadataGenerator",
+        "grunt:metadataMerger"
     ]);
 
     grunt.registerTask("NativeScript", [
@@ -367,26 +403,43 @@ module.exports = function (grunt) {
         "clean:outTNSDebuggingIntermediate"
     ]);
 
-    grunt.registerTask("metadataGeneratorPackage", [
-        "clean:outMetadataGenerator",
-        "mkdir:outMetadataGenerator",
-        "exec:npmInstallMetadataGenerator",
-        "grunt:metadataGeneratorPackage",
-        "copy:metadataGenerator"
+    grunt.registerTask("package", [
+        "NativeScript",
+        "TNSDebugging",
+        "dist-metadata",
+        "WebInspectorUI",
+        "clean:outPackage",
+        "mkdir:outPackageFramework",
+        "mkdir:outPackageFrameworkMetadata",
+        "copy:packageComponents",
+        "exec:npmPackPackage"
     ]);
+
+    grunt.registerTask('test', [
+        'test-metadata',
+        'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
+        util.format('shell:runTests:./tests/NativeScriptTests/build/NativeScriptTests.app:./junit-result.xml:%s', DEVICE_UDID)
+    ]);
+
+    grunt.registerTask("metadata", function(umbrellaHeader, outputPath, clangArgs) {
+        clangArgs = clangArgs || "";
+        var yamlPath = path.resolve(path.join(outputPath, "yaml"));
+        var binPath = path.resolve(path.join(outputPath, "bin"));
+        grunt.task.run(util.format('shell:generateYamlMetadata:%s:%s:%s', umbrellaHeader, yamlPath, clangArgs));
+        grunt.task.run(util.format('shell:generateBinMetadata:%s:%s', path.join(yamlPath, "Metadata-armv7"), path.join(binPath, "'metadata-armv7.bin'")));
+        grunt.task.run(util.format('shell:generateBinMetadata:%s:%s', path.join(yamlPath, "Metadata-arm64"), path.join(binPath, "'metadata-arm64.bin'")));
+    });
 
     grunt.registerTask("dist-metadata", [
         "clean:outSDKMetadata",
         "mkdir:outSDKMetadata",
-        "exec:npmInstallMetadataGenerator",
-        "grunt:distMetadata"
+        util.format("metadata:%s:%s:%s", srcDir + "/build/ios-sdk-umbrella-headers/ios8.0.h", outSDKMetadataDir, "")
     ]);
 
     grunt.registerTask("test-metadata", [
         "clean:outTestsMetadata",
         "mkdir:outTestsMetadata",
-        "exec:npmInstallMetadataGenerator",
-        "grunt:testMetadata"
+        util.format("metadata:%s:%s:%s", srcDir + "/tests/NativeScriptTests/NativeScriptTests/TNSTestCases.h", outTestsMetadataDir, "")
     ]);
 
     grunt.registerTask("WebInspectorUI", [

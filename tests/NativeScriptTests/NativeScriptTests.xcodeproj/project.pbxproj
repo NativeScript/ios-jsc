@@ -62,8 +62,8 @@
 /* Begin PBXFileReference section */
 		C90090AC19C86ACE008C1794 /* TNSMetadataSymbols.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TNSMetadataSymbols.m; path = Metadata/TNSMetadataSymbols.m; sourceTree = "<group>"; };
 		C90090AD19C86ACE008C1794 /* TNSMetadataSymbols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TNSMetadataSymbols.h; path = Metadata/TNSMetadataSymbols.h; sourceTree = "<group>"; };
-		C9E0D90B1A63D4AD00A80E1F /* metadata-arm64.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-arm64.bin"; path = "../../dist/metadata/tests/metadata-arm64.bin"; sourceTree = "<group>"; };
-		C9E0D90C1A63D4AD00A80E1F /* metadata-armv7.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-armv7.bin"; path = "../../dist/metadata/tests/metadata-armv7.bin"; sourceTree = "<group>"; };
+		C9E0D90B1A63D4AD00A80E1F /* metadata-arm64.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-arm64.bin"; path = "../../dist/metadata/tests/bin/metadata-arm64.bin"; sourceTree = "<group>"; };
+		C9E0D90C1A63D4AD00A80E1F /* metadata-armv7.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-armv7.bin"; path = "../../dist/metadata/tests/bin/metadata-armv7.bin"; sourceTree = "<group>"; };
 		CD0883C9198B9395003A4E9A /* TNSFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSFunctions.h; sourceTree = "<group>"; };
 		CD0883CA198B9395003A4E9A /* TNSFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSFunctions.m; sourceTree = "<group>"; };
 		CD7BF7361987F041007FA09B /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };

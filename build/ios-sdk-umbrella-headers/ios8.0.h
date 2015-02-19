@@ -67,7 +67,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <QuickLook/QuickLook.h>
 #import <SafariServices/SafariServices.h>
-//#import <SceneKit/SceneKit.h>
+#import <SceneKit/SceneKit.h>
 #import <Security/Security.h>
 #import <Social/Social.h>
 #import <SpriteKit/SpriteKit.h>

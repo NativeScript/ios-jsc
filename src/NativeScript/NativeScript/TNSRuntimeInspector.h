@@ -7,6 +7,7 @@
 //
 
 #import "TNSRuntime.h"
+#import <Foundation/Foundation.h>
 
 @interface TNSRuntimeInspector : NSObject
 

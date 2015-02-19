@@ -12,6 +12,7 @@
 #include "RecordPrototype.h"
 #include "RecordInstance.h"
 #include "RecordField.h"
+#include <sstream>
 
 namespace NativeScript {
 using namespace JSC;
@@ -134,6 +135,28 @@ bool RecordConstructor::canConvert(ExecState* execState, const JSValue& value, J
     return value.isObject() || value.inherits(RecordInstance::info());
 }
 
+const char* RecordConstructor::encode(JSCell* cell) {
+    RecordConstructor* self = jsCast<RecordConstructor*>(cell);
+    VM& vm = self->globalObject()->vm();
+
+    if (!self->_compilerEncoding.empty()) {
+        return self->_compilerEncoding.c_str();
+    }
+
+    std::stringstream ss;
+    ss << (self->_recordType == RecordType::Struct ? "{" : "(");
+    ss << jsCast<JSString*>(self->getDirect(vm, vm.propertyNames->name))->tryGetValue().utf8().data() << "=";
+
+    RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(self->getDirect(vm, vm.propertyNames->prototype));
+    for (RecordField* field : recordPrototype->fields()) {
+        ss << field->ffiTypeMethodTable().encode(field);
+    }
+
+    ss << (self->_recordType == RecordType::Struct ? "}" : ")");
+    self->_compilerEncoding = ss.str();
+    return self->_compilerEncoding.c_str();
+}
+
 void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, RecordPrototype* recordPrototype, const WTF::String& name, ffi_type* ffiType, RecordType recordType) {
     Base::finishCreation(vm, name.at(0) == '?' ? WTF::emptyString() : name);
 
@@ -142,6 +165,7 @@ void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, Rec
     this->_ffiTypeMethodTable.write = &write;
     this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
+    this->_ffiTypeMethodTable.encode = &encode;
     this->_recordType = recordType;
 
     this->putDirect(vm, vm.propertyNames->prototype, recordPrototype, DontEnum | DontDelete | ReadOnly);

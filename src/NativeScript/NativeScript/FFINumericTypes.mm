@@ -23,12 +23,16 @@ using namespace JSC;
     static bool name##CanConvert(ExecState* execState, const JSValue& value, JSCell* self) {             \
         return true;                                                                                     \
     }                                                                                                    \
+    static const char* name##encode(JSCell* self) {                                                      \
+        return @encode(T);                                                                               \
+    }                                                                                                    \
     const FFITypeMethodTable name##TypeMethodTable = {                                                   \
         .read = name##Read,                                                                              \
         .write = name##Write,                                                                            \
         .postCall = name##PostCall,                                                                      \
         .canConvert = name##CanConvert,                                                                  \
-        .ffiType = &ffi_type                                                                             \
+        .ffiType = &ffi_type,                                                                            \
+        .encode = name##encode                                                                           \
     };
 
 CREATE_NUMERIC_TYPE_METHOD_TABLE(int8, int8_t, ffi_type_sint8);

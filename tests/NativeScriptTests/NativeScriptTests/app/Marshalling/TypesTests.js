@@ -1,4 +1,4 @@
-describe(module.id, function() {
+describe(module.id, function () {
     afterEach(function () {
         TNSClearOutput();
     });
@@ -6,7 +6,7 @@ describe(module.id, function() {
     it("Types", function () {
         expect(interop.types.void).toBeDefined();
         expect(interop.types.void.toString()).toBe('[object void]');
-        expect(function() {
+        expect(function () {
             interop.sizeof(interop.types.void);
         }).toThrowError();
 
@@ -78,7 +78,7 @@ describe(module.id, function() {
         expect(interop.types.selector.toString()).toBe('[object selector]');
         expect(interop.sizeof(interop.types.selector)).toBe(interop.sizeof(interop.Pointer));
     });
-         
+
     function pointerTo(type, value) {
         var outerPtr = interop.alloc(interop.sizeof(interop.Pointer));
         var outerRef = new interop.Reference(type, outerPtr);
@@ -156,14 +156,14 @@ describe(module.id, function() {
         var type2 = interop.types.BlockType(interop.types.BlockType(interop.types.ReferenceType(interop.types.int32)), interop.types.int32);
         expect(type1 === type2).toBe(true);
     });
-         
+
     it("BoolTypeReadingFromPointer", function () {
         var flag = true;
         var boolPtr = pointerTo(interop.types.bool, flag);
         var result = interop.types.bool(boolPtr);
         expect(result === flag).toBe(true);
     });
-         
+
     it("FloatTypeReadingFromPointer", function () {
         var number = 3.14;
         var doublePtr = pointerTo(interop.types.double, number);

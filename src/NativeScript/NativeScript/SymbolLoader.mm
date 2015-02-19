@@ -45,26 +45,32 @@ CFBundleRef getBundleFromName(std::map<const char*, WTF::RetainPtr<CFBundleRef>>
     return bundle.get();
 }
 
-void* SymbolLoader::loadFunctionSymbol(const char* libraryName, const char* symbolName) {
-    CFBundleRef bundle = getBundleFromName(this->_cache, libraryName);
+void* SymbolLoader::loadFunctionSymbol(std::string libraryName, const char* symbolName) {
+    CFBundleRef bundle = getBundleFromName(this->_cache, libraryName.c_str());
     if (bundle) {
-        return CFBundleGetFunctionPointerForName(bundle, (CFStringRef) @(symbolName));
+        void* handle = CFBundleGetFunctionPointerForName(bundle, (CFStringRef) @(symbolName));
+        if (handle) {
+            return handle;
+        }
     }
 
     return dlsym(RTLD_DEFAULT, symbolName);
 }
 
-void* SymbolLoader::loadDataSymbol(const char* libraryName, const char* symbolName) {
-    CFBundleRef bundle = getBundleFromName(this->_cache, libraryName);
+void* SymbolLoader::loadDataSymbol(std::string libraryName, const char* symbolName) {
+    CFBundleRef bundle = getBundleFromName(this->_cache, libraryName.c_str());
     if (bundle) {
-        return CFBundleGetDataPointerForName(bundle, (CFStringRef) @(symbolName));
+        void* handle = CFBundleGetDataPointerForName(bundle, (CFStringRef) @(symbolName));
+        if (handle) {
+            return handle;
+        }
     }
 
     return dlsym(RTLD_DEFAULT, symbolName);
 }
 
-bool SymbolLoader::ensureFramework(const char* frameworkName) {
-    CFBundleRef bundle = getBundleFromName(this->_cache, frameworkName);
+bool SymbolLoader::ensureFramework(std::string frameworkName) {
+    CFBundleRef bundle = getBundleFromName(this->_cache, frameworkName.c_str());
     if (!bundle) {
         return false;
     }

@@ -242,10 +242,10 @@
     [object removeObjectAtIndex:2];
     [object removeLastObject];
     object[3] = @"d";
-    [TNSGetOutput() appendFormat:@"%d%d", [object count], [object hash]];
+    TNSLog([NSString stringWithFormat:@"%d%d", [object count], [object hash]]);
 
     for (id x in object) {
-        [TNSGetOutput() appendFormat:@"%@", x];
+        TNSLog([NSString stringWithFormat:@"%@", x]);
     }
 }
 

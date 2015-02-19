@@ -16,9 +16,9 @@ class SymbolLoader {
 public:
     static SymbolLoader& instance();
 
-    void* loadFunctionSymbol(const char* libraryName, const char* symbolName);
-    void* loadDataSymbol(const char* libraryName, const char* symbolName);
-    bool ensureFramework(const char* frameworkName);
+    void* loadFunctionSymbol(std::string libraryName, const char* symbolName);
+    void* loadDataSymbol(std::string libraryName, const char* symbolName);
+    bool ensureFramework(std::string frameworkName);
 
 private:
     SymbolLoader();

@@ -23,6 +23,8 @@ struct FFITypeMethodTable {
     bool (*canConvert)(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell* self);
 
     const ffi_type* ffiType;
+
+    const char* (*encode)(JSC::JSCell* self);
 };
 
 bool tryGetFFITypeMethodTable(JSC::JSValue value, const FFITypeMethodTable** methodTable);

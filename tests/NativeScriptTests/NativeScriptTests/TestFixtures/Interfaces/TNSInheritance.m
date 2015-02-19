@@ -11,7 +11,7 @@
 @implementation TNSIConstructorVirtualCalls
 
 - (id)initWithX:(int)x andY:(int)y {
-    [TNSGetOutput() appendFormat:@"constructor initWithX:%dandY:%d called", x, y];
+    TNSLog([NSString stringWithFormat:@"constructor initWithX:%dandY:%d called", x, y]);
 
     if (self = [super init]) {
         _x = x;
@@ -31,24 +31,24 @@
 
 @implementation TNSIBaseInterface
 - (void)baseImplementedOptionalMethod {
-    [TNSGetOutput() appendFormat:@"%@ called", NSStringFromSelector(_cmd)];
+    TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
 }
 @end
 
 @implementation TNSIBaseInterface (TNSIBaseCategory)
 - (void)baseImplementedCategoryMethod {
-    [TNSGetOutput() appendFormat:@"%@ called", NSStringFromSelector(_cmd)];
+    TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
 }
 @end
 
 @implementation TNSIDerivedInterface
 - (void)derivedImplementedOptionalMethod {
-    [TNSGetOutput() appendFormat:@"%@ called", NSStringFromSelector(_cmd)];
+    TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
 }
 @end
 
 @implementation TNSIDerivedInterface (TNSIDerivedCategory)
 - (void)derivedImplementedCategoryMethod {
-    [TNSGetOutput() appendFormat:@"%@ called", NSStringFromSelector(_cmd)];
+    TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
 }
 @end

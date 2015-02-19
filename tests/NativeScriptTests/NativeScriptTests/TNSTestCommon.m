@@ -16,7 +16,7 @@
 
 static NSMutableString *TNSTestOutput;
 
-NSMutableString *TNSGetOutput() {
+NSString *TNSGetOutput() {
     if (TNSTestOutput == nil) {
         TNSTestOutput = [NSMutableString new];
     }
@@ -25,7 +25,7 @@ NSMutableString *TNSGetOutput() {
 }
 
 void TNSLog(NSString *message) {
-    [TNSGetOutput() appendString:message];
+    [(NSMutableString*)TNSGetOutput() appendString:message];
 }
 
 void TNSClearOutput() {

@@ -53,6 +53,8 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
+    static const char* encode(JSC::JSCell*);
+
     FFITypeMethodTable _ffiTypeMethodTable;
 };
 }

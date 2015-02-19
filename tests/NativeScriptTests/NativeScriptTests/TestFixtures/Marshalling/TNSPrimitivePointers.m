@@ -44,7 +44,7 @@ unsigned long long *functionWithULongLongPtr(unsigned long long *x) {
 }
 
 char *functionWithCharPtr(char *x) {
-    [TNSGetOutput() appendFormat:@"%s", x];
+    TNSLog([NSString stringWithFormat:@"%s", x]);
 
     return x;
 }
@@ -86,25 +86,25 @@ TNSNestedStruct *functionWithStructPtr(TNSNestedStruct *x) {
 
 void functionWithIntIncompleteArray(int x[]) {
     for (int i = 0; x[i]; i++) {
-        [TNSGetOutput() appendFormat:@"%d", x[i]];
+        TNSLog([NSString stringWithFormat:@"%d", x[i]]);
     }
 }
 void functionWithIntConstantArray(int x[5]) {
     for (int i = 0; i < 5; i++) {
-        [TNSGetOutput() appendFormat:@"%d", x[i]];
+        TNSLog([NSString stringWithFormat:@"%d", x[i]]);
     }
 }
 void functionWithIntConstantArray2(int x[2][2]) {
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 2; j++) {
-            [TNSGetOutput() appendFormat:@"%d", x[i][j]];
+            TNSLog([NSString stringWithFormat:@"%d", x[i][j]]);
         }
     }
 }
 
 char **functionWithDoubleCharPtr(char **x) {
-    [TNSGetOutput() appendFormat:@"%s", x[0]];
-    [TNSGetOutput() appendFormat:@"%s", x[1]];
+    TNSLog([NSString stringWithFormat:@"%s", x[0]]);
+    TNSLog([NSString stringWithFormat:@"%s", x[1]]);
 
     free(x[0]);
     x[0] = calloc(4, sizeof(char));
@@ -122,19 +122,19 @@ char **functionWithDoubleCharPtr(char **x) {
 }
 
 void *functionWithNullPointer(void *x) {
-    [TNSGetOutput() appendFormat:@"%p", x];
+    TNSLog([NSString stringWithFormat:@"%p", x]);
     return NULL;
 }
 
 void *functionWithIdPointer(void *x) {
     for (int i = 0; i < 3; i++) {
-        [TNSGetOutput() appendString:NSStringFromClass([(__bridge id)((void **)x)[i] class])];
+        TNSLog(NSStringFromClass([(__bridge id)((void **)x)[i] class]));
     }
     return x;
 }
 
 void *functionWithIdToVoidPointer(void *x) {
-    [TNSGetOutput() appendString:NSStringFromClass([(__bridge id)x class])];
+    TNSLog(NSStringFromClass([(__bridge id)x class]));
     return x;
 }
 

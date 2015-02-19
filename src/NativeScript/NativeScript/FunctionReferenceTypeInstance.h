@@ -66,6 +66,8 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
+    static const char* encode(JSC::JSCell*);
+
     static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
     JSC::WriteBarrier<JSCell> _returnType;

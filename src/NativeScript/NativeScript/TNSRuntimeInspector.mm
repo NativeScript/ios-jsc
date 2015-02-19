@@ -11,6 +11,8 @@
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSConsoleClient.h>
 #include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/JSONObject.h>
+
 #import "TNSRuntimeInspector.h"
 
 using namespace JSC;
@@ -18,8 +20,9 @@ using namespace NativeScript;
 
 class TNSRuntimeInspectorFrontendChannel : public Inspector::InspectorFrontendChannel {
 public:
-    TNSRuntimeInspectorFrontendChannel(TNSRuntimeInspectorMessageHandler handler)
-        : _messageHandler(Block_copy(handler)) {
+    TNSRuntimeInspectorFrontendChannel(TNSRuntimeInspectorMessageHandler handler, ExecState* execState)
+        : _messageHandler(Block_copy(handler))
+        , _execState(execState) {
     }
 
     virtual bool sendMessageToFrontend(const WTF::String& message) override {
@@ -33,6 +36,7 @@ public:
 
 private:
     const TNSRuntimeInspectorMessageHandler _messageHandler;
+    ExecState* _execState;
 };
 
 @implementation TNSRuntimeInspector {
@@ -53,7 +57,7 @@ private:
                  messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
     if (self = [super init]) {
         self->_runtime = [runtime retain];
-        self->_frontendChannel = std::make_unique<TNSRuntimeInspectorFrontendChannel>(messageHandler);
+        self->_frontendChannel = std::make_unique<TNSRuntimeInspectorFrontendChannel>(messageHandler, toJS(self->_runtime.globalContext));
         self->_inspectorController = &jsCast<GlobalObject*>(toJS([runtime globalContext])->lexicalGlobalObject())->inspectorController();
 
         self->_inspectorController->connectFrontend(self->_frontendChannel.get());
@@ -64,13 +68,18 @@ private:
 
 - (void)dispatchMessage:(NSString*)message {
     self->_inspectorController->dispatchMessageFromFrontend(message);
+
+    id json = [NSJSONSerialization JSONObjectWithData:[message dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    if ([json isKindOfClass:[NSDictionary class]]) {
+        if ([@"Debugger.enable" isEqual:[json valueForKey:@"method"]]) {
+            [self->_runtime flushSourceProviders];
+        }
+    }
 }
 
 - (void)dealloc {
     self->_inspectorController->disconnectFrontend(Inspector::InspectorDisconnectReason::InspectorDestroyed);
-
     [self->_runtime release];
-
     [super dealloc];
 }
 

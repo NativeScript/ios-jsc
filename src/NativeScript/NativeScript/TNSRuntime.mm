@@ -12,6 +12,10 @@
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/Debugger.h>
+
+#include <vector>
+
 #include "require.h"
 #include "inlineFunctions.h"
 #import "TNSRuntime.h"
@@ -24,6 +28,8 @@ using namespace NativeScript;
     WTF::RefPtr<VM> _vm;
     Strong<GlobalObject> _globalObject;
     NSString* _applicationPath;
+
+    std::vector<SourceProvider*> _sourceProviders;
 }
 
 + (void)initialize {
@@ -36,7 +42,7 @@ using namespace NativeScript;
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
         self->_applicationPath = [applicationPath copy];
-        WTF::wtfThreadData().m_apiData = static_cast<void*>(self->_vm.get());
+        WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
         JSLockHolder lock(*self->_vm);
         self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
@@ -53,7 +59,7 @@ using namespace NativeScript;
 }
 
 static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
-    JSString* moduleBody = execState->argument(0).toString(execState);
+    JSString* moduleBody = jsString(execState, WTF::ASCIILiteral("\n") + execState->argument(0).toWTFString(execState));
     WTF::String moduleUrl = execState->argument(1).toString(execState)->value(execState);
     JSString* moduleName = execState->argument(2).toString(execState);
 
@@ -65,7 +71,13 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     requireArgs.append(jsString(execState, WTF::ASCIILiteral("__filename")));
     requireArgs.append(moduleBody);
 
-    return JSValue::encode(constructFunction(execState, execState->lexicalGlobalObject(), requireArgs, moduleName->toIdentifier(execState), moduleUrl, WTF::TextPosition()));
+    JSFunction* moduleFunction = jsCast<JSFunction*>(constructFunction(execState, execState->lexicalGlobalObject(), requireArgs, moduleName->toIdentifier(execState), moduleUrl, WTF::TextPosition()));
+    SourceProvider* sourceProvider = moduleFunction->sourceCode()->provider();
+
+    TNSRuntime* runtime = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData);
+    runtime->_sourceProviders.push_back(sourceProvider);
+
+    return JSValue::encode(moduleFunction);
 }
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier error:(JSValueRef*)error {
@@ -126,6 +138,15 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     [super dealloc];
 }
 
+- (void)flushSourceProviders {
+    JSC::Debugger* debugger = self->_globalObject->debugger();
+    if (debugger) {
+        for (SourceProvider* e : self->_sourceProviders) {
+            debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
+        }
+    }
+}
+
 @end
 
 @implementation TNSRuntime (Diagnostics)
@@ -150,7 +171,7 @@ private:
     trace.appendLiteral("--> JS Stack trace:\n");
 
     StackTraceFunctor functor(trace);
-    static_cast<VM*>(WTF::wtfThreadData().m_apiData)->topCallFrame->iterate(functor);
+    static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData)->_vm->topCallFrame->iterate(functor);
     fprintf(stderr, "%s", trace.toString().utf8().data());
 }
 

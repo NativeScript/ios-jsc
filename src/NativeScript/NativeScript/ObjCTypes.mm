@@ -160,7 +160,7 @@ JSValue toValue(ExecState* execState, id object, Class klass) {
         return jsNull();
     }
 
-    if ([object isKindOfClass:[NSString class]]) {
+    if ([object isKindOfClass:[NSString class]] && klass != [NSMutableString class]) {
         return jsString(execState, (CFStringRef)object);
     }
 

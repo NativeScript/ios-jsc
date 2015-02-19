@@ -54,7 +54,7 @@
 		BD6CDAB0E6FCBFF58D7BA815 /* PointerInstance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CD408930A4D633BA20590 /* PointerInstance.cpp */; };
 		BD6CDAB529C68A41C08D1BBD /* RecordConstructor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CDA2F2B1CE1849F13BBA0 /* RecordConstructor.cpp */; };
 		BD6CDB199CB50FD999E3EE34 /* ObjCProtocolWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BD6CDE51A9DA052887F8911A /* ObjCProtocolWrapper.mm */; };
-		BD6CDCC32478A288D58CC9D7 /* FFINumericTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CDC269C1AEA2AF4B0475E /* FFINumericTypes.cpp */; };
+		BD6CDCC32478A288D58CC9D7 /* FFINumericTypes.mm in Sources */ = {isa = PBXBuildFile; fileRef = BD6CDC269C1AEA2AF4B0475E /* FFINumericTypes.mm */; };
 		BD6CDD38A5BC564CA0E79B47 /* RecordPrototypeFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CD0F32F895B7E041BA41A /* RecordPrototypeFunctions.cpp */; };
 		BD6CDEC476327CC23DE9CB4A /* ReferencePrototype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CD84436C7CC15D68CEA17 /* ReferencePrototype.cpp */; };
 		BD6CDECC69A2B093E776F80C /* PointerPrototype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CD4096B36D3C30D83A48E /* PointerPrototype.cpp */; };
@@ -195,7 +195,7 @@
 		BD6CDAAEF91C3AEAAE0BD69A /* ObjCClassBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjCClassBuilder.h; sourceTree = "<group>"; };
 		BD6CDB044C69083C20E2D0D9 /* FunctionReferenceTypeInstance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FunctionReferenceTypeInstance.cpp; sourceTree = "<group>"; };
 		BD6CDB5574B54DB2BF511EC8 /* FFIType.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FFIType.cpp; sourceTree = "<group>"; };
-		BD6CDC269C1AEA2AF4B0475E /* FFINumericTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FFINumericTypes.cpp; sourceTree = "<group>"; };
+		BD6CDC269C1AEA2AF4B0475E /* FFINumericTypes.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FFINumericTypes.mm; sourceTree = "<group>"; };
 		BD6CDC783FFE53514CC07953 /* JSWarnings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSWarnings.h; sourceTree = "<group>"; };
 		BD6CDC961BF9072FC2C034D1 /* JSWarnings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWarnings.cpp; sourceTree = "<group>"; };
 		BD6CDCD27AA2798FEBA03178 /* RecordField.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RecordField.cpp; sourceTree = "<group>"; };
@@ -500,7 +500,7 @@
 				85B2A70719752BC800616E60 /* FFIPrimitiveTypes.h */,
 				85B2A70619752BC800616E60 /* FFIPrimitiveTypes.cpp */,
 				BD6CD733844FCA9335868E59 /* FFINumericTypes.h */,
-				BD6CDC269C1AEA2AF4B0475E /* FFINumericTypes.cpp */,
+				BD6CDC269C1AEA2AF4B0475E /* FFINumericTypes.mm */,
 			);
 			name = Fundamentals;
 			sourceTree = "<group>";
@@ -720,7 +720,7 @@
 				BD6CDD38A5BC564CA0E79B47 /* RecordPrototypeFunctions.cpp in Sources */,
 				BD6CDA8750C61AFF095D0F1F /* ObjCBlockCallback.cpp in Sources */,
 				C97E4C0D1A1CB57800B9125C /* ObjCBlockTypeConstructor.cpp in Sources */,
-				BD6CDCC32478A288D58CC9D7 /* FFINumericTypes.cpp in Sources */,
+				BD6CDCC32478A288D58CC9D7 /* FFINumericTypes.mm in Sources */,
 				BD6CDF1BCF770FAC2F9E9580 /* ObjCPrimitiveTypes.mm in Sources */,
 				BD6CDECC69A2B093E776F80C /* PointerPrototype.cpp in Sources */,
 				BD6CD6F051E44631A7E59920 /* PointerConstructor.cpp in Sources */,

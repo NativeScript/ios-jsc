@@ -12,7 +12,7 @@ describe(module.id, function () {
     it("ReferenceValue", function () {
         var reference = new interop.Reference();
         expect(reference.value).toBeUndefined();
-        expect(function() {
+        expect(function () {
             interop.handleof(reference);
         }).toThrow();
 
@@ -35,7 +35,7 @@ describe(module.id, function () {
         expect(TNSGetOutput()).toBe('510');
     });
 
-    it("LiveReference", function() {
+    it("LiveReference", function () {
         var manager = new TNSPointerManager();
         expect(manager.data().value).toBe(0);
 
@@ -114,7 +114,7 @@ describe(module.id, function () {
     });
 
     it("functionWithStructPtr", function () {
-        var struct = new TNSNestedStruct({ a: { x: 1, y: 2 }, b: { x: 3, y: 4 } });
+        var struct = new TNSNestedStruct({a: {x: 1, y: 2}, b: {x: 3, y: 4}});
         expect(TNSNestedStruct.equals(functionWithStructPtr(new interop.Reference(struct)).value, struct)).toBe(true);
         expect(TNSGetOutput()).toBe('1 2 3 4');
     });

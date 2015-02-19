@@ -26,7 +26,7 @@ private:
 
 public:
     MetaFile(const char* filePath);
-    MetaFile(void *fileStart);
+    MetaFile(void* fileStart);
 
     const void* goToHeap(MetaFileOffset offset) const {
         return heapStart + offset;

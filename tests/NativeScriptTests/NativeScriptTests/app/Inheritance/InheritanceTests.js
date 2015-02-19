@@ -4,7 +4,7 @@ describe(module.id, function () {
     });
 
     // Should be first
-    it("StaticPropertyNames", function() {
+    it("StaticPropertyNames", function () {
         expect('baseMethod' in TNSBaseInterface).toBe(true);
         expect(TNSBaseInterface.hasOwnProperty('baseCategoryMethod')).toBe(true);
 
@@ -23,7 +23,7 @@ describe(module.id, function () {
         ]);
     });
 
-    it("InstancePropertyNames", function() {
+    it("InstancePropertyNames", function () {
         expect('baseMethod' in TNSBaseInterface.prototype).toBe(true);
         expect(TNSBaseInterface.prototype.hasOwnProperty('baseCategoryMethod')).toBe(true);
 
@@ -1674,7 +1674,7 @@ describe(module.id, function () {
             }
         }, {
             exposedMethods: {
-                voidSelector: 'v'
+                voidSelector: {returns: interop.types.void}
             }
         });
         var object = new JSObject();
@@ -1703,7 +1703,7 @@ describe(module.id, function () {
             }
         }, {
             exposedMethods: {
-                'variadicSelector:x:': '@@i'
+                'variadicSelector:x:': {returns: NSObject, params: [NSString, interop.types.int32]}
             }
         });
         var object = new JSObject();
@@ -1734,7 +1734,7 @@ describe(module.id, function () {
     it('ExposeWithoutImplementation', function () {
         NSObject.extend({}, {
             exposedMethods: {
-                'nonExistingSelector': 'v%:'
+                'nonExistingSelector': {returns: interop.types.void, params: [interop.types.selector]}
             }
         });
     });
@@ -1748,7 +1748,7 @@ describe(module.id, function () {
     });
 
     it('ExtendDerivedClass', function () {
-        expect(function() {
+        expect(function () {
             NSObject.extend({}).extend({});
         }).toThrowError();
     });

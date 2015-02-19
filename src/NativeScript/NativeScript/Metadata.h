@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <stack>
+#include <string>
 #include <type_traits>
 #include "MetaFileReader.h"
 
@@ -198,6 +199,44 @@ enum MemberType {
     Property = 2
 };
 
+enum BinaryTypeEncodingType : Byte {
+    UnknownEncoding,
+    VoidEncoding,
+    BoolEncoding,
+    ShortEncoding,
+    UShortEncoding,
+    IntEncoding,
+    UIntEncoding,
+    LongEncoding,
+    ULongEncoding,
+    LongLongEncoding,
+    ULongLongEncoding,
+    CharEncoding,
+    UCharEncoding,
+    UnicharEncoding,
+    CharSEncoding,
+    CStringEncoding,
+    FloatEncoding,
+    DoubleEncoding,
+    InterfaceDeclarationReference,
+    StructDeclarationReference,
+    UnionDeclarationReference,
+    InterfaceDeclarationEncoding, // NSString* -> DeclarationReference, NSString -> InterfaceDeclaration
+    PointerEncoding,
+    VaListEncoding,
+    SelectorEncoding,
+    ClassEncoding,
+    ProtocolEncoding,
+    InstanceTypeEncoding,
+    IdEncoding,
+    ConstantArrayEncoding,
+    IncompleteArrayEncoding,
+    FunctionPointerEncoding,
+    BlockEncoding,
+    AnonymousStructEncoding,
+    AnonymousUnionEncodingn
+};
+
 bool startsWith(const char* pre, const char* str);
 
 #pragma pack(push, 1)
@@ -207,7 +246,7 @@ struct Meta {
 private:
     MetaFileOffset _names;
     UInt8 _flags;
-    UInt8 _frameworkId;
+    UInt16 _frameworkId;
     UInt8 _introduced;
 
 public:
@@ -215,7 +254,19 @@ public:
         return (MetaType)(this->_flags & MetaTypeMask);
     }
 
-    const char* framework() const;
+    const char* fullModuleName() const {
+        return getMetadata()->moveInHeap(this->_frameworkId)->readString();
+    }
+
+    std::string framework() const {
+        const char* moduleName = this->fullModuleName();
+        char* delimiterPos = strchr(moduleName, '.');
+        if (delimiterPos && *delimiterPos != '\0') {
+            return std::string(moduleName, delimiterPos - moduleName);
+        } else {
+            return "";
+        }
+    }
 
     bool hasName() const {
         return this->flag(MetaHasNameBitIndex);
@@ -267,7 +318,7 @@ public:
 #if DEBUG
     void logMeta() const {
         const char* realName = this->hasName() ? this->name() : "";
-        printf("name: %s(%s) frmwk: %s", this->jsName(), realName, this->framework());
+        printf("name: %s(%s) frmwk: %s", this->jsName(), realName, this->framework().c_str());
     }
 #endif
 };
@@ -275,20 +326,20 @@ public:
 struct RecordMeta : Meta {
 
 private:
+    MetaFileOffset _fieldsNames;
     MetaFileOffset _fieldsEncodings;
-    MetaArrayCount _fieldsCount;
 
 public:
-    int fieldsCount() const {
-        return this->_fieldsCount;
+    size_t fieldsCount() const {
+        return getMetadata()->moveInHeap(this->_fieldsEncodings)->readByte();
     }
 
     const char* fieldAt(int index) const {
-        return getMetadata()->moveToPointer(&this->_fieldsCount)->moveWithCounts(1)->moveWithOffsets(index)->follow()->readString();
+        return getMetadata()->moveInHeap(this->_fieldsNames)->moveWithCounts(1)->moveWithOffsets(index)->follow()->readString();
     }
 
-    const char* fieldsEncodings() const {
-        return getMetadata()->moveInHeap(this->_fieldsEncodings)->readString();
+    MetaFileOffset fieldsEncodingsOffset() const {
+        return getMetadata()->moveInHeap(this->_fieldsEncodings)->moveWithCounts(1)->asOffsetInHeap();
     }
 
 #if DEBUG
@@ -312,8 +363,12 @@ public:
         return this->flag(FunctionIsVariadicBitIndex);
     }
 
-    const char* encoding() const {
-        return getMetadata()->moveInHeap(this->_encoding)->readString();
+    MetaFileOffset encodingOffset() const {
+        return getMetadata()->moveInHeap(this->_encoding)->moveWithCounts(1)->asOffsetInHeap();
+    }
+
+    size_t encodingCount() const {
+        return getMetadata()->moveInHeap(this->_encoding)->readByte();
     }
 
     bool ownsReturnedCocoaObject() const {
@@ -323,7 +378,7 @@ public:
 #if DEBUG
     void logFunction() const {
         Meta::logMeta();
-        printf(" encoding: %s, %s ", this->encoding(), this->isVariadic() ? "variadic" : "");
+        //        printf(" encoding: %s, %s ", this->encoding(), this->isVariadic() ? "variadic" : "");
     }
 #endif
 };
@@ -352,14 +407,14 @@ private:
     MetaFileOffset _encoding;
 
 public:
-    const char* encoding() const {
-        return getMetadata()->moveInHeap(this->_encoding)->readString();
+    MetaFileOffset encodingOffset() const {
+        return getMetadata()->moveInHeap(this->_encoding)->asOffsetInHeap();
     }
 
 #if DEBUG
     void logVar() const {
         Meta::logMeta();
-        printf("encoding: %s ", this->encoding());
+        //        printf("encoding: %s ", this->encoding());
     }
 #endif
 };
@@ -400,8 +455,12 @@ public:
         return getMetadata()->moveInHeap(this->_selector)->readString();
     }
 
-    const char* encoding() const {
-        return getMetadata()->moveInHeap(this->_encoding)->readString();
+    MetaFileOffset encodingOffset() const {
+        return getMetadata()->moveInHeap(this->_encoding)->moveWithCounts(1)->asOffsetInHeap();
+    }
+
+    size_t encodingCount() const {
+        return getMetadata()->moveInHeap(this->_encoding)->readByte();
     }
 
     const char* compilerEncoding() const {
@@ -415,7 +474,7 @@ public:
 #if DEBUG
     void logMethod() const {
         Meta::logMeta();
-        printf("selector: %s encoding: %s compilerEncoding: %s ", this->selectorAsString(), this->encoding(), this->compilerEncoding());
+        //        printf("selector: %s encoding: %s compilerEncoding: %s ", this->selectorAsString(), this->encoding(), this->compilerEncoding());
     }
 #endif
 };

@@ -16,6 +16,7 @@
 
 namespace Metadata {
 struct ProtocolMeta;
+struct MethodMeta;
 }
 
 namespace NativeScript {
@@ -24,6 +25,9 @@ class ObjCConstructorDerived;
 class ObjCProtocolWrapper;
 
 class ObjCClassBuilder {
+private:
+    void addStaticMethods(JSC::ExecState*, JSC::JSObject* staticMethods);
+
 public:
     ObjCClassBuilder(JSC::ExecState*, JSC::JSValue baseConstructor, JSC::JSObject* prototype, const WTF::String& className = WTF::emptyString());
 
@@ -33,17 +37,15 @@ public:
 
     void addInstanceMethod(JSC::ExecState*, const JSC::Identifier& jsName, JSC::JSCell* method);
 
-    void addInstanceMethod(JSC::ExecState*, SEL methodName, JSC::JSCell* method, const WTF::String& typeEncoding, const WTF::String& compilerEncoding);
+    void addInstanceMethod(JSC::ExecState*, const JSC::Identifier& jsName, JSC::JSCell* method, JSC::JSValue& typeEncoding);
+
+    void addStaticMethod(JSC::ExecState*, const JSC::Identifier& jsName, JSC::JSCell* method);
+
+    void addStaticMethod(JSC::ExecState*, const JSC::Identifier& jsName, JSC::JSCell* method, JSC::JSValue& typeEncoding);
 
     void addProperty(JSC::ExecState*, const JSC::Identifier& name, const JSC::PropertyDescriptor& propertyDescriptor);
 
     void addInstanceMembers(JSC::ExecState*, JSC::JSObject* instanceMethods, JSC::JSValue exposedMethods);
-
-    void addStaticMethod(JSC::ExecState*, const JSC::Identifier& jsName, JSC::JSCell* method);
-
-    void addStaticMethod(JSC::ExecState*, SEL methodName, JSC::JSCell* method, const WTF::String& typeEncoding, const WTF::String& compilerEncoding);
-
-    void addStaticMethods(JSC::ExecState*, JSC::JSObject* staticMethods);
 
     ObjCConstructorDerived* build(JSC::ExecState*);
 

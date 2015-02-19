@@ -76,7 +76,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     // imp_implementationWithBlock calls block copy, class copy and initialize gets skipped
     __block Class derivedClass = derivedConstructor->klass();
 
-    IMP newInitialize = imp_implementationWithBlock (^(id self) {
+    IMP newInitialize = imp_implementationWithBlock(^(id self) {
         if (self != [derivedClass self]) {
             return;
         }

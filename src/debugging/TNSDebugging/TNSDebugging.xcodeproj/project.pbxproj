@@ -10,6 +10,13 @@
 		C9A9169619E7C14F002B1CC5 /* TNSDebugging.m in Sources */ = {isa = PBXBuildFile; fileRef = C9A9169519E7C14F002B1CC5 /* TNSDebugging.m */; };
 		C9A9179819ED2E06002B1CC5 /* libPocketSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C9A9179319ED2DF1002B1CC5 /* libPocketSocket.a */; };
 		C9A917A119ED362C002B1CC5 /* TNSDebugging.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = C9A9169319E7C14F002B1CC5 /* TNSDebugging.h */; };
+		F926C05E1A6E48B6002DC968 /* TNSDebugServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F926C05D1A6E48B6002DC968 /* TNSDebugServer.m */; };
+		F926C0A81A7A6EBF002DC968 /* TNSMultiChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = F926C0A71A7A6EBF002DC968 /* TNSMultiChannel.m */; };
+		F93AF0F51A7BB7CB00F8E7F8 /* TNSInputMessageStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F93AF0EE1A7BB7CB00F8E7F8 /* TNSInputMessageStream.m */; };
+		F93AF0F61A7BB7CB00F8E7F8 /* TNSOutputMessageStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F93AF0F01A7BB7CB00F8E7F8 /* TNSOutputMessageStream.m */; };
+		F93AF0F71A7BB7CB00F8E7F8 /* TNSTCPMessagingServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F93AF0F21A7BB7CB00F8E7F8 /* TNSTCPMessagingServer.m */; };
+		F93AF0F81A7BB7CB00F8E7F8 /* TNSTCPSocketMessageNetworkThread.m in Sources */ = {isa = PBXBuildFile; fileRef = F93AF0F41A7BB7CB00F8E7F8 /* TNSTCPSocketMessageNetworkThread.m */; };
+		F93AF0FB1A7BB81300F8E7F8 /* TNSWebSocketMessagingServer.m in Sources */ = {isa = PBXBuildFile; fileRef = F93AF0FA1A7BB81300F8E7F8 /* TNSWebSocketMessagingServer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +78,23 @@
 		C9A9169E19E7C150002B1CC5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C9A916B619E7C174002B1CC5 /* NativeScript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NativeScript.xcodeproj; path = ../../NativeScript/NativeScript.xcodeproj; sourceTree = "<group>"; };
 		C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = PocketSocket.xcodeproj; path = "../PocketSocket-0.6.4/PocketSocket.xcodeproj"; sourceTree = "<group>"; };
+		F926C05C1A6E48B6002DC968 /* TNSDebugServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSDebugServer.h; sourceTree = "<group>"; };
+		F926C05D1A6E48B6002DC968 /* TNSDebugServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSDebugServer.m; sourceTree = "<group>"; };
+		F926C08C1A77B2F3002DC968 /* TNSDebugMessaging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TNSDebugMessaging.h; path = ../TNSDebugMessaging.h; sourceTree = "<group>"; };
+		F926C0A61A7A6EBF002DC968 /* TNSMultiChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSMultiChannel.h; sourceTree = "<group>"; };
+		F926C0A71A7A6EBF002DC968 /* TNSMultiChannel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSMultiChannel.m; sourceTree = "<group>"; };
+		F93AF0ED1A7BB7CB00F8E7F8 /* TNSInputMessageStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TNSInputMessageStream.h; path = TCPMessaging/TNSInputMessageStream.h; sourceTree = SOURCE_ROOT; };
+		F93AF0EE1A7BB7CB00F8E7F8 /* TNSInputMessageStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TNSInputMessageStream.m; path = TCPMessaging/TNSInputMessageStream.m; sourceTree = SOURCE_ROOT; };
+		F93AF0EF1A7BB7CB00F8E7F8 /* TNSOutputMessageStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TNSOutputMessageStream.h; path = TCPMessaging/TNSOutputMessageStream.h; sourceTree = SOURCE_ROOT; };
+		F93AF0F01A7BB7CB00F8E7F8 /* TNSOutputMessageStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TNSOutputMessageStream.m; path = TCPMessaging/TNSOutputMessageStream.m; sourceTree = SOURCE_ROOT; };
+		F93AF0F11A7BB7CB00F8E7F8 /* TNSTCPMessagingServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TNSTCPMessagingServer.h; path = TCPMessaging/TNSTCPMessagingServer.h; sourceTree = SOURCE_ROOT; };
+		F93AF0F21A7BB7CB00F8E7F8 /* TNSTCPMessagingServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TNSTCPMessagingServer.m; path = TCPMessaging/TNSTCPMessagingServer.m; sourceTree = SOURCE_ROOT; };
+		F93AF0F31A7BB7CB00F8E7F8 /* TNSTCPSocketMessageNetworkThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TNSTCPSocketMessageNetworkThread.h; path = TCPMessaging/TNSTCPSocketMessageNetworkThread.h; sourceTree = SOURCE_ROOT; };
+		F93AF0F41A7BB7CB00F8E7F8 /* TNSTCPSocketMessageNetworkThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TNSTCPSocketMessageNetworkThread.m; path = TCPMessaging/TNSTCPSocketMessageNetworkThread.m; sourceTree = SOURCE_ROOT; };
+		F93AF0F91A7BB81300F8E7F8 /* TNSWebSocketMessagingServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TNSWebSocketMessagingServer.h; path = WebSocketMessaging/TNSWebSocketMessagingServer.h; sourceTree = "<group>"; };
+		F93AF0FA1A7BB81300F8E7F8 /* TNSWebSocketMessagingServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TNSWebSocketMessagingServer.m; path = WebSocketMessaging/TNSWebSocketMessagingServer.m; sourceTree = "<group>"; };
+		F93AF0FC1A7BB83800F8E7F8 /* TNSMessageStreamDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TNSMessageStreamDelegate.h; path = TCPMessaging/TNSMessageStreamDelegate.h; sourceTree = SOURCE_ROOT; };
+		F93AF0FD1A7BB85B00F8E7F8 /* PrefixHeader.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,8 +119,10 @@
 		C9A9168719E7C14F002B1CC5 = {
 			isa = PBXGroup;
 			children = (
-				C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */,
 				C9A916B619E7C174002B1CC5 /* NativeScript.xcodeproj */,
+				C9A9178C19ED2DF1002B1CC5 /* PocketSocket.xcodeproj */,
+				F926C08D1A77B3DE002DC968 /* WebSocketMessaging */,
+				F926C0881A77B2A3002DC968 /* TCPMessaging */,
 				C9A9169219E7C14F002B1CC5 /* TNSDebugging */,
 				C9A9169C19E7C150002B1CC5 /* TNSDebuggingTests */,
 				C9A9169119E7C14F002B1CC5 /* Products */,
@@ -115,8 +141,14 @@
 		C9A9169219E7C14F002B1CC5 /* TNSDebugging */ = {
 			isa = PBXGroup;
 			children = (
+				F93AF0FD1A7BB85B00F8E7F8 /* PrefixHeader.pch */,
+				F926C08C1A77B2F3002DC968 /* TNSDebugMessaging.h */,
 				C9A9169319E7C14F002B1CC5 /* TNSDebugging.h */,
 				C9A9169519E7C14F002B1CC5 /* TNSDebugging.m */,
+				F926C05C1A6E48B6002DC968 /* TNSDebugServer.h */,
+				F926C05D1A6E48B6002DC968 /* TNSDebugServer.m */,
+				F926C0A61A7A6EBF002DC968 /* TNSMultiChannel.h */,
+				F926C0A71A7A6EBF002DC968 /* TNSMultiChannel.m */,
 			);
 			path = TNSDebugging;
 			sourceTree = "<group>";
@@ -153,6 +185,32 @@
 				C9A9179519ED2DF1002B1CC5 /* PSAutobahnClientTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F926C0881A77B2A3002DC968 /* TCPMessaging */ = {
+			isa = PBXGroup;
+			children = (
+				F93AF0ED1A7BB7CB00F8E7F8 /* TNSInputMessageStream.h */,
+				F93AF0EE1A7BB7CB00F8E7F8 /* TNSInputMessageStream.m */,
+				F93AF0EF1A7BB7CB00F8E7F8 /* TNSOutputMessageStream.h */,
+				F93AF0FC1A7BB83800F8E7F8 /* TNSMessageStreamDelegate.h */,
+				F93AF0F01A7BB7CB00F8E7F8 /* TNSOutputMessageStream.m */,
+				F93AF0F11A7BB7CB00F8E7F8 /* TNSTCPMessagingServer.h */,
+				F93AF0F21A7BB7CB00F8E7F8 /* TNSTCPMessagingServer.m */,
+				F93AF0F31A7BB7CB00F8E7F8 /* TNSTCPSocketMessageNetworkThread.h */,
+				F93AF0F41A7BB7CB00F8E7F8 /* TNSTCPSocketMessageNetworkThread.m */,
+			);
+			name = TCPMessaging;
+			path = ../../NativeScript;
+			sourceTree = "<group>";
+		};
+		F926C08D1A77B3DE002DC968 /* WebSocketMessaging */ = {
+			isa = PBXGroup;
+			children = (
+				F93AF0F91A7BB81300F8E7F8 /* TNSWebSocketMessagingServer.h */,
+				F93AF0FA1A7BB81300F8E7F8 /* TNSWebSocketMessagingServer.m */,
+			);
+			name = WebSocketMessaging;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -285,6 +343,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				C9A9169619E7C14F002B1CC5 /* TNSDebugging.m in Sources */,
+				F926C05E1A6E48B6002DC968 /* TNSDebugServer.m in Sources */,
+				F926C0A81A7A6EBF002DC968 /* TNSMultiChannel.m in Sources */,
+				F93AF0F51A7BB7CB00F8E7F8 /* TNSInputMessageStream.m in Sources */,
+				F93AF0F81A7BB7CB00F8E7F8 /* TNSTCPSocketMessageNetworkThread.m in Sources */,
+				F93AF0F71A7BB7CB00F8E7F8 /* TNSTCPMessagingServer.m in Sources */,
+				F93AF0FB1A7BB81300F8E7F8 /* TNSWebSocketMessagingServer.m in Sources */,
+				F93AF0F61A7BB7CB00F8E7F8 /* TNSOutputMessageStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -19,9 +19,9 @@ using namespace Metadata;
 ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue value, MethodMeta* meta) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    ptrdiff_t consumed;
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, meta->encoding(), &consumed);
-    Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, meta->encoding() + consumed);
+    Metadata::MetaFileOffset cursor = meta->encodingOffset();
+    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
+    Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, meta->encodingCount() - 1);
 
     ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), value.asCell(), returnType, parameterTypes);
     gcProtect(methodCallback);

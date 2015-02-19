@@ -77,12 +77,16 @@ static void objCProtocol_postCall(ExecState* execState, const JSValue& value, vo
 static bool objCProtocol_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.inherits(ObjCProtocolWrapper::info()) || value.isUndefinedOrNull();
 }
+static const char* objCProtocol_encode(JSC::JSCell* self) {
+    return "@";
+}
 const FFITypeMethodTable objCProtocolTypeMethodTable = {
     .read = &objCProtocol_read,
     .write = &objCProtocol_write,
     .postCall = &objCProtocol_postCall,
     .canConvert = &objCProtocol_canConvert,
-    .ffiType = &ffi_type_pointer
+    .ffiType = &ffi_type_pointer,
+    .encode = objCProtocol_encode
 };
 
 #pragma mark objCClass
@@ -110,12 +114,16 @@ static void objCClass_postCall(ExecState* execState, const JSValue& value, void*
 static bool objCClass_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.inherits(ObjCConstructorBase::info()) || value.isUndefinedOrNull();
 }
+static const char* objCClass_encode(JSC::JSCell* self) {
+    return "#";
+}
 const FFITypeMethodTable objCClassTypeMethodTable = {
     .read = &objCClass_read,
     .write = &objCClass_write,
     .postCall = &objCClass_postCall,
     .canConvert = &objCClass_canConvert,
-    .ffiType = &ffi_type_pointer
+    .ffiType = &ffi_type_pointer,
+    .encode = &objCClass_encode
 };
 
 #pragma mark objCSelector
@@ -140,11 +148,15 @@ static void objCSelector_postCall(ExecState* execState, const JSValue& value, vo
 static bool objCSelector_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isString() || value.isUndefinedOrNull();
 }
+static const char* objCSelector_encode(JSC::JSCell* self) {
+    return ":";
+}
 const FFITypeMethodTable objCSelectorTypeMethodTable = {
     .read = &objCSelector_read,
     .write = &objCSelector_write,
     .postCall = &objCSelector_postCall,
     .canConvert = &objCSelector_canConvert,
-    .ffiType = &ffi_type_pointer
+    .ffiType = &ffi_type_pointer,
+    .encode = &objCSelector_encode
 };
 }

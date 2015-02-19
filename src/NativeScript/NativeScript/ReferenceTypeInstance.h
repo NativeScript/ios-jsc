@@ -10,6 +10,7 @@
 #define __NativeScript__ReferenceTypeInstance__
 
 #include "FFIType.h"
+#include <string>
 
 namespace NativeScript {
 class ReferenceTypeInstance : public JSC::JSNonFinalObject {
@@ -58,11 +59,15 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
+    static const char* encode(JSC::JSCell*);
+
     static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
     JSC::WriteBarrier<JSC::JSCell> _innerType;
 
     FFITypeMethodTable _ffiTypeMethodTable;
+
+    std::string _compilerEncoding;
 };
 }
 

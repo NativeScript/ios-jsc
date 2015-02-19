@@ -9,6 +9,7 @@
 #include "ReferenceTypeInstance.h"
 #include "ReferenceInstance.h"
 #include "Interop.h"
+#include "ffi.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -62,6 +63,19 @@ bool ReferenceTypeInstance::canConvert(ExecState* execState, const JSValue& valu
     return value.isUndefinedOrNull() || value.inherits(ReferenceInstance::info()) || value.inherits(PointerInstance::info());
 }
 
+const char* ReferenceTypeInstance::encode(JSCell* cell) {
+    ReferenceTypeInstance* self = jsCast<ReferenceTypeInstance*>(cell);
+
+    if (!self->_compilerEncoding.empty()) {
+        return self->_compilerEncoding.c_str();
+    }
+
+    self->_compilerEncoding = "^";
+    const FFITypeMethodTable& table = getFFITypeMethodTable(self->_innerType.get());
+    self->_compilerEncoding += table.encode(self->_innerType.get());
+    return self->_compilerEncoding.c_str();
+}
+
 void ReferenceTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     Base::finishCreation(vm);
 
@@ -70,6 +84,7 @@ void ReferenceTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     this->_ffiTypeMethodTable.write = &write;
     this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
+    this->_ffiTypeMethodTable.encode = &encode;
 
     this->_innerType.set(vm, this, innerType);
 }

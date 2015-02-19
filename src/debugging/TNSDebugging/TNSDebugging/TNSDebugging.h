@@ -10,8 +10,11 @@
 #import <JavaScriptCore/JavaScriptCore.h>
 #import <NativeScript/NativeScript.h>
 
-@interface TNSRuntime (WebSocketDebugging)
+@interface TNSRuntime (TNSDebugging)
 
-- (id)startWebSocketServerOnPort:(NSUInteger)port;
+- (id) enableDebuggingWithName:(NSString*)name;
 
 @end
+
+
+

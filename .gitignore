@@ -63,3 +63,5 @@ junit-result.xml
 gamera-startup-result.xml
 build-stats.csv
 
+# CLion
+.idea

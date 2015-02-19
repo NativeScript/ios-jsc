@@ -19,28 +19,26 @@
 
 namespace Metadata {
 
-std::function<bool(const Meta*)> metaPredicate = [](const Meta * meta)->bool {
+std::function<bool(const Meta*)> metaPredicate = [](const Meta* meta) -> bool {
     return meta->isAvailable();
 };
 
 /// MetaFileReader
 #ifdef TESTING
-    #if defined(__LP64__) && __LP64__
-    MetaFile file(metadata_arm64_bin);
-    #else
-    MetaFile file(metadata_armv7_bin);
-    #endif
+#if defined(__LP64__) && __LP64__
+MetaFile file(metadata_arm64_bin);
 #else
-    #if defined(__LP64__) && __LP64__
-    MetaFile file("metadata-arm64.bin");
-    #else
-    MetaFile file("metadata-armv7.bin");
-    #endif
+MetaFile file(metadata_armv7_bin);
 #endif
-    
-MetaFileReader metaFile(file);
-    
+#else
+#if defined(__LP64__) && __LP64__
+MetaFile file("metadata-arm64.bin");
+#else
+MetaFile file("metadata-armv7.bin");
+#endif
+#endif
 
+MetaFileReader metaFile(file);
 
 MetaFileReader* getMetadata() { return &metaFile; }
 
@@ -149,7 +147,7 @@ void MetaIterator::reset(int32_t globalTableIndex) {
 MetaIterator::MetaIterator(MetaFileReader* fileReader, int32_t globalTableIndex)
     : fileReader(fileReader)
     , globalTableLength(fileReader->globalTableSlotsCount()) {
-          this->reset(globalTableIndex);
+    this->reset(globalTableIndex);
 }
 
 MetaIterator& Metadata::MetaIterator::operator++() {

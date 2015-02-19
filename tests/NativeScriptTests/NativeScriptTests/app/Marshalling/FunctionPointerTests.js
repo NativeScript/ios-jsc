@@ -10,7 +10,7 @@ describe(module.id, function () {
     });
 
     it("SimpleFunctionPointerWrite", function () {
-        var f = new interop.FunctionReference(function(x) {
+        var f = new interop.FunctionReference(function (x) {
             return x * x;
         });
 
@@ -21,7 +21,7 @@ describe(module.id, function () {
     });
 
     it("ComplexFunctionPointerWrite", function () {
-        var f = new interop.FunctionReference(function(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) {
+        var f = new interop.FunctionReference(function (p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) {
             expect(p1).toBe(127);
             expect(p2).toBe(32767);
             expect(p3).toBe(2147483647);
@@ -44,7 +44,7 @@ describe(module.id, function () {
             expect(p17.b.x).toBe(3);
             expect(p17.b.y).toBe(4);
 
-            return { a: { x: 5, y: 6 }, b: { x: 7, y: 8 } };
+            return {a: {x: 5, y: 6}, b: {x: 7, y: 8}};
         });
 
         TNSClearOutput();

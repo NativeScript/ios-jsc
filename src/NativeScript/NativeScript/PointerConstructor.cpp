@@ -25,6 +25,7 @@ void PointerConstructor::finishCreation(VM& vm, PointerPrototype* pointerPrototy
     this->_ffiTypeMethodTable.write = &write;
     this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
+    this->_ffiTypeMethodTable.encode = &encode;
 
     this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, pointerPrototype, DontEnum | DontDelete | ReadOnly);
     this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum | DontDelete);
@@ -83,5 +84,9 @@ void PointerConstructor::postCall(ExecState* execState, const JSValue& value, vo
 
 bool PointerConstructor::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isUndefinedOrNull() || value.inherits(ReferenceInstance::info()) || value.inherits(PointerInstance::info());
+}
+
+const char* PointerConstructor::encode(JSCell* cell) {
+    return "^v";
 }
 }

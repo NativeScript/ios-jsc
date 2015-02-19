@@ -7,81 +7,23 @@
 //
 
 #import "TNSDebugging.h"
-#import <PocketSocket/PSWebSocketServer.h>
 
-@interface TNSRuntimeWebSocketServerDelegate : NSObject <PSWebSocketServerDelegate>
+#import "TNSMultiChannel.h"
+#import "TNSTCPMessagingServer.h"
+#import "TNSWebSocketMessagingServer.h"
 
-- (instancetype)initWithRuntime:(TNSRuntime*)runtime port:(NSUInteger)port;
+#import "TNSDebugServer.h"
 
-@end
+@implementation TNSRuntime (TNSDebugging)
 
-@implementation TNSRuntimeWebSocketServerDelegate {
-    TNSRuntime* _runtime;
-    TNSRuntimeInspector* _inspector;
-    PSWebSocketServer* _server;
-}
+- (id) enableDebuggingWithName:(NSString*)name {
 
-- (instancetype)initWithRuntime:(TNSRuntime*)runtime port:(NSUInteger)port {
-    if (self = [super init]) {
-        self->_runtime = runtime;
-        self->_server = [PSWebSocketServer serverWithHost:nil
-                                                     port:port];
-        self->_server.delegate = self;
-        self->_server.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
-        [self->_server start];
-    }
+    TNSWebSocketMessagingServer* webSocketChannel = [[TNSWebSocketMessagingServer alloc] initWithPort:8080];
+    TNSTCPMessagingServer* tcpChannel = [[TNSTCPMessagingServer alloc] initWithPort:18181];
 
-    return self;
-}
+    TNSMultiChannel* multyChannel = [[TNSMultiChannel alloc] initWithSubchannels:tcpChannel, webSocketChannel, nil];
 
-- (void)serverDidStart:(PSWebSocketServer*)server {
-    NSLog(@"Waiting for debugger...");
-}
-
-- (void)serverDidStop:(PSWebSocketServer*)server {
-}
-
-- (BOOL)server:(PSWebSocketServer*)server acceptWebSocketWithRequest:(NSURLRequest*)request {
-    return self->_inspector == nil;
-}
-
-- (void)server:(PSWebSocketServer*)server webSocketDidOpen:(PSWebSocket*)webSocket {
-    webSocket.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self->_inspector = [self->_runtime attachInspectorWithHandler:^BOOL(NSString *message) {
-            [webSocket send:message];
-            return YES;
-        }];
-        
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            CFRunLoopStop(CFRunLoopGetMain());
-        });
-    });
-}
-- (void)server:(PSWebSocketServer*)server webSocket:(PSWebSocket*)webSocket didReceiveMessage:(id)message {
-    const void* runLoopModes[] = { kCFRunLoopCommonModes, CFSTR("com.apple.JavaScriptCore.remote-inspector-runloop-mode") };
-    CFArrayRef modes = CFArrayCreate(kCFAllocatorDefault, runLoopModes, 2, &kCFTypeArrayCallBacks);
-    CFRunLoopPerformBlock(CFRunLoopGetMain(), modes, ^{
-        [self->_inspector dispatchMessage:message];
-    });
-    CFRunLoopWakeUp(CFRunLoopGetMain());
-}
-
-- (void)server:(PSWebSocketServer*)server webSocket:(PSWebSocket*)webSocket didFailWithError:(NSError*)error {
-    self->_inspector = nil;
-}
-
-- (void)server:(PSWebSocketServer*)server webSocket:(PSWebSocket*)webSocket didCloseWithCode:(NSInteger)code reason:(NSString*)reason wasClean:(BOOL)wasClean {
-    self->_inspector = nil;
-}
-
-@end
-
-@implementation TNSRuntime (WebSocketDebugging)
-
-- (id)startWebSocketServerOnPort:(NSUInteger)port {
-    return [[TNSRuntimeWebSocketServerDelegate alloc] initWithRuntime:self
-                                                                 port:port];
+    return [[TNSDebugServer alloc] initWithRuntime:self name:name messagingChannel:multyChannel];
 }
 
 @end

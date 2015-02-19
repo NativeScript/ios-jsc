@@ -16,6 +16,8 @@
 #include "ObjCSuperObject.h"
 #include "ObjCProtocolWrapper.h"
 #include "ObjCTypes.h"
+#include "FFIType.h"
+#include <sstream>
 
 namespace NativeScript {
 using namespace JSC;
@@ -45,7 +47,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
     __block Class blockKlass = newKlass;
     IMP allocWithZone = findNotOverridenMethod(metaClass, @selector(allocWithZone:));
-    IMP newAllocWithZone = imp_implementationWithBlock (^(id self, NSZone * nsZone) {
+    IMP newAllocWithZone = imp_implementationWithBlock(^(id self, NSZone* nsZone) {
         id instance = allocWithZone(self, @selector(allocWithZone:), nsZone);
         VM& vm = globalObject->vm();
 
@@ -63,7 +65,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
 
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
-    IMP newRetain = imp_implementationWithBlock (^(id self) {
+    IMP newRetain = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 1) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 gcProtect(wrapper.value);
@@ -75,7 +77,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(newKlass, @selector(retain), newRetain, "@@:");
 
     void (*release)(id, SEL) = (void (*)(id, SEL))findNotOverridenMethod(newKlass, @selector(release));
-    IMP newRelease = imp_implementationWithBlock (^(id self) {
+    IMP newRelease = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 2) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 gcUnprotect(wrapper.value);
@@ -87,25 +89,90 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(newKlass, @selector(release), newRelease, "v@:");
 }
 
-static void addMethodToClass(ExecState* execState, Class klass, SEL methodName, JSCell* method, const WTF::String& typeEncoding, const WTF::String& compilerEncoding) {
+static bool isValidType(ExecState* execState, JSValue& value) {
+    const FFITypeMethodTable* table;
+    if (!tryGetFFITypeMethodTable(value, &table)) {
+        execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Invalid type")));
+        return false;
+    }
+    return true;
+}
+
+const char* encodeType(JSCell* value) {
+    const FFITypeMethodTable* table;
+    tryGetFFITypeMethodTable(value, &table);
+    return table->encode(value);
+}
+
+static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, MethodMeta* meta) {
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+
+    MetaFileOffset encoding = meta->encodingOffset();
+    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encoding);
+    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encoding, meta->encodingCount() - 1);
+
+    ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeCell, parameterTypesCells);
+    gcProtect(callback);
+    if (!class_addMethod(klass, meta->selector(), reinterpret_cast<IMP>(callback->functionPointer()), meta->compilerEncoding())) {
+        WTFCrash();
+    }
+}
+
+static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, SEL methodName, JSValue& typeEncoding) {
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+
     CallData callData;
     if (method->methodTable()->getCallData(method, callData) == CallTypeNone) {
         WTF::String message = WTF::String::format("Method %s is not a function.", sel_getName(methodName));
         execState->vm().throwException(execState, createError(execState, message));
         return;
     }
+    if (!typeEncoding.isObject()) {
+        WTF::String message = WTF::String::format("Method %s has invalid type encoding", sel_getName(methodName));
+        execState->vm().throwException(execState, createError(execState, message));
+        return;
+    }
 
-    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    JSObject* typeEncodingObj = asObject(typeEncoding);
+    PropertyName returnsProp = Identifier(execState, WTF::ASCIILiteral("returns"));
+    if (!typeEncodingObj->hasOwnProperty(execState, returnsProp)) {
+        WTF::String message = WTF::String::format("Method %s is missing its return type encoding", sel_getName(methodName));
+        execState->vm().throwException(execState, createError(execState, message));
+        return;
+    }
 
-    CString typeEncodingUTF8 = typeEncoding.utf8();
+    std::stringstream compilerEncoding;
 
-    ptrdiff_t consumed;
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingUTF8.data(), &consumed);
-    WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingUTF8.data() + consumed);
+    JSValue returnTypeValue = typeEncodingObj->get(execState, returnsProp);
+    if (execState->hadException() || !isValidType(execState, returnTypeValue)) {
+        return;
+    }
 
-    ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnType, parameterTypes);
+    compilerEncoding << encodeType(returnTypeValue.asCell());
+    compilerEncoding << "@:"; // id self, SEL _cmd
+
+    JSValue parameterTypesValue = typeEncodingObj->get(execState, Identifier(execState, WTF::ASCIILiteral("params")));
+    if (execState->hadException()) {
+        return;
+    }
+
+    WTF::Vector<JSCell*> parameterTypesCells;
+    JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(parameterTypesValue);
+    if (parameterTypesArr) {
+        for (unsigned int i = 0; i < parameterTypesArr->length(); ++i) {
+            JSValue parameterType = parameterTypesArr->get(execState, i);
+            if (execState->hadException() || !isValidType(execState, parameterType)) {
+                return;
+            }
+
+            parameterTypesCells.append(parameterType.asCell());
+            compilerEncoding << encodeType(parameterType.asCell());
+        }
+    }
+
+    ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeValue.asCell(), parameterTypesCells);
     gcProtect(callback);
-    if (!class_addMethod(klass, methodName, reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.utf8().data())) {
+    if (!class_addMethod(klass, methodName, reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.str().c_str())) {
         WTFCrash();
     }
 }
@@ -125,7 +192,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     } else if (!objc_getClass(className.utf8().data())) {
         classNameUTF8 = className.utf8();
     } else {
-        WTF::String errorMessage = WTF::String::format("The desired name is already in use: \"%s\".", classNameUTF8.data());
+        WTF::String errorMessage = WTF::String::format("The desired name is already in use: \"%s\".", className.utf8().data());
         execState->vm().throwException(execState, createError(execState, errorMessage));
         return;
     }
@@ -148,7 +215,8 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
 
 void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolWrapper) {
     if (!protocolWrapper.inherits(ObjCProtocolWrapper::info())) {
-        execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Protocol is not a protocol object.")));
+        WTF::String errorMessage = WTF::String::format("Protocol \"%s\" is not a protocol object.", protocolWrapper.toWTFString(execState).utf8().data());
+        execState->vm().throwException(execState, createError(execState, errorMessage));
         return;
     }
 
@@ -208,15 +276,15 @@ void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier&
     }
 
     if (methodMeta) {
-        WTF::String typeEncoding = methodMeta->encoding();
-        WTF::String compilerEncoding = methodMeta->compilerEncoding();
-        addInstanceMethod(execState, methodMeta->selector(), method, typeEncoding, compilerEncoding);
+        Class klass = this->_constructor.get()->klass();
+        addMethodToClass(execState, klass, method, methodMeta);
     }
 }
 
-void ObjCClassBuilder::addInstanceMethod(ExecState* execState, SEL methodName, JSCell* method, const WTF::String& typeEncoding, const WTF::String& compilerEncoding) {
+void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {
     Class klass = this->_constructor.get()->klass();
-    addMethodToClass(execState, klass, methodName, method, typeEncoding, compilerEncoding);
+    SEL methodName = sel_registerName(jsName.utf8().data());
+    addMethodToClass(execState, klass, method, methodName, typeEncoding);
 }
 
 void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name, const PropertyDescriptor& propertyDescriptor) {
@@ -246,9 +314,9 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         VM& vm = globalObject->vm();
 
         if (MethodMeta* getter = propertyMeta->getter()) {
-            ptrdiff_t consumed;
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, getter->encoding(), &consumed);
-            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, getter->encoding() + consumed);
+            Metadata::MetaFileOffset cursor = getter->encodingOffset();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
+            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, getter->encodingCount() - 1);
 
             ObjCMethodCallback* getterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.getter().asCell(), returnType, parameterTypes);
             gcProtect(getterCallback);
@@ -258,9 +326,9 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         }
 
         if (MethodMeta* setter = propertyMeta->setter()) {
-            ptrdiff_t consumed;
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, setter->encoding(), &consumed);
-            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, setter->encoding() + consumed);
+            Metadata::MetaFileOffset cursor = setter->encodingOffset();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
+            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, setter->encodingCount() - 1);
 
             ObjCMethodCallback* setterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.setter().asCell(), returnType, parameterTypes);
             gcProtect(setterCallback);
@@ -292,17 +360,14 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
         } else if (propertySlot.isValue()) {
             JSValue method = propertySlot.getValue(execState, key);
             if (method.isCell()) {
-                JSValue encodingValue = jsNull();
+                JSValue encodingValue = jsUndefined();
                 if (!exposedMethods.isUndefinedOrNull()) {
                     encodingValue = exposedMethods.get(execState, key);
                 }
-                if (!encodingValue.isString()) {
+                if (encodingValue.isUndefined()) {
                     this->addInstanceMethod(execState, key, method.asCell());
                 } else {
-                    WTF::String encoding = encodingValue.toString(execState)->value(execState);
-                    WTF::String compilerEncoding = encoding;
-                    compilerEncoding.insert(WTF::ASCIILiteral("@:"), 1);
-                    this->addInstanceMethod(execState, sel_registerName(key.utf8().data()), method.asCell(), encoding, compilerEncoding);
+                    this->addInstanceMethod(execState, key, method.asCell(), encodingValue);
                 }
             }
         } else {
@@ -347,15 +412,15 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
     }
 
     if (methodMeta) {
-        WTF::String typeEncoding = methodMeta->encoding();
-        WTF::String compilerEncoding = methodMeta->compilerEncoding();
-        addStaticMethod(execState, methodMeta->selector(), method, typeEncoding, compilerEncoding);
+        Class klass = object_getClass(this->_constructor.get()->klass());
+        addMethodToClass(execState, klass, method, methodMeta);
     }
 }
 
-void ObjCClassBuilder::addStaticMethod(ExecState* execState, SEL methodName, JSCell* method, const WTF::String& typeEncoding, const WTF::String& compilerEncoding) {
+void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {
     Class klass = object_getClass(this->_constructor.get()->klass());
-    addMethodToClass(execState, klass, methodName, method, typeEncoding, compilerEncoding);
+    SEL methodName = sel_registerName(jsName.utf8().data());
+    addMethodToClass(execState, klass, method, methodName, typeEncoding);
 }
 
 void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMethods) {

@@ -45,12 +45,17 @@ describe(module.id, function () {
         expect(interop.handleof(interop.alloc(4)) instanceof interop.Pointer).toBe(true);
 
         var reference = new interop.Reference();
-        expect(function() { interop.handleof(reference); }).toThrowError();
+        expect(function () {
+            interop.handleof(reference);
+        }).toThrowError();
         functionWithIntPtr(reference);
         expect(interop.handleof(reference) instanceof interop.Pointer).toBe(true);
 
-        var functionReference = new interop.FunctionReference(function () {});
-        expect(function() { interop.handleof(functionReference); }).toThrowError();
+        var functionReference = new interop.FunctionReference(function () {
+        });
+        expect(function () {
+            interop.handleof(functionReference);
+        }).toThrowError();
         functionWithSimpleFunctionPointer(functionReference);
         expect(interop.handleof(functionReference) instanceof interop.Pointer).toBe(true);
 
@@ -72,7 +77,8 @@ describe(module.id, function () {
         expect(interop.sizeof(new interop.Reference())).toBeGreaterThan(0);
 
         expect(interop.sizeof(interop.FunctionReference)).toBeGreaterThan(0);
-        expect(interop.sizeof(new interop.FunctionReference(function(){}))).toBeGreaterThan(0);
+        expect(interop.sizeof(new interop.FunctionReference(function () {
+        }))).toBeGreaterThan(0);
 
         expect(interop.sizeof(interop.Pointer)).toBeGreaterThan(0);
         expect(interop.sizeof(new interop.Pointer(0xFFFFFF))).toBeGreaterThan(0);

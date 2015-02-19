@@ -13,8 +13,6 @@ namespace Metadata {
 
 using namespace std;
 
-static const char* frameworks[] = { nil, "Accelerate", "Accounts", "AddressBook", "AddressBookUI", "AdSupport", "AssetsLibrary", "AudioToolbox", "AudioUnit", "AVFoundation", "CFNetwork", "CoreAudio", "CoreBluetooth", "CoreData", "CoreFoundation", "CoreGraphics", "CoreImage", "CoreLocation", "CoreMedia", "CoreMIDI", "CoreMotion", "CoreTelephony", "CoreText", "CoreVideo", "EventKit", "EventKitUI", "ExternalAccessory", "Foundation", "GameController", "GameKit", "GLKit", "GSS", "iAd", "ImageIO", "JavaScriptCore", "MapKit", "MediaAccessibility", "MediaPlayer", "MediaToolbox", "MessageUI", "MobileCoreServices", "MultipeerConnectivity", "NewsstandKit", "OpenAL", "OpenGLES", "PassKit", "QuartzCore", "QuickLook", "SafariServices", "Security", "Social", "SpriteKit", "StoreKit", "SystemConfiguration", "Twitter", "UIKit", "UsrLib", "Metal", "VideoToolbox", "CloudKit", "HealthKit", "HomeKit", "AVKit", "CoreAudioKit", "LocalAuthentication", "NetworkExtension", "NotificationCenter", "Photos", "PhotosUI", "PushKit", "vecLib", "vImage", "WebKit" };
-
 /**
 * \brief Gets the system version of the current device.
 */
@@ -40,8 +38,6 @@ bool startsWith(const char* pre, const char* str) {
 }
 
 // Meta
-const char* Meta::framework() const { return frameworks[this->_frameworkId]; }
-
 bool Meta::isAvailable() const {
     UInt8 introducedIn = this->introducedIn();
     UInt8 systemVersion = getSystemVersion();
@@ -49,15 +45,15 @@ bool Meta::isAvailable() const {
     return !((introducedIn != 0) && (introducedIn > systemVersion));
 }
 
-// RecrodMeta
+// RecordMeta
 #if DEBUG
 void RecordMeta::logRecord() const {
     Meta::logMeta();
-    printf(" fields(%d): ", this->fieldsCount());
-    for (int i = 0; i < this->fieldsCount(); i++) {
+    printf(" fields(%zul): ", this->fieldsCount());
+    for (unsigned int i = 0; i < this->fieldsCount(); i++) {
         printf("%s, ", this->fieldAt(i));
     }
-    printf(" encoding: %s", this->fieldsEncodings());
+    //    printf(" encoding: %s", this->fieldsEncodings());
 }
 #endif
 

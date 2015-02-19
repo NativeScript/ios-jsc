@@ -10,7 +10,7 @@
 
 void TNSFunctionWithCFTypeRefArgument(CFTypeRef x) {
     NSString *str = (__bridge NSString *)x;
-    [TNSGetOutput() appendFormat:@"%@", str];
+    TNSLog([NSString stringWithFormat:@"%@", str]);
 }
 
 CFTypeRef TNSFunctionWithSimpleCFTypeRefReturn() {
@@ -28,21 +28,21 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 + (void)methodWithComplexBlock:(id (^)(int, id, SEL, NSObject *, TNSOStruct))block {
     TNSOStruct str = {5, 6, 7};
     id result = block(1, @2, @selector(init), @[ @3, @4 ], str);
-    [TNSGetOutput() appendFormat:@"\n%@", NSStringFromClass([result class])];
+    TNSLog([NSString stringWithFormat:@"\n%@", NSStringFromClass([result class])]);
 }
 
 - (void)methodWithIdOutParameter:(NSString **)value {
-    [TNSGetOutput() appendFormat:@"%@", *value];
+    TNSLog([NSString stringWithFormat:@"%@", *value]);
     *value = @"test";
 }
 
 - (void)methodWithLongLongOutParameter:(long long *)value {
-    [TNSGetOutput() appendFormat:@"%lld", *value];
+    TNSLog([NSString stringWithFormat:@"%lld", *value]);
     *value = 1;
 }
 
 - (void)methodWithStructOutParameter:(TNSOStruct *)value {
-    [TNSGetOutput() appendFormat:@"%d %d %d", value->x, value->y, value->z];
+    TNSLog([NSString stringWithFormat:@"%d %d %d", value->x, value->y, value->z]);
     *value = (TNSOStruct) {4, 5, 6};
 }
 
@@ -53,7 +53,7 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 - (void)methodWithComplexBlock:(id (^)(int, id, SEL, NSObject *, TNSOStruct))block {
     TNSOStruct str = {5, 6, 7};
     id result = block(1, @2, @selector(init), @[ @3, @4 ], str);
-    [TNSGetOutput() appendFormat:@"\n%@", NSStringFromClass([result class])];
+    TNSLog([NSString stringWithFormat:@"\n%@", NSStringFromClass([result class])]);
 }
 
 - (NumberReturner)methodWithBlockScope:(int)number {
@@ -70,14 +70,14 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 
 - (NSArray *)methodWithNSArray:(NSArray *)array {
     for (id x in array) {
-        [TNSGetOutput() appendFormat:@"%@", x];
+        TNSLog([NSString stringWithFormat:@"%@", x]);
     }
     return array;
 }
 
 - (NSData *)methodWithNSData:(NSData *)data {
     NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    [TNSGetOutput() appendString:string];
+    TNSLog(string);
     return data;
 }
 

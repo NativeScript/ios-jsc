@@ -1,11 +1,11 @@
-describe(module.id, function() {
-    afterEach(function() {
+describe(module.id, function () {
+    afterEach(function () {
         TNSClearOutput();
     });
 
-    it("DerivedMethodWithChar1", function() {
+    it("DerivedMethodWithChar1", function () {
         var result = TNSPrimitives.extend({
-            methodWithChar: function(x) {
+            methodWithChar: function (x) {
                 expect(TNSPrimitives.prototype.methodWithChar.apply(this, arguments)).toBe(127);
                 return x;
             }
@@ -15,9 +15,9 @@ describe(module.id, function() {
         var actual = TNSGetOutput();
         expect(actual).toBe("127");
     });
-    it("DerivedMethodWithChar2", function() {
+    it("DerivedMethodWithChar2", function () {
         var result = TNSPrimitives.extend({
-            methodWithChar: function(x) {
+            methodWithChar: function (x) {
                 expect(TNSPrimitives.prototype.methodWithChar.apply(this, arguments)).toBe(-128);
                 return x;
             }
@@ -28,9 +28,9 @@ describe(module.id, function() {
         expect(actual).toBe("-128");
     });
 
-    it("DerivedMethodWithShort1", function() {
+    it("DerivedMethodWithShort1", function () {
         var result = TNSPrimitives.extend({
-            methodWithShort: function(x) {
+            methodWithShort: function (x) {
                 expect(TNSPrimitives.prototype.methodWithShort.apply(this, arguments)).toBe(32767);
                 return x;
             }
@@ -40,9 +40,9 @@ describe(module.id, function() {
         var actual = TNSGetOutput();
         expect(actual).toBe("32767");
     });
-    it("DerivedMethodWithShort2", function() {
+    it("DerivedMethodWithShort2", function () {
         var result = TNSPrimitives.extend({
-            methodWithShort: function(x) {
+            methodWithShort: function (x) {
                 expect(TNSPrimitives.prototype.methodWithShort.apply(this, arguments)).toBe(-32768);
                 return x;
             }
@@ -53,9 +53,9 @@ describe(module.id, function() {
         expect(actual).toBe("-32768");
     });
 
-    it("DerivedMethodWithInt1", function() {
+    it("DerivedMethodWithInt1", function () {
         var result = TNSPrimitives.extend({
-            methodWithInt: function(x) {
+            methodWithInt: function (x) {
                 expect(TNSPrimitives.prototype.methodWithInt.apply(this, arguments)).toBe(2147483647);
                 return x;
             }
@@ -65,9 +65,9 @@ describe(module.id, function() {
         var actual = TNSGetOutput();
         expect(actual).toBe("2147483647");
     });
-    it("DerivedMethodWithInt2", function() {
+    it("DerivedMethodWithInt2", function () {
         var result = TNSPrimitives.extend({
-            methodWithInt: function(x) {
+            methodWithInt: function (x) {
                 expect(TNSPrimitives.prototype.methodWithInt.apply(this, arguments)).toBe(-2147483648);
                 return x;
             }
@@ -78,9 +78,9 @@ describe(module.id, function() {
         expect(actual).toBe("-2147483648");
     });
 
-    it("DerivedMethodWithLong1", function() {
+    it("DerivedMethodWithLong1", function () {
         var result = TNSPrimitives.extend({
-            methodWithLong: function(x) {
+            methodWithLong: function (x) {
                 expect(TNSPrimitives.prototype.methodWithLong.apply(this, arguments)).toBe(2147483647);
                 return x;
             }
@@ -90,9 +90,9 @@ describe(module.id, function() {
         var actual = TNSGetOutput();
         expect(actual).toBe("2147483647");
     });
-    it("DerivedMethodWithLong2", function() {
+    it("DerivedMethodWithLong2", function () {
         var result = TNSPrimitives.extend({
-            methodWithLong: function(x) {
+            methodWithLong: function (x) {
                 expect(TNSPrimitives.prototype.methodWithLong.apply(this, arguments)).toBe(-2147483648);
                 return x;
             }
@@ -123,9 +123,9 @@ describe(module.id, function() {
     //     expect(actual).toBe("-9223372036854775808-9223372036854775808");
     // });
 
-    it("DerivedMethodWithUChar", function() {
+    it("DerivedMethodWithUChar", function () {
         var result = TNSPrimitives.extend({
-            methodWithUChar: function(x) {
+            methodWithUChar: function (x) {
                 expect(TNSPrimitives.prototype.methodWithUChar.apply(this, arguments)).toBe(255);
                 return x;
             }
@@ -135,9 +135,9 @@ describe(module.id, function() {
         var actual = TNSGetOutput();
         expect(actual).toBe("255");
     });
-    it("DerivedMethodWithUShort", function() {
+    it("DerivedMethodWithUShort", function () {
         var result = TNSPrimitives.extend({
-            methodWithUShort: function(x) {
+            methodWithUShort: function (x) {
                 expect(TNSPrimitives.prototype.methodWithUShort.apply(this, arguments)).toBe(65535);
                 return x;
             }
@@ -148,9 +148,9 @@ describe(module.id, function() {
         expect(actual).toBe("65535");
     });
 
-    it("DerivedMethodWithUInt", function() {
+    it("DerivedMethodWithUInt", function () {
         var result = TNSPrimitives.extend({
-            methodWithUInt: function(x) {
+            methodWithUInt: function (x) {
                 expect(TNSPrimitives.prototype.methodWithUInt.apply(this, arguments)).toBe(4294967295);
                 return x;
             }
@@ -161,9 +161,9 @@ describe(module.id, function() {
         expect(actual).toBe("4294967295");
     });
 
-    it("DerivedMethodWithULong", function() {
+    it("DerivedMethodWithULong", function () {
         var result = TNSPrimitives.extend({
-            methodWithULong: function(x) {
+            methodWithULong: function (x) {
                 expect(TNSPrimitives.prototype.methodWithULong.apply(this, arguments)).toBe(4294967295);
                 return x;
             }
@@ -185,9 +185,9 @@ describe(module.id, function() {
     //     expect(actual).toBe("1844674407370955161518446744073709551615");
     // });
 
-    it("DerivedMethodWithFloat1", function() {
+    it("DerivedMethodWithFloat1", function () {
         var result = TNSPrimitives.extend({
-            methodWithFloat: function(x) {
+            methodWithFloat: function (x) {
                 expect(TNSPrimitives.prototype.methodWithFloat.apply(this, arguments)).toBe(3.4028234663852886e+38);
                 return x;
             }
@@ -212,9 +212,9 @@ describe(module.id, function() {
 //        expect(actual).toBe("0.000000000000000000000000000000000000011754944");
 //    });
 
-    it("DerivedMethodWithDouble1", function() {
+    it("DerivedMethodWithDouble1", function () {
         var result = TNSPrimitives.extend({
-            methodWithDouble: function(x) {
+            methodWithDouble: function (x) {
                 expect(TNSPrimitives.prototype.methodWithDouble.apply(this, arguments)).toBe(1.7976931348623157e+308);
                 return x;
             }
@@ -224,9 +224,9 @@ describe(module.id, function() {
         var actual = TNSGetOutput();
         expect(actual).toBe("179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
     });
-    it("DerivedMethodWithDouble2", function() {
+    it("DerivedMethodWithDouble2", function () {
         var result = TNSPrimitives.extend({
-            methodWithDouble: function(x) {
+            methodWithDouble: function (x) {
                 expect(TNSPrimitives.prototype.methodWithDouble.apply(this, arguments)).toBe(2.2250738585072014e-308);
                 return x;
             }
@@ -237,9 +237,9 @@ describe(module.id, function() {
         expect(actual).toBe("0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000222507385850720138");
     });
 
-    it("DerivedMethodWithSelector", function() {
+    it("DerivedMethodWithSelector", function () {
         var result = TNSPrimitives.extend({
-            methodWithSelector: function(x) {
+            methodWithSelector: function (x) {
                 expect(TNSPrimitives.prototype.methodWithSelector.apply(this, arguments)).toBe('init');
                 return x;
             }
@@ -250,9 +250,9 @@ describe(module.id, function() {
         expect(actual).toBe("init");
     });
 
-    it("DerivedMethodWithClass", function() {
+    it("DerivedMethodWithClass", function () {
         var result = TNSPrimitives.extend({
-            methodWithClass: function(x) {
+            methodWithClass: function (x) {
                 expect(TNSPrimitives.prototype.methodWithClass.apply(this, arguments)).toBe(NSObject);
                 return x;
             }
@@ -263,9 +263,9 @@ describe(module.id, function() {
         expect(actual).toBe("NSObject");
     });
 
-    it("DerivedMethodWithProtocol", function() {
+    it("DerivedMethodWithProtocol", function () {
         var result = TNSPrimitives.extend({
-            methodWithProtocol: function(x) {
+            methodWithProtocol: function (x) {
                 expect(TNSPrimitives.prototype.methodWithProtocol.apply(this, arguments)).toBe(TNSBaseProtocol1);
                 return x;
             }
@@ -276,9 +276,9 @@ describe(module.id, function() {
         expect(actual).toBe("TNSBaseProtocol1");
     });
 
-    it("DerivedMethodWithNull", function() {
+    it("DerivedMethodWithNull", function () {
         var result = TNSPrimitives.extend({
-            methodWithNull: function(x) {
+            methodWithNull: function (x) {
                 expect(TNSPrimitives.prototype.methodWithNull.apply(this, arguments)).toBe(null);
                 return x;
             }
@@ -289,9 +289,9 @@ describe(module.id, function() {
         expect(actual).toBe("(null)");
     });
 
-    it("DerivedMethodWithBool", function() {
+    it("DerivedMethodWithBool", function () {
         var result = TNSPrimitives.extend({
-            methodWithBool: function(x) {
+            methodWithBool: function (x) {
                 expect(TNSPrimitives.prototype.methodWithBool.apply(this, arguments)).toBe(true);
                 return x;
             }
@@ -302,9 +302,9 @@ describe(module.id, function() {
         expect(actual).toBe("1");
     });
 
-    it("DerivedMethodWithBool2", function() {
+    it("DerivedMethodWithBool2", function () {
         var result = TNSPrimitives.extend({
-            methodWithBool2: function(x) {
+            methodWithBool2: function (x) {
                 expect(TNSPrimitives.prototype.methodWithBool2.apply(this, arguments)).toBe(true);
                 return x;
             }
@@ -315,9 +315,9 @@ describe(module.id, function() {
         expect(actual).toBe("1");
     });
 
-    it("DerivedMethodWithBool3", function() {
+    it("DerivedMethodWithBool3", function () {
         var result = TNSPrimitives.extend({
-            methodWithBool3: function(x) {
+            methodWithBool3: function (x) {
                 expect(TNSPrimitives.prototype.methodWithBool3.apply(this, arguments)).toBe(true);
                 return x;
             }
@@ -330,7 +330,7 @@ describe(module.id, function() {
 
     it("DerivedMethodWithUnichar", function () {
         var result = TNSPrimitives.extend({
-            methodWithUnichar: function(x) {
+            methodWithUnichar: function (x) {
                 expect(TNSPrimitives.prototype.methodWithUnichar.apply(this, arguments)).toBe('i');
                 return x;
             }

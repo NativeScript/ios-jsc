@@ -1,10 +1,10 @@
-describe(module.id, function() {
+describe(module.id, function () {
     afterEach(function () {
         TNSClearOutput();
     });
 
     // TODO
-    it("CFBag", function() {
+    it("CFBag", function () {
         var a = new interop.Reference(interop.types.int32, 1);
         var b = new interop.Reference(interop.types.int32, 2);
 

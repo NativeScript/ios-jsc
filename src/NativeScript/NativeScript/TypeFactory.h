@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <wtf/HashFunctions.h>
 #include "WeakHandleOwners.h"
+#include "MetaFileReader.h"
 
 namespace Metadata {
 struct InterfaceMeta;
@@ -45,9 +46,9 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    JSC::JSCell* parseType(GlobalObject*, const char* typeEncoding, ptrdiff_t* consumed = nullptr);
+    JSC::JSCell* parseType(GlobalObject*, Metadata::MetaFileOffset& typeEncodingOffset);
 
-    const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, const char* typeEncoding, ptrdiff_t* consumed = nullptr);
+    const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, Metadata::MetaFileOffset& typeEncodingOffset, Byte count);
 
     ObjCConstructorNative* getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName);
 
@@ -137,23 +138,13 @@ private:
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
-    void extractInlinedRecordEncoding(GlobalObject*, const char* start, WTF::Vector<JSC::JSCell*>& fieldsTypes, WTF::Vector<WTF::String>& fieldsNames);
-
     WTF::Vector<RecordField*> createRecordFields(GlobalObject*, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
 
-    JSC::JSCell* parseReferenceType(GlobalObject*, char const* typeEncoding, ptrdiff_t* consumed);
+    ObjCBlockType* parseBlockType(GlobalObject*, Metadata::MetaFileOffset& cursor);
 
-    ObjCBlockType* parseBlockType(GlobalObject*, char const* typeEncoding, ptrdiff_t* consumed);
+    JSC::JSCell* parseFunctionReferenceType(GlobalObject* globalObject, Metadata::MetaFileOffset& cursor);
 
-    JSC::JSCell* parseFunctionReferenceType(GlobalObject* globalObject, const char* typeEncoding, ptrdiff_t* consumed);
-
-    JSC::JSCell* parseArrayType(GlobalObject*, char const* typeEncoding, ptrdiff_t* consumed);
-
-    RecordConstructor* parseStructType(GlobalObject*, char const* typeEncoding, ptrdiff_t* consumed);
-
-    JSC::JSCell* parseUnionType(GlobalObject*, char const* typeEncoding, ptrdiff_t* consumed);
-
-    ObjCConstructorNative* parseIdType(GlobalObject*, const char* typeEncoding, ptrdiff_t* consumed);
+    RecordConstructor* getAnonymousStructConstructor(GlobalObject*, Metadata::MetaFileOffset& cursor);
 
     JSC::WriteBarrier<FFISimpleType> _noopType;
     JSC::WriteBarrier<FFISimpleType> _voidType;

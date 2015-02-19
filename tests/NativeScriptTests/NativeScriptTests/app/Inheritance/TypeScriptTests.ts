@@ -106,8 +106,8 @@ class TSObject extends TNSDerivedInterface {
     }
 
     public static ObjCExposedMethods = {
-        'voidSelector': 'v',
-        'variadicSelector:x:': '@@i'
+        'voidSelector': { returns: interop.types.void },
+        'variadicSelector:x:': { returns: NSObject, params: [ NSString, interop.types.int32 ] }
     };
 }
 

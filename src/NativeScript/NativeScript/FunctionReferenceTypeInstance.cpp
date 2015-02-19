@@ -58,6 +58,10 @@ bool FunctionReferenceTypeInstance::canConvert(ExecState* execState, const JSVal
     return value.isUndefinedOrNull() || value.inherits(FunctionReferenceInstance::info());
 }
 
+const char* FunctionReferenceTypeInstance::encode(JSCell* cell) {
+    return "^?";
+}
+
 void FunctionReferenceTypeInstance::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes) {
     Base::finishCreation(vm);
 
@@ -66,6 +70,7 @@ void FunctionReferenceTypeInstance::finishCreation(VM& vm, JSCell* returnType, c
     this->_ffiTypeMethodTable.write = &write;
     this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
+    this->_ffiTypeMethodTable.encode = &encode;
 
     this->_returnType.set(vm, this, returnType);
 

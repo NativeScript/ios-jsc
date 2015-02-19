@@ -3,10 +3,10 @@ console.log('TNSRuntime is running...');
 
 require('./Infrastructure/timers');
 
-global.UNUSED = function(param) {
+global.UNUSED = function (param) {
 };
 
-global.SYSTEM_VERSION_LESS_THAN = function(version) {
+global.SYSTEM_VERSION_LESS_THAN = function (version) {
     var systemVersion = NSString.stringWithString(UIDevice.currentDevice().systemVersion);
     return systemVersion.compareOptions(version, NSStringCompareOptions.NSNumericSearch) === NSComparisonResult.NSOrderedAscending;
 };
@@ -15,11 +15,11 @@ var args = NSProcessInfo.processInfo().arguments;
 var logjunit = args.containsObject("-logjunit");
 
 // Provides an output channel for jasmine JUnit test result xml.
-global.__JUnitSaveResults = function(text) {
+global.__JUnitSaveResults = function (text) {
     TNSSaveResults(text);
 
     if (logjunit) {
-        text.split('\n').forEach(function(line) {
+        text.split('\n').forEach(function (line) {
             console.log("TKUnit: " + line);
         });
     }

@@ -220,7 +220,7 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe("i");
 
-        expect(function() {
+        expect(function () {
             functionWithUnichar('iPhone');
         }).toThrowError();
     });

@@ -849,14 +849,14 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProperty: calledinstance derivedCategoryProperty called');
     });
-    it('allocAndNewMethodsRetaining', function() {
-       var obj1 = new NSObject();
-       expect(obj1.retainCount()).toBe(1);
-       
-       var obj2 = NSObject.alloc();
-       expect(obj2.retainCount()).toBe(1);
-       
-       var obj3 = NSObject.new();
-       expect(obj3.retainCount()).toBe(1);
+    it('allocAndNewMethodsRetaining', function () {
+        var obj1 = new NSObject();
+        expect(obj1.retainCount()).toBe(1);
+
+        var obj2 = NSObject.alloc();
+        expect(obj2.retainCount()).toBe(1);
+
+        var obj3 = NSObject.new();
+        expect(obj3.retainCount()).toBe(1);
     });
 });

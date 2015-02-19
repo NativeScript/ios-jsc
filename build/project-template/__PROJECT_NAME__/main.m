@@ -6,25 +6,25 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
-#import <JavaScriptCore/JavaScriptCore.h>
-#import <NativeScript/NativeScript.h>
-#if WAIT_FOR_INSPECTOR
+#include <Foundation/Foundation.h>
+#include <JavaScriptCore/JavaScriptCore.h>
+#include <NativeScript/NativeScript.h>
+
+#ifdef DEBUG
 #include <TNSDebugging/TNSDebugging.h>
 #endif
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     @autoreleasepool {
-        TNSRuntime* runtime = [[TNSRuntime alloc] initWithApplicationPath:[[NSBundle mainBundle] bundlePath]];
+        TNSRuntime *runtime = [[TNSRuntime alloc] initWithApplicationPath:[[NSBundle mainBundle] bundlePath]];
         [TNSRuntimeInspector setLogsToSystemConsole:YES];
 
-#if WAIT_FOR_INSPECTOR
-        id server = [runtime startWebSocketServerOnPort:8080];
-        CFRunLoopRun();
+#ifdef DEBUG
+        id debuggingServer = [runtime enableDebuggingWithName: [NSBundle mainBundle].bundleIdentifier];
 #endif
 
         JSValueRef error = NULL;
-        [runtime executeModule:@"./bootstrap"
-                         error:&error];
+        [runtime executeModule:@"./bootstrap" error:&error];
 
         if (error) {
             return -1;
