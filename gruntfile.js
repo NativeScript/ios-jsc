@@ -441,8 +441,8 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask("WebInspectorUI", [
-        "WebInspectorUISafari" /*,
-        "WebInspectorUIChrome" */
+        "WebInspectorUISafari",
+        "WebInspectorUIChrome"
     ]);
 
     grunt.registerTask("WebInspectorUISafari", [
