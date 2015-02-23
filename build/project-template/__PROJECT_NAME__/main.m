@@ -14,13 +14,13 @@
 #include <TNSDebugging/TNSDebugging.h>
 #endif
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     @autoreleasepool {
-        TNSRuntime *runtime = [[TNSRuntime alloc] initWithApplicationPath:[[NSBundle mainBundle] bundlePath]];
+        TNSRuntime* runtime = [[TNSRuntime alloc] initWithApplicationPath:[[NSBundle mainBundle] bundlePath]];
         [TNSRuntimeInspector setLogsToSystemConsole:YES];
 
 #ifdef DEBUG
-        id debuggingServer = [runtime enableDebuggingWithName: [NSBundle mainBundle].bundleIdentifier];
+        id debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
 
         JSValueRef error = NULL;

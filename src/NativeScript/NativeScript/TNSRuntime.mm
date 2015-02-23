@@ -72,6 +72,9 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     requireArgs.append(moduleBody);
 
     JSFunction* moduleFunction = jsCast<JSFunction*>(constructFunction(execState, execState->lexicalGlobalObject(), requireArgs, moduleName->toIdentifier(execState), moduleUrl, WTF::TextPosition()));
+    if (execState->hadException()) {
+        return JSValue::encode(jsUndefined());
+    }
     SourceProvider* sourceProvider = moduleFunction->sourceCode()->provider();
 
     TNSRuntime* runtime = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData);

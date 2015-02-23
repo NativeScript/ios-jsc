@@ -31,6 +31,7 @@ typedef int (^NumberReturner)(int, int, int);
 - (NumberReturner)methodWithBlockScope:(int)number;
 - (id)methodReturningBlockAsId:(int)number;
 
+- (NSDate *)methodWithNSDate:(NSDate *)date;
 - (NSArray *)methodWithNSArray:(NSArray *)array;
 - (NSData *)methodWithNSData:(NSData *)data;
 - (NSNumber *)methodWithNSCFBool;

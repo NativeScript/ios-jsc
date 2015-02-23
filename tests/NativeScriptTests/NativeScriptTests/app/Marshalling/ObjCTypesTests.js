@@ -105,6 +105,11 @@ describe(module.id, function () {
         expect(block(1, 2, 3)).toBe(10);
     });
 
+    it("MethodWithNSDate", function () {
+        expect(TNSObjCTypes.alloc().init().methodWithNSDate(new Date(1e12))).toEqual(new Date(1e12));
+        expect(TNSGetOutput()).toBe('2001-09-09 01:46:40 +0000');
+    });
+
     it("MethodWithNSArray", function () {
         var array = [1, 2, 'a', NSObject];
         var result = TNSObjCTypes.alloc().init().methodWithNSArray(array);

@@ -68,6 +68,11 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
     };
 }
 
+- (NSDate *)methodWithNSDate:(NSDate *)date {
+    TNSLog(date.description);
+    return date;
+}
+
 - (NSArray *)methodWithNSArray:(NSArray *)array {
     for (id x in array) {
         TNSLog([NSString stringWithFormat:@"%@", x]);

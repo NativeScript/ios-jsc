@@ -7,6 +7,7 @@
 //
 
 #include <JavaScriptCore/JSArrayBuffer.h>
+#include <JavaScriptCore/DateInstance.h>
 #include "ObjCTypes.h"
 #include "ObjCSuperObject.h"
 #include "ObjCConstructorBase.h"
@@ -80,7 +81,13 @@ static NSArray* toObject(ExecState* execState, JSArray* array) {
 
     NSMutableArray* mutableArray = [NSMutableArray arrayWithCapacity:buffer.size()];
     for (size_t i = 0; i < buffer.size(); i++) {
-        mutableArray[i] = toObject(execState, buffer.at(i));
+        id currentObject = toObject(execState, buffer.at(i));
+
+        if (execState->hadException()) {
+            return nil;
+        }
+
+        mutableArray[i] = currentObject;
     }
 
     return [mutableArray copy];
@@ -140,6 +147,10 @@ id toObject(ExecState* execState, const JSValue& value) {
         return jsCast<ObjCSuperObject*>(value.asCell())->wrapperObject()->wrappedObject();
     }
 
+    if (value.inherits(DateInstance::info())) {
+        return [NSDate dateWithTimeIntervalSince1970:(value.toNumber(execState) / 1000)];
+    }
+
     if (value.inherits(JSArrayBuffer::info())) {
         return toObject(execState, jsCast<JSArrayBuffer*>(value.asCell()));
     }
@@ -148,7 +159,8 @@ id toObject(ExecState* execState, const JSValue& value) {
         return toObject(execState, jsCast<JSArrayBufferView*>(value.asCell()));
     }
 
-    RELEASE_ASSERT_NOT_REACHED();
+    throwVMError(execState, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));
+    return nil;
 }
 
 JSValue toValue(ExecState* execState, id object, Class klass) {
@@ -170,6 +182,10 @@ JSValue toValue(ExecState* execState, id object, Class klass) {
 
     if ([object isKindOfClass:[NSNumber class]]) {
         return jsNumber([object doubleValue]);
+    }
+
+    if ([object isKindOfClass:[NSDate class]]) {
+        return DateInstance::create(execState->vm(), execState->lexicalGlobalObject()->dateStructure(), [object timeIntervalSince1970] * 1000.0);
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());

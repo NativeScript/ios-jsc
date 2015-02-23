@@ -64,7 +64,7 @@ const FFITypeMethodTable voidTypeMethodTable = {
 
 #pragma mark boolType
 static JSValue boolType_read(ExecState* execState, const void* buffer, JSCell* self) {
-    return jsBoolean(*static_cast<const bool*>(buffer));
+    return jsBoolean(*static_cast<const char*>(buffer) != 0);
 }
 static void boolType_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     *static_cast<bool*>(buffer) = value.toBoolean(execState);

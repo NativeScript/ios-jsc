@@ -117,5 +117,7 @@ describe(module.id, function () {
 
         expect(instance.x() instanceof NSMutableString).toBe(true);
         expect(instance.x().description).toBe('test');
+
+        expect(instance.x().copy()).toBe('test');
     });
 });

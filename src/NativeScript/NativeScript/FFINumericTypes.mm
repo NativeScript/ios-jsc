@@ -21,7 +21,7 @@ using namespace JSC;
     static void name##PostCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) { \
     }                                                                                                    \
     static bool name##CanConvert(ExecState* execState, const JSValue& value, JSCell* self) {             \
-        return true;                                                                                     \
+        return value.isNumber();                                                                         \
     }                                                                                                    \
     static const char* name##encode(JSCell* self) {                                                      \
         return @encode(T);                                                                               \
