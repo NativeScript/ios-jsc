@@ -145,10 +145,10 @@ module.exports = function (grunt) {
         },
         exec: {
             libNativeScript_i386_x86_64: {
-                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace -derivedDataPath <%= outNativeScriptDerivedDataDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace -derivedDataPath <%= outNativeScriptDerivedDataDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" > <%= outBuildLog %>"
             },
             libNativeScript_armv7_arm64: {
-                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace -derivedDataPath <%= outNativeScriptDerivedDataDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace -derivedDataPath <%= outNativeScriptDerivedDataDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" > <%= outBuildLog %>"
             },
             libNativeScript_universal: {
                 cmd: "lipo -create -output <%= outNativeScriptDir %>/NativeScript <%= outNativeScriptDerivedDataDir %>/Build/Products/Release-iphoneos/libNativeScript.a <%= outNativeScriptDerivedDataDir %>/Build/Products/Release-iphonesimulator/libNativeScript.a "
