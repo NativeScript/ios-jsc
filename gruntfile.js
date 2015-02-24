@@ -155,17 +155,17 @@ module.exports = function (grunt) {
             },
 
             libTNSDebugging_i386_x86_64: {
-                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace -scheme TNSDebugging SYMROOT=../../../<%= outTNSDebuggingIntermediateDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" clean build > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace -scheme TNSDebugging SYMROOT=<%= outTNSDebuggingIntermediateDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" clean build > <%= outBuildLog %>"
             },
             libTNSDebugging_armv7_arm64: {
-                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme TNSDebugging -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace SYMROOT=../../../<%= outTNSDebuggingIntermediateDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" clean build CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme TNSDebugging -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace SYMROOT=<%= outTNSDebuggingIntermediateDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" clean build CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
             },
             libTNSDebugging_universal: {
                 cmd: "lipo -create -output <%= outTNSDebuggingDir %>/TNSDebugging <%= outTNSDebuggingIntermediateDir %>/Release-iphoneos/libTNSDebugging.a <%= outTNSDebuggingIntermediateDir %>/Release-iphonesimulator/libTNSDebugging.a "
             },
 
             webInspectorUISafari: {
-                cmd: "xcodebuild -configuration Release -sdk macosx -project <%= srcDir %>/src/debugging/WebInspectorUI-600.1.4/WebInspectorUI.xcodeproj SYMROOT=../../../<%= outWebInspectorUISafariIntermediateDir %> clean build > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk macosx -project <%= srcDir %>/src/debugging/WebInspectorUI-600.1.4/WebInspectorUI.xcodeproj SYMROOT=<%= outWebInspectorUISafariIntermediateDir %> clean build > <%= outBuildLog %>"
             },
             webInspectorUIChrome: {
                 cmd: "<%= srcDir %>/build/scripts/WIBuildForChrome.sh"
@@ -213,7 +213,7 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outMetadataGeneratorDir %>", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
                     { expand: true, cwd: "<%= outMetadataMergerDir %>", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
+                    { expand: true, src: "<%= srcDir %>/", src: "package.json", dest: "<%= outPackageDir %>", options: { process: updatePackageVersion } }
                 ]
             }
         },
