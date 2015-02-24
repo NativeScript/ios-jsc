@@ -35,7 +35,7 @@ void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JS
 }
 
 void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
-    ObjCMethodCallback* methodCallback = jsCast<ObjCMethodCallback*>(userData);
+    ObjCMethodCallback* methodCallback = reinterpret_cast<ObjCMethodCallback*>(userData);
 
     id target = *static_cast<id*>(argValues[0]);
 #if DEBUG_OBJC_INVOCATION

@@ -7,31 +7,28 @@ module.exports = function (grunt) {
     var shell = require('shelljs/global');
     var traceur = require('traceur');
 
-    var srcDir = ".";
-    var metadataGeneratorRepository = srcDir + "/src/metadata-generator";
+    var srcDir = path.resolve(process.cwd());
+    var metadataGeneratorRepository = path.resolve(path.join(srcDir, "src/metadata-generator"));
 
     // build outputs
-    var outDistDir = srcDir + "/dist";
-    var outJscDir = outDistDir + "/jsc";
-    var outJscLibDir = outJscDir + "/lib";
-    var outJscHeadersDir = outJscDir + "/include";
-    var outNativeScriptDir = outDistDir + "/NativeScript.framework";
-    var outNativeScriptIntermediateDir = outNativeScriptDir + "/intermediate";
-    var outTNSDebuggingDir = outDistDir + "/TNSDebugging.framework";
-    var outTNSDebuggingIntermediateDir = outTNSDebuggingDir + "/intermediate";
-    var outPackageDir = outDistDir + "/package";
-    var outPackageFrameworkDir = outPackageDir + "/framework";
-    var outPackageFrameworkMetadataDir = outPackageFrameworkDir + "/Metadata";
-    var outMetadataGeneratorDir = outDistDir + "/metadataGenerator";
-    var outMetadataMergerDir = outDistDir + "/metadataMerger";
-    var outMetadataDir = outDistDir + "/metadata";
-    var outSDKMetadataDir = outMetadataDir + "/iPhoneSDK";
-    var outTestsMetadataDir = outMetadataDir + "/tests";
-    var outWebInspectorUIDir = outDistDir + "/WebInspectorUI";
-    var outWebInspectorUISafariDir = outWebInspectorUIDir + "/Safari";
-    var outWebInspectorUISafariIntermediateDir = outWebInspectorUISafariDir + "/intermediates";
-    var outWebInspectorUIChromeDir = outWebInspectorUIDir + "/Chrome";
-    var outBuildLog = outDistDir + "/build_log.txt";
+    var outDistDir = path.join(srcDir, "dist");
+    var outNativeScriptDir = path.join(outDistDir, "NativeScript.framework");
+    var outNativeScriptDerivedDataDir = path.join(srcDir, "src/NativeScript/build");
+    var outTNSDebuggingDir = path.join(outDistDir, "TNSDebugging.framework");
+    var outTNSDebuggingIntermediateDir = path.join(outTNSDebuggingDir, "intermediate");
+    var outPackageDir = path.join(outDistDir, "package");
+    var outPackageFrameworkDir = path.join(outPackageDir, "framework");
+    var outPackageFrameworkMetadataDir = path.join(outPackageFrameworkDir, "Metadata");
+    var outMetadataGeneratorDir = path.join(outDistDir, "metadataGenerator");
+    var outMetadataMergerDir = path.join(outDistDir, "metadataMerger");
+    var outMetadataDir = path.join(outDistDir, "metadata");
+    var outSDKMetadataDir = path.join(outMetadataDir, "iPhoneSDK");
+    var outTestsMetadataDir = path.join(outMetadataDir, "tests");
+    var outWebInspectorUIDir = path.join(outDistDir, "WebInspectorUI");
+    var outWebInspectorUISafariDir = path.join(outWebInspectorUIDir, "Safari");
+    var outWebInspectorUISafariIntermediateDir = path.join(outWebInspectorUISafariDir, "intermediates");
+    var outWebInspectorUIChromeDir = path.join(outWebInspectorUIDir, "Chrome");
+    var outBuildLog = path.join(outDistDir, "build_log.txt");
 
     var updatePackageVersion = function (content, srcPath) {
         var packageVersion = process.env.PACKAGE_VERSION;
@@ -59,13 +56,10 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         srcDir: srcDir,
-        outJscDir: outJscDir,
-        outJscLibDir: outJscLibDir,
-        outJscHeadersDir: outJscHeadersDir,
         metadataGeneratorRepository: metadataGeneratorRepository,
         outDistDir: outDistDir,
         outNativeScriptDir: outNativeScriptDir,
-        outNativeScriptIntermediateDir: outNativeScriptIntermediateDir,
+        outNativeScriptDerivedDataDir: outNativeScriptDerivedDataDir,
         outTNSDebuggingDir: outTNSDebuggingDir,
         outTNSDebuggingIntermediateDir: outTNSDebuggingIntermediateDir,
         outPackageDir: outPackageDir,
@@ -92,10 +86,8 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON(srcDir + "/package.json"),
         clean: {
             outDist: [outDistDir],
-            outJsc: [outJscDir],
-            outJscIntermediates: [outJscDir + "/JavaScriptCore.build", outJscDir + "/Production-iphonesimulator", outJscDir + "/WTF.build", outJscDir + "/Production-iphoneos"],
             outNativeScript: [outNativeScriptDir],
-            outNativeScriptIntermediate: [outNativeScriptIntermediateDir],
+            outNativeScriptDerivedData: [outNativeScriptDerivedDataDir],
             outTNSDebugging: [outTNSDebuggingDir],
             outTNSDebuggingIntermediate: [outTNSDebuggingIntermediateDir],
             outPackage: [outPackageDir],
@@ -113,15 +105,6 @@ module.exports = function (grunt) {
         mkdir: {
             outDist: {
                 options: { create: [outDistDir] }
-            },
-            outJsc: {
-                options: { create: [outJscDir] }
-            },
-            outJscLib: {
-                options: { create: [outJscLibDir] }
-            },
-            outJscHeaders: {
-                options: { create: [outJscHeadersDir] }
             },
             outNativeScript: {
                 options: { create: [outNativeScriptDir] }
@@ -161,27 +144,14 @@ module.exports = function (grunt) {
             }
         },
         exec: {
-            libJavaScriptCore_i386_x86_64: {
-                cmd: "xcodebuild -project ./src/jsc/JavaScriptCore/JavaScriptCore.xcodeproj -target \"JavaScriptCore iOS\" -sdk iphonesimulator -configuration Production SYMROOT=../../../<%= outJscDir %> ARCHS=\"i386 x86_64\" clean build | xcpretty"
-            },
-            libJavaScriptCore_armv7_arm64: {
-                cmd: "xcodebuild -project ./src/jsc/JavaScriptCore/JavaScriptCore.xcodeproj -target \"JavaScriptCore iOS\" -sdk iphoneos -configuration Production SYMROOT=../../../<%= outJscDir %> ARCHS=\"armv7 arm64\" clean build | xcpretty"
-            },
-            libJavaScriptCore_universal: {
-                cmd: "lipo -create -output <%= outJscDir %>/lib/libJavaScriptCore.a <%= outJscDir %>/Production-iphonesimulator/libJavaScriptCore.a <%= outJscDir %>/Production-iphoneos/libJavaScriptCore.a"
-            },
-            libJavaScriptCore_copyHeaders: {
-                cmd: "<%= srcDir %>/build/scripts/JSCCopyHeaders.sh"
-            },
-
             libNativeScript_i386_x86_64: {
-                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace SYMROOT=../../<%= outNativeScriptIntermediateDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" clean build > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace -derivedDataPath <%= outNativeScriptDerivedDataDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
             },
             libNativeScript_armv7_arm64: {
-                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace SYMROOT=../../<%= outNativeScriptIntermediateDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" clean build CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme NativeScript -workspace <%= srcDir %>/src/NativeScript/NativeScript.xcworkspace -derivedDataPath <%= outNativeScriptDerivedDataDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
             },
             libNativeScript_universal: {
-                cmd: "lipo -create -output <%= outNativeScriptDir %>/NativeScript <%= outNativeScriptIntermediateDir %>/Release-iphoneos/libNativeScript.a <%= outNativeScriptIntermediateDir %>/Release-iphonesimulator/libNativeScript.a "
+                cmd: "lipo -create -output <%= outNativeScriptDir %>/NativeScript <%= outNativeScriptDerivedDataDir %>/Build/Products/Release-iphoneos/libNativeScript.a <%= outNativeScriptDerivedDataDir %>/Build/Products/Release-iphonesimulator/libNativeScript.a "
             },
 
             libTNSDebugging_i386_x86_64: {
@@ -218,7 +188,7 @@ module.exports = function (grunt) {
         copy: {
             libNativeScript_headers: {
                 files: [
-                    { expand: true, cwd: "<%= outNativeScriptIntermediateDir %>/Release-iphoneos/include/NativeScript", src: "**", dest: "<%= outNativeScriptDir %>/Headers/" }
+                    { expand: true, cwd: "<%= outNativeScriptDerivedDataDir %>/Release-iphoneos/include/NativeScript", src: "**", dest: "<%= outNativeScriptDir %>/Headers/" }
                 ]
             },
 
@@ -339,8 +309,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-shell");
     grunt.loadNpmTasks("grunt-grunt");
 
-    // All tasks assume that JavaScriptCore is already built
-
     grunt.registerTask("default", [
         "build"
     ]);
@@ -349,18 +317,6 @@ module.exports = function (grunt) {
         "package",
         "shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa",
         "exec:tnsAppBuildStats"
-    ]);
-
-    grunt.registerTask("jsc", [
-        "clean:outJsc",
-        "mkdir:outJsc",
-        "mkdir:outJscLib",
-        "mkdir:outJscHeaders",
-        "exec:libJavaScriptCore_i386_x86_64",
-        "exec:libJavaScriptCore_armv7_arm64",
-        "exec:libJavaScriptCore_universal",
-        "exec:libJavaScriptCore_copyHeaders",
-        "clean:outJscIntermediates"
     ]);
 
     grunt.registerTask("metadataGenerator", [
@@ -383,8 +339,7 @@ module.exports = function (grunt) {
         "exec:libNativeScript_i386_x86_64",
         "exec:libNativeScript_armv7_arm64",
         "exec:libNativeScript_universal",
-        "copy:libNativeScript_headers",
-        "clean:outNativeScriptIntermediate"
+        "copy:libNativeScript_headers"
     ]);
 
     grunt.registerTask("TNSDebugging", [

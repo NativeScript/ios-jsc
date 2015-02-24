@@ -30,7 +30,6 @@
 		85B2A75619756AE200616E60 /* TypeFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85B2A75519756AE200616E60 /* TypeFactory.mm */; };
 		85B2A75C197807FF00616E60 /* ObjCWrapperObject.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85B2A75A197807FF00616E60 /* ObjCWrapperObject.mm */; };
 		85B2A79019781C6500616E60 /* ObjCPrototype.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85B2A78E19781C6500616E60 /* ObjCPrototype.mm */; };
-		85BD8CC0197FBEDC00C96EB8 /* libJavaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 85BD8CBF197FBEDC00C96EB8 /* libJavaScriptCore.a */; };
 		85BD8CD219811B1500C96EB8 /* ObjCExtend.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85BD8CD019811B1500C96EB8 /* ObjCExtend.mm */; };
 		85F3B5E219DD6D7000A29DAC /* JSWeakRefConstructor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F3B5E019DD6D7000A29DAC /* JSWeakRefConstructor.cpp */; };
 		85F3B5E519DD6DA900A29DAC /* JSWeakRefPrototype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F3B5E319DD6DA900A29DAC /* JSWeakRefPrototype.cpp */; };
@@ -61,6 +60,7 @@
 		BD6CDF1BCF770FAC2F9E9580 /* ObjCPrimitiveTypes.mm in Sources */ = {isa = PBXBuildFile; fileRef = BD6CD6C9A6CE4AD69E33A428 /* ObjCPrimitiveTypes.mm */; };
 		C474AC8419E5846600D8D067 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85B2A789197818E200616E60 /* UIKit.framework */; };
 		C90090A919C8587A008C1794 /* MetadataTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = C90090A819C8587A008C1794 /* MetadataTests.mm */; };
+		C90B556B1A9CA67E00167E14 /* libJavaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B55681A9CA65700167E14 /* libJavaScriptCore.a */; };
 		C91A787A19C82254001C2731 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C91A787919C82254001C2731 /* libicucore.dylib */; };
 		C91A787C19C82263001C2731 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C91A787B19C82263001C2731 /* libz.dylib */; };
 		C91A787E19C8226C001C2731 /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C91A787D19C8226C001C2731 /* libc++.dylib */; };
@@ -86,6 +86,83 @@
 			proxyType = 1;
 			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
 			remoteInfo = NativeScript;
+		};
+		C90B55551A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 55407AC818DA58AD00EFF7F2;
+			remoteInfo = "Compile Runtime to LLVM IR";
+		};
+		C90B55571A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 932F5BD90822A1C700736975;
+			remoteInfo = JavaScriptCore;
+		};
+		C90B55591A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0FCEFAB61805D61600472CE4;
+			remoteInfo = llvmForJSC;
+		};
+		C90B555B1A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0FF922CF14F46B130041A24E;
+			remoteInfo = JSCLLIntOffsetsExtractor;
+		};
+		C90B555D1A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 141211200A48793C00480255;
+			remoteInfo = minidom;
+		};
+		C90B555F1A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 14BD59BF0A3E8F9000BAF59C;
+			remoteInfo = testapi;
+		};
+		C90B55611A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 932F5BE10822A1C700736975;
+			remoteInfo = jsc;
+		};
+		C90B55631A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6511230514046A4C002B101D;
+			remoteInfo = testRegExp;
+		};
+		C90B55651A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 852CDD531991106400610AB9;
+			remoteInfo = "JSCLLIntOffsetsExtractor iOS";
+		};
+		C90B55671A9CA65700167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 852CDD4419910F8C00610AB9;
+			remoteInfo = "JavaScriptCore iOS";
+		};
+		C90B55691A9CA66D00167E14 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 852CD7C319910F8C00610AB9;
+			remoteInfo = "JavaScriptCore iOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -151,7 +228,7 @@
 		85B2A78E19781C6500616E60 /* ObjCPrototype.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ObjCPrototype.mm; sourceTree = "<group>"; };
 		85B2A78F19781C6500616E60 /* ObjCPrototype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjCPrototype.h; sourceTree = "<group>"; };
 		85BD8CBF197FBEDC00C96EB8 /* libJavaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libJavaScriptCore.a; path = deps/lib/libJavaScriptCore.a; sourceTree = "<group>"; };
-		85BD8CC2197FC29700C96EB8 /* FeatureDefines.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = FeatureDefines.xcconfig; path = deps/FeatureDefines.xcconfig; sourceTree = SOURCE_ROOT; };
+		85BD8CC2197FC29700C96EB8 /* FeatureDefines.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = FeatureDefines.xcconfig; path = ../jsc/JavaScriptCore/Configurations/FeatureDefines.xcconfig; sourceTree = SOURCE_ROOT; };
 		85BD8CD019811B1500C96EB8 /* ObjCExtend.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ObjCExtend.mm; sourceTree = "<group>"; };
 		85BD8CD319813EC000C96EB8 /* ObjCExtend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObjCExtend.h; sourceTree = "<group>"; };
 		85F3B5E019DD6D7000A29DAC /* JSWeakRefConstructor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWeakRefConstructor.cpp; sourceTree = "<group>"; };
@@ -211,6 +288,7 @@
 		BD6CDFC7E2F646E00C59A5B1 /* ObjCProtocolWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjCProtocolWrapper.h; sourceTree = "<group>"; };
 		C48120741990B9AB000814FE /* inlineFunctions.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = inlineFunctions.js; sourceTree = "<group>"; };
 		C90090A819C8587A008C1794 /* MetadataTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MetadataTests.mm; sourceTree = "<group>"; };
+		C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = JavaScriptCore.xcodeproj; path = ../jsc/JavaScriptCore/JavaScriptCore.xcodeproj; sourceTree = "<group>"; };
 		C91A787919C82254001C2731 /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
 		C91A787B19C82263001C2731 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		C91A787D19C8226C001C2731 /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
@@ -249,7 +327,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				85BD8CC0197FBEDC00C96EB8 /* libJavaScriptCore.a in Frameworks */,
+				C90B556B1A9CA67E00167E14 /* libJavaScriptCore.a in Frameworks */,
 				85B2A74E19754C2300616E60 /* libffi.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -274,6 +352,7 @@
 		85B2A6B1197528FF00616E60 = {
 			isa = PBXGroup;
 			children = (
+				C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */,
 				85B2A6BF197528FF00616E60 /* NativeScript */,
 				85B2A6D31975290000616E60 /* NativeScriptTests */,
 				85B2A6BC197528FF00616E60 /* Frameworks */,
@@ -436,6 +515,23 @@
 			name = Runtime;
 			sourceTree = "<group>";
 		};
+		C90B55421A9CA65600167E14 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C90B55561A9CA65700167E14 /* libCompileRuntimeToLLVMIR.a */,
+				C90B55581A9CA65700167E14 /* JavaScriptCore.framework */,
+				C90B555A1A9CA65700167E14 /* libllvmForJSC.dylib */,
+				C90B555C1A9CA65700167E14 /* JSCLLIntOffsetsExtractor */,
+				C90B555E1A9CA65700167E14 /* minidom */,
+				C90B55601A9CA65700167E14 /* testapi */,
+				C90B55621A9CA65700167E14 /* jsc */,
+				C90B55641A9CA65700167E14 /* testRegExp */,
+				C90B55661A9CA65700167E14 /* libJSCLLIntOffsetsExtractor.a */,
+				C90B55681A9CA65700167E14 /* libJavaScriptCore.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		C921217419A2238000994209 /* Metadata */ = {
 			isa = PBXGroup;
 			children = (
@@ -581,6 +677,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				C90B556A1A9CA66D00167E14 /* PBXTargetDependency */,
 			);
 			name = NativeScript;
 			productName = NativeScript;
@@ -624,6 +721,12 @@
 			mainGroup = 85B2A6B1197528FF00616E60;
 			productRefGroup = 85B2A6BB197528FF00616E60 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = C90B55421A9CA65600167E14 /* Products */;
+					ProjectRef = C90B55411A9CA65600167E14 /* JavaScriptCore.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				85B2A6B9197528FF00616E60 /* NativeScript */,
@@ -631,6 +734,79 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		C90B55561A9CA65700167E14 /* libCompileRuntimeToLLVMIR.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCompileRuntimeToLLVMIR.a;
+			remoteRef = C90B55551A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55581A9CA65700167E14 /* JavaScriptCore.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = JavaScriptCore.framework;
+			remoteRef = C90B55571A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B555A1A9CA65700167E14 /* libllvmForJSC.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libllvmForJSC.dylib;
+			remoteRef = C90B55591A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B555C1A9CA65700167E14 /* JSCLLIntOffsetsExtractor */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = JSCLLIntOffsetsExtractor;
+			remoteRef = C90B555B1A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B555E1A9CA65700167E14 /* minidom */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = minidom;
+			remoteRef = C90B555D1A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55601A9CA65700167E14 /* testapi */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = testapi;
+			remoteRef = C90B555F1A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55621A9CA65700167E14 /* jsc */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = jsc;
+			remoteRef = C90B55611A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55641A9CA65700167E14 /* testRegExp */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = testRegExp;
+			remoteRef = C90B55631A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55661A9CA65700167E14 /* libJSCLLIntOffsetsExtractor.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libJSCLLIntOffsetsExtractor.a;
+			remoteRef = C90B55651A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		C90B55681A9CA65700167E14 /* libJavaScriptCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libJavaScriptCore.a;
+			remoteRef = C90B55671A9CA65700167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		85B2A6C8197528FF00616E60 /* Resources */ = {
@@ -747,6 +923,11 @@
 			isa = PBXTargetDependency;
 			target = 85B2A6B9197528FF00616E60 /* NativeScript */;
 			targetProxy = 85B2A6D01975290000616E60 /* PBXContainerItemProxy */;
+		};
+		C90B556A1A9CA66D00167E14 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "JavaScriptCore iOS";
+			targetProxy = C90B55691A9CA66D00167E14 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -888,7 +1069,6 @@
 					"JSC_OBJC_API_ENABLED=0",
 					HAVE_HEADER_DETECTION_H,
 					"DEBUG=1",
-					NDEBUG,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = "$(GCC_WARN_64_TO_32_BIT_CONVERSION_$(CURRENT_ARCH))";
 				"GCC_WARN_64_TO_32_BIT_CONVERSION[arch=*64]" = "$(GCC_WARN_64_TO_32_BIT_CONVERSION_$(CURRENT_ARCH))";
@@ -1132,7 +1312,6 @@
 					"JSC_OBJC_API_ENABLED=0",
 					HAVE_HEADER_DETECTION_H,
 					"DEBUG=1",
-					NDEBUG,
 					TESTING,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = "$(GCC_WARN_64_TO_32_BIT_CONVERSION_$(CURRENT_ARCH))";

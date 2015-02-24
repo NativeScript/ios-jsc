@@ -21,18 +21,18 @@ public:
 
     static const bool needsDestruction = false;
 
-    static JSWeakRefInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* cell) {
-        JSWeakRefInstance* object = new (NotNull, JSC::allocateCell<JSWeakRefInstance>(vm.heap)) JSWeakRefInstance(vm, structure);
-        object->finishCreation(vm, cell);
-        vm.heap.addFinalizer(object, destroy);
-        return object;
+    static JSWeakRefInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSObject* object) {
+        JSWeakRefInstance* weakref = new (NotNull, JSC::allocateCell<JSWeakRefInstance>(vm.heap)) JSWeakRefInstance(vm, structure);
+        weakref->finishCreation(vm, object);
+        vm.heap.addFinalizer(weakref, destroy);
+        return weakref;
     }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    JSCell* cell() const {
+    JSObject* cell() const {
         return this->_handle.get();
     }
 
@@ -48,16 +48,16 @@ private:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM& vm, JSC::JSCell* cell) {
+    void finishCreation(JSC::VM& vm, JSC::JSObject* object) {
         Base::finishCreation(vm);
-        this->_handle = cell;
+        this->_handle = object;
     }
 
     static void destroy(JSC::JSCell* cell) {
         JSC::jsCast<JSWeakRefInstance*>(cell)->~JSWeakRefInstance();
     }
 
-    JSC::Weak<JSCell> _handle;
+    JSC::Weak<JSObject> _handle;
 };
 }
 

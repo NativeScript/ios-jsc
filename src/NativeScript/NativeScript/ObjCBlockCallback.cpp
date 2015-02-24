@@ -17,7 +17,7 @@ using namespace JSC;
 const ClassInfo ObjCBlockCallback::s_info = { "ObjCBlockCallback", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCBlockCallback) };
 
 void ObjCBlockCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
-    ObjCBlockCallback* blockCallback = jsCast<ObjCBlockCallback*>(userData);
+    ObjCBlockCallback* blockCallback = reinterpret_cast<ObjCBlockCallback*>(userData);
 
     MarkedArgumentBuffer arguments;
     blockCallback->marshallArguments(argValues, arguments, blockCallback);
