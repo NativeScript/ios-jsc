@@ -69,8 +69,8 @@ void* SymbolLoader::loadDataSymbol(std::string libraryName, const char* symbolNa
     return dlsym(RTLD_DEFAULT, symbolName);
 }
 
-bool SymbolLoader::ensureFramework(std::string frameworkName) {
-    CFBundleRef bundle = getBundleFromName(this->_cache, frameworkName.c_str());
+bool SymbolLoader::ensureFramework(const char* frameworkName) {
+    CFBundleRef bundle = getBundleFromName(this->_cache, frameworkName);
     if (!bundle) {
         return false;
     }

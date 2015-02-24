@@ -18,7 +18,7 @@ public:
 
     void* loadFunctionSymbol(std::string libraryName, const char* symbolName);
     void* loadDataSymbol(std::string libraryName, const char* symbolName);
-    bool ensureFramework(std::string frameworkName);
+    bool ensureFramework(const char* frameworkName);
 
 private:
     SymbolLoader();
