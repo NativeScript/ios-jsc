@@ -16,7 +16,7 @@ using namespace JSC;
 const ClassInfo FFIFunctionCallback::s_info = { "FFIFunctionCallback", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FFIFunctionCallback) };
 
 void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
-    FFIFunctionCallback* functionCallback = jsCast<FFIFunctionCallback*>(userData);
+    FFIFunctionCallback* functionCallback = reinterpret_cast<FFIFunctionCallback*>(userData);
 
     MarkedArgumentBuffer arguments;
     functionCallback->marshallArguments(argValues, arguments, functionCallback);
