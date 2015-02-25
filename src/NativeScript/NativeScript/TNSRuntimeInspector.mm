@@ -12,8 +12,10 @@
 #include <JavaScriptCore/JSConsoleClient.h>
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
+#include <JavaScriptCore/Debugger.h>
 
 #import "TNSRuntimeInspector.h"
+#import "TNSRuntimeImpl.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -90,6 +92,15 @@ private:
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)handler {
     return [[[TNSRuntimeInspector alloc] initWithRuntime:self
                                           messageHandler:handler] autorelease];
+}
+
+- (void)flushSourceProviders {
+    JSC::Debugger* debugger = static_cast<TNSRuntimeImpl*>(self->_impl)->globalObject->debugger();
+    if (debugger) {
+        for (SourceProvider* e : static_cast<TNSRuntimeImpl*>(self->_impl)->sourceProviders) {
+            debugger->sourceParsed(static_cast<TNSRuntimeImpl*>(self->_impl)->globalObject->globalExec(), e, -1, WTF::emptyString());
+        }
+    }
 }
 
 @end
