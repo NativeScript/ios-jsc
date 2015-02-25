@@ -15,7 +15,7 @@ module.exports = function (grunt) {
     var outNativeScriptDir = path.join(outDistDir, "NativeScript.framework");
     var outNativeScriptDerivedDataDir = path.join(srcDir, "src/NativeScript/build");
     var outTNSDebuggingDir = path.join(outDistDir, "TNSDebugging.framework");
-    var outTNSDebuggingIntermediateDir = path.join(outTNSDebuggingDir, "intermediate");
+    var outTNSDebuggingDerivedDataDir = path.join(srcDir, "src/debugging/TNSDebugging/build");
     var outPackageDir = path.join(outDistDir, "package");
     var outPackageFrameworkDir = path.join(outPackageDir, "framework");
     var outPackageFrameworkMetadataDir = path.join(outPackageFrameworkDir, "Metadata");
@@ -61,7 +61,7 @@ module.exports = function (grunt) {
         outNativeScriptDir: outNativeScriptDir,
         outNativeScriptDerivedDataDir: outNativeScriptDerivedDataDir,
         outTNSDebuggingDir: outTNSDebuggingDir,
-        outTNSDebuggingIntermediateDir: outTNSDebuggingIntermediateDir,
+        outTNSDebuggingDerivedDataDir: outTNSDebuggingDerivedDataDir,
         outPackageDir: outPackageDir,
         outPackageFrameworkDir: outPackageFrameworkDir,
         outPackageFrameworkMetadataDir: outPackageFrameworkMetadataDir,
@@ -89,7 +89,7 @@ module.exports = function (grunt) {
             outNativeScript: [outNativeScriptDir],
             outNativeScriptDerivedData: [outNativeScriptDerivedDataDir],
             outTNSDebugging: [outTNSDebuggingDir],
-            outTNSDebuggingIntermediate: [outTNSDebuggingIntermediateDir],
+            outTNSDebuggingDerivedData: [outTNSDebuggingDerivedDataDir],
             outPackage: [outPackageDir],
             outPackageFramework: [outPackageFrameworkDir],
             outPackageFrameworkMetadata: [outPackageFrameworkMetadataDir],
@@ -155,13 +155,13 @@ module.exports = function (grunt) {
             },
 
             libTNSDebugging_i386_x86_64: {
-                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace -scheme TNSDebugging SYMROOT=<%= outTNSDebuggingIntermediateDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" clean build > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphonesimulator -scheme TNSDebugging -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace -derivedDataPath <%= outTNSDebuggingDerivedDataDir %> ARCHS=\"i386 x86_64\" VALID_ARCHS=\"i386 x86_64\" > <%= outBuildLog %>"
             },
             libTNSDebugging_armv7_arm64: {
-                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme TNSDebugging -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace SYMROOT=<%= outTNSDebuggingIntermediateDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" clean build CODE_SIGN_IDENTITY=\"\" CODE_SIGNING_REQUIRED=NO > <%= outBuildLog %>"
+                cmd: "xcodebuild -configuration Release -sdk iphoneos -scheme TNSDebugging -workspace <%= srcDir %>/src/debugging/TNSDebugging/TNSDebugging.xcworkspace -derivedDataPath <%= outTNSDebuggingDerivedDataDir %> ARCHS=\"armv7 arm64\" VALID_ARCHS=\"armv7 arm64\" > <%= outBuildLog %>"
             },
             libTNSDebugging_universal: {
-                cmd: "lipo -create -output <%= outTNSDebuggingDir %>/TNSDebugging <%= outTNSDebuggingIntermediateDir %>/Release-iphoneos/libTNSDebugging.a <%= outTNSDebuggingIntermediateDir %>/Release-iphonesimulator/libTNSDebugging.a "
+                cmd: "lipo -create -output <%= outTNSDebuggingDir %>/TNSDebugging <%= outTNSDebuggingDerivedDataDir %>/Build/Products/Release-iphoneos/libTNSDebugging.a <%= outTNSDebuggingDerivedDataDir %>/Build/Products/Release-iphonesimulator/libTNSDebugging.a "
             },
 
             webInspectorUISafari: {
@@ -194,7 +194,7 @@ module.exports = function (grunt) {
 
             libTNSDebugging_headers: {
                 files: [
-                    { expand: true, cwd: "<%= outTNSDebuggingIntermediateDir %>/Build/Products/Release-iphoneos/include/TNSDebugging", src: "**", dest: "<%= outTNSDebuggingDir %>/Headers/" }
+                    { expand: true, cwd: "<%= outTNSDebuggingDerivedDataDir %>/Build/Products/Release-iphoneos/include/TNSDebugging", src: "**", dest: "<%= outTNSDebuggingDir %>/Headers/" }
                 ]
             },
 
@@ -348,8 +348,7 @@ module.exports = function (grunt) {
         "exec:libTNSDebugging_i386_x86_64",
         "exec:libTNSDebugging_armv7_arm64",
         "exec:libTNSDebugging_universal",
-        "copy:libTNSDebugging_headers",
-        "clean:outTNSDebuggingIntermediate"
+        "copy:libTNSDebugging_headers"
     ]);
 
     grunt.registerTask("package", [
