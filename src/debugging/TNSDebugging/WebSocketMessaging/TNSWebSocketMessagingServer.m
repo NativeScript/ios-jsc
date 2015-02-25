@@ -11,15 +11,15 @@
 
 @interface TNSWebSocketMessagingServer () <PSWebSocketServerDelegate>
 
-@property (nonatomic, strong) PSWebSocketServer* webSocketServer;
-@property (nonatomic, strong) PSWebSocket* socket;
+@property(nonatomic, strong) PSWebSocketServer* webSocketServer;
+@property(nonatomic, strong) PSWebSocket* socket;
 @property dispatch_queue_t delegateQueue;
 
 @end
 
 @implementation TNSWebSocketMessagingServer
 
-- (instancetype) initWithPort: (NSUInteger) port {
+- (instancetype)initWithPort:(NSUInteger)port {
     self = [super init];
     if (self) {
         self.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
@@ -31,15 +31,15 @@
     return self;
 }
 
-- (void) send: (NSString*) message {
+- (void)send:(NSString*)message {
     [self.socket send:message];
 }
 
-- (void) open {
+- (void)open {
     [self.webSocketServer start];
 }
 
-- (void) close {
+- (void)close {
     [self.webSocketServer stop];
 }
 
@@ -75,18 +75,10 @@
     [self closeSocket];
 }
 
-- (void) closeSocket {
+- (void)closeSocket {
     [self close];
     self.socket = nil;
     [self.delegate disconnected:self];
 }
 
 @end
-
-
-
-
-
-
-
-

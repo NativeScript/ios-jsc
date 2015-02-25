@@ -9,11 +9,10 @@
 #import <Foundation/Foundation.h>
 #import "TNSDebugMessaging.h"
 
-@interface TNSTCPMessagingServer : NSObject<TNSDebugMessagingChannel>
+@interface TNSTCPMessagingServer : NSObject <TNSDebugMessagingChannel>
 
-@property (nonatomic, weak) id<TNSDebugMessagingChannelDelegate> delegate;
+@property(nonatomic, weak) id<TNSDebugMessagingChannelDelegate> delegate;
 
-- (instancetype) initWithPort: (NSUInteger) port;
+- (instancetype)initWithPort:(NSUInteger)port;
 
 @end
-

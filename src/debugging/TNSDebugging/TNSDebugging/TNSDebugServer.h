@@ -13,6 +13,8 @@
 
 @interface TNSDebugServer : NSObject
 
-- (instancetype) initWithRuntime:(TNSRuntime*)runtime name:(NSString*)name messagingChannel:(id<TNSDebugMessagingChannel>)channel;
+- (instancetype)initWithRuntime:(TNSRuntime*)runtime
+                           name:(NSString*)name
+               messagingChannel:(id<TNSDebugMessagingChannel>)channel;
 
 @end

@@ -9,35 +9,46 @@
 #import "TNSDebugServer.h"
 #import "TNSDebugMessaging.h"
 
-// 0.1 sec timeout to get the startup "NativeScript.Debug.WaitForDebugger" notification.
+// 0.1 sec timeout to get the startup "NativeScript.Debug.WaitForDebugger"
+// notification.
 const double kTNSDebug_BlockForStartupDebugNotification_Timout = 0.1;
 
-// 30 sec timeout for tcp connection when wait-for-debugger is received at startup.
+// 30 sec timeout for tcp connection when wait-for-debugger is received at
+// startup.
 const double kTNSDebug_BlockStartingForConnection_Timout = 30;
 
 // 30 sec timeout for tcp connection when attach-request is received at runtime.
 const double kTNSDebug_ConnectionWaiting_Timeout = 30;
 
-// The back-end advertises a debuggable app has started. The front end can request "WaitForDebugger" in 100ms, or "AttachRequest" anytime later.
-NSString * const kTNSDebug_AppLaunching = @":NativeScript.Debug.AppLaunching";
+// The back-end advertises a debuggable app has started. The front end can
+// request "WaitForDebugger" in 100ms, or "AttachRequest" anytime later.
+NSString* const kTNSDebug_AppLaunching = @":NativeScript.Debug.AppLaunching";
 
-// The front-end prompts the back-end to hold on execution of the app and wait for debugger before any JavaScript is actually executed.
-NSString * const kTNSDebug_WaitForDebugger = @":NativeScript.Debug.WaitForDebugger";
+// The front-end prompts the back-end to hold on execution of the app and wait
+// for debugger before any JavaScript is actually executed.
+NSString* const kTNSDebug_WaitForDebugger =
+    @":NativeScript.Debug.WaitForDebugger";
 
 // Front-end prompts what is the state of debugging.
-NSString * const kTNSDebug_AttachAvailabilityQuery = @":NativeScript.Debug.AttachAvailabilityQuery";
+NSString* const kTNSDebug_AttachAvailabilityQuery =
+    @":NativeScript.Debug.AttachAvailabilityQuery";
 
-// Front-end requests the back-end to actually open the TCP port and wait for connect.
-NSString * const kTNSDebug_AttachRequest = @":NativeScript.Debug.AttachRequest";
+// Front-end requests the back-end to actually open the TCP port and wait for
+// connect.
+NSString* const kTNSDebug_AttachRequest = @":NativeScript.Debug.AttachRequest";
 
 // The back-end replies that the TCP port is actually opened and waiting.
-NSString * const kTNSDebug_ReadyForAttach = @":NativeScript.Debug.ReadyForAttach";
+NSString* const kTNSDebug_ReadyForAttach =
+    @":NativeScript.Debug.ReadyForAttach";
 
-// The back-end replies that the TCP is closed but if requested with "AttachRequest" it will open.
-NSString * const kTNSDebug_AttachAvailable = @":NativeScript.Debug.AttachAvailable";
+// The back-end replies that the TCP is closed but if requested with
+// "AttachRequest" it will open.
+NSString* const kTNSDebug_AttachAvailable =
+    @":NativeScript.Debug.AttachAvailable";
 
 // The back-end replies that the TCP is allready busy for another front-end.
-NSString * const kTNSDebug_AllreadyConnected = @":NativeScript.Debug.AllreadyConnected";
+NSString* const kTNSDebug_AllreadyConnected =
+    @":NativeScript.Debug.AllreadyConnected";
 
 typedef NS_ENUM(NSInteger, TNSDebugState) {
     TNSDebugStateStartup,
@@ -49,8 +60,8 @@ typedef NS_ENUM(NSInteger, TNSDebugState) {
 
 @interface TNSDebugServer () <TNSDebugMessagingChannelDelegate>
 
-@property (nonatomic, retain) NSString* name;
-@property (nonatomic, retain) id<TNSDebugMessagingChannel> channel;
+@property(nonatomic, retain) NSString* name;
+@property(nonatomic, retain) id<TNSDebugMessagingChannel> channel;
 
 @end
 
@@ -60,23 +71,33 @@ typedef NS_ENUM(NSInteger, TNSDebugState) {
     TNSRuntimeInspector* _inspector;
 }
 
-# pragma mark - C Interop
+#pragma mark - C Interop
 
-void TNSWebSocketDebug_WaitForDebuggerCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo ) {
+void TNSWebSocketDebug_WaitForDebuggerCallback(CFNotificationCenterRef center,
+                                               void* observer, CFStringRef name,
+                                               const void* object,
+                                               CFDictionaryRef userInfo) {
     [(__bridge TNSDebugServer*)observer onWaitForDebuggerNotification];
 }
 
-void TNSWebSocketDebug_AttachRequestCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo ) {
+void TNSWebSocketDebug_AttachRequestCallback(CFNotificationCenterRef center,
+                                             void* observer, CFStringRef name,
+                                             const void* object,
+                                             CFDictionaryRef userInfo) {
     [(__bridge TNSDebugServer*)observer onAttachRequestNotification];
 }
 
-void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo ) {
+void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(
+    CFNotificationCenterRef center, void* observer, CFStringRef name,
+    const void* object, CFDictionaryRef userInfo) {
     [(__bridge TNSDebugServer*)observer onAttachAvailabilityQueryNotification];
 }
 
-# pragma mark - Init
+#pragma mark - Init
 
-- (instancetype) initWithRuntime:(TNSRuntime*)runtime name:(NSString*)name messagingChannel:(id<TNSDebugMessagingChannel>)channel {
+- (instancetype)initWithRuntime:(TNSRuntime*)runtime
+                           name:(NSString*)name
+               messagingChannel:(id<TNSDebugMessagingChannel>)channel {
     self = [super init];
     if (self) {
         self->_runtime = runtime;
@@ -88,7 +109,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
         [self addWaitForDebuggerListener];
         [self addAttachRequestListener];
         [self addAttachAvailabilityListener];
-        
+
         self->_state = TNSDebugStateStartup;
 
         [self blockForStartupWaitForDebugNotification];
@@ -97,9 +118,9 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     return self;
 }
 
-# pragma mark - State Transition Triggers
+#pragma mark - State Transition Triggers
 
-- (void) onStartupConnectionTimeout {
+- (void)onStartupConnectionTimeout {
     if (self->_state != TNSDebugStateStartup)
         return;
 
@@ -107,7 +128,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     self->_state = TNSDebugStateRunningDisconnected;
 }
 
-- (void) onWaitForDebuggerNotification {
+- (void)onWaitForDebuggerNotification {
     if (self->_state != TNSDebugStateStartup)
         return;
 
@@ -119,7 +140,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     [self onStartupBlockedForConnectionTimeout];
 }
 
-- (void) onStartupBlockedForConnectionTimeout {
+- (void)onStartupBlockedForConnectionTimeout {
     if (self->_state != TNSDebugStateStartingBlockedForConnection)
         return;
 
@@ -127,7 +148,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     [self closeWebSocketServer];
 }
 
-- (void) onAttachRequestNotification {
+- (void)onAttachRequestNotification {
     if (self->_state == TNSDebugStateRunningDisconnected) {
         self->_state = TNSDebugStateRunningWaitingForConnection;
         [self openWebSocketServer];
@@ -144,7 +165,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     }
 }
 
-- (void) onAttachRequestTimeout {
+- (void)onAttachRequestTimeout {
     if (self->_state != TNSDebugStateRunningWaitingForConnection)
         return;
 
@@ -152,7 +173,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     [self closeWebSocketServer];
 }
 
-- (void) onConnected {
+- (void)onConnected {
     if (self->_state == TNSDebugStateRunningWaitingForConnection) {
         self->_state = TNSDebugStateRunningConnected;
         [self clearAttachRequestTimeout];
@@ -164,7 +185,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     }
 }
 
-- (void) onDisconnected {
+- (void)onDisconnected {
     if (self->_state != TNSDebugStateRunningConnected)
         return;
 
@@ -172,150 +193,163 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(CFNotificationCenterRef 
     [self closeWebSocketServer];
 }
 
-- (void) onAttachAvailabilityQueryNotification {
+- (void)onAttachAvailabilityQueryNotification {
     [self notifyCurrentState];
 }
 
 #pragma mark - Execution Control
 
-- (void) injectInspector {
-    self->_inspector = [self->_runtime attachInspectorWithHandler:^BOOL(NSString *message) {
-        [self.channel send:message];
-        return YES;
-    }];
+- (void)injectInspector {
+    self->_inspector =
+        [self->_runtime attachInspectorWithHandler:^BOOL(NSString* message) {
+          [self.channel send:message];
+          return YES;
+        }];
 }
 
-- (void) scheduleAttachRequestTimeout {
-    dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * kTNSDebug_ConnectionWaiting_Timeout);
-    dispatch_after(delay, dispatch_get_main_queue(), ^(void){
-        [self onAttachRequestTimeout];
-    });
+- (void)scheduleAttachRequestTimeout {
+    dispatch_time_t delay = dispatch_time(
+        DISPATCH_TIME_NOW, NSEC_PER_SEC * kTNSDebug_ConnectionWaiting_Timeout);
+    dispatch_after(delay, dispatch_get_main_queue(),
+                   ^(void) { [self onAttachRequestTimeout]; });
 }
 
-- (void) clearAttachRequestTimeout {
+- (void)clearAttachRequestTimeout {
 }
 
-- (void) blockForStartupWaitForDebugNotification {
-    CFRunLoopRunInMode((CFStringRef)NSDefaultRunLoopMode, kTNSDebug_BlockForStartupDebugNotification_Timout, false);
+- (void)blockForStartupWaitForDebugNotification {
+    CFRunLoopRunInMode((CFStringRef)NSDefaultRunLoopMode,
+                       kTNSDebug_BlockForStartupDebugNotification_Timout, false);
 }
 
-- (void) unblockForStartupWaitForDebugNotification {
+- (void)unblockForStartupWaitForDebugNotification {
     CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-- (void) blockForStartupDebugConnection {
-    CFRunLoopRunInMode((CFStringRef)NSDefaultRunLoopMode, kTNSDebug_BlockStartingForConnection_Timout, false);
+- (void)blockForStartupDebugConnection {
+    CFRunLoopRunInMode((CFStringRef)NSDefaultRunLoopMode,
+                       kTNSDebug_BlockStartingForConnection_Timout, false);
 }
 
-- (void) unblockStartingForConnection {
+- (void)unblockStartingForConnection {
     CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
 #pragma mark - Darwin Center Notifications
 
-- (void) addWaitForDebuggerListener {
-    [self addListenerFor:kTNSDebug_WaitForDebugger listener:TNSWebSocketDebug_WaitForDebuggerCallback];
+- (void)addWaitForDebuggerListener {
+    [self addListenerFor:kTNSDebug_WaitForDebugger
+                listener:TNSWebSocketDebug_WaitForDebuggerCallback];
 }
 
-- (void) addAttachRequestListener {
-    [self addListenerFor:kTNSDebug_AttachRequest listener:TNSWebSocketDebug_AttachRequestCallback];
+- (void)addAttachRequestListener {
+    [self addListenerFor:kTNSDebug_AttachRequest
+                listener:TNSWebSocketDebug_AttachRequestCallback];
 }
 
-- (void) addAttachAvailabilityListener {
-    [self addListenerFor:kTNSDebug_AttachAvailabilityQuery listener:TNSWebSocketDebug_AttachAvailabilityQuerryCallback];
+- (void)addAttachAvailabilityListener {
+    [self addListenerFor:kTNSDebug_AttachAvailabilityQuery
+                listener:TNSWebSocketDebug_AttachAvailabilityQuerryCallback];
 }
 
-- (void) notifyCurrentState {
+- (void)notifyCurrentState {
     switch (self->_state) {
-        case TNSDebugStateStartup:
-        case TNSDebugStateRunningDisconnected:
-            [self notifyAttachAvailable];
-            break;
-        case TNSDebugStateStartingBlockedForConnection:
-        case TNSDebugStateRunningWaitingForConnection:
-            [self notifyReadyForAttach];
-            break;
-        case TNSDebugStateRunningConnected:
-            [self notifyAllreadyConnected];
-            break;
-        default:
-            break;
+    case TNSDebugStateStartup:
+    case TNSDebugStateRunningDisconnected:
+        [self notifyAttachAvailable];
+        break;
+    case TNSDebugStateStartingBlockedForConnection:
+    case TNSDebugStateRunningWaitingForConnection:
+        [self notifyReadyForAttach];
+        break;
+    case TNSDebugStateRunningConnected:
+        [self notifyAllreadyConnected];
+        break;
+    default:
+        break;
     }
 }
 
-- (void) notifyAppLaunching {
+- (void)notifyAppLaunching {
     [self notify:kTNSDebug_AppLaunching];
 }
 
-- (void) notifyReadyForAttach {
+- (void)notifyReadyForAttach {
     [self notify:kTNSDebug_ReadyForAttach];
 }
 
-- (void) notifyAttachAvailable {
+- (void)notifyAttachAvailable {
     [self notify:kTNSDebug_AttachAvailable];
 }
 
-- (void) notifyAllreadyConnected {
+- (void)notifyAllreadyConnected {
     [self notify:kTNSDebug_AllreadyConnected];
 }
 
-- (void) notify:(NSString*)message {
+- (void)notify:(NSString*)message {
     CFNotificationCenterRef darwinNotify = CFNotificationCenterGetDarwinNotifyCenter();
-    NSString* advertiseDebuggableLaunchingMessage = [self.name stringByAppendingString:message];
-    CFNotificationCenterPostNotification(darwinNotify, (CFStringRef)advertiseDebuggableLaunchingMessage, NULL, NULL, true);
+    NSString* advertiseDebuggableLaunchingMessage =
+        [self.name stringByAppendingString:message];
+    CFNotificationCenterPostNotification(
+        darwinNotify, (CFStringRef)advertiseDebuggableLaunchingMessage, NULL,
+        NULL, true);
 }
 
-- (void) addListenerFor:(NSString*)message listener:(CFNotificationCallback)listener {
+- (void)addListenerFor:(NSString*)message
+              listener:(CFNotificationCallback)listener {
     CFNotificationCenterRef darwinNotify = CFNotificationCenterGetDarwinNotifyCenter();
     NSString* openDebuggerMessage = [self.name stringByAppendingString:message];
-    CFNotificationCenterAddObserver(darwinNotify, (__bridge const void *)(self), listener, (CFStringRef)openDebuggerMessage, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+    CFNotificationCenterAddObserver(
+        darwinNotify, (__bridge const void*)(self), listener,
+        (CFStringRef)openDebuggerMessage, NULL,
+        CFNotificationSuspensionBehaviorDeliverImmediately);
 }
 
-- (void) removeListenerFor:(NSString*)message {
+- (void)removeListenerFor:(NSString*)message {
     CFNotificationCenterRef darwinNotify = CFNotificationCenterGetDarwinNotifyCenter();
-    NSString* waitForDebuggerMessage = [self.name stringByAppendingString:message];
-    CFNotificationCenterRemoveObserver(darwinNotify, (__bridge const void*)(self), (CFStringRef)waitForDebuggerMessage, NULL);
+    NSString* waitForDebuggerMessage =
+        [self.name stringByAppendingString:message];
+    CFNotificationCenterRemoveObserver(darwinNotify,
+                                       (__bridge const void*)(self),
+                                       (CFStringRef)waitForDebuggerMessage, NULL);
 }
 
 #pragma mark - Messaging Channel
 
-- (void) openWebSocketServer {
+- (void)openWebSocketServer {
     [self.channel open];
 }
 
-- (void) closeWebSocketServer {
+- (void)closeWebSocketServer {
     [self.channel close];
     self->_inspector = nil;
 }
 
 #pragma mark - TNSDebugMessagingChannelDelegate
 
-- (void) connected:(id)channel {
+- (void)connected:(id)channel {
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self onConnected];
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            CFRunLoopStop(CFRunLoopGetMain());
-        });
+      [self onConnected];
+      dispatch_after(
+          dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)),
+          dispatch_get_main_queue(), ^{ CFRunLoopStop(CFRunLoopGetMain()); });
     });
 }
 
-- (void) disconnected:(id)channel {
+- (void)disconnected:(id)channel {
     [self onDisconnected];
 }
 
-- (void) received:(NSString *)message onChannel:(id)channel {
-    const void* runLoopModes[] = { kCFRunLoopCommonModes, CFSTR("com.apple.JavaScriptCore.remote-inspector-runloop-mode") };
-    CFArrayRef modes = CFArrayCreate(kCFAllocatorDefault, runLoopModes, 2, &kCFTypeArrayCallBacks);
-    CFRunLoopPerformBlock(CFRunLoopGetMain(), modes, ^{
-        [self->_inspector dispatchMessage:message];
-    });
+- (void)received:(NSString*)message onChannel:(id)channel {
+    const void* runLoopModes[] = {
+        kCFRunLoopCommonModes,
+        CFSTR("com.apple.JavaScriptCore.remote-inspector-runloop-mode")
+    };
+    CFArrayRef modes = CFArrayCreate(kCFAllocatorDefault, runLoopModes, 2,
+                                     &kCFTypeArrayCallBacks);
+    CFRunLoopPerformBlock(CFRunLoopGetMain(), modes,
+                          ^{ [self->_inspector dispatchMessage:message]; });
     CFRunLoopWakeUp(CFRunLoopGetMain());
 }
 
 @end
-
-
-
-
-
-

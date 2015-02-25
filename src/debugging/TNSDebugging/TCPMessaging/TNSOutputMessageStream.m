@@ -10,13 +10,13 @@
 
 @interface TNSOutputMessageStream () <NSStreamDelegate>
 
-@property (nonatomic, strong) NSOutputStream* stream;
+@property(nonatomic, strong) NSOutputStream* stream;
 
 @end
 
 @implementation TNSOutputMessageStream
 
-- (instancetype) initWithStream:(NSOutputStream *)stream {
+- (instancetype)initWithStream:(NSOutputStream*)stream {
     self = [super init];
     if (self) {
         self.stream = stream;
@@ -33,8 +33,8 @@ void tns_bigEndianBuffer_fromUInt32(UInt32 data, UInt8 buffer[4]) {
     buffer[0] = (UInt8)(((uint)data >> 24) & 0xFF);
 }
 
-- (void) send: (NSString*) message {
-    NSData *data = [[NSData alloc] initWithData:[message dataUsingEncoding:NSUTF16LittleEndianStringEncoding]];
+- (void)send:(NSString*)message {
+    NSData* data = [[NSData alloc] initWithData:[message dataUsingEncoding:NSUTF16LittleEndianStringEncoding]];
 
     // TRICKY: Make sure we do not mix little and big endians on the other end...
     UInt8 sizeBytes[4];
@@ -44,25 +44,25 @@ void tns_bigEndianBuffer_fromUInt32(UInt32 data, UInt8 buffer[4]) {
     [self.stream write:[data bytes] maxLength:[data length]];
 }
 
-- (void) open {
+- (void)open {
     [self.stream open];
 }
 
-- (void) close {
+- (void)close {
     [self.stream close];
 }
 
-- (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
+- (void)scheduleInRunLoop:(NSRunLoop*)aRunLoop forMode:(NSString*)mode {
     [self.stream scheduleInRunLoop:aRunLoop forMode:mode];
 }
 
-- (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
+- (void)removeFromRunLoop:(NSRunLoop*)aRunLoop forMode:(NSString*)mode {
     [self.stream removeFromRunLoop:aRunLoop forMode:mode];
 }
 
-- (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode {
+- (void)stream:(NSStream*)aStream handleEvent:(NSStreamEvent)eventCode {
     if (eventCode & NSStreamEventErrorOccurred || eventCode & NSStreamEventEndEncountered) {
-        [self.delegate closed: self];
+        [self.delegate closed:self];
     }
 }
 

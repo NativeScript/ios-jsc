@@ -8,7 +8,7 @@
 
 @protocol TNSMessageStreamDelegate
 
-- (void) closed: (id) stream;
-- (void) receivedMessage: (id) message from: (id) stream;
+- (void)closed:(id)stream;
+- (void)receivedMessage:(id)message from:(id)stream;
 
 @end

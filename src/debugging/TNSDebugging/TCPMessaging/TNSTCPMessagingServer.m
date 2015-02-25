@@ -16,15 +16,15 @@
 
 @interface TNSTCPMessagingServer () <TNSMessageStreamDelegate>
 
-@property (nonatomic, retain) TNSInputMessageStream* inputStream;
-@property (nonatomic, retain) TNSOutputMessageStream* outputStream;
+@property(nonatomic, retain) TNSInputMessageStream* inputStream;
+@property(nonatomic, retain) TNSOutputMessageStream* outputStream;
 @property dispatch_queue_t delegateQueue;
 
-- (void) handleTCPConnect:(CFSocketNativeHandle*)handle;
+- (void)handleTCPConnect:(CFSocketNativeHandle*)handle;
 
 @end
 
-void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, const void *data, void *info) {
+void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, const void* data, void* info) {
     if (type == kCFSocketAcceptCallBack) {
         [(__bridge TNSTCPMessagingServer*)info handleTCPConnect:(CFSocketNativeHandle*)data];
     }
@@ -35,7 +35,7 @@ void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, 
     NSUInteger _port;
 }
 
-- (instancetype) initWithPort: (NSUInteger) port {
+- (instancetype)initWithPort:(NSUInteger)port {
     self = [super init];
     if (self) {
         self.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0);
@@ -47,16 +47,16 @@ void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, 
     return self;
 }
 
-- (void) send: (NSString*) message {
+- (void)send:(NSString*)message {
     [self.outputStream send:message];
 }
 
-- (void) open {
+- (void)open {
     [self releaseSocketServer];
 
     CFSocketContext context;
     memset(&context, 0, sizeof(context));
-    context.info = (__bridge void *)(self);
+    context.info = (__bridge void*)(self);
 
     // Setup socket
     self->_socketServer = CFSocketCreate(kCFAllocatorDefault, PF_INET, SOCK_STREAM, IPPROTO_TCP, kCFSocketAcceptCallBack, handleConnect, &context);
@@ -69,7 +69,7 @@ void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, 
     sin.sin_port = htons(self->_port);
     sin.sin_addr.s_addr = INADDR_ANY;
 
-    CFDataRef sincfd = CFDataCreate(kCFAllocatorDefault, (UInt8 *)&sin, sizeof(sin));
+    CFDataRef sincfd = CFDataCreate(kCFAllocatorDefault, (UInt8*)&sin, sizeof(sin));
     CFSocketSetAddress(self->_socketServer, sincfd);
     CFRelease(sincfd);
 
@@ -86,7 +86,7 @@ void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, 
     }
 }
 
-- (void) close {
+- (void)close {
     [self releaseSocketServer];
 
     [self.inputStream close];
@@ -96,7 +96,7 @@ void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, 
     self.outputStream = nil;
 }
 
-- (void) handleTCPConnect:(CFSocketNativeHandle*)handle {
+- (void)handleTCPConnect:(CFSocketNativeHandle*)handle {
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
     CFStreamCreatePairWithSocket(kCFAllocatorDefault, *handle, &readStream, &writeStream);
@@ -116,18 +116,15 @@ void handleConnect(CFSocketRef s, CFSocketCallBackType type, CFDataRef address, 
 
 #pragma mark - NSStreamDelegate
 
-- (void) closed: (id) stream {
+- (void)closed:(id)stream {
     [self.delegate disconnected:self];
     [self releaseSocketServer];
 }
 
-- (void) receivedMessage: (id) message from: (id) stream {
+- (void)receivedMessage:(id)message from:(id)stream {
     dispatch_async(self.delegateQueue, ^{
         [self.delegate received:message onChannel:self];
     });
 }
 
 @end
-
-
-

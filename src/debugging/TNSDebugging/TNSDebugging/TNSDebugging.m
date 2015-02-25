@@ -16,14 +16,18 @@
 
 @implementation TNSRuntime (TNSDebugging)
 
-- (id) enableDebuggingWithName:(NSString*)name {
+- (id)enableDebuggingWithName:(NSString*)name {
+    TNSWebSocketMessagingServer* webSocketChannel =
+        [[TNSWebSocketMessagingServer alloc] initWithPort:8080];
+    TNSTCPMessagingServer* tcpChannel =
+        [[TNSTCPMessagingServer alloc] initWithPort:18181];
 
-    TNSWebSocketMessagingServer* webSocketChannel = [[TNSWebSocketMessagingServer alloc] initWithPort:8080];
-    TNSTCPMessagingServer* tcpChannel = [[TNSTCPMessagingServer alloc] initWithPort:18181];
+    TNSMultiChannel* multiChannel = [[TNSMultiChannel alloc]
+        initWithSubchannels:tcpChannel, webSocketChannel, nil];
 
-    TNSMultiChannel* multyChannel = [[TNSMultiChannel alloc] initWithSubchannels:tcpChannel, webSocketChannel, nil];
-
-    return [[TNSDebugServer alloc] initWithRuntime:self name:name messagingChannel:multyChannel];
+    return [[TNSDebugServer alloc] initWithRuntime:self
+                                              name:name
+                                  messagingChannel:multiChannel];
 }
 
 @end

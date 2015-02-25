@@ -11,8 +11,9 @@
 
 @interface TNSMultiChannel : NSObject <TNSDebugMessagingChannel>
 
-@property (nonatomic, weak) id<TNSDebugMessagingChannelDelegate> delegate;
+@property(nonatomic, weak) id<TNSDebugMessagingChannelDelegate> delegate;
 
-- (instancetype) initWithSubchannels: (id<TNSDebugMessagingChannel>)channel, ... NS_REQUIRES_NIL_TERMINATION;
+- (instancetype)initWithSubchannels:(id<TNSDebugMessagingChannel>)channel,
+                                    ... NS_REQUIRES_NIL_TERMINATION;
 
 @end

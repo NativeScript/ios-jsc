@@ -11,15 +11,15 @@
 
 @interface TNSOutputMessageStream : NSObject
 
-@property (nonatomic, weak) id<TNSMessageStreamDelegate> delegate;
+@property(nonatomic, weak) id<TNSMessageStreamDelegate> delegate;
 
-- (instancetype) initWithStream:(NSOutputStream*)stream;
-- (void) send: (NSString*) message;
+- (instancetype)initWithStream:(NSOutputStream*)stream;
+- (void)send:(NSString*)message;
 
-- (void) open;
-- (void) close;
+- (void)open;
+- (void)close;
 
-- (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode;
-- (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode;
+- (void)scheduleInRunLoop:(NSRunLoop*)aRunLoop forMode:(NSString*)mode;
+- (void)removeFromRunLoop:(NSRunLoop*)aRunLoop forMode:(NSString*)mode;
 
 @end

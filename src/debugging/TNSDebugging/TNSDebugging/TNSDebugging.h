@@ -12,9 +12,6 @@
 
 @interface TNSRuntime (TNSDebugging)
 
-- (id) enableDebuggingWithName:(NSString*)name;
+- (id)enableDebuggingWithName:(NSString*)name;
 
 @end
-
-
-

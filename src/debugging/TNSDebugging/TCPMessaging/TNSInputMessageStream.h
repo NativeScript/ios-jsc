@@ -11,14 +11,14 @@
 
 @interface TNSInputMessageStream : NSObject
 
-@property (nonatomic, weak) id<TNSMessageStreamDelegate> delegate;
+@property(nonatomic, weak) id<TNSMessageStreamDelegate> delegate;
 
-- (instancetype) initWithStream:(NSInputStream*)stream;
+- (instancetype)initWithStream:(NSInputStream*)stream;
 
-- (void) open;
-- (void) close;
+- (void)open;
+- (void)close;
 
-- (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode;
-- (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode;
+- (void)scheduleInRunLoop:(NSRunLoop*)aRunLoop forMode:(NSString*)mode;
+- (void)removeFromRunLoop:(NSRunLoop*)aRunLoop forMode:(NSString*)mode;
 
 @end

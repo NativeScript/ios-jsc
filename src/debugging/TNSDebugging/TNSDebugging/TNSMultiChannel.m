@@ -10,22 +10,22 @@
 
 @interface TNSMultiChannel () <TNSDebugMessagingChannelDelegate>
 
-@property (strong, nonatomic) NSArray* subChannels;
-@property (strong, nonatomic) id<TNSDebugMessagingChannel> connectedChannel;
+@property(strong, nonatomic) NSArray* subChannels;
+@property(strong, nonatomic) id<TNSDebugMessagingChannel> connectedChannel;
 
 @end
 
 @implementation TNSMultiChannel
 
-- (instancetype) initWithSubchannels: (id<TNSDebugMessagingChannel>)firstChannel, ...
-{
+- (instancetype)initWithSubchannels:(id<TNSDebugMessagingChannel>)firstChannel,
+                                    ... {
     self = [super init];
     if (self) {
         NSMutableArray* array = [[NSMutableArray alloc] init];
         va_list args;
         va_start(args, firstChannel);
-        for (id<TNSDebugMessagingChannel> channel = firstChannel; channel != nil; channel = va_arg(args, id<TNSDebugMessagingChannel>))
-        {
+        for (id<TNSDebugMessagingChannel> channel = firstChannel; channel != nil;
+             channel = va_arg(args, id<TNSDebugMessagingChannel>)) {
             [array addObject:channel];
             channel.delegate = self;
         }
@@ -36,23 +36,23 @@
     return self;
 }
 
-- (void) send:(NSString*)message {
+- (void)send:(NSString*)message {
     [self.connectedChannel send:message];
 }
 
-- (void) open {
+- (void)open {
     for (id channel in self.subChannels) {
         [channel open];
     }
 }
 
-- (void) close {
+- (void)close {
     for (id channel in self.subChannels) {
         [channel close];
     }
 }
 
-- (void) connected:(id)connectedChannel {
+- (void)connected:(id)connectedChannel {
     for (id channel in self.subChannels) {
         if (channel != connectedChannel) {
             [channel close];
@@ -62,14 +62,13 @@
     [self.delegate connected:self];
 }
 
-- (void) disconnected:(id)disconnectedChannel {
+- (void)disconnected:(id)disconnectedChannel {
     [self.delegate disconnected:self];
     self.connectedChannel = nil;
 }
 
-- (void) received:(NSString *)message onChannel:(id)channel {
+- (void)received:(NSString*)message onChannel:(id)channel {
     [self.delegate received:message onChannel:self];
 }
 
 @end
-
