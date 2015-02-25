@@ -188,13 +188,13 @@ module.exports = function (grunt) {
         copy: {
             libNativeScript_headers: {
                 files: [
-                    { expand: true, cwd: "<%= outNativeScriptDerivedDataDir %>/Release-iphoneos/include/NativeScript", src: "**", dest: "<%= outNativeScriptDir %>/Headers/" }
+                    { expand: true, cwd: "<%= outNativeScriptDerivedDataDir %>/Build/Products/Release-iphoneos/include/NativeScript", src: "**", dest: "<%= outNativeScriptDir %>/Headers/" }
                 ]
             },
 
             libTNSDebugging_headers: {
                 files: [
-                    { expand: true, cwd: "<%= outTNSDebuggingIntermediateDir %>/Release-iphoneos/include/TNSDebugging", src: "**", dest: "<%= outTNSDebuggingDir %>/Headers/" }
+                    { expand: true, cwd: "<%= outTNSDebuggingIntermediateDir %>/Build/Products/Release-iphoneos/include/TNSDebugging", src: "**", dest: "<%= outTNSDebuggingDir %>/Headers/" }
                 ]
             },
 
