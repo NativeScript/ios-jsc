@@ -12,7 +12,7 @@
 #include "ObjCConstructorCall.h"
 #include "ObjCTypes.h"
 #include "Interop.h"
-#include "Pointer.h"
+#include "PointerInstance.h"
 
 namespace NativeScript {
 using namespace JSC;
