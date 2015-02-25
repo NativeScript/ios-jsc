@@ -25,6 +25,8 @@
     TNSMultiChannel* multiChannel = [[TNSMultiChannel alloc]
         initWithSubchannels:tcpChannel, webSocketChannel, nil];
 
+    [self attachObjCExceptionHandler];
+
     return [[TNSDebugServer alloc] initWithRuntime:self
                                               name:name
                                   messagingChannel:multiChannel];

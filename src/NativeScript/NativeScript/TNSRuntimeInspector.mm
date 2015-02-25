@@ -16,6 +16,7 @@
 
 #import "TNSRuntimeInspector.h"
 #import "TNSRuntimeImpl.h"
+#import "ObjCTypes.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -101,6 +102,19 @@ private:
             debugger->sourceParsed(static_cast<TNSRuntimeImpl*>(self->_impl)->globalObject->globalExec(), e, -1, WTF::emptyString());
         }
     }
+}
+
+- (void)attachObjCExceptionHandler {
+    NSSetUncaughtExceptionHandler([](NSException* exception) {
+        TNSRuntimeImpl* runtimeImpl = static_cast<TNSRuntimeImpl*>(((__bridge TNSRuntime*)(WTF::wtfThreadData().m_apiData))->_impl);
+        ExecState* currentExecState = runtimeImpl->vm->topCallFrame;
+
+        runtimeImpl->globalObject->inspectorController().reportAPIException(currentExecState, toValue(currentExecState, exception));
+
+        while (true) {
+            CFRunLoopRunInMode(CFSTR("com.apple.JavaScriptCore.remote-inspector-runloop-mode"), 0.1, false);
+        }
+    });
 }
 
 @end
