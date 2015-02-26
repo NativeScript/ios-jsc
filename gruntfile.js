@@ -244,7 +244,10 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outMetadataMergerDir %>", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
-                ]
+                ],
+                options: {
+                    mode: true
+                }
             }
         },
 

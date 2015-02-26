@@ -24,29 +24,6 @@ DerivedData
 Thumbs.db
 #Ignore Podfile.lock
 Podfile.lock
-#Ignore files build by Visual Studio
-*.user
-*.aps
-*.vspscc
-*_i.c
-*_p.c
-*.ncb
-*.suo
-*.bak
-*.cache
-*.ilk
-*.log
-[Bb]in
-libs/
-[Dd]ebug*/
-!/src/debugging/
-*.sbr
-obj/
-[Rr]elease*/
-_ReSharper*/
-ipch/
-*.ipch
-*.sdf
 
 # Mac OS X and Xcode stuff
 *.swp
@@ -65,3 +42,6 @@ build-stats.csv
 
 # CLion
 .idea
+
+# Package Base Project
+/build/project-template/__PROJECT_NAME__.xcodeproj/project.xcworkspace
