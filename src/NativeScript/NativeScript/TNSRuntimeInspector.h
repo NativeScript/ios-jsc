@@ -24,4 +24,8 @@ typedef BOOL (^TNSRuntimeInspectorMessageHandler)(NSString* message);
 
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)handler;
 
+- (void)flushSourceProviders;
+
+- (void)attachObjCExceptionHandler;
+
 @end

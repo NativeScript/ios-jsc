@@ -76,6 +76,7 @@
 		C9DEA2081A16458900518F13 /* FunctionReferenceTypeConstructor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C9DEA2061A16458900518F13 /* FunctionReferenceTypeConstructor.cpp */; };
 		CD270B9219FA6D8B0094CD6F /* FFISimpleType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD270B9019FA6D8B0094CD6F /* FFISimpleType.cpp */; };
 		CD82A7D2199365BB001C18AA /* ReferenceInstance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD82A7D1199365BB001C18AA /* ReferenceInstance.cpp */; };
+		CDC9F7381A9E18A300601997 /* TNSRuntimeDiagnostics.mm in Sources */ = {isa = PBXBuildFile; fileRef = CDC9F7371A9E18A300601997 /* TNSRuntimeDiagnostics.mm */; };
 		F968D69D199129E900749C5D /* ObjCSuperObject.mm in Sources */ = {isa = PBXBuildFile; fileRef = F968D69C199129E900749C5D /* ObjCSuperObject.mm */; };
 /* End PBXBuildFile section */
 
@@ -111,7 +112,7 @@
 		85ABE187198B9AD100EAC351 /* TNSRuntime.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TNSRuntime.mm; sourceTree = "<group>"; };
 		85ABE18C198BA63900EAC351 /* TNSRuntimeInspector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSRuntimeInspector.h; sourceTree = "<group>"; };
 		85ABE18D198BA63900EAC351 /* TNSRuntimeInspector.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TNSRuntimeInspector.mm; sourceTree = "<group>"; };
-		85ABE194198BCCAB00EAC351 /* TNSRuntimePrivate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = TNSRuntimePrivate.h; path = ../TNSRuntimePrivate.h; sourceTree = "<group>"; };
+		85ABE194198BCCAB00EAC351 /* TNSRuntimeImpl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TNSRuntimeImpl.h; sourceTree = "<group>"; };
 		85B2A6BA197528FF00616E60 /* libNativeScript.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libNativeScript.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		85B2A6BD197528FF00616E60 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		85B2A6C1197528FF00616E60 /* NativeScript-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NativeScript-Prefix.pch"; sourceTree = "<group>"; };
@@ -240,6 +241,8 @@
 		CD82A7D0199365BB001C18AA /* ReferenceInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReferenceInstance.h; sourceTree = "<group>"; };
 		CD82A7D1199365BB001C18AA /* ReferenceInstance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReferenceInstance.cpp; sourceTree = "<group>"; };
 		CD8F93371988D2010029415A /* require.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = require.js; sourceTree = "<group>"; };
+		CDC9F7361A9E18A300601997 /* TNSRuntimeDiagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSRuntimeDiagnostics.h; sourceTree = "<group>"; };
+		CDC9F7371A9E18A300601997 /* TNSRuntimeDiagnostics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TNSRuntimeDiagnostics.mm; sourceTree = "<group>"; };
 		F968D69B199129BD00749C5D /* ObjCSuperObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ObjCSuperObject.h; sourceTree = "<group>"; };
 		F968D69C199129E900749C5D /* ObjCSuperObject.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ObjCSuperObject.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -325,10 +328,12 @@
 				85B2A71919752CEA00616E60 /* GlobalObject.mm */,
 				85B2A6F2197529BE00616E60 /* NativeScript.h */,
 				85ABE186198B9AD100EAC351 /* TNSRuntime.h */,
-				85ABE194198BCCAB00EAC351 /* TNSRuntimePrivate.h */,
 				85ABE187198B9AD100EAC351 /* TNSRuntime.mm */,
+				85ABE194198BCCAB00EAC351 /* TNSRuntimeImpl.h */,
 				85ABE18C198BA63900EAC351 /* TNSRuntimeInspector.h */,
 				85ABE18D198BA63900EAC351 /* TNSRuntimeInspector.mm */,
+				CDC9F7361A9E18A300601997 /* TNSRuntimeDiagnostics.h */,
+				CDC9F7371A9E18A300601997 /* TNSRuntimeDiagnostics.mm */,
 				BD6CD0D9F280F89DB20F0C34 /* Interop.h */,
 				BD6CD7976F59F7F50CEA6CF7 /* Interop.mm */,
 				BD6CDC783FFE53514CC07953 /* JSWarnings.h */,
@@ -696,6 +701,7 @@
 				85BD8CD219811B1500C96EB8 /* ObjCExtend.mm in Sources */,
 				C921217919A2238B00994209 /* Metadata.mm in Sources */,
 				85B2A74C197545A600616E60 /* ObjCTypes.mm in Sources */,
+				CDC9F7381A9E18A300601997 /* TNSRuntimeDiagnostics.mm in Sources */,
 				C921218119A225C200994209 /* ObjCConstructorBase.mm in Sources */,
 				85B2A6FD19752A9400616E60 /* FFIFunctionCall.mm in Sources */,
 				CD270B9219FA6D8B0094CD6F /* FFISimpleType.cpp in Sources */,

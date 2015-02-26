@@ -6,7 +6,10 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
-@interface TNSRuntime : NSObject
+@interface TNSRuntime : NSObject {
+@private
+    void* _impl;
+}
 
 @property(nonatomic, retain) NSString* applicationPath;
 
@@ -15,7 +18,5 @@
 - (JSGlobalContextRef)globalContext;
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier error:(JSValueRef*)error;
-
-- (void)flushSourceProviders;
 
 @end
