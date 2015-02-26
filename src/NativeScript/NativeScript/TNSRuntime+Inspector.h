@@ -1,5 +1,5 @@
 //
-//  TNSRuntimeInspector.h
+//  TNSRuntime+Inspector.h
 //  NativeScript
 //
 //  Created by Yavor Georgiev on 01.08.14.
@@ -23,5 +23,7 @@ typedef BOOL (^TNSRuntimeInspectorMessageHandler)(NSString* message);
 @interface TNSRuntime (Inspector)
 
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)handler;
+
+- (void)flushSourceProviders;
 
 @end

@@ -12,25 +12,16 @@
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/StrongInlines.h>
-#include <JavaScriptCore/Debugger.h>
-
-#include <vector>
 
 #include "require.h"
 #include "inlineFunctions.h"
 #import "TNSRuntime.h"
-#import "TNSRuntimePrivate.h"
+#import "TNSRuntime+Private.h"
 
 using namespace JSC;
 using namespace NativeScript;
 
-@implementation TNSRuntime {
-    WTF::RefPtr<VM> _vm;
-    Strong<GlobalObject> _globalObject;
-    NSString* _applicationPath;
-
-    std::vector<SourceProvider*> _sourceProviders;
-}
+@implementation TNSRuntime
 
 + (void)initialize {
     if (self == [TNSRuntime self]) {
@@ -78,7 +69,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     SourceProvider* sourceProvider = moduleFunction->sourceCode()->provider();
 
     TNSRuntime* runtime = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData);
-    runtime->_sourceProviders.push_back(sourceProvider);
+    runtime->_sourceProviders.append(sourceProvider);
 
     return JSValue::encode(moduleFunction);
 }
@@ -139,43 +130,6 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     }
 
     [super dealloc];
-}
-
-- (void)flushSourceProviders {
-    JSC::Debugger* debugger = self->_globalObject->debugger();
-    if (debugger) {
-        for (SourceProvider* e : self->_sourceProviders) {
-            debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
-        }
-    }
-}
-
-@end
-
-@implementation TNSRuntime (Diagnostics)
-
-struct StackTraceFunctor {
-public:
-    StackTraceFunctor(WTF::StringBuilder& trace)
-        : _trace(trace) {
-    }
-
-    StackVisitor::Status operator()(StackVisitor& visitor) {
-        this->_trace.append(WTF::String::format("    %zu   %s\n", visitor->index(), visitor->toString().utf8().data()));
-        return StackVisitor::Continue;
-    }
-
-private:
-    WTF::StringBuilder& _trace;
-};
-
-+ (void)_printCurrentStack {
-    WTF::StringBuilder trace;
-    trace.appendLiteral("--> JS Stack trace:\n");
-
-    StackTraceFunctor functor(trace);
-    static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData)->_vm->topCallFrame->iterate(functor);
-    fprintf(stderr, "%s", trace.toString().utf8().data());
 }
 
 @end
