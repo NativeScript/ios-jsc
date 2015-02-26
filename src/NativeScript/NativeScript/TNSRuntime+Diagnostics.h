@@ -1,5 +1,5 @@
 //
-//  TNSRuntimePrivate.h
+//  TNSRuntime+Diagnostics.h
 //  NativeScript
 //
 //  Created by Yavor Georgiev on 01.08.14.

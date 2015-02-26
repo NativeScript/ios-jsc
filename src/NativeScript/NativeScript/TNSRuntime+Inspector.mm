@@ -1,5 +1,5 @@
 //
-//  TNSRuntimeInspector.mm
+//  TNSRuntime+Inspector.mm
 //  NativeScript
 //
 //  Created by Yavor Georgiev on 01.08.14.
@@ -12,8 +12,10 @@
 #include <JavaScriptCore/JSConsoleClient.h>
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
+#include <JavaScriptCore/Debugger.h>
 
-#import "TNSRuntimeInspector.h"
+#import "TNSRuntime+Inspector.h"
+#import "TNSRuntime+Private.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -90,6 +92,15 @@ private:
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)handler {
     return [[[TNSRuntimeInspector alloc] initWithRuntime:self
                                           messageHandler:handler] autorelease];
+}
+
+- (void)flushSourceProviders {
+    JSC::Debugger* debugger = self->_globalObject->debugger();
+    if (debugger) {
+        for (SourceProvider* e : self->_sourceProviders) {
+            debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
+        }
+    }
 }
 
 @end

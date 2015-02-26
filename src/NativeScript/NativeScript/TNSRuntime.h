@@ -16,6 +16,4 @@
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier error:(JSValueRef*)error;
 
-- (void)flushSourceProviders;
-
 @end
