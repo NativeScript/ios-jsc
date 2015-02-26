@@ -10,7 +10,7 @@
 #define __NativeScript__FFICallbackInlines__
 
 #include "FFICallback.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
+#include "JSErrors.h"
 
 namespace NativeScript {
 
@@ -28,10 +28,8 @@ inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void*
     if (execState->hadException()) {
         JSC::JSValue exception = execState->exception();
         execState->clearException();
-        GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-        globalObject->inspectorController().reportAPIException(execState, exception);
 
-        WTFCrash();
+        reportFatalErrorBeforeShutdown(execState, exception);
     }
 }
 

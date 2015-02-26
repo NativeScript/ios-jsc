@@ -17,6 +17,7 @@
 #include "inlineFunctions.h"
 #import "TNSRuntime.h"
 #import "TNSRuntime+Private.h"
+#include "JSErrors.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -35,6 +36,18 @@ using namespace NativeScript;
         self->_applicationPath = [applicationPath copy];
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
+        NSSetUncaughtExceptionHandler([](NSException* exception) {
+            ExecState* execState = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData)->_vm->topCallFrame;
+
+            // We do this, so we can get the stack trace set
+            JSValue error = createError(execState, exception.description);
+            throwVMError(execState, error);
+            error = execState->exception();
+            execState->clearException();
+
+            reportFatalErrorBeforeShutdown(execState, error);
+        });
+
         JSLockHolder lock(*self->_vm);
         self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
 
@@ -50,7 +63,7 @@ using namespace NativeScript;
 }
 
 static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
-    JSString* moduleBody = jsString(execState, WTF::ASCIILiteral("\n") + execState->argument(0).toWTFString(execState));
+    JSString* moduleBody = jsString(execState, execState->argument(0).toWTFString(execState));
     WTF::String moduleUrl = execState->argument(1).toString(execState)->value(execState);
     JSString* moduleName = execState->argument(2).toString(execState);
 
