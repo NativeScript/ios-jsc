@@ -30,6 +30,12 @@ With npm install grunt-cli:
 Then install the grunt modules in the **root** of the repo:
 `npm install`
 
+## NPM Package Build
+To build npm package run `grunt package` in the **root** of the repo.
+
+#### Artefacts
+The build should produce a `dist/tns-ios-*.tgz` file which is the NPM package. It should contain NativeScript.framework, NativeScript template project, Metadata Generator Tool and Metadata Merger Tool.
+
 ## Building Metadata Generator and Metadata Merger
 Running `grunt metadataGenerator` in the **root** of the repo will build the metadata generator tool. The command will produce `dist/metadataGenerator` folder with `MetadataGenerator` tool inside.
 
@@ -55,12 +61,6 @@ To run the tests on a connected device: `grunt test`. You need to have [iFuse](h
 #### Artefacts
 There should be a `junit-result.xml` file in the root of the repo.
 
-## NPM Package Build
-To build npm package run `grunt package` in the **root** of the repo.
-
-#### Artefacts
-The build should produce a `dist` directory in the root of the repo with the NPM package inside.
-It should contain NativeScript.framework, and a NativeScript template project.
 
 ## Running Examples/TNSApp
 The TNSApp requires generated metadata for the iOS SDK (`grunt metadataTools` and `grunt dist-metadata`).
