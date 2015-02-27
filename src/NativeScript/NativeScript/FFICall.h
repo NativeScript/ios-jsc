@@ -29,7 +29,7 @@ protected:
 
     ~FFICall();
 
-    void finishCreation(JSC::VM&, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
+    void initializeFFI(JSC::VM& vm, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 

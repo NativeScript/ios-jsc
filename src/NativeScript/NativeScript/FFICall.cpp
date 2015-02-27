@@ -13,9 +13,7 @@ using namespace JSC;
 
 const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FFICall) };
 
-void FFICall::finishCreation(VM& vm, const WTF::String& name, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
-    Base::finishCreation(vm, name);
-
+void FFICall::initializeFFI(VM& vm, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
     this->_initialArgumentIndex = initialArgumentIndex;
 
     this->_returnTypeCell.set(vm, this, returnType);

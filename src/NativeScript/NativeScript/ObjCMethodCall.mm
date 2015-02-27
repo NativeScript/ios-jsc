@@ -20,13 +20,13 @@ using namespace Metadata;
 const ClassInfo ObjCMethodCall::s_info = { "ObjCMethodCall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCMethodCall) };
 
 void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const MethodMeta* metadata, SEL aSelector) {
-    const char* jsName = metadata->jsName();
+    Base::finishCreation(vm, metadata->jsName());
     MetaFileOffset encoding = metadata->encodingOffset();
 
     JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encoding);
     const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encoding, metadata->encodingCount() - 1);
 
-    Base::finishCreation(vm, jsName, returnTypeCell, parameterTypesCells, 2);
+    Base::initializeFFI(vm, returnTypeCell, parameterTypesCells, 2);
     this->_retainsReturnedCocoaObjects = metadata->ownsReturnedCocoaObject();
 
     this->_msgSend = reinterpret_cast<void*>(&objc_msgSend);
