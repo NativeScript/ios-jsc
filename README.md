@@ -1,4 +1,17 @@
 # NPM Package Build
+
+## Clone the repository
+Use `--recursive` flag to `git clone` command to clone all repository dependencies
+
+```
+git clone git@github.com:NativeScript/ios-runtime.git --recursive
+```
+or if you have already cloned it without `--recursive` flag just run
+
+```
+git submodule update --init --recursive
+```
+
 ## Installing Grunt
 We have a [grunt](http://gruntjs.com) build setup. To run the build you will need to be able to exec the following tools from the command line:
  - [node](http://nodejs.org)
@@ -17,21 +30,24 @@ With npm install grunt-cli:
 Then install the grunt modules in the **root** of the repo:
 `npm install`
 
-## Running Examples/TNSApp
-The TNSApp requires metadata for the iOS frameworks. To generate it run `grunt dist-metadata` in the **root** of the repo. This should be enough to open, build and run the Examples/TNSApp project in xcode.
+## Building Metadata Generator and Metadata Merger
+Running `grunt metadataGenerator` in the **root** of the repo will build the metadata generator tool. The command will produce `dist/metadataGenerator` folder with `MetadataGenerator` tool inside.
 
-## NPM Package Build
-To build run grunt in the **root** of the repo: `grunt`.
+Running `grunt metadataMerger` in the **root** of the repo will build the metadata merger tool. The command will produce `dist/metadataMerger` folder with `MetadataMerger` tool inside.
 
-#### Artefacts
-The build should produce a "dist" directory in the root of the repo with the NPM package inside.
-It should contain NativeScript.framework, and a NativeScript template project.
+Running `grunt metadataTools` in the **root** of the repo will generate both metadata generator and metadata merger tools.
 
 ## iOS SDK metadata generation
-Run `grunt dist-metadata`
+After you have built **Metadata Generator** and **Metadata Merger** tools (`grunt metadataTools`) you can use them to generate metadata for the iOS SDK by running `grunt dist-metadata`.
 
 #### Artefacts
-There should be a `Binaries/MetadataBin/iPhoneOS8.0.sdk/metadata.bin` file.
+There should be a `dist/metadata/iPhoneSDK` folder whcih contains metadata in yaml and binary format.
+
+## Tests metadata generation
+After you have built **Metadata Generator** and **Metadata Merger** tools (`grunt metadataTools`) you can use them to generate metadata for the iOS SDK by running `grunt test-metadata`.
+
+#### Artefacts
+There should be a `dist/metadata/tests` folder whcih contains metadata in yaml and binary format.
 
 ## Test
 To run the tests on a connected device: `grunt test`. You need to have [iFuse](https://github.com/libimobiledevice/ifuse) installed.
@@ -39,15 +55,13 @@ To run the tests on a connected device: `grunt test`. You need to have [iFuse](h
 #### Artefacts
 There should be a `junit-result.xml` file in the root of the repo.
 
-## Tests metadata generation
-To generate metadata for the tests: `grunt test-metadata`.
+## NPM Package Build
+To build npm package run `grunt package` in the **root** of the repo.
 
 #### Artefacts
-There should be a `Binaries/MetadataBin/TNSTestCases/metadata.bin` file.
+The build should produce a `dist` directory in the root of the repo with the NPM package inside.
+It should contain NativeScript.framework, and a NativeScript template project.
 
-## Third-party metadata generation
-To generate metadata for a third-party library: `grunt metadata -header Test.h -output . -cflags="..."`.
-
-#### Artefacts
-There should be a `metadata.bin` file in the same directory.
-
+## Running Examples/TNSApp
+The TNSApp requires generated metadata for the iOS SDK (`grunt metadataTools` and `grunt dist-metadata`).
+This should be enough to open, build and run the Examples/TNSApp project in Xcode.
