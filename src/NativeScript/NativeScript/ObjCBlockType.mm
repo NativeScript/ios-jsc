@@ -35,10 +35,12 @@ typedef struct JSBlock {
 int32_t BLOCK_HAS_COPY_DISPOSE = 1 << 25;
 
 static void copyBlock(JSBlock* dst, const JSBlock* src) {
+    JSLockHolder locker(dst->callback->execState());
     gcProtect(dst->callback);
 }
 
 static void disposeBlock(const JSBlock* block) {
+    JSLockHolder locker(block->callback->execState());
     gcUnprotect(block->callback);
 }
 

@@ -27,6 +27,10 @@ public:
         return this->_functionPointer;
     }
 
+    JSC::ExecState* execState() const {
+        return this->_globalExecState;
+    }
+
 protected:
     FFICallback(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
