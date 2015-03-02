@@ -25,10 +25,13 @@ public:
     static ObjCBlockCall* create(JSC::VM& vm, JSC::Structure* structure, id block, ObjCBlockType* blockType) {
         ObjCBlockCall* cell = new (NotNull, JSC::allocateCell<ObjCBlockCall>(vm.heap)) ObjCBlockCall(vm, structure);
         cell->finishCreation(vm, block, blockType);
+        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 
     DECLARE_INFO;
+
+    static const bool needsDestruction = false;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());

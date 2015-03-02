@@ -33,10 +33,6 @@ protected:
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
-    static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<FFICall*>(cell)->~FFICall();
-    }
-
     void preCall(JSC::ExecState*);
 
     JSC::JSValue postCall(JSC::ExecState*);

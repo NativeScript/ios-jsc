@@ -23,10 +23,13 @@ public:
     static FFIFunctionCall* create(JSC::VM& vm, JSC::Structure* structure, const void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects) {
         FFIFunctionCall* function = new (NotNull, JSC::allocateCell<FFIFunctionCall>(vm.heap)) FFIFunctionCall(vm, structure);
         function->finishCreation(vm, functionPointer, name, returnType, parameterTypes, retainsReturnedCocoaObjects);
+        vm.heap.addFinalizer(function, destroy);
         return function;
     }
 
     DECLARE_INFO;
+
+    static const bool needsDestruction = false;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
@@ -50,6 +53,10 @@ private:
     static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState*);
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
+
+    static void destroy(JSC::JSCell* cell) {
+        JSC::jsCast<FFIFunctionCall*>(cell)->~FFIFunctionCall();
+    }
 
     const void* _functionPointer;
 
