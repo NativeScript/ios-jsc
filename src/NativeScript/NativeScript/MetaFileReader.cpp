@@ -11,9 +11,9 @@
 
 #ifdef TESTING
 #if defined(__LP64__) && __LP64__
-#include "metadataArm64Bin.h"
+#include "metadata-arm64.bin.h"
 #else
-#include "metadataArmv7Bin.h"
+#include "metadata-armv7.bin.h"
 #endif
 #endif
 

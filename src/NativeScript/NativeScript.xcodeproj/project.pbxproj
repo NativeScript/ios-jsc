@@ -829,18 +829,20 @@
 				"$(SRCROOT)/NativeScript/require.js",
 				"$(SRCROOT)/NativeScript/inlineFunctions.js",
 				"$(SRCROOT)/NativeScript/__extends.js",
-				"$(SRCROOT)/../../Binaries/MetadataBin/TNSTestCases/metadata.bin",
+				"$(SRCROOT)/../../Binaries/MetadataBin/TNSTestCases/metadata-armv7.bin",
+				"$(SRCROOT)/../../Binaries/MetadataBin/TNSTestCases/metadata-armv64.bin",
 			);
 			name = "Generate JavaScript Binary Headers";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/require.h",
-				"$(DERIVED_FILE_DIR)/inlineFunctions.h",
-				"$(DERIVED_FILE_DIR)/__extends.h",
-				"$(DERIVED_FILE_DIR)/metadataBin.h",
+				"$(DERIVED_FILE_DIR)/require.js.h",
+				"$(DERIVED_FILE_DIR)/inlineFunctions.js.h",
+				"$(DERIVED_FILE_DIR)/__extends.js.h",
+				"$(DERIVED_FILE_DIR)/metadata-armv7.bin.h",
+				"$(DERIVED_FILE_DIR)/metadata-armv64.bin.h",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"${SRCROOT}\"/NativeScript\nxxd -i require.js > \"${DERIVED_FILE_DIR}\"/require.h\nxxd -i inlineFunctions.js > \"${DERIVED_FILE_DIR}\"/inlineFunctions.h\nxxd -i __extends.js > \"${DERIVED_FILE_DIR}\"/__extends.h\n\nif [[ \"${CONFIGURATION}\" == \"Test\" ]]\nthen\n    cd \"${SRCROOT}\"/../../Binaries/MetadataBin/TNSTestCases/\n    xxd -i metadata-arm64.bin > \"${DERIVED_FILE_DIR}\"/metadataArm64Bin.h\n    xxd -i metadata-armv7.bin > \"${DERIVED_FILE_DIR}\"/metadataArmv7Bin.h\nfi\n";
+			shellPath = /bin/bash;
+			shellScript = "function Generate {\n    local filename=$(basename \"$1\")\n    local targetHeader=\"${DERIVED_FILE_DIR}/${filename}.h\"\n\n    if [[ \"$1\" -nt \"${targetHeader}\" ]]\n    then\n        pushd $(dirname \"$1\")\n        xxd -i \"${filename}\" > \"${targetHeader}\"\n        popd\n    fi\n}\n\nGenerate \"${SRCROOT}\"/NativeScript/require.js\nGenerate \"${SRCROOT}\"/NativeScript/inlineFunctions.js\nGenerate \"${SRCROOT}\"/NativeScript/__extends.js\n\nif [[ \"${CONFIGURATION}\" == \"Test\" ]]\nthen\n    testMetadataLocation=\"${SRCROOT}\"/../../Binaries/MetadataBin/TNSTestCases\n    Generate \"${testMetadataLocation}\"/metadata-armv7.bin\n    Generate \"${testMetadataLocation}\"/metadata-armv64.bin\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

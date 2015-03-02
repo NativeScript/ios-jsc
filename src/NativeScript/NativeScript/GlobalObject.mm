@@ -25,7 +25,7 @@
 #include "Interop.h"
 #include "ObjCExtend.h"
 #include "ObjCTypeScriptExtend.h"
-#include "__extends.h"
+#include "__extends.js.h"
 #include "ObjCMethodCall.h"
 #include "ObjCConstructorCall.h"
 #include "ObjCBlockCall.h"

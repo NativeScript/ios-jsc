@@ -16,8 +16,8 @@
 
 #include <vector>
 
-#include "require.h"
-#include "inlineFunctions.h"
+#include "require.js.h"
+#include "inlineFunctions.js.h"
 #import "TNSRuntime.h"
 #import "TNSRuntimePrivate.h"
 
