@@ -397,6 +397,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask("jsc", function(){
         if (!fs.existsSync(outJscDir)) {
+            console.log("Build JavaScriptCore");
             grunt.task.run("jscClean");
         }
     });
