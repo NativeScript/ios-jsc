@@ -342,8 +342,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-shell");
     grunt.loadNpmTasks("grunt-grunt");
 
-    // All tasks assume that JavaScriptCore is already built
-
     grunt.registerTask("default", [
         "build"
     ]);
@@ -354,16 +352,17 @@ module.exports = function (grunt) {
         "exec:tnsAppBuildStats"
     ]);
 
-    grunt.registerTask("jsc", [
-        "clean:outJsc",
-        "mkdir:outJsc",
-        "mkdir:outJscLib",
-        "mkdir:outJscHeaders",
-        "exec:libJavaScriptCore_i386_x86_64",
-        "exec:libJavaScriptCore_armv7_arm64",
-        "exec:libJavaScriptCore_universal",
-        "exec:libJavaScriptCore_copyHeaders",
-        "clean:outJscIntermediates"
+    grunt.registerTask("package", [
+        "metadataTools",
+        "NativeScript",
+        "TNSDebugging",
+        "dist-metadata",
+        "WebInspectorUI",
+        "clean:outPackage",
+        "mkdir:outPackageFramework",
+        "mkdir:outPackageFrameworkMetadata",
+        "copy:packageComponents",
+        "exec:npmPackPackage"
     ]);
 
     grunt.registerTask("metadataTools", [
@@ -386,6 +385,7 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask("NativeScript", [
+        "jsc",
         "clean:outNativeScript",
         "mkdir:outNativeScript",
         "exec:libNativeScript_i386_x86_64",
@@ -395,6 +395,24 @@ module.exports = function (grunt) {
         "clean:outNativeScriptIntermediate"
     ]);
 
+    grunt.registerTask("jsc", function(){
+        if (!fs.existsSync(outJscDir)) {
+            grunt.task.run("jscClean");
+        }
+    });
+
+    grunt.registerTask("jscClean", [
+        "clean:outJsc",
+        "mkdir:outJsc",
+        "mkdir:outJscLib",
+        "mkdir:outJscHeaders",
+        "exec:libJavaScriptCore_i386_x86_64",
+        "exec:libJavaScriptCore_armv7_arm64",
+        "exec:libJavaScriptCore_universal",
+        "exec:libJavaScriptCore_copyHeaders",
+        "clean:outJscIntermediates"
+    ]);   
+
     grunt.registerTask("TNSDebugging", [
         "clean:outTNSDebugging",
         "mkdir:outTNSDebugging",
@@ -403,19 +421,6 @@ module.exports = function (grunt) {
         "exec:libTNSDebugging_universal",
         "copy:libTNSDebugging_headers",
         "clean:outTNSDebuggingIntermediate"
-    ]);
-
-    grunt.registerTask("package", [
-        "metadataTools",
-        "NativeScript",
-        "TNSDebugging",
-        "dist-metadata",
-        "WebInspectorUI",
-        "clean:outPackage",
-        "mkdir:outPackageFramework",
-        "mkdir:outPackageFrameworkMetadata",
-        "copy:packageComponents",
-        "exec:npmPackPackage"
     ]);
 
     grunt.registerTask('test', [
