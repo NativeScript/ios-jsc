@@ -424,6 +424,7 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask('test', [
+        "jsc",
         "metadataTools",
         'test-metadata',
         'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
