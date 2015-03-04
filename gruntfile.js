@@ -353,6 +353,7 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask("package", [
+        "jsc",
         "metadataTools",
         "NativeScript",
         "TNSDebugging",
@@ -385,7 +386,6 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask("NativeScript", [
-        "jsc",
         "clean:outNativeScript",
         "mkdir:outNativeScript",
         "exec:libNativeScript_i386_x86_64",
@@ -473,12 +473,14 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask('build-gameraww-ipa', [
+        "jsc",
         "metadataTools",
         "dist-metadata",
         "shell:archiveApp:examples/Gameraww/Gameraww.xcodeproj:Gameraww:examples/Gameraww/build/Gameraww.ipa"
     ]);
 
     grunt.registerTask('build-tnsapp-ipa', [
+        "jsc",
         "metadataTools",
         'dist-metadata',
         'shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa'
