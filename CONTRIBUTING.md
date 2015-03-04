@@ -22,7 +22,7 @@ These guidelines are here to facilitate your contribution and streamline the pro
 
 ## Asking for Help
 
--------------The NativeScript team does *not* provide guaranteed formal support, except to those customers who have purchased a [commercial license for AppBuilder](http://www.telerik.com/platform) (Professional, Enterprise, etc.) or a support-only package from Telerik.com. Please do not create support requests for this project in the issues list for this repo, as these will be immediately closed and you'll be directed to post your question on a community forum.
+The NativeScript team does *not* provide guaranteed formal support, except to those customers who have purchased a [commercial license for AppBuilder](http://www.telerik.com/platform) (Professional, Enterprise, etc.) or a support-only package from Telerik.com. Please do not create support requests for this project in the issues list for this repo, as these will be immediately closed and you'll be directed to post your question on a community forum.
 
 ## Code Fixes and Enhancements
 
