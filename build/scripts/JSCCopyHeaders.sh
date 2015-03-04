@@ -7,7 +7,7 @@ JSC_HEADERS_DEST_PATH=./dist/jsc/include
 cp -rfp $JSC_HEADERS_SOURCE_PATH/ $JSC_HEADERS_DEST_PATH/JavaScriptCore
 
 # Move wtf/ folder outside JavaScriptCore/ folder
-cp -p $JSC_HEADERS_DEST_PATH/JavaScriptCore/wtf $JSC_HEADERS_DEST_PATH
+cp -rp $JSC_HEADERS_DEST_PATH/JavaScriptCore/wtf $JSC_HEADERS_DEST_PATH
 rm -rf $JSC_HEADERS_DEST_PATH/JavaScriptCore/wtf
 
 # make yarr folder and copy all Yarr*.h headers in it
