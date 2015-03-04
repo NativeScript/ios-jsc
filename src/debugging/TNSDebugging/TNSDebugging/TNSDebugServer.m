@@ -106,14 +106,22 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(
         self.channel.delegate = self;
 
         [self notifyAppLaunching];
+
         [self addWaitForDebuggerListener];
         [self addAttachRequestListener];
         [self addAttachAvailabilityListener];
 
         self->_state = TNSDebugStateStartup;
 
-        [self blockForStartupWaitForDebugNotification];
-        [self onStartupConnectionTimeout];
+        NSArray *args = [NSProcessInfo processInfo].arguments;
+        if ([args containsObject:@"--nativescript-debug-brk"]) {
+            [self onWaitForDebuggerNotification];
+        } else if ([args containsObject:@"--nativescript-debug-start"]) {
+            [self onAttachRequestNotification];
+        } else {
+            [self blockForStartupWaitForDebugNotification];
+            [self onStartupConnectionTimeout];
+        }
     }
     return self;
 }
@@ -292,7 +300,7 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(
         [self.name stringByAppendingString:message];
     CFNotificationCenterPostNotification(
         darwinNotify, (CFStringRef)advertiseDebuggableLaunchingMessage, NULL,
-        NULL, true);
+        NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 }
 
 - (void)addListenerFor:(NSString*)message
