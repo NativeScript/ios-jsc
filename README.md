@@ -47,20 +47,19 @@ Running `grunt metadataTools` in the **root** of the repo will generate both met
 After you have built **Metadata Generator** and **Metadata Merger** tools (`grunt metadataTools`) you can use them to generate metadata for the iOS SDK by running `grunt dist-metadata`.
 
 #### Artefacts
-There should be a `dist/metadata/iPhoneSDK` folder whcih contains metadata in yaml and binary format.
+There should be a `dist/metadata/iPhoneSDK` folder which contains metadata in yaml and binary format.
 
 ## Tests metadata generation
 After you have built **Metadata Generator** and **Metadata Merger** tools (`grunt metadataTools`) you can use them to generate metadata for the iOS SDK by running `grunt test-metadata`.
 
 #### Artefacts
-There should be a `dist/metadata/tests` folder whcih contains metadata in yaml and binary format.
+There should be a `dist/metadata/tests` folder which contains metadata in yaml and binary format.
 
 ## Test
 To run the tests on a connected device: `grunt test`.
 
 #### Artefacts
 There should be a `junit-result.xml` file in the root of the repo.
-
 
 ## Running Examples/TNSApp
 The TNSApp requires generated metadata for the iOS SDK (`grunt metadataTools` and `grunt dist-metadata`).
