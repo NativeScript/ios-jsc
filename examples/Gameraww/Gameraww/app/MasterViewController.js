@@ -21,7 +21,7 @@ var JSMasterViewController = UITableViewController.extend({
     "aboutPressed:": function(sender) {
         var alertWindow = new UIAlertView();
         alertWindow.title = "About";
-        alertWindow.message = "2014 Just Decompile Team";
+        alertWindow.message = "NativeScript Team";
         alertWindow.addButtonWithTitle("OK");
         alertWindow.show();
     },
