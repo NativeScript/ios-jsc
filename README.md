@@ -56,7 +56,7 @@ After you have built **Metadata Generator** and **Metadata Merger** tools (`grun
 There should be a `dist/metadata/tests` folder whcih contains metadata in yaml and binary format.
 
 ## Test
-To run the tests on a connected device: `grunt test`. You need to have [iFuse](https://github.com/libimobiledevice/ifuse) installed.
+To run the tests on a connected device: `grunt test`.
 
 #### Artefacts
 There should be a `junit-result.xml` file in the root of the repo.
