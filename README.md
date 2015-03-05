@@ -1,4 +1,4 @@
-# NPM Package Build
+# ios-runtime
 
 ## Clone the repository
 Use `--recursive` flag to `git clone` command to clone all repository dependencies
