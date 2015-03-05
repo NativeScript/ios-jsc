@@ -23,6 +23,7 @@ public:
     static const unsigned StructureFlags;
 
     static ObjCConstructorNative* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass, const Metadata::InterfaceMeta* metadata) {
+        ASSERT(klass);
         ObjCConstructorNative* cell = new (NotNull, JSC::allocateCell<ObjCConstructorNative>(vm.heap)) ObjCConstructorNative(vm, structure);
         cell->finishCreation(vm, globalObject, prototype, klass, metadata);
         return cell;

@@ -23,11 +23,12 @@ struct BlockLiteral {
 const ClassInfo ObjCBlockCall::s_info = { "ObjCBlockCall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCBlockCall) };
 
 void ObjCBlockCall::finishCreation(VM& vm, id block, ObjCBlockType* blockType) {
+    Base::finishCreation(vm, WTF::emptyString());
     this->_block = block;
 
     const WTF::Vector<JSCell*> parameterTypes = blockType->parameterTypes();
 
-    Base::finishCreation(vm, WTF::emptyString(), blockType->returnType(), parameterTypes, 1);
+    Base::initializeFFI(vm, blockType->returnType(), parameterTypes, 1);
     Base::setArgument(0, this->_block.get());
 }
 

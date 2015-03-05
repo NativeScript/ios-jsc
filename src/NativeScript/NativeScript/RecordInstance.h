@@ -13,9 +13,9 @@
 
 namespace NativeScript {
 
-class RecordInstance : public JSC::JSObject {
+class RecordInstance : public JSC::JSNonFinalObject {
 public:
-    typedef JSC::JSObject Base;
+    typedef JSC::JSNonFinalObject Base;
 
     static RecordInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, size_t size, PointerInstance* pointer) {
         RecordInstance* cell = new (NotNull, JSC::allocateCell<RecordInstance>(vm.heap)) RecordInstance(vm, structure);
