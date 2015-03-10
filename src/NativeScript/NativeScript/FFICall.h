@@ -29,13 +29,9 @@ protected:
 
     ~FFICall();
 
-    void finishCreation(JSC::VM&, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
+    void initializeFFI(JSC::VM& vm, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
-
-    static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<FFICall*>(cell)->~FFICall();
-    }
 
     void preCall(JSC::ExecState*);
 

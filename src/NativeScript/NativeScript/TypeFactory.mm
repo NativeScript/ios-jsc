@@ -25,6 +25,7 @@
 #include "RecordField.h"
 #include "PointerConstructor.h"
 #include "PointerPrototype.h"
+#include "SymbolLoader.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -273,8 +274,14 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
     ObjCPrototype* prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata);
 
+    Class klass = objc_getClass(klassNameCharPtr);
+    if (!klass) {
+        SymbolLoader::instance().ensureFramework(metadata->framework());
+        klass = objc_getClass(klassNameCharPtr);
+    }
+
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
-    ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, objc_getClass(klassNameCharPtr), metadata);
+    ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, klass, metadata);
     prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor, DontEnum | DontDelete | ReadOnly);
 
     auto addResult = this->_cacheId.add(klassName, constructor);

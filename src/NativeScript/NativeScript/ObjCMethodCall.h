@@ -23,10 +23,13 @@ public:
     static ObjCMethodCall* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, const Metadata::MethodMeta* metadata, SEL aSelector = nil) {
         ObjCMethodCall* cell = new (NotNull, JSC::allocateCell<ObjCMethodCall>(vm.heap)) ObjCMethodCall(vm, structure);
         cell->finishCreation(vm, globalObject, metadata, aSelector);
+        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 
     DECLARE_INFO;
+
+    static const bool needsDestruction = false;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
@@ -50,6 +53,10 @@ private:
     static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState*);
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
+
+    static void destroy(JSC::JSCell* cell) {
+        JSC::jsCast<ObjCMethodCall*>(cell)->~ObjCMethodCall();
+    }
 
     void* _msgSend;
 

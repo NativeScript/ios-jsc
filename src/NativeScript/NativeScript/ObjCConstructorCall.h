@@ -23,10 +23,13 @@ public:
     static ObjCConstructorCall* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, Class klass, const Metadata::MethodMeta* metadata) {
         ObjCConstructorCall* constructor = new (NotNull, JSC::allocateCell<ObjCConstructorCall>(vm.heap)) ObjCConstructorCall(vm, structure);
         constructor->finishCreation(vm, globalObject, klass, metadata);
+        vm.heap.addFinalizer(constructor, destroy);
         return constructor;
     }
 
     DECLARE_INFO;
+
+    static const bool needsDestruction = false;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
@@ -52,6 +55,10 @@ private:
     static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState*);
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
+
+    static void destroy(JSC::JSCell* cell) {
+        JSC::jsCast<ObjCConstructorCall*>(cell)->~ObjCConstructorCall();
+    }
 
     Class _klass;
 };

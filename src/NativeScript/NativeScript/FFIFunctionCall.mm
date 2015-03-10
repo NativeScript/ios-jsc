@@ -15,9 +15,10 @@ using namespace Metadata;
 const ClassInfo FFIFunctionCall::s_info = { "FFIFunctionCall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FFIFunctionCall) };
 
 void FFIFunctionCall::finishCreation(VM& vm, const void* functionPointer, const WTF::String& name, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects) {
+    Base::finishCreation(vm, name);
     this->_functionPointer = functionPointer;
     this->_retainsReturnedCocoaObjects = retainsReturnedCocoaObjects;
-    Base::finishCreation(vm, name, returnType, parameterTypes);
+    Base::initializeFFI(vm, returnType, parameterTypes);
 }
 
 EncodedJSValue FFIFunctionCall::executeCall(ExecState* execState) {

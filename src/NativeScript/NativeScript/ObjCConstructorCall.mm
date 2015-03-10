@@ -17,15 +17,15 @@ using namespace JSC;
 const ClassInfo ObjCConstructorCall::s_info = { "ObjCConstructorCall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCConstructorCall) };
 
 void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Class klass, const Metadata::MethodMeta* metadata) {
+    Base::finishCreation(vm, metadata->jsName());
     this->_klass = klass;
 
-    const char* jsName = metadata->jsName();
     Metadata::MetaFileOffset cursor = metadata->encodingOffset();
 
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
     const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, metadata->encodingCount() - 1);
 
-    Base::finishCreation(vm, jsName, returnType, parametersTypes, 2);
+    Base::initializeFFI(vm, returnType, parametersTypes, 2);
     Base::setArgument(1, metadata->selector());
 }
 
