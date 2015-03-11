@@ -19,11 +19,11 @@
 @end
 
 typedef BOOL (^TNSRuntimeInspectorMessageHandler)(NSString* message);
+typedef void (^TNSRuntimeDebuggerEnabledHandler)();
 
 @interface TNSRuntime (Inspector)
 
-- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)handler;
-
-- (void)flushSourceProviders;
+- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
+                                 onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler;
 
 @end

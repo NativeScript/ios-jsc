@@ -187,9 +187,8 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(
         [self clearAttachRequestTimeout];
         [self injectInspector];
     } else if (self->_state == TNSDebugStateStartingBlockedForConnection) {
-        self->_state = TNSDebugStateRunningConnected;
-        [self unblockStartingForConnection];
         [self injectInspector];
+        // We will wait the inpector to be issued Debugger.enable to switch the state.
     }
 }
 
@@ -206,12 +205,17 @@ void TNSWebSocketDebug_AttachAvailabilityQuerryCallback(
 }
 
 #pragma mark - Execution Control
-
 - (void)injectInspector {
     self->_inspector =
         [self->_runtime attachInspectorWithHandler:^BOOL(NSString* message) {
-          [self.channel send:message];
-          return YES;
+            [self.channel send:message];
+            return YES;
+        }
+        onDebuggerEnabled:^void() {
+            if (self->_state == TNSDebugStateStartingBlockedForConnection) {
+                self->_state = TNSDebugStateRunningConnected;
+                [self unblockStartingForConnection];
+            }
         }];
 }
 

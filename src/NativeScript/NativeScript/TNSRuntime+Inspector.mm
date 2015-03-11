@@ -41,6 +41,37 @@ private:
     ExecState* _execState;
 };
 
+@interface TNSRuntimeInspector()
+
+@property (nonatomic, copy) TNSRuntimeDebuggerEnabledHandler onDebuggerEnabledCallback;
+
+- (instancetype)initWithRuntime:(TNSRuntime*)runtime
+                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
+              onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler;
+
+@end
+
+@implementation TNSRuntime (Inspector)
+
+- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
+                                 onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler
+{
+    return [[[TNSRuntimeInspector alloc] initWithRuntime:self
+                                          messageHandler:messageHandler
+                                       onDebuggerEnabled:debuggerHandler] autorelease];
+}
+
+- (void)flushSourceProviders {
+    JSC::Debugger* debugger = self->_globalObject->debugger();
+    if (self->_globalObject->hasDebugger()) {
+        for (SourceProvider* e : self->_sourceProviders) {
+            debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
+        }
+    }
+}
+
+@end
+
 @implementation TNSRuntimeInspector {
     TNSRuntime* _runtime;
     std::unique_ptr<TNSRuntimeInspectorFrontendChannel> _frontendChannel;
@@ -56,12 +87,14 @@ private:
 }
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
-                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
+                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
+              onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler
+{
     if (self = [super init]) {
         self->_runtime = [runtime retain];
+        self.onDebuggerEnabledCallback = debuggerHandler;
         self->_frontendChannel = std::make_unique<TNSRuntimeInspectorFrontendChannel>(messageHandler, toJS(self->_runtime.globalContext));
         self->_inspectorController = &jsCast<GlobalObject*>(toJS([runtime globalContext])->lexicalGlobalObject())->inspectorController();
-
         self->_inspectorController->connectFrontend(self->_frontendChannel.get());
     }
 
@@ -75,6 +108,11 @@ private:
     if ([json isKindOfClass:[NSDictionary class]]) {
         if ([@"Debugger.enable" isEqual:[json valueForKey:@"method"]]) {
             [self->_runtime flushSourceProviders];
+
+            if (self.onDebuggerEnabledCallback) {
+                self.onDebuggerEnabledCallback();
+            }
+
             method_exchangeImplementations(class_getInstanceMethod([self class], @selector(dispatchMessage:)), class_getInstanceMethod([self class], @selector(_dispatchMessage:)));
         }
     }
@@ -92,20 +130,4 @@ private:
 
 @end
 
-@implementation TNSRuntime (Inspector)
 
-- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)handler {
-    return [[[TNSRuntimeInspector alloc] initWithRuntime:self
-                                          messageHandler:handler] autorelease];
-}
-
-- (void)flushSourceProviders {
-    JSC::Debugger* debugger = self->_globalObject->debugger();
-    if (debugger) {
-        for (SourceProvider* e : self->_sourceProviders) {
-            debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
-        }
-    }
-}
-
-@end
