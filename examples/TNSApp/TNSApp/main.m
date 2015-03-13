@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
         [TNSRuntimeInspector setLogsToSystemConsole:YES];
 
 #ifdef NATIVESCRIPT_DEBUGGING
-        id debuggingServer = [runtime enableDebuggingWithName: [NSBundle mainBundle].bundleIdentifier];
+        id debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
         
         JSValueRef error = NULL;
