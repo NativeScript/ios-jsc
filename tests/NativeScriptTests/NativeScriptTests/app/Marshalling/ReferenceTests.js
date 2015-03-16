@@ -221,4 +221,12 @@ describe(module.id, function () {
         expect(x.toString()).toBe(y.toString());
         expect(interop.handleof(x)).toBe(interop.handleof(y));
     });
+
+    it("ImplicitPointerToId", function () {
+        var array = NSMutableArray.alloc().init();
+        var object = new NSObject();
+        array.addObject(interop.handleof(object));
+
+        expect(array.firstObject).toBe(object);
+    });
 });
