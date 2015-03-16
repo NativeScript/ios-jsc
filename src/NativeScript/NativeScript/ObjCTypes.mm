@@ -14,6 +14,7 @@
 #include "ObjCConstructorCall.h"
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorDerived.h"
+#include "Interop.h"
 
 using namespace JSC;
 
@@ -157,6 +158,12 @@ id toObject(ExecState* execState, const JSValue& value) {
 
     if (value.inherits(JSArrayBufferView::info())) {
         return toObject(execState, jsCast<JSArrayBufferView*>(value.asCell()));
+    }
+
+    bool hasHandle;
+    void* handle = tryHandleofValue(value, &hasHandle);
+    if (hasHandle) {
+        return static_cast<id>(handle);
     }
 
     throwVMError(execState, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));
