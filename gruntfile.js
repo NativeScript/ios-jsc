@@ -399,7 +399,10 @@ module.exports = function (grunt) {
         var buildJsc = true;
         try
         {
-            if (fs.lstatSync(outJscDir).isDirectory()) {
+            if (fs.lstatSync(outJscDir).isDirectory() &&  fs.lstatSync(outJscHeadersDir).isDirectory() && 
+                fs.lstatSync(outJscHeadersDir + "/JavaScriptCore").isDirectory() && fs.lstatSync(outJscHeadersDir + "/wtf").isDirectory() &&
+                fs.lstatSync(outJscLibDir).isDirectory() && fs.lstatSync(outJscLibDir + "/libJavaScriptCore.a").isFile()) {
+                // JavaScriptCore is already built and there is no need to build it again
                 buildJsc = false;
             }
         }
