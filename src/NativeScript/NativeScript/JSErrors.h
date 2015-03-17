@@ -10,7 +10,7 @@
 #define __NativeScript__JSErrors__
 
 namespace NativeScript {
-void reportFatalErrorBeforeShutdown(JSC::ExecState* execState, JSC::JSValue error);
+void reportFatalErrorBeforeShutdown(JSC::ExecState* execState, JSC::JSValue error) NO_RETURN_DUE_TO_CRASH;
 }
 
 #endif /* defined(__NativeScript__JSErrors__) */
