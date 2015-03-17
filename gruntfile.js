@@ -452,7 +452,7 @@ module.exports = function (grunt) {
     grunt.registerTask("dist-metadata", [
         "clean:outSDKMetadata",
         "mkdir:outSDKMetadata",
-        util.format("metadata:%s:%s:%s", srcDir + "/build/ios-sdk-umbrella-headers/ios8.0.h", outSDKMetadataDir, "")
+        util.format("metadata:%s:%s:%s", srcDir + "/build/ios-sdk-umbrella-headers/ios8.2.h", outSDKMetadataDir, "")
     ]);
 
     grunt.registerTask("test-metadata", [
