@@ -25,7 +25,6 @@
 		C908F4641A5EC27B005401A3 /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4621A5EC27B005401A3 /* metadata-arm64.bin */; };
 		C908F4661A5EC27B005401A3 /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C908F4631A5EC27B005401A3 /* metadata-armv7.bin */; };
 		C90B552A1A962F0A00167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B54F71A9607D800167E14 /* libNativeScript.a */; };
-		CD6782E519826B7500C9D350 /* tns_modules in Resources */ = {isa = PBXBuildFile; fileRef = CD6782E419826B7500C9D350 /* tns_modules */; };
 		CDFA780A18DB354B0035D043 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CDFA780918DB354B0035D043 /* app */; };
 /* End PBXBuildFile section */
 
@@ -155,7 +154,6 @@
 		CD45F08D18DC5FE800FB50C0 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		CD45F08E18DC5FE800FB50C0 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		CD45F08F18DC5FE800FB50C0 /* Twitter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Twitter.framework; path = System/Library/Frameworks/Twitter.framework; sourceTree = SDKROOT; };
-		CD6782E419826B7500C9D350 /* tns_modules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tns_modules; sourceTree = "<group>"; };
 		CDFA780918DB354B0035D043 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -278,7 +276,6 @@
 		85574E5D18894B28005EC840 /* Gameraww */ = {
 			isa = PBXGroup;
 			children = (
-				CD6782E419826B7500C9D350 /* tns_modules */,
 				CDFA780918DB354B0035D043 /* app */,
 				85736C341889F8A1006B1201 /* GAMApplication.storyboard */,
 				85574E6918894B28005EC840 /* Images.xcassets */,
@@ -461,7 +458,6 @@
 				85574E6218894B28005EC840 /* InfoPlist.strings in Resources */,
 				85736C351889F8A1006B1201 /* GAMApplication.storyboard in Resources */,
 				C908F4661A5EC27B005401A3 /* metadata-armv7.bin in Resources */,
-				CD6782E519826B7500C9D350 /* tns_modules in Resources */,
 				85574E6A18894B28005EC840 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

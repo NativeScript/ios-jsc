@@ -32,7 +32,6 @@
 		CDF4F27B1988D81F000F869E /* app in Resources */ = {isa = PBXBuildFile; fileRef = CDF4F27A1988D81F000F869E /* app */; };
 		CDF4F290198A3F62000F869E /* TNSTestNativeCallbacks.m in Sources */ = {isa = PBXBuildFile; fileRef = CDF4F28F198A3F62000F869E /* TNSTestNativeCallbacks.m */; };
 		F953EAD1199A2E7C0023F191 /* Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = F953EAD0199A2E7C0023F191 /* Utilities.m */; };
-		F9F4778C1A07B6BF0051BAD9 /* tns_modules in Resources */ = {isa = PBXBuildFile; fileRef = F9F4778B1A07B6BF0051BAD9 /* tns_modules */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,7 +102,6 @@
 		CDF4F28F198A3F62000F869E /* TNSTestNativeCallbacks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSTestNativeCallbacks.m; sourceTree = "<group>"; };
 		F953EACF199A2E7C0023F191 /* Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utilities.h; sourceTree = "<group>"; };
 		F953EAD0199A2E7C0023F191 /* Utilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utilities.m; sourceTree = "<group>"; };
-		F9F4778B1A07B6BF0051BAD9 /* tns_modules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tns_modules; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -237,7 +235,6 @@
 			isa = PBXGroup;
 			children = (
 				CDF4F27A1988D81F000F869E /* app */,
-				F9F4778B1A07B6BF0051BAD9 /* tns_modules */,
 				CD7BF9821987F632007FA09B /* TestFixtures */,
 				F953EACF199A2E7C0023F191 /* Utilities.h */,
 				F953EAD0199A2E7C0023F191 /* Utilities.m */,
@@ -338,7 +335,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDF4F27B1988D81F000F869E /* app in Resources */,
-				F9F4778C1A07B6BF0051BAD9 /* tns_modules in Resources */,
 				C9E0D90E1A63D4AD00A80E1F /* metadata-armv7.bin in Resources */,
 				CDBEF5D31987EE4C00C7E209 /* InfoPlist.strings in Resources */,
 				CDBEF5DB1987EE4C00C7E209 /* Images.xcassets in Resources */,
