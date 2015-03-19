@@ -10,15 +10,23 @@
     ModuleError.prototype.constructor = ModuleError;
     global.ModuleError = ModuleError;
 
-    var CORE_MODULES_ROOT = NSString.stringWithString("tns_modules");
-    var USER_MODULES_ROOT = NSString.stringWithString("app");
-
     var fileManager = NSFileManager.defaultManager();
     var nsstr = NSString.stringWithString.bind(NSString);
+    var isDirectory = new interop.Reference(interop.types.bool, false);
 
     applicationPath = nsstr(applicationPath).stringByStandardizingPath;
 
-    var isDirectory = new interop.Reference();
+    var USER_MODULES_ROOT = nsstr('app');
+
+    var CORE_MODULES_ROOT = nsstr('app/tns_modules');
+    var DEPRECATED_CORE_MODULES_ROOT = nsstr('tns_modules');
+
+    var deprecatedCoreModulesPath = NSString.pathWithComponents([applicationPath, DEPRECATED_CORE_MODULES_ROOT]);
+    if (fileManager.fileExistsAtPathIsDirectory(deprecatedCoreModulesPath, isDirectory) && isDirectory.value) {
+        console.warn('NativeScript modules search path changed to "' + DEPRECATED_CORE_MODULES_ROOT + '".' +
+            ' Future releases of NativeScript will search for NativeScript modules only in "' + CORE_MODULES_ROOT + '".');
+        CORE_MODULES_ROOT = DEPRECATED_CORE_MODULES_ROOT;
+    }
 
     function __findModule(moduleIdentifier, previousPath) {
         if (!previousPath) {

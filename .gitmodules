@@ -4,8 +4,8 @@
 [submodule "tests/NativeScriptTests/NativeScriptTests/app/shared"]
 	path = tests/NativeScriptTests/NativeScriptTests/app/shared
 	url = git@github.com:NativeScript/common-runtime-tests-app.git
-[submodule "tests/NativeScriptTests/NativeScriptTests/tns_modules/shared"]
-	path = tests/NativeScriptTests/NativeScriptTests/tns_modules/shared
+[submodule "tests/NativeScriptTests/NativeScriptTests/app/tns_modules/shared"]
+	path = tests/NativeScriptTests/NativeScriptTests/app/tns_modules/shared
 	url = git@github.com:NativeScript/common-runtime-tests-modules.git
 [submodule "src/ios-runtime-jsc"]
 	path = src/jsc

@@ -20,7 +20,6 @@
 		F9817F1E1989043C0073E328 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9817F1D1989043C0073E328 /* libz.dylib */; };
 		F9817F20198904600073E328 /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9817F1F198904600073E328 /* libc++.dylib */; };
 		F9817F23198906040073E328 /* app in Resources */ = {isa = PBXBuildFile; fileRef = F9817F22198906040073E328 /* app */; };
-		F9817F2819893F6C0073E328 /* tns_modules in Resources */ = {isa = PBXBuildFile; fileRef = F9817F2719893F6C0073E328 /* tns_modules */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,7 +85,6 @@
 		F9817F1D1989043C0073E328 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		F9817F1F198904600073E328 /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
 		F9817F22198906040073E328 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
-		F9817F2719893F6C0073E328 /* tns_modules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tns_modules; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,7 +160,6 @@
 		F9817ED31988FBC60073E328 /* TNSApp */ = {
 			isa = PBXGroup;
 			children = (
-				F9817F2719893F6C0073E328 /* tns_modules */,
 				F9817F22198906040073E328 /* app */,
 				F9817EE81988FBC60073E328 /* Images.xcassets */,
 				F9817ED41988FBC60073E328 /* Supporting Files */,
@@ -190,7 +187,6 @@
 			buildPhases = (
 				F9817EC61988FBC60073E328 /* Sources */,
 				F9817EC71988FBC60073E328 /* Frameworks */,
-				F9817F24198907A50073E328 /* Update JavaScript */,
 				F9817EC81988FBC60073E328 /* Resources */,
 			);
 			buildRules = (
@@ -281,30 +277,12 @@
 				F9817F23198906040073E328 /* app in Resources */,
 				F9817EE91988FBC60073E328 /* Images.xcassets in Resources */,
 				C9E0D9141A63D55700A80E1F /* metadata-armv7.bin in Resources */,
-				F9817F2819893F6C0073E328 /* tns_modules in Resources */,
 				F9817ED81988FBC60073E328 /* InfoPlist.strings in Resources */,
 				C9E0D9131A63D55700A80E1F /* metadata-arm64.bin in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		F9817F24198907A50073E328 /* Update JavaScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Update JavaScript";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "find \"${SRCROOT}/TNSApp/app/\". -exec touch {} \\;\nfind \"${SRCROOT}/TNSApp/tns_modules/\". -exec touch {} \\;";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F9817EC61988FBC60073E328 /* Sources */ = {
