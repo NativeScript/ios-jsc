@@ -238,7 +238,7 @@ module.exports = function (grunt) {
                 files: [
                     { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= outDistDir %>", src: ["TNSDebugging.framework", "TNSDebugging.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, cwd: "<%= outDistDir %>", src: ["WebInspectorUI", "WebInspectorUI/**"], dest: "<%= outPackageDir %>" },
+                    { expand: true, cwd: "<%= outDistDir %>", src: ["WebInspectorUI/Safari", "WebInspectorUI/Safari/**"], dest: "<%= outPackageDir %>" },
                     { expand: true, cwd: "<%= outSDKMetadataDir %>/yaml", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
                     { expand: true, cwd: "<%= outMetadataGeneratorDir %>", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
                     { expand: true, cwd: "<%= outMetadataMergerDir %>", src: "**", dest: "<%= outPackageFrameworkMetadataDir %>" },
