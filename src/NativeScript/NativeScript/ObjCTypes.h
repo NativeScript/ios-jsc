@@ -15,9 +15,9 @@
 
 @interface TNSValueWrapper : NSObject
 
-+ (void)attachValue:(NativeScript::ObjCWrapperObject*)value toHost:(id)host;
++ (void)attachValue:(JSC::JSObject*)value toHost:(id)host;
 
-- (NativeScript::ObjCWrapperObject*)value;
+- (JSC::JSObject*)value;
 
 - (void)detach;
 

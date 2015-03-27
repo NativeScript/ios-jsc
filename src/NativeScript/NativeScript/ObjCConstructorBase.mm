@@ -14,6 +14,9 @@
 #include "Interop.h"
 #include "PointerInstance.h"
 
+#import "TNSArrayAdapter.h"
+#import "TNSDictionaryAdapter.h"
+
 namespace NativeScript {
 using namespace JSC;
 
@@ -28,6 +31,14 @@ JSValue ObjCConstructorBase::read(ExecState* execState, void const* buffer, JSCe
 
 void ObjCConstructorBase::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     *static_cast<id*>(buffer) = NativeScript::toObject(execState, value);
+}
+
+static void writeArrayAdapter(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
+    *static_cast<id*>(buffer) = [[[TNSArrayAdapter alloc] initWithJSObject:asObject(value) execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
+}
+
+static void writeDictionaryAdapter(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
+    *static_cast<id*>(buffer) = [[[TNSDictionaryAdapter alloc] initWithJSObject:asObject(value) execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
 }
 
 void ObjCConstructorBase::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
@@ -52,10 +63,6 @@ bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value,
         return [type->_klass isSubclassOfClass:[NSNumber class]];
     }
 
-    if (value.inherits(JSArray::info())) {
-        return [type->_klass isSubclassOfClass:[NSArray class]];
-    }
-
     if (value.inherits(JSArrayBuffer::info()) || value.inherits(JSArrayBufferView::info())) {
         return [type->_klass isSubclassOfClass:[NSData class]];
     }
@@ -77,10 +84,17 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
 
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
-    this->_ffiTypeMethodTable.write = &write;
     this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
+
+    if (klass == [NSArray class]) {
+        this->_ffiTypeMethodTable.write = &writeArrayAdapter;
+    } else if (klass == [NSDictionary class]) {
+        this->_ffiTypeMethodTable.write = &writeDictionaryAdapter;
+    } else {
+        this->_ffiTypeMethodTable.write = &write;
+    }
 }
 
 WTF::String ObjCConstructorBase::className(const JSObject* object) {
