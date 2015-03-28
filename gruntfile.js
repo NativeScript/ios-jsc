@@ -253,14 +253,16 @@ module.exports = function (grunt) {
 
         shell: {
             buildXcodeProject: {
-                command: function (project, target, outputPath) {
+                command: function (project, target, outputPath, configuration) {
                     if (grunt.file.exists(outputPath)) {
                         grunt.file.delete(outputPath);
                     }
 
+                    configuration = configuration || 'Release';
+
                     outputPath = path.join('../../', outputPath);
 
-                    return util.format('xcodebuild -project %s -target %s -configuration Release -sdk iphoneos ARCHS=armv7 VALID_ARCHS=armv7 CONFIGURATION_BUILD_DIR="%s" clean build | xcpretty', project, target, outputPath);
+                    return util.format('xcodebuild -project %s -target %s -configuration %s -sdk iphoneos ARCHS=armv7 VALID_ARCHS=armv7 CONFIGURATION_BUILD_DIR="%s" clean build | xcpretty', project, target, configuration, outputPath);
                 }
             },
 
@@ -439,7 +441,7 @@ module.exports = function (grunt) {
         "jsc",
         "metadataTools",
         'test-metadata',
-        'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/',
+        'shell:buildXcodeProject:tests/NativeScriptTests/NativeScriptTests.xcodeproj:NativeScriptTests:tests/NativeScriptTests/build/:Debug',
         util.format('shell:runTests:./tests/NativeScriptTests/build/NativeScriptTests.app:./junit-result.xml:%s', DEVICE_UDID)
     ]);
 

@@ -248,6 +248,15 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     return false;
 }
 
+#if DEBUG
+// There are more then 10000+ global object properties. When the debugger is attached,
+// it calls this method on every breakpoint/step-in, which is *really* slow.
+// On devices with not enough free memory, it even crashes the running application.
+//
+// This method is used only for testing now.
+// It materializes all Objective-C classes and their methods and their parameter types.
+//
+// Once we start grouping declarations by modules, this can be safely restored.
 void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
     MetaFileReader* metadata = getMetadata();
     for (MetaIterator it = metadata->begin(); it != metadata->end(); ++it) {
@@ -256,6 +265,7 @@ void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, P
 
     Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
 }
+#endif
 
 ObjCConstructorBase* GlobalObject::constructorFor(Class klass, Class fallback) {
     ASSERT(klass);
