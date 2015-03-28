@@ -44,7 +44,9 @@ public:
 
     static bool getOwnPropertySlot(JSC::JSObject* object, JSC::ExecState* execState, JSC::PropertyName propertyName, JSC::PropertySlot& propertySlot);
 
+#if DEBUG
     static void getOwnPropertyNames(JSC::JSObject* object, JSC::ExecState* execState, JSC::PropertyNameArray& propertyNames, JSC::EnumerationMode enumerationMode);
+#endif
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
