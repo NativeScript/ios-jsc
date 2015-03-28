@@ -1,6 +1,8 @@
 // Inform the test results runner that the runtime is up.
 console.log('TNSRuntime is running...');
 
+debugger;
+
 require('./Infrastructure/timers');
 
 global.UNUSED = function (param) {
