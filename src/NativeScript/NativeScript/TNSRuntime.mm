@@ -65,17 +65,20 @@ using namespace NativeScript;
 static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     JSString* moduleBody = jsString(execState, execState->argument(0).toWTFString(execState));
     WTF::String moduleUrl = execState->argument(1).toString(execState)->value(execState);
-    JSString* moduleName = execState->argument(2).toString(execState);
 
-    MarkedArgumentBuffer requireArgs;
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("require")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("module")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("exports")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("__dirname")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("__filename")));
-    requireArgs.append(moduleBody);
+    StringBuilder moduleFunctionSourceBuilder;
+    moduleFunctionSourceBuilder.appendLiteral("(function(require, module, exports, __dirname, __filename) {\n");
+    moduleFunctionSourceBuilder.append(moduleBody->value(execState));
+    moduleFunctionSourceBuilder.appendLiteral("\n})");
+    SourceCode moduleFunctionSource = makeSource(moduleFunctionSourceBuilder.toString(), moduleUrl, WTF::TextPosition());
 
-    JSFunction* moduleFunction = jsCast<JSFunction*>(constructFunction(execState, execState->lexicalGlobalObject(), requireArgs, moduleName->toIdentifier(execState), moduleUrl, WTF::TextPosition()));
+    JSValue exception;
+    if (!checkSyntax(execState, moduleFunctionSource, &exception)) {
+        throwVMError(execState, exception);
+        return JSValue::encode(jsUndefined());
+    }
+
+    JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(evaluate(execState, moduleFunctionSource));
     if (execState->hadException()) {
         return JSValue::encode(jsUndefined());
     }
