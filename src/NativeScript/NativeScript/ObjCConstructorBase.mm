@@ -7,6 +7,7 @@
 //
 
 #include "ObjCConstructorBase.h"
+#include <JavaScriptCore/JSMap.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include "ObjCMethodCall.h"
 #include "ObjCConstructorCall.h"
@@ -61,6 +62,14 @@ bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value,
 
     if (value.isNumber() || value.isBoolean()) {
         return [type->_klass isSubclassOfClass:[NSNumber class]];
+    }
+
+    if (value.inherits(JSArray::info())) {
+        return [type->_klass isSubclassOfClass:[NSArray class]];
+    }
+
+    if (value.inherits(JSMap::info())) {
+        return [type->_klass isSubclassOfClass:[NSDictionary class]];
     }
 
     if (value.inherits(JSArrayBuffer::info()) || value.inherits(JSArrayBufferView::info())) {

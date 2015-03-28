@@ -8,6 +8,7 @@
 
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/DateInstance.h>
+#include <JavaScriptCore/JSMap.h>
 #include "ObjCTypes.h"
 #include "ObjCSuperObject.h"
 #include "ObjCConstructorBase.h"
@@ -15,6 +16,9 @@
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorDerived.h"
 #include "Interop.h"
+
+#import "TNSArrayAdapter.h"
+#import "TNSDictionaryAdapter.h"
 
 using namespace JSC;
 
@@ -123,12 +127,20 @@ id toObject(ExecState* execState, const JSValue& value) {
         return [NSString stringWithString:(NSString*)value.toString(execState)->value(execState).createCFString().get()];
     }
 
+    if (JSArray* array = jsDynamicCast<JSArray*>(value)) {
+        return [[[TNSArrayAdapter alloc] initWithJSObject:array execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
+    }
+
     if (value.inherits(ObjCSuperObject::info())) {
         return jsCast<ObjCSuperObject*>(value.asCell())->wrapperObject()->wrappedObject();
     }
 
     if (value.inherits(DateInstance::info())) {
         return [NSDate dateWithTimeIntervalSince1970:(value.toNumber(execState) / 1000)];
+    }
+
+    if (JSMap* map = jsDynamicCast<JSMap*>(value)) {
+        return [[[TNSDictionaryAdapter alloc] initWithJSObject:map execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     if (value.inherits(JSArrayBuffer::info())) {
