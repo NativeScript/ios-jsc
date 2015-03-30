@@ -70,6 +70,13 @@
 			remoteGlobalIDString = C9A9169B19E7C150002B1CC5;
 			remoteInfo = TNSDebuggingTests;
 		};
+		CDE8DF961AC95760005960BD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = C9A9168F19E7C14F002B1CC5;
+			remoteInfo = TNSDebugging;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -297,6 +304,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CDE8DF971AC95760005960BD /* PBXTargetDependency */,
 				C90B54741A79455100167E14 /* PBXTargetDependency */,
 			);
 			name = NativeScriptTests;
@@ -417,6 +425,11 @@
 			isa = PBXTargetDependency;
 			name = NativeScript;
 			targetProxy = C90B54731A79455100167E14 /* PBXContainerItemProxy */;
+		};
+		CDE8DF971AC95760005960BD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = TNSDebugging;
+			targetProxy = CDE8DF961AC95760005960BD /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
