@@ -11,6 +11,11 @@
 #import "Utilities.h"
 #import "TNSTestCases.h"
 
+#if DEBUG
+#include <TNSDebugging/TNSDebugging.h>
+id debuggingServer;
+#endif
+
 int main(int argc, char *argv[]) {
     NSLog(@"Application Start!");
 
@@ -85,6 +90,10 @@ int main(int argc, char *argv[]) {
 
         JSValueRef exception = NULL;
         JSGlobalContextRef contextRef = runtime.globalContext;
+
+#if DEBUG
+        debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
+#endif
 
         if (!getenv("STANDALONE_TEST")) {
             [runtime executeModule:@"./bootstrap"

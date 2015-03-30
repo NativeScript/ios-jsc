@@ -56,6 +56,20 @@
 			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
 			remoteInfo = NativeScript;
 		};
+		CDBE48251AC6E7410006895F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C9A9169019E7C14F002B1CC5;
+			remoteInfo = TNSDebugging;
+		};
+		CDBE48271AC6E7410006895F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C9A9169B19E7C150002B1CC5;
+			remoteInfo = TNSDebuggingTests;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +103,7 @@
 		CD7BF9951987F632007FA09B /* TNSPrimitives.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSPrimitives.m; sourceTree = "<group>"; };
 		CD7BF9961987F632007FA09B /* TNSRecords.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSRecords.h; sourceTree = "<group>"; };
 		CD7BF9971987F632007FA09B /* TNSRecords.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSRecords.m; sourceTree = "<group>"; };
+		CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = TNSDebugging.xcodeproj; path = ../../src/debugging/TNSDebugging/TNSDebugging.xcodeproj; sourceTree = "<group>"; };
 		CDBEF5C51987EE4C00C7E209 /* NativeScriptTests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeScriptTests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDBEF5C81987EE4C00C7E209 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		CDBEF5D01987EE4C00C7E209 /* NativeScriptTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "NativeScriptTests-Info.plist"; sourceTree = "<group>"; };
@@ -200,9 +215,19 @@
 			path = Marshalling;
 			sourceTree = "<group>";
 		};
+		CDBE48201AC6E7410006895F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CDBE48261AC6E7410006895F /* libTNSDebugging.a */,
+				CDBE48281AC6E7410006895F /* TNSDebuggingTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		CDBEF5BC1987EE4C00C7E209 = {
 			isa = PBXGroup;
 			children = (
+				CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */,
 				C9E0D90B1A63D4AD00A80E1F /* metadata-arm64.bin */,
 				C9E0D90C1A63D4AD00A80E1F /* metadata-armv7.bin */,
 				CDBEF5F71987EF8700C7E209 /* NativeScript.xcodeproj */,
@@ -304,6 +329,10 @@
 					ProductGroup = C90B546B1A79453B00167E14 /* Products */;
 					ProjectRef = CDBEF5F71987EF8700C7E209 /* NativeScript.xcodeproj */;
 				},
+				{
+					ProductGroup = CDBE48201AC6E7410006895F /* Products */;
+					ProjectRef = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -325,6 +354,20 @@
 			fileType = wrapper.cfbundle;
 			path = NativeScriptTests.xctest;
 			remoteRef = C90B54711A79453B00167E14 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CDBE48261AC6E7410006895F /* libTNSDebugging.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libTNSDebugging.a;
+			remoteRef = CDBE48251AC6E7410006895F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CDBE48281AC6E7410006895F /* TNSDebuggingTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = TNSDebuggingTests.xctest;
+			remoteRef = CDBE48271AC6E7410006895F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -476,6 +519,7 @@
 				OTHER_LDFLAGS = (
 					"-ObjC",
 					"-all_load",
+					"-lTNSDebugging",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "arm64 armv7";
