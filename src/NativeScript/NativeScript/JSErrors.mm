@@ -9,21 +9,32 @@
 #include "JSErrors.h"
 
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
-#include "TNSRuntime+Private.h"
-#include "TNSRuntime+Diagnostics.h"
+#include <JavaScriptCore/APICast.h>
+#import "TNSRuntime+Private.h"
+#import "TNSRuntime+Inspector.h"
+#import "TNSRuntime+Diagnostics.h"
+
+static TNSUncaughtErrorHandler uncaughtErrorHandler;
+void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler) {
+    uncaughtErrorHandler = handler;
+}
 
 namespace NativeScript {
 
 using namespace JSC;
 
 void reportFatalErrorBeforeShutdown(ExecState* execState, JSValue error) {
-    TNSRuntime* runtime = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData);
-    static_cast<GlobalObject*>(execState->lexicalGlobalObject())->inspectorController().reportAPIException(execState, error);
+    GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
+    globalObject->inspectorController().reportAPIException(execState, error);
 
-    if (runtime->_globalObject->debugger()) {
+    if (uncaughtErrorHandler) {
+        uncaughtErrorHandler(toRef(execState), toRef(execState, error));
+    }
+
+    if (globalObject->debugger()) {
         warn(execState, WTF::ASCIILiteral("Fatal exception - application has been terminated."));
         while (true) {
-            CFRunLoopRunInMode(CFSTR("com.apple.JavaScriptCore.remote-inspector-runloop-mode"), 0.1, false);
+            CFRunLoopRunInMode((CFStringRef)TNSInspectorRunLoopMode, 0.1, false);
         }
     } else {
         WTFCrash();

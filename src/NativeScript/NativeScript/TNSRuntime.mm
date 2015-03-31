@@ -87,7 +87,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     return JSValue::encode(moduleFunction);
 }
 
-- (void)executeModule:(NSString*)entryPointModuleIdentifier error:(JSValueRef*)error {
+- (void)executeModule:(NSString*)entryPointModuleIdentifier {
     JSLockHolder lock(*self->_vm);
 
     JSValue exception;
@@ -98,10 +98,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
 #endif
     JSValue requireFactory = evaluate(self->_globalObject->globalExec(), sourceCode, JSValue(), &exception);
     if (exception) {
-        self->_globalObject->inspectorController().reportAPIException(self->_globalObject->globalExec(), exception);
-        if (error) {
-            *error = toRef(self->_globalObject->globalExec(), exception);
-        }
+        reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
         return;
     }
 
@@ -112,10 +109,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     CallType requireFactoryCallType = requireFactory.asCell()->methodTable()->getCallData(requireFactory.asCell(), requireFactoryCallData);
     JSValue require = call(self->_globalObject->globalExec(), requireFactory.asCell(), requireFactoryCallType, requireFactoryCallData, jsNull(), requireFactoryArgs, &exception);
     if (exception) {
-        self->_globalObject->inspectorController().reportAPIException(self->_globalObject->globalExec(), exception);
-        if (error) {
-            *error = toRef(self->_globalObject->globalExec(), exception);
-        }
+        reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
         return;
     }
 
@@ -126,10 +120,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     CallType requireCallType = require.asCell()->methodTable()->getCallData(require.asCell(), requireCallData);
     call(self->_globalObject->globalExec(), require.asCell(), requireCallType, requireCallData, jsNull(), requireArgs, &exception);
     if (exception) {
-        self->_globalObject->inspectorController().reportAPIException(self->_globalObject->globalExec(), exception);
-        if (error) {
-            *error = toRef(self->_globalObject->globalExec(), exception);
-        }
+        reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
     }
 }
 

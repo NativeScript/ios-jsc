@@ -8,7 +8,7 @@
 
 #import "Utilities.h"
 
-NSString *toString(JSGlobalContextRef context, JSValueRef value) {
+NSString *toString(JSContextRef context, JSValueRef value) {
     JSStringRef errorMessageRef = JSValueToStringCopy(context, value, NULL);
     size_t errorSize = JSStringGetMaximumUTF8CStringSize(errorMessageRef);
     char errorMessage[errorSize];
