@@ -9,4 +9,4 @@
 #import <Foundation/Foundation.h>
 #import <JavaScriptCore/JavaScript.h>
 
-NSString* toString(JSGlobalContextRef context, JSValueRef value);
+NSString* toString(JSContextRef context, JSValueRef value);

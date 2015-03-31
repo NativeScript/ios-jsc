@@ -16,6 +16,13 @@
 id debuggingServer;
 #endif
 
+static void PrintError(JSContextRef ctx, JSValueRef error) {
+    NSLog(@"%@", toString(ctx, error));
+    JSStringRef stackRef = JSStringCreateWithUTF8CString("stack");
+    NSLog(@"Stack: \n%@", toString(ctx, JSObjectGetProperty(ctx, (JSObjectRef)error, stackRef, 0)));
+    JSStringRelease(stackRef);
+}
+
 int main(int argc, char *argv[]) {
     NSLog(@"Application Start!");
 
@@ -95,9 +102,10 @@ int main(int argc, char *argv[]) {
         debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
 
+        TNSSetUncaughtErrorHandler(&PrintError);
+
         if (!getenv("STANDALONE_TEST")) {
-            [runtime executeModule:@"./bootstrap"
-                             error:&exception];
+            [runtime executeModule:@"./bootstrap"];
         } else {
             NSString *script = [NSString stringWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Test"
                                                                                                   ofType:@"js"
@@ -116,10 +124,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (exception) {
-            NSLog(@"%@", toString(contextRef, exception));
-            JSStringRef stackRef = JSStringCreateWithUTF8CString("stack");
-            NSLog(@"Stack: \n%@", toString(contextRef, JSObjectGetProperty(contextRef, (JSObjectRef)exception, stackRef, 0)));
-            JSStringRelease(stackRef);
+            PrintError(runtime.globalContext, exception);
             return -1;
         }
 

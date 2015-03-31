@@ -22,14 +22,8 @@ int main(int argc, char *argv[]) {
 #ifdef NATIVESCRIPT_DEBUGGING
         id debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
-        
-        JSValueRef error = NULL;
-        [runtime executeModule:@"./bootstrap" error:&error];
 
-        if (error) {
-            return -1;
-        } else {
-            return 0;
-        }
+        [runtime executeModule:@"./bootstrap"];
+        return 0;
     }
 }

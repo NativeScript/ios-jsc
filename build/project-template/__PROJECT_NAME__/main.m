@@ -23,13 +23,8 @@ int main(int argc, char* argv[]) {
         id debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
 
-        JSValueRef error = NULL;
-        [runtime executeModule:@"./bootstrap" error:&error];
+        [runtime executeModule:@"./bootstrap"];
 
-        if (error) {
-            return -1;
-        } else {
-            return 0;
-        }
+        return 0;
     }
 }

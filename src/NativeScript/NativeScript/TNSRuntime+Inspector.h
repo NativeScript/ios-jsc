@@ -9,6 +9,8 @@
 #import "TNSRuntime.h"
 #import <Foundation/Foundation.h>
 
+FOUNDATION_EXPORT NSString* const TNSInspectorRunLoopMode;
+
 @interface TNSRuntimeInspector : NSObject
 
 + (BOOL)logsToSystemConsole;

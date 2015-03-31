@@ -20,6 +20,8 @@
 using namespace JSC;
 using namespace NativeScript;
 
+NSString* const TNSInspectorRunLoopMode = @"com.apple.JavaScriptCore.remote-inspector-runloop-mode";
+
 class TNSRuntimeInspectorFrontendChannel : public Inspector::InspectorFrontendChannel {
 public:
     TNSRuntimeInspectorFrontendChannel(TNSRuntimeInspectorMessageHandler handler, ExecState* execState)
