@@ -139,10 +139,6 @@ id toObject(ExecState* execState, const JSValue& value) {
         return [NSDate dateWithTimeIntervalSince1970:(value.toNumber(execState) / 1000)];
     }
 
-    if (JSMap* map = jsDynamicCast<JSMap*>(value)) {
-        return [[[TNSDictionaryAdapter alloc] initWithJSObject:map execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
-    }
-
     if (value.inherits(JSArrayBuffer::info())) {
         return toObject(execState, jsCast<JSArrayBuffer*>(value.asCell()));
     }
@@ -155,6 +151,10 @@ id toObject(ExecState* execState, const JSValue& value) {
     void* handle = tryHandleofValue(value, &hasHandle);
     if (hasHandle) {
         return static_cast<id>(handle);
+    }
+
+    if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
+        return [[[TNSDictionaryAdapter alloc] initWithJSObject:object execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     throwVMError(execState, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));

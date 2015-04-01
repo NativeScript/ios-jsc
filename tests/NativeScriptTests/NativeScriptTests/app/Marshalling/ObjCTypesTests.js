@@ -111,30 +111,47 @@ describe(module.id, function () {
     });
 
     it("MethodWithNSArray", function () {
-        var array = [1, 2, 'a', NSObject];
+        var array = [1, [2, 'a'], NSObject];
         var result = TNSObjCTypes.alloc().init().methodWithNSArray(array);
         expect(TNSGetOutput()).toBe(
-            '1' +
-            '2' +
-            'a' +
-            'NSObject');
+            '1(\n' +
+            '    2,\n' +
+            '    a\n' +
+            ')NSObject');
         TNSClearOutput();
 
         expect(array[0]).toBe(result[0]);
         expect(array[1]).toBe(result[1]);
         expect(array[2]).toBe(result[2]);
-        expect(result.class()).toBe(NSArray);
+        expect(result).toBe(array);
 
         array[0] = 3;
         array[1] = 4;
-        array[2] = 5;
         TNSObjCTypes.alloc().init().methodWithNSArray(array);
         expect(TNSGetOutput()).toBe(
             '3' +
             '4' +
-            '5' +
             'NSObject');
         TNSClearOutput();
+    });
+
+    it("MethodWithNSDictionaryObject", function () {
+        var dictionary = { a: 3, b: { "-1": [4, 5] }, d: 6 };
+        var result = TNSObjCTypes.alloc().init().methodWithNSDictionary(dictionary);
+        expect(TNSGetOutput()).toBe("a 3b {\n    \"-1\" =     (\n        4,\n        5\n    );\n}d 6");
+        expect(result).toBe(dictionary);
+    });
+
+    it("MethodWithNSDictionaryMap", function () {
+        var map = new Map();
+        map.set("a", 3);
+        var innerMap = new Map();
+        innerMap.set("-1", [4, 5]);
+        map.set("b", innerMap);
+        map.set("d", 6);
+        var result = TNSObjCTypes.alloc().init().methodWithNSDictionary(map);
+        expect(TNSGetOutput()).toBe("a 3b {\n    \"-1\" =     (\n        4,\n        5\n    );\n}d 6");
+        expect(result).toBe(map);
     });
 
     it("MethodWithNSData", function () {

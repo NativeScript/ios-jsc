@@ -33,6 +33,7 @@ typedef int (^NumberReturner)(int, int, int);
 
 - (NSDate *)methodWithNSDate:(NSDate *)date;
 - (NSArray *)methodWithNSArray:(NSArray *)array;
+- (NSDictionary *)methodWithNSDictionary:(NSDictionary *)dictionary;
 - (NSData *)methodWithNSData:(NSData *)data;
 - (NSNumber *)methodWithNSCFBool;
 - (NSNull *)methodWithNSNull;
