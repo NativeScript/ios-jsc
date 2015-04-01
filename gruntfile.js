@@ -260,7 +260,7 @@ module.exports = function (grunt) {
 
                     configuration = configuration || 'Release';
 
-                    outputPath = path.join('../../', outputPath);
+                    outputPath = path.resolve(path.join('../../', outputPath));
 
                     return util.format('xcodebuild -project %s -target %s -configuration %s -sdk iphoneos ARCHS=armv7 VALID_ARCHS=armv7 CONFIGURATION_BUILD_DIR="%s" clean build | xcpretty', project, target, configuration, outputPath);
                 }
