@@ -360,7 +360,7 @@ module.exports = function (grunt) {
         "NativeScript",
         "TNSDebugging",
         "dist-metadata",
-        "WebInspectorUI",
+        "WebInspectorUISafari",
         "clean:outPackage",
         "mkdir:outPackageFramework",
         "mkdir:outPackageFrameworkMetadata",
