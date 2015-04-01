@@ -339,4 +339,11 @@ describe(module.id, function () {
             TNSClearOutput();
         }());
     });
+
+    if (interop.sizeof(interop.Pointer) == 8) {
+        it("TaggedPointers", function () {
+            expect(NSDate.dateWithTimeIntervalSinceReferenceDate(0)).toBe(NSDate.dateWithTimeIntervalSinceReferenceDate(0));
+            expect(NSDate.dateWithTimeIntervalSinceReferenceDate(0).class()).toBe(NSDate);
+        });
+    }
 });

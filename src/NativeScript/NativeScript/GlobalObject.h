@@ -23,6 +23,7 @@ class ObjCProtocolWrapper;
 class RecordConstructor;
 class Interop;
 class TypeFactory;
+class ObjCWrapperObject;
 
 class GlobalObject : public JSC::JSGlobalObject {
 public:
@@ -118,6 +119,12 @@ public:
         return _typeFactory.get();
     }
 
+#if __LP64__
+    JSC::WeakGCMap<const void*, ObjCWrapperObject>& taggedPointers() {
+        return this->_taggedPointers;
+    };
+#endif
+
 private:
     GlobalObject(JSC::VM& vm, JSC::Structure* structure);
 
@@ -157,6 +164,11 @@ private:
     std::map<Class, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
 
     std::map<const Protocol*, JSC::Strong<ObjCProtocolWrapper>> _objCProtocolWrappers;
+
+#if __LP64__
+    // See comment in toValue
+    JSC::WeakGCMap<const void*, ObjCWrapperObject> _taggedPointers;
+#endif
 };
 }
 
