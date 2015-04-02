@@ -46,7 +46,7 @@ static WeakHandleOwner* weakHandleOwner() {
     void* _associationKey;
 }
 
-+ (void)attachValue:(NativeScript::ObjCWrapperObject*)value toHost:(id)host {
++ (void)attachValue:(JSC::JSObject*)value toHost:(id)host {
     TNSValueWrapper* wrapper = [[self alloc] initWithValue:value host:host];
 
     objc_setAssociatedObject(host, value->globalObject()->JSC::JSScope::vm(), wrapper, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -219,7 +219,7 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
     } else {
 #endif
         TNSValueWrapper* valueWrapper = static_cast<TNSValueWrapper*>(objc_getAssociatedObject(object, execState->scope()->vm()));
-        if (ObjCWrapperObject* wrapper = valueWrapper.value) {
+        if (JSObject* wrapper = valueWrapper.value) {
             return wrapper;
         }
 
