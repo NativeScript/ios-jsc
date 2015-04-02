@@ -43,8 +43,8 @@ static WeakHandleOwner* weakHandleOwner() {
 }
 
 + (void)attachValue:(NativeScript::ObjCWrapperObject*)value toHost:(id)host {
-    TNSValueWrapper* wrapper = [[self alloc] initWithValue:value
-                                                      host:host];
+    TNSValueWrapper* wrapper = [[self alloc] initWithValue:value host:host];
+
     objc_setAssociatedObject(host, value->globalObject()->JSC::JSScope::vm(), wrapper, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 #if DEBUG_MEMORY
     NSLog(@"TNSValueWrapper attached to %@(%p)", object_getClass(host), host);
@@ -205,17 +205,38 @@ JSValue toValue(ExecState* execState, id object, Class klass) {
 }
 
 JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)()) {
-    if (ObjCWrapperObject* wrapper = [static_cast<TNSValueWrapper*>(objc_getAssociatedObject(object, execState->scope()->vm())) value]) {
-        return wrapper;
-    }
-
     if (object == nil) {
         return jsNull();
     }
 
-    ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object);
-    [TNSValueWrapper attachValue:wrapper
-                          toHost:object];
-    return wrapper;
+#if __LP64__
+    // There is a bug in the Objective-C runtime on 64 bit architectures, which seems to be fixed in iOS 8.
+    // We cannot use the association API with tagged pointers, so we fallback to an external map.
+    // This workaround is kept for iOS 8 64bit, because it is faster there too and the code is easier to test/maintain.
+    // For more information on tagged pointers see "objc-internal.h" in opensource.apple.com
+
+    // This check is the same as _objc_isTaggedPointer, which is a private function.
+    if (reinterpret_cast<intptr_t>(object) < 0) {
+        NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+        if (ObjCWrapperObject* wrapper = globalObject->taggedPointers().get(object)) {
+            return wrapper;
+        }
+
+        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object);
+        globalObject->taggedPointers().add(object, wrapper);
+        return wrapper;
+    } else {
+#endif
+        TNSValueWrapper* valueWrapper = static_cast<TNSValueWrapper*>(objc_getAssociatedObject(object, execState->scope()->vm()));
+        if (ObjCWrapperObject* wrapper = valueWrapper.value) {
+            return wrapper;
+        }
+
+        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object);
+        [TNSValueWrapper attachValue:wrapper toHost:object];
+        return wrapper;
+#if __LP64__
+    }
+#endif
 }
 }
