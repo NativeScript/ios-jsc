@@ -8,6 +8,7 @@
 
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/DateInstance.h>
+#include <JavaScriptCore/JSMap.h>
 #include "ObjCTypes.h"
 #include "ObjCSuperObject.h"
 #include "ObjCConstructorBase.h"
@@ -15,6 +16,9 @@
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorDerived.h"
 #include "Interop.h"
+
+#import "TNSArrayAdapter.h"
+#import "TNSDictionaryAdapter.h"
 
 using namespace JSC;
 
@@ -37,7 +41,7 @@ static WeakHandleOwner* weakHandleOwner() {
 }
 
 @implementation TNSValueWrapper {
-    Weak<NativeScript::ObjCWrapperObject> _valueWrapper;
+    Weak<JSObject> _valueWrapper;
     id _host;
     void* _associationKey;
 }
@@ -52,9 +56,9 @@ static WeakHandleOwner* weakHandleOwner() {
     [wrapper release];
 }
 
-- (instancetype)initWithValue:(NativeScript::ObjCWrapperObject*)value host:(id)host {
+- (instancetype)initWithValue:(JSObject*)value host:(id)host {
     if (self = [super init]) {
-        self->_valueWrapper = Weak<NativeScript::ObjCWrapperObject>(value, weakHandleOwner(), self);
+        self->_valueWrapper = Weak<JSObject>(value, weakHandleOwner(), self);
         self->_host = host;
         self->_associationKey = value->globalObject()->JSC::JSScope::vm();
     }
@@ -62,7 +66,7 @@ static WeakHandleOwner* weakHandleOwner() {
     return self;
 }
 
-- (NativeScript::ObjCWrapperObject*)value {
+- (JSObject*)value {
     return self->_valueWrapper.get();
 }
 
@@ -76,23 +80,6 @@ static WeakHandleOwner* weakHandleOwner() {
 @end
 
 namespace NativeScript {
-static NSArray* toObject(ExecState* execState, JSArray* array) {
-    MarkedArgumentBuffer buffer;
-    array->fillArgList(execState, buffer);
-
-    NSMutableArray* mutableArray = [NSMutableArray arrayWithCapacity:buffer.size()];
-    for (size_t i = 0; i < buffer.size(); i++) {
-        id currentObject = toObject(execState, buffer.at(i));
-
-        if (execState->hadException()) {
-            return nil;
-        }
-
-        mutableArray[i] = currentObject;
-    }
-
-    return [mutableArray copy];
-}
 
 static NSData* toObject(ExecState* execState, ArrayBuffer* arrayBuffer) {
     return [NSData dataWithBytes:arrayBuffer->data()
@@ -140,8 +127,8 @@ id toObject(ExecState* execState, const JSValue& value) {
         return [NSString stringWithString:(NSString*)value.toString(execState)->value(execState).createCFString().get()];
     }
 
-    if (value.inherits(JSArray::info())) {
-        return toObject(execState, jsCast<JSArray*>(value.asCell()));
+    if (JSArray* array = jsDynamicCast<JSArray*>(value)) {
+        return [[[TNSArrayAdapter alloc] initWithJSObject:array execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     if (value.inherits(ObjCSuperObject::info())) {
@@ -164,6 +151,10 @@ id toObject(ExecState* execState, const JSValue& value) {
     void* handle = tryHandleofValue(value, &hasHandle);
     if (hasHandle) {
         return static_cast<id>(handle);
+    }
+
+    if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
+        return [[[TNSDictionaryAdapter alloc] initWithJSObject:object execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     throwVMError(execState, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));

@@ -80,6 +80,14 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
     return array;
 }
 
+- (NSDictionary *)methodWithNSDictionary:(NSDictionary *)dictionary {
+    for (id x in dictionary) {
+        TNSLog([NSString stringWithFormat:@"%@ %@", x, dictionary[x]]);
+    }
+
+    return dictionary;
+}
+
 - (NSData *)methodWithNSData:(NSData *)data {
     NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     TNSLog(string);

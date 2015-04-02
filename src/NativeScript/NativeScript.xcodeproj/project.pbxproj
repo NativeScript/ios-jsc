@@ -35,6 +35,8 @@
 		85F3B5E219DD6D7000A29DAC /* JSWeakRefConstructor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F3B5E019DD6D7000A29DAC /* JSWeakRefConstructor.cpp */; };
 		85F3B5E519DD6DA900A29DAC /* JSWeakRefPrototype.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F3B5E319DD6DA900A29DAC /* JSWeakRefPrototype.cpp */; };
 		85F3B5E819DD6DBA00A29DAC /* JSWeakRefInstance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 85F3B5E619DD6DBA00A29DAC /* JSWeakRefInstance.cpp */; };
+		85FB14B01AC609A700A3AEF7 /* TNSArrayAdapter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85FB14AF1AC609A700A3AEF7 /* TNSArrayAdapter.mm */; };
+		85FB14B31AC60E1D00A3AEF7 /* TNSDictionaryAdapter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 85FB14B21AC60E1D00A3AEF7 /* TNSDictionaryAdapter.mm */; };
 		BD6CD0239613619C915A956A /* FunctionReferenceTypeInstance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CDB044C69083C20E2D0D9 /* FunctionReferenceTypeInstance.cpp */; };
 		BD6CD0AFC59F536EDF0998DA /* JSWarnings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD6CDC961BF9072FC2C034D1 /* JSWarnings.cpp */; };
 		BD6CD0FDDAFCB4B099A93F69 /* ObjCBlockCall.mm in Sources */ = {isa = PBXBuildFile; fileRef = BD6CD6DFBEAC00BD696DB823 /* ObjCBlockCall.mm */; };
@@ -162,6 +164,10 @@
 		85F3B5E419DD6DA900A29DAC /* JSWeakRefPrototype.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSWeakRefPrototype.h; sourceTree = "<group>"; };
 		85F3B5E619DD6DBA00A29DAC /* JSWeakRefInstance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JSWeakRefInstance.cpp; sourceTree = "<group>"; };
 		85F3B5E719DD6DBA00A29DAC /* JSWeakRefInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSWeakRefInstance.h; sourceTree = "<group>"; };
+		85FB14AE1AC609A700A3AEF7 /* TNSArrayAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSArrayAdapter.h; sourceTree = "<group>"; };
+		85FB14AF1AC609A700A3AEF7 /* TNSArrayAdapter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TNSArrayAdapter.mm; sourceTree = "<group>"; };
+		85FB14B11AC60E1D00A3AEF7 /* TNSDictionaryAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSDictionaryAdapter.h; sourceTree = "<group>"; };
+		85FB14B21AC60E1D00A3AEF7 /* TNSDictionaryAdapter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TNSDictionaryAdapter.mm; sourceTree = "<group>"; };
 		BD6CD00B140575151EA73415 /* RecordConstructor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RecordConstructor.h; sourceTree = "<group>"; };
 		BD6CD071152640E11B7C2003 /* ObjCBlockCall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjCBlockCall.h; sourceTree = "<group>"; };
 		BD6CD0A9BA78B636FA6B635D /* ObjCBlockCallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ObjCBlockCallback.cpp; sourceTree = "<group>"; };
@@ -429,6 +435,10 @@
 				F968D69C199129E900749C5D /* ObjCSuperObject.mm */,
 				BD6CDFC7E2F646E00C59A5B1 /* ObjCProtocolWrapper.h */,
 				BD6CDE51A9DA052887F8911A /* ObjCProtocolWrapper.mm */,
+				85FB14AE1AC609A700A3AEF7 /* TNSArrayAdapter.h */,
+				85FB14AF1AC609A700A3AEF7 /* TNSArrayAdapter.mm */,
+				85FB14B11AC60E1D00A3AEF7 /* TNSDictionaryAdapter.h */,
+				85FB14B21AC60E1D00A3AEF7 /* TNSDictionaryAdapter.mm */,
 			);
 			name = ObjC;
 			sourceTree = "<group>";
@@ -691,6 +701,7 @@
 				C921218319A225C200994209 /* ObjCConstructorNative.mm in Sources */,
 				C921217A19A2238B00994209 /* MetaFile.mm in Sources */,
 				85ABE17719864DCD00EAC351 /* SymbolLoader.mm in Sources */,
+				85FB14B01AC609A700A3AEF7 /* TNSArrayAdapter.mm in Sources */,
 				85B2A70D19752BC800616E60 /* FFIPrimitiveTypes.cpp in Sources */,
 				85B2A75C197807FF00616E60 /* ObjCWrapperObject.mm in Sources */,
 				C99026311A07DCED00BD06D2 /* ReferenceTypeConstructor.cpp in Sources */,
@@ -711,6 +722,7 @@
 				85B2A6FD19752A9400616E60 /* FFIFunctionCall.mm in Sources */,
 				CD270B9219FA6D8B0094CD6F /* FFISimpleType.cpp in Sources */,
 				C921218219A225C200994209 /* ObjCConstructorDerived.cpp in Sources */,
+				85FB14B31AC60E1D00A3AEF7 /* TNSDictionaryAdapter.mm in Sources */,
 				85B2A71619752CAF00616E60 /* ObjCBlockType.mm in Sources */,
 				85B2A75619756AE200616E60 /* TypeFactory.mm in Sources */,
 				CD82A7D2199365BB001C18AA /* ReferenceInstance.cpp in Sources */,
