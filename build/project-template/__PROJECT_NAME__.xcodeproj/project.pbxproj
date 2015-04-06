@@ -198,7 +198,7 @@
 				858B842C18CA22B800AB12DE /* Resources */,
 				CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */,
 				85F5BDFC1A9363BE006B9701 /* Embed Frameworks */,
-				85F5BDF81A93634F006B9701 /* Merge metadata */,
+				85F5BDF81A93634F006B9701 /* Merge Metadata */,
 			);
 			buildRules = (
 			);
@@ -272,19 +272,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		85F5BDF81A93634F006B9701 /* Merge metadata */ = {
+		85F5BDF81A93634F006B9701 /* Merge Metadata */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Merge metadata";
+			name = "Merge Metadata";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "function MergeMetadataIfNecessary {\n    local RAW_METADATA_DIR=\"$SRCROOT/Metadata/Metadata-$1\"\n    local METADATA_BINARY=\"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin\"\n\n    if [ \"$RAW_METADATA_DIR\" -nt \"$METADATA_BINARY\" ]; then\n        \"$SRCROOT/Metadata/MetaMerge\" \"$RAW_METADATA_DIR\" \"$METADATA_BINARY\" &>/dev/null\n        return\n    fi\n\n    for f in \"$RAW_METADATA_DIR\"/*\n    do\n        if [ \"$f\" -nt \"$METADATA_BINARY\" ]; then\n            \"$SRCROOT/Metadata/MetaMerge\" \"$RAW_METADATA_DIR\" \"$METADATA_BINARY\" &>/dev/null\n            break\n        fi\n    done\n}\n\nMergeMetadataIfNecessary armv7\nMergeMetadataIfNecessary arm64";
+			shellScript = "echo \"Merging metadata. This could take a minute...\"\n\nfunction MergeMetadataIfNecessary {\n    local RAW_METADATA_DIR=\"$SRCROOT/Metadata/Metadata-$1\"\n    local METADATA_BINARY=\"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin\"\n\n    if [ \"$RAW_METADATA_DIR\" -nt \"$METADATA_BINARY\" ]; then\n        \"$SRCROOT/Metadata/MetaMerge\" \"$RAW_METADATA_DIR\" \"$METADATA_BINARY\" &>/dev/null\n        return\n    fi\n\n    for f in \"$RAW_METADATA_DIR\"/*\n    do\n        if [ \"$f\" -nt \"$METADATA_BINARY\" ]; then\n            \"$SRCROOT/Metadata/MetaMerge\" \"$RAW_METADATA_DIR\" \"$METADATA_BINARY\" &>/dev/null\n            break\n        fi\n    done\n}\n\nMergeMetadataIfNecessary armv7\nMergeMetadataIfNecessary arm64";
 		};
 		CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */ = {
 			isa = PBXShellScriptBuildPhase;
