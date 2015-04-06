@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
         debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
 
-        [runtime executeModule:@"./bootstrap"];
+        [runtime executeModule:@"./"];
 
         return 0;
     }
