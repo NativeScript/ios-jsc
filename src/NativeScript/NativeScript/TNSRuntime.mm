@@ -37,14 +37,8 @@ using namespace NativeScript;
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
         NSSetUncaughtExceptionHandler([](NSException* exception) {
-            ExecState* execState = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData)->_vm->topCallFrame;
-
-            // We do this, so we can get the stack trace set
+            ExecState* execState = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData)->_globalObject->globalExec();
             JSValue error = createError(execState, exception.description);
-            throwVMError(execState, error);
-            error = execState->exception();
-            execState->clearException();
-
             reportFatalErrorBeforeShutdown(execState, error);
         });
 
