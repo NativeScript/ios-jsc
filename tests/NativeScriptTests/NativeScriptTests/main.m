@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
         TNSSetUncaughtErrorHandler(&PrintError);
 
         if (!getenv("STANDALONE_TEST")) {
-            [runtime executeModule:@"./bootstrap"];
+            [runtime executeModule:@"./"];
         } else {
             NSString *script = [NSString stringWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Test"
                                                                                                   ofType:@"js"

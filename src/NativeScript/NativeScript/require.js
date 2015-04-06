@@ -29,7 +29,8 @@
     }
 
     function __findModule(moduleIdentifier, previousPath) {
-        if (!previousPath) {
+        var isBootstrap = !previousPath;
+        if (isBootstrap) {
             previousPath = NSString.pathWithComponents([USER_MODULES_ROOT, 'index.js']).toString();
         }
         var absolutePath;
@@ -48,7 +49,7 @@
                 throw new ModuleError("Expected '" + absolutePath + "' to be a directory");
             }
 
-            var mainFileName = "index.js";
+            var mainFileName = isBootstrap ? "bootstrap.js" : "index.js";
 
             var packageJsonPath = nsstr(absolutePath).stringByAppendingPathComponent("package.json");
             var packageJson = NSString.stringWithContentsOfFileEncodingError(packageJsonPath, NSUTF8StringEncoding, null);
