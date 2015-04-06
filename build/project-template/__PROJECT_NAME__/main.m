@@ -12,15 +12,17 @@
 
 #ifdef DEBUG
 #include <TNSDebugging/TNSDebugging.h>
+
+static id debuggingServer;
 #endif
 
 int main(int argc, char* argv[]) {
     @autoreleasepool {
-        TNSRuntime* runtime = [[TNSRuntime alloc] initWithApplicationPath:[[NSBundle mainBundle] bundlePath]];
+        TNSRuntime* runtime = [[TNSRuntime alloc] initWithApplicationPath:[NSBundle mainBundle].bundlePath];
         [TNSRuntimeInspector setLogsToSystemConsole:YES];
 
 #ifdef DEBUG
-        id debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
+        debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
 
         [runtime executeModule:@"./bootstrap"];
