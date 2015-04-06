@@ -13,7 +13,7 @@
 
 #if DEBUG
 #include <TNSDebugging/TNSDebugging.h>
-id debuggingServer;
+static id debuggingServer;
 #endif
 
 static void PrintError(JSContextRef ctx, JSValueRef error) {

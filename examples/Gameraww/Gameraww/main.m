@@ -11,6 +11,7 @@
 
 #ifdef NATIVESCRIPT_DEBUGGING
 #include <TNSDebugging/TNSDebugging.h>
+static id debuggingServer;
 #endif
 
 int main(int argc, char *argv[]) {
@@ -19,7 +20,7 @@ int main(int argc, char *argv[]) {
         [TNSRuntimeInspector setLogsToSystemConsole:YES];
 
 #ifdef NATIVESCRIPT_DEBUGGING
-        id debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
+        debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
 #endif
 
         [runtime executeModule:@"./bootstrap"];
