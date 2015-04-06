@@ -34,12 +34,15 @@ void ObjCConstructorBase::write(ExecState* execState, const JSValue& value, void
     *static_cast<id*>(buffer) = NativeScript::toObject(execState, value);
 }
 
-static void writeArrayAdapter(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-    *static_cast<id*>(buffer) = [[[TNSArrayAdapter alloc] initWithJSObject:asObject(value) execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
-}
-
-static void writeDictionaryAdapter(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-    *static_cast<id*>(buffer) = [[[TNSDictionaryAdapter alloc] initWithJSObject:asObject(value) execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
+template<typename TAdapter>
+static void writeAdapter(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
+    if (ObjCWrapperObject* wrapper = jsDynamicCast<ObjCWrapperObject*>(value)) {
+        *static_cast<id*>(buffer) = wrapper->wrappedObject();
+    } else if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
+        *static_cast<id*>(buffer) = [[[TAdapter alloc] initWithJSObject:object execState:execState->lexicalGlobalObject()->globalExec()] autorelease];;
+    } else {
+        *static_cast<id*>(buffer) = nil;
+    }
 }
 
 void ObjCConstructorBase::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
@@ -98,9 +101,9 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
     this->_ffiTypeMethodTable.encode = &encode;
 
     if (klass == [NSArray class]) {
-        this->_ffiTypeMethodTable.write = &writeArrayAdapter;
+        this->_ffiTypeMethodTable.write = &writeAdapter<TNSArrayAdapter>;
     } else if (klass == [NSDictionary class]) {
-        this->_ffiTypeMethodTable.write = &writeDictionaryAdapter;
+        this->_ffiTypeMethodTable.write = &writeAdapter<TNSDictionaryAdapter>;
     } else {
         this->_ffiTypeMethodTable.write = &write;
     }
