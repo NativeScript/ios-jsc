@@ -59,7 +59,7 @@
                 try {
                     mainFileName = JSON.parse(packageJson).main || mainFileName;
                 } catch (e) {
-                    throw new ModuleError("Error parsing package.json in '" + absolutePath + "'");
+                    throw new ModuleError("Error parsing package.json in '" + absolutePath + "' - " + e);
                 }
             }
 
