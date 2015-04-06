@@ -77,8 +77,8 @@ using namespace NativeScript;
     return nil;
 }
 
-- (NSArray *)allObjects {
-    NSMutableArray *array = [NSMutableArray array];
+- (NSArray*)allObjects {
+    NSMutableArray* array = [NSMutableArray array];
     for (Identifier& identifier : self->_properties->propertyNameVector()) {
         [array addObject:reinterpret_cast<const NSString*>(identifier.string().createCFString().autorelease())];
     }
@@ -134,7 +134,7 @@ using namespace NativeScript;
     return nil;
 }
 
--(NSEnumerator *)keyEnumerator {
+- (NSEnumerator*)keyEnumerator {
     JSObject* object = self->_object.get();
     if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
         return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMapData:map->mapData() execState:self->_execState] autorelease];
