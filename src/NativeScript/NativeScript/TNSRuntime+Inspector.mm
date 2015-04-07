@@ -43,9 +43,9 @@ private:
     ExecState* _execState;
 };
 
-@interface TNSRuntimeInspector()
+@interface TNSRuntimeInspector ()
 
-@property (nonatomic, copy) TNSRuntimeDebuggerEnabledHandler onDebuggerEnabledCallback;
+@property(nonatomic, copy) TNSRuntimeDebuggerEnabledHandler onDebuggerEnabledCallback;
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
                  messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
@@ -56,8 +56,7 @@ private:
 @implementation TNSRuntime (Inspector)
 
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
-                                 onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler
-{
+                                 onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler {
     return [[[TNSRuntimeInspector alloc] initWithRuntime:self
                                           messageHandler:messageHandler
                                        onDebuggerEnabled:debuggerHandler] autorelease];
@@ -90,8 +89,7 @@ private:
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
                  messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
-              onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler
-{
+              onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler {
     if (self = [super init]) {
         self->_runtime = [runtime retain];
         self.onDebuggerEnabledCallback = debuggerHandler;
@@ -131,5 +129,3 @@ private:
 }
 
 @end
-
-

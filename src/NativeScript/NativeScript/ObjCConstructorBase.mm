@@ -34,12 +34,12 @@ void ObjCConstructorBase::write(ExecState* execState, const JSValue& value, void
     *static_cast<id*>(buffer) = NativeScript::toObject(execState, value);
 }
 
-template<typename TAdapter>
+template <typename TAdapter>
 static void writeAdapter(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     if (ObjCWrapperObject* wrapper = jsDynamicCast<ObjCWrapperObject*>(value)) {
         *static_cast<id*>(buffer) = wrapper->wrappedObject();
     } else if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
-        *static_cast<id*>(buffer) = [[[TAdapter alloc] initWithJSObject:object execState:execState->lexicalGlobalObject()->globalExec()] autorelease];;
+        *static_cast<id*>(buffer) = [[[TAdapter alloc] initWithJSObject:object execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     } else {
         *static_cast<id*>(buffer) = nil;
     }

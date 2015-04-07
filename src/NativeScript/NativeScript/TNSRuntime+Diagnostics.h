@@ -10,7 +10,7 @@
 
 @interface TNSRuntime (Diagnostics)
 
-+ (void) _printCurrentStack;
-+ (NSString*) _getCurrentStack;
++ (void)_printCurrentStack;
++ (NSString*)_getCurrentStack;
 
 @end
