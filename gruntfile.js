@@ -260,7 +260,7 @@ module.exports = function (grunt) {
 
                     configuration = configuration || 'Release';
 
-                    outputPath = path.resolve(path.join('../../', outputPath));
+                    outputPath = path.resolve(outputPath);
 
                     return util.format('xcodebuild -project %s -target %s -configuration %s -sdk iphoneos ARCHS=armv7 VALID_ARCHS=armv7 CONFIGURATION_BUILD_DIR="%s" clean build | xcpretty', project, target, configuration, outputPath);
                 }
@@ -401,7 +401,7 @@ module.exports = function (grunt) {
         var buildJsc = true;
         try
         {
-            if (fs.lstatSync(outJscDir).isDirectory() &&  fs.lstatSync(outJscHeadersDir).isDirectory() && 
+            if (fs.lstatSync(outJscDir).isDirectory() &&  fs.lstatSync(outJscHeadersDir).isDirectory() &&
                 fs.lstatSync(outJscHeadersDir + "/JavaScriptCore").isDirectory() && fs.lstatSync(outJscHeadersDir + "/wtf").isDirectory() &&
                 fs.lstatSync(outJscLibDir).isDirectory() && fs.lstatSync(outJscLibDir + "/libJavaScriptCore.a").isFile()) {
                 // JavaScriptCore is already built and there is no need to build it again
@@ -425,7 +425,7 @@ module.exports = function (grunt) {
         "exec:libJavaScriptCore_universal",
         "exec:libJavaScriptCore_copyHeaders",
         "clean:outJscIntermediates"
-    ]);   
+    ]);
 
     grunt.registerTask("TNSDebugging", [
         "clean:outTNSDebugging",
