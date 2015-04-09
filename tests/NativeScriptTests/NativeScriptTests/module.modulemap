@@ -1,0 +1,3 @@
+module TNSTests {
+  umbrella header "TNSTestCases.h"
+}
