@@ -77,14 +77,14 @@ EncodedJSValue JSC_HOST_CALL ObjCMethodCall::executeCall(ExecState* execState) {
         NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super.super_class), NSStringFromSelector(self->getArgument<SEL>(1)));
 #endif
         self->setArgument(0, &super);
-        self->executeFFICall(FFI_FN(self->_msgSendSuper));
+        self->executeFFICall(execState, FFI_FN(self->_msgSendSuper));
     } else {
 #if DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
         NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(self->getArgument<SEL>(1)));
 #endif
         self->setArgument(0, target);
-        self->executeFFICall(FFI_FN(self->_msgSend));
+        self->executeFFICall(execState, FFI_FN(self->_msgSend));
     }
 
     JSValue result = self->postCall(execState);

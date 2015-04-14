@@ -40,7 +40,7 @@ EncodedJSValue ObjCBlockCall::executeCall(ExecState* execState) {
         return JSValue::encode(jsUndefined());
     }
 
-    self->executeFFICall(FFI_FN(reinterpret_cast<BlockLiteral*>(self->_block.get())->invoke));
+    self->executeFFICall(execState, FFI_FN(reinterpret_cast<BlockLiteral*>(self->_block.get())->invoke));
 
     return JSValue::encode(self->postCall(execState));
 }
