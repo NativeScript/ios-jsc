@@ -31,11 +31,7 @@ MetaFile file(metadata_arm64_bin);
 MetaFile file(metadata_armv7_bin);
 #endif
 #else
-#if defined(__LP64__) && __LP64__
-MetaFile file("metadata-arm64.bin");
-#else
-MetaFile file("metadata-armv7.bin");
-#endif
+MetaFile file((std::string("metadata-") + std::string(CURRENT_ARCH) + ".bin").c_str());
 #endif
 
 MetaFileReader metaFile(file);
