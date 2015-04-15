@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		C90B553C1A96301200167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B55331A96300000167E14 /* libNativeScript.a */; };
-		C9E0D9131A63D55700A80E1F /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D9111A63D55700A80E1F /* metadata-arm64.bin */; };
-		C9E0D9141A63D55700A80E1F /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D9121A63D55700A80E1F /* metadata-armv7.bin */; };
 		F95581C5198FCA64007CC2AF /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F95581C4198FCA64007CC2AF /* UIKit.framework */; };
 		F95581C7198FCA6F007CC2AF /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F95581C6198FCA6F007CC2AF /* CoreFoundation.framework */; };
 		F9817ECE1988FBC60073E328 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9817ECD1988FBC60073E328 /* Foundation.framework */; };
@@ -69,8 +67,6 @@
 
 /* Begin PBXFileReference section */
 		C48F2B261994F03800A015FE /* NativeScript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NativeScript.xcodeproj; path = ../../src/NativeScript/NativeScript.xcodeproj; sourceTree = "<group>"; };
-		C9E0D9111A63D55700A80E1F /* metadata-arm64.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-arm64.bin"; path = "../../dist/metadata/iPhoneSDK/bin/metadata-arm64.bin"; sourceTree = "<group>"; };
-		C9E0D9121A63D55700A80E1F /* metadata-armv7.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-armv7.bin"; path = "../../dist/metadata/iPhoneSDK/bin/metadata-armv7.bin"; sourceTree = "<group>"; };
 		F93AF0FF1A7BB90800F8E7F8 /* TNSDebugging.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = TNSDebugging.xcodeproj; path = ../../src/debugging/TNSDebugging/TNSDebugging.xcodeproj; sourceTree = "<group>"; };
 		F95581C4198FCA64007CC2AF /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		F95581C6198FCA6F007CC2AF /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -126,8 +122,6 @@
 		F9817EC11988FBC60073E328 = {
 			isa = PBXGroup;
 			children = (
-				C9E0D9111A63D55700A80E1F /* metadata-arm64.bin */,
-				C9E0D9121A63D55700A80E1F /* metadata-armv7.bin */,
 				F93AF0FF1A7BB90800F8E7F8 /* TNSDebugging.xcodeproj */,
 				C48F2B261994F03800A015FE /* NativeScript.xcodeproj */,
 				F9817ED31988FBC60073E328 /* TNSApp */,
@@ -188,6 +182,7 @@
 				F9817EC61988FBC60073E328 /* Sources */,
 				F9817EC71988FBC60073E328 /* Frameworks */,
 				F9817EC81988FBC60073E328 /* Resources */,
+				C97FD78F1ADE4C5E004DB2A4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -276,13 +271,27 @@
 			files = (
 				F9817F23198906040073E328 /* app in Resources */,
 				F9817EE91988FBC60073E328 /* Images.xcassets in Resources */,
-				C9E0D9141A63D55700A80E1F /* metadata-armv7.bin in Resources */,
 				F9817ED81988FBC60073E328 /* InfoPlist.strings in Resources */,
-				C9E0D9131A63D55700A80E1F /* metadata-arm64.bin in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C97FD78F1ADE4C5E004DB2A4 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../../dist/metadataGenerator/bin\"\n\nfunction generateMetadata {\n    ./objc-metadata-generator -isysroot \"$SDKROOT\" -arch $1 -iphoneos-version-min $IPHONEOS_DEPLOYMENT_TARGET -target arm-apple-darwin -std $GCC_C_LANGUAGE_STANDARD -header-search-paths $HEADER_SEARCH_PATHS -output-bin \"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin\" 2> $BUILT_PRODUCTS_DIR/metadata-generation-$1.txt\n    if [ $? -ne 0 ]; then\n    cat $BUILT_PRODUCTS_DIR/metadata-generation-$1.txt\n    fi\n}\n\nfor CURR_ARCH in $ARCHS;\ndo\necho \"Generating metadata for $CURR_ARCH:\"\ngenerateMetadata $CURR_ARCH\ndone";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F9817EC61988FBC60073E328 /* Sources */ = {
