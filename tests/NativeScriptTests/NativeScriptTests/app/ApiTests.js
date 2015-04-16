@@ -216,6 +216,7 @@ describe(module.id, function () {
             // console.debug(x);
 
             var symbol = global[x];
+            counter++;
 
             if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
                 var klass = symbol;
@@ -248,10 +249,10 @@ describe(module.id, function () {
                         counter++;
                     }
                 });
+            }
 
-                if (counter % 1000 === 0) {
-                    __collect();
-                }
+            if (counter % 1000 === 0) {
+                __collect();
             }
         });
 
