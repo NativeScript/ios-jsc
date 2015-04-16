@@ -22,7 +22,7 @@ We have a [grunt](http://gruntjs.com) build setup. To run the build you will nee
  - [homebrew](http://brew.sh/) - Used to install various dependencies
  - [mono](http://www.mono-project.com/) - 64 bit version required, install with `brew install mono`
  - [cmake](http://www.cmake.org/) - Required at path, install with `brew install cmake`
- - [boost](http://www.boost.org/) - Install with `brew install boost`
+ - [llvm](http://llvm.org/) - Install with `brew tap homebrew/versions`, `brew install llvm36`
 
 With npm install grunt-cli:
 `sudo npm install -g grunt-cli`
@@ -36,24 +36,8 @@ To build npm package run `grunt package` in the **root** of the repo.
 #### Artefacts
 The build should produce a `dist/tns-ios-*.tgz` file which is the NPM package. It should contain NativeScript.framework, NativeScript template project, Metadata Generator Tool and Metadata Merger Tool.
 
-## Building Metadata Generator and Metadata Merger
-Running `grunt metadataGenerator` in the **root** of the repo will build the metadata generator tool. The command will produce `dist/metadataGenerator` folder with `MetadataGenerator` tool inside.
-
-Running `grunt metadataMerger` in the **root** of the repo will build the metadata merger tool. The command will produce `dist/metadataMerger` folder with `MetadataMerger` tool inside.
-
-Running `grunt metadataTools` in the **root** of the repo will generate both metadata generator and metadata merger tools.
-
-## iOS SDK metadata generation
-After you have built **Metadata Generator** and **Metadata Merger** tools (`grunt metadataTools`) you can use them to generate metadata for the iOS SDK by running `grunt dist-metadata`.
-
-#### Artefacts
-There should be a `dist/metadata/iPhoneSDK` folder which contains metadata in yaml and binary format.
-
-## Tests metadata generation
-After you have built **Metadata Generator** and **Metadata Merger** tools (`grunt metadataTools`) you can use them to generate metadata for the iOS SDK by running `grunt test-metadata`.
-
-#### Artefacts
-There should be a `dist/metadata/tests` folder which contains metadata in yaml and binary format.
+## Building Metadata Generator
+Running `grunt metadataGenerator` in the **root** of the repo will build the metadata generator tool. The command will produce `dist/metadataGenerator` folder.
 
 ## Test
 To run the tests on a connected device: `grunt test`.
@@ -62,5 +46,4 @@ To run the tests on a connected device: `grunt test`.
 There should be a `junit-result.xml` file in the root of the repo.
 
 ## Running Examples/TNSApp
-The TNSApp requires generated metadata for the iOS SDK (`grunt metadataTools` and `grunt dist-metadata`).
-This should be enough to open, build and run the Examples/TNSApp project in Xcode.
+The TNSApp requires metadata generator to be built (`grunt metadataGenerator`). This should be enough to open, build and run the examples/TNSApp project in Xcode.
