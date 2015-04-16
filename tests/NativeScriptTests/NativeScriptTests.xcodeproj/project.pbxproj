@@ -316,6 +316,11 @@
 				CLASSPREFIX = Telerik;
 				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = Telerik;
+				TargetAttributes = {
+					CDBEF5C41987EE4C00C7E209 = {
+						DevelopmentTeam = CHSQ3M3P37;
+					};
+				};
 			};
 			buildConfigurationList = CDBEF5C01987EE4C00C7E209 /* Build configuration list for PBXProject "NativeScriptTests" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -534,6 +539,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NativeScriptTests/NativeScriptTests-Prefix.pch";
@@ -561,6 +567,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_NS_ASSERTIONS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
