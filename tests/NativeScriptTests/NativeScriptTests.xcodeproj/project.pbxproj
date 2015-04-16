@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		C90090AE19C86ACE008C1794 /* TNSMetadataSymbols.m in Sources */ = {isa = PBXBuildFile; fileRef = C90090AC19C86ACE008C1794 /* TNSMetadataSymbols.m */; };
 		C90B54751A79455400167E14 /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C90B54701A79453B00167E14 /* libNativeScript.a */; };
-		C9E0D90D1A63D4AD00A80E1F /* metadata-arm64.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D90B1A63D4AD00A80E1F /* metadata-arm64.bin */; };
-		C9E0D90E1A63D4AD00A80E1F /* metadata-armv7.bin in Resources */ = {isa = PBXBuildFile; fileRef = C9E0D90C1A63D4AD00A80E1F /* metadata-armv7.bin */; };
 		CD0883CB198B9395003A4E9A /* TNSFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = CD0883CA198B9395003A4E9A /* TNSFunctions.m */; };
 		CD7BF7371987F041007FA09B /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7BF7361987F041007FA09B /* libc++.dylib */; };
 		CD7BF7391987F045007FA09B /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CD7BF7381987F045007FA09B /* libz.dylib */; };
@@ -82,8 +80,6 @@
 /* Begin PBXFileReference section */
 		C90090AC19C86ACE008C1794 /* TNSMetadataSymbols.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TNSMetadataSymbols.m; path = Metadata/TNSMetadataSymbols.m; sourceTree = "<group>"; };
 		C90090AD19C86ACE008C1794 /* TNSMetadataSymbols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TNSMetadataSymbols.h; path = Metadata/TNSMetadataSymbols.h; sourceTree = "<group>"; };
-		C9E0D90B1A63D4AD00A80E1F /* metadata-arm64.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-arm64.bin"; path = "../../dist/metadata/tests/bin/metadata-arm64.bin"; sourceTree = "<group>"; };
-		C9E0D90C1A63D4AD00A80E1F /* metadata-armv7.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = "metadata-armv7.bin"; path = "../../dist/metadata/tests/bin/metadata-armv7.bin"; sourceTree = "<group>"; };
 		CD0883C9198B9395003A4E9A /* TNSFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSFunctions.h; sourceTree = "<group>"; };
 		CD0883CA198B9395003A4E9A /* TNSFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSFunctions.m; sourceTree = "<group>"; };
 		CD7BF7361987F041007FA09B /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
@@ -235,8 +231,6 @@
 			isa = PBXGroup;
 			children = (
 				CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */,
-				C9E0D90B1A63D4AD00A80E1F /* metadata-arm64.bin */,
-				C9E0D90C1A63D4AD00A80E1F /* metadata-armv7.bin */,
 				CDBEF5F71987EF8700C7E209 /* NativeScript.xcodeproj */,
 				CDBEF5CE1987EE4C00C7E209 /* NativeScriptTests */,
 				CDBEF5C71987EE4C00C7E209 /* Frameworks */,
@@ -300,6 +294,7 @@
 				CDBEF5C11987EE4C00C7E209 /* Sources */,
 				CDBEF5C21987EE4C00C7E209 /* Frameworks */,
 				CDBEF5C31987EE4C00C7E209 /* Resources */,
+				C97FD79D1ADE4EC4004DB2A4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -386,14 +381,28 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDF4F27B1988D81F000F869E /* app in Resources */,
-				C9E0D90E1A63D4AD00A80E1F /* metadata-armv7.bin in Resources */,
 				CDBEF5D31987EE4C00C7E209 /* InfoPlist.strings in Resources */,
 				CDBEF5DB1987EE4C00C7E209 /* Images.xcassets in Resources */,
-				C9E0D90D1A63D4AD00A80E1F /* metadata-arm64.bin in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C97FD79D1ADE4EC4004DB2A4 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/../../dist/metadataGenerator/bin\"\n\nfunction generateMetadata {\n    ./objc-metadata-generator -isysroot \"$SDKROOT\" -arch $1 -iphoneos-version-min $IPHONEOS_DEPLOYMENT_TARGET -target arm-apple-darwin -std $GCC_C_LANGUAGE_STANDARD -header-search-paths $HEADER_SEARCH_PATHS -framework-search-paths $FRAMEWORK_SEARCH_PATHS -output-bin \"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin\" 2> $BUILT_PRODUCTS_DIR/metadata-generation-$1.txt\n    if [ $? -ne 0 ]; then\n    cat $BUILT_PRODUCTS_DIR/metadata-generation-$1.txt\n    fi\n}\n\nfor CURR_ARCH in $ARCHS;\ndo\necho \"Generating metadata for $CURR_ARCH:\"\ngenerateMetadata $CURR_ARCH\ndone";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		CDBEF5C11987EE4C00C7E209 /* Sources */ = {
@@ -525,8 +534,14 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NativeScriptTests/NativeScriptTests-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode6.0.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/NativeScriptTests",
+				);
 				INFOPLIST_FILE = "NativeScriptTests/NativeScriptTests-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_LDFLAGS = (
@@ -547,9 +562,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				ENABLE_NS_ASSERTIONS = YES;
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NativeScriptTests/NativeScriptTests-Prefix.pch";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode6.0.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/NativeScriptTests",
+				);
 				INFOPLIST_FILE = "NativeScriptTests/NativeScriptTests-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_LDFLAGS = (

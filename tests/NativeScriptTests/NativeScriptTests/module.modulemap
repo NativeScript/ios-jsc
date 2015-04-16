@@ -1,0 +1,5 @@
+module TNSTests {
+  umbrella header "TNSTestCases.h"
+  export *
+  module * { export * }
+}
