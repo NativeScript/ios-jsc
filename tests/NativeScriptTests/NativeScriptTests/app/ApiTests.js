@@ -248,6 +248,7 @@ describe(module.id, function () {
                         counter++;
                     }
                 });
+                __collect();
             }
         });
 
