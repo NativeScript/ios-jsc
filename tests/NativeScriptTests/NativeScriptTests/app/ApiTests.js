@@ -248,7 +248,10 @@ describe(module.id, function () {
                         counter++;
                     }
                 });
-                __collect();
+
+                if (counter % 1000 === 0) {
+                    __collect();
+                }
             }
         });
 
