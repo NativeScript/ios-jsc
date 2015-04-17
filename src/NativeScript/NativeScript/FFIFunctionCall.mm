@@ -29,7 +29,7 @@ EncodedJSValue FFIFunctionCall::executeCall(ExecState* execState) {
         return JSValue::encode(jsUndefined());
     }
 
-    self->executeFFICall(FFI_FN(self->_functionPointer));
+    self->executeFFICall(execState, FFI_FN(self->_functionPointer));
 
     JSValue result = self->postCall(execState);
     if (self->retainsReturnedCocoaObjects()) {

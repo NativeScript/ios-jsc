@@ -47,7 +47,8 @@ protected:
         return *static_cast<T*>(this->_arguments[index]);
     }
 
-    void executeFFICall(void (*function)(void)) {
+    void executeFFICall(JSC::ExecState* execState, void (*function)(void)) {
+        JSC::JSLock::DropAllLocks locksDropper(execState);
         ffi_call(this->_cif, function, this->_return, this->_arguments);
     }
 

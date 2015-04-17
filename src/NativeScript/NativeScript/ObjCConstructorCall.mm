@@ -39,7 +39,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorCall::executeCall(ExecState* execSta
 
     id instance = [self->_klass alloc];
     self->setArgument(0, instance);
-    self->executeFFICall(FFI_FN(&objc_msgSend));
+    self->executeFFICall(execState, FFI_FN(&objc_msgSend));
 
     JSValue result = self->postCall(execState);
     [instance release];
