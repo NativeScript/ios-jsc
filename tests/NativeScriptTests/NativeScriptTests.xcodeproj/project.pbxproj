@@ -316,6 +316,11 @@
 				CLASSPREFIX = Telerik;
 				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = Telerik;
+				TargetAttributes = {
+					CDBEF5C41987EE4C00C7E209 = {
+						DevelopmentTeam = CHSQ3M3P37;
+					};
+				};
 			};
 			buildConfigurationList = CDBEF5C01987EE4C00C7E209 /* Build configuration list for PBXProject "NativeScriptTests" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -400,7 +405,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/../../dist/metadataGenerator/bin\"\n\nfunction generateMetadata {\n    ./objc-metadata-generator -isysroot \"$SDKROOT\" -arch $1 -iphoneos-version-min $IPHONEOS_DEPLOYMENT_TARGET -target arm-apple-darwin -std $GCC_C_LANGUAGE_STANDARD -header-search-paths $HEADER_SEARCH_PATHS -framework-search-paths $FRAMEWORK_SEARCH_PATHS -output-bin \"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin\" 2> $BUILT_PRODUCTS_DIR/metadata-generation-$1.txt\n    if [ $? -ne 0 ]; then\n    cat $BUILT_PRODUCTS_DIR/metadata-generation-$1.txt\n    fi\n}\n\nfor CURR_ARCH in $ARCHS;\ndo\necho \"Generating metadata for $CURR_ARCH:\"\ngenerateMetadata $CURR_ARCH\ndone";
+			shellScript = "pushd \"$SRCROOT/../../dist/metadataGenerator\"\n./metadata-generation-build-step.sh\npopd";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -534,6 +539,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NativeScriptTests/NativeScriptTests-Prefix.pch";
@@ -561,6 +567,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_NS_ASSERTIONS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

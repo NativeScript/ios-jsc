@@ -197,6 +197,13 @@ module.exports = function (grunt) {
                 ]
             },
 
+            metadataGeneratorBuildStepScript: {
+                files: [
+                    { expand: true, cwd: "<%= srcDir %>/build/scripts", src: "metadata-generation-build-step.sh", dest: "<%= outMetadataGeneratorDir %>" }
+                ],
+                options: { mode: true }
+            },
+
             webInspectorUISafari: {
                 files: [
                     { expand: true, cwd: "<%= outWebInspectorUISafariIntermediateDir %>/Release/WebInspectorUI.framework/Resources", src: "**", dest: "<%= outWebInspectorUISafariDir %>" }
@@ -307,7 +314,8 @@ module.exports = function (grunt) {
     grunt.registerTask("metadataGenerator", [
         "clean:outMetadataGenerator",
         "mkdir:outMetadataGenerator",
-        "shell:buildMetadataGenerator"
+        "shell:buildMetadataGenerator",
+        "copy:metadataGeneratorBuildStepScript"
     ]);
 
     grunt.registerTask("NativeScript", [
