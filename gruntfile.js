@@ -268,8 +268,8 @@ module.exports = function (grunt) {
                     var archivePath = path.join(path.dirname(outputPath), path.basename(outputPath, path.extname(outputPath)) + '.xcarchive');
 
                     return util.format('export LC_CTYPE=en_US.UTF-8 && ' +
-                        'xcodebuild %s -scheme %s archive -archivePath %s <%= getKeychainCommand() %> | xcpretty && ' +
-                        'xcodebuild -exportArchive -exportFormat ipa -archivePath %s -exportPath %s', project, target, archivePath, archivePath, outputPath);
+                        'xcodebuild %s -scheme %s archive -archivePath %s <%= getKeychainCommand() %> -destination generic/platform=iOS | xcpretty && ' +
+                        'xcodebuild -exportArchive -exportFormat ipa -archivePath %s -exportPath %s -destination generic/platform=iOS', project, target, archivePath, archivePath, outputPath);
                 }
             },
 
