@@ -320,6 +320,7 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
 
 void GlobalObject::queueTaskToEventLoop(const JSGlobalObject* globalObject, WTF::PassRefPtr<Microtask> task) {
     CFRunLoopPerformBlock(CFRunLoopGetCurrent(), kCFRunLoopCommonModes, ^{
+            JSLockHolder lock(globalObject->vm());
             task->run(const_cast<JSGlobalObject*>(globalObject)->globalExec());
     });
 }
