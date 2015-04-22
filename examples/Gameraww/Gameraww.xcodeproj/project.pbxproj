@@ -477,7 +477,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "pushd \"$SRCROOT/../../dist/metadataGenerator\"\n./metadata-generation-build-step.sh\npopd";
+			shellScript = "pushd \"$SRCROOT/../../dist/metadataGenerator/bin\"\n./metadata-generation-build-step.sh\npopd";
 		};
 /* End PBXShellScriptBuildPhase section */
 

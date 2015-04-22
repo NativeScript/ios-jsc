@@ -199,7 +199,7 @@ module.exports = function (grunt) {
 
             metadataGeneratorBuildStepScript: {
                 files: [
-                    { expand: true, cwd: "<%= srcDir %>/build/scripts", src: "metadata-generation-build-step.sh", dest: "<%= outMetadataGeneratorDir %>" }
+                    { expand: true, cwd: "<%= srcDir %>/build/scripts", src: "metadata-generation-build-step.sh", dest: "<%= outMetadataGeneratorDir %>/bin" }
                 ],
                 options: { mode: true }
             },

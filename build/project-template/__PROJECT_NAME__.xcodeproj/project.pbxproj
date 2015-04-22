@@ -283,7 +283,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "pushd \"$SRCROOT/metadataGenerator\"\n./metadata-generation-build-step.sh\npopd";
+			shellScript = "pushd \"$SRCROOT/metadataGenerator/bin\"\n./metadata-generation-build-step.sh\npopd";
 		};
 		CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */ = {
 			isa = PBXShellScriptBuildPhase;
