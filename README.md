@@ -36,14 +36,8 @@ To build npm package run `grunt package` in the **root** of the repo.
 #### Artefacts
 The build should produce a `dist/tns-ios-*.tgz` file which is the NPM package. It should contain NativeScript.framework, NativeScript template project, Metadata Generator Tool and Metadata Merger Tool.
 
-## Building Metadata Generator
-Running `grunt metadataGenerator` in the **root** of the repo will build the metadata generator tool. The command will produce `dist/metadataGenerator` folder.
-
 ## Test
 To run the tests on a connected device: `grunt test`.
 
 #### Artefacts
 There should be a `junit-result.xml` file in the root of the repo.
-
-## Running Examples/TNSApp
-The TNSApp requires metadata generator to be built (`grunt metadataGenerator`). This should be enough to open, build and run the examples/TNSApp project in Xcode.

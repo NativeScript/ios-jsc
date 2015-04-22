@@ -198,7 +198,7 @@
 				858B842C18CA22B800AB12DE /* Resources */,
 				CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */,
 				85F5BDFC1A9363BE006B9701 /* Embed Frameworks */,
-				C97FD7AC1ADE5369004DB2A4 /* ShellScript */,
+				C97FD7AC1ADE5369004DB2A4 /* Generate Metadata */,
 			);
 			buildRules = (
 			);
@@ -272,13 +272,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		C97FD7AC1ADE5369004DB2A4 /* ShellScript */ = {
+		C97FD7AC1ADE5369004DB2A4 /* Generate Metadata */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Generate Metadata";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;

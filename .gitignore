@@ -45,3 +45,5 @@ build-stats.csv
 
 # Package Base Project
 /build/project-template/__PROJECT_NAME__.xcodeproj/project.xcworkspace
+
+cmake-build

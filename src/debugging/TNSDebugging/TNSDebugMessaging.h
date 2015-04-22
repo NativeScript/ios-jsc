@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <JavaScriptCore/JavaScriptCore.h>
-#import <NativeScript/NativeScript.h>
+#import <NativeScript.h>
 
 @protocol TNSDebugMessagingChannelDelegate
 

@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Telerik. All rights reserved.
 //
 
-#import <PocketSocket/PSWebSocketServer.h>
+#import <PSWebSocketServer.h>
 #import "TNSWebSocketMessagingServer.h"
 
 @interface TNSWebSocketMessagingServer () <PSWebSocketServerDelegate>

@@ -26,7 +26,7 @@
     return self;
 }
 
-void tns_bigEndianBuffer_fromUInt32(UInt32 data, UInt8 buffer[4]) {
+static void tns_bigEndianBuffer_fromUInt(NSUInteger data, UInt8 buffer[4]) {
     buffer[3] = (UInt8)data;
     buffer[2] = (UInt8)(((uint)data >> 8) & 0xFF);
     buffer[1] = (UInt8)(((uint)data >> 16) & 0xFF);
@@ -38,7 +38,7 @@ void tns_bigEndianBuffer_fromUInt32(UInt32 data, UInt8 buffer[4]) {
 
     // TRICKY: Make sure we do not mix little and big endians on the other end...
     UInt8 sizeBytes[4];
-    tns_bigEndianBuffer_fromUInt32(data.length, sizeBytes);
+    tns_bigEndianBuffer_fromUInt(data.length, sizeBytes);
     [self.stream write:sizeBytes maxLength:4];
 
     [self.stream write:[data bytes] maxLength:[data length]];

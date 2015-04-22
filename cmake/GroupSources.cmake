@@ -1,0 +1,8 @@
+function(GroupSources _target)
+    get_target_property(_target_sources ${_target} SOURCES)
+    foreach(child ${_target_sources})
+        get_filename_component(child_directory ${child} DIRECTORY)
+        string(REPLACE "/" "\\" groupName "${child_directory}")
+        source_group("${groupName}" FILES ${child})
+    endforeach()
+endfunction()
