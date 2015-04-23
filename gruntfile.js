@@ -49,8 +49,8 @@ module.exports = function (grunt) {
         var contentAsObject = JSON.parse(content);
 
         contentAsObject.version = getPackageVersion(contentAsObject.version);
-        if (localCfg.commitSHA) {
-            contentAsObject.repository.url += "/commit/" + localCfg.commitSHA;
+        if (commitSHA) {
+            contentAsObject.repository.url += "/commit/" + commitSHA;
         }
 
         return JSON.stringify(contentAsObject, null, "\t")
@@ -236,13 +236,13 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outDistDir %>", src: ["TNSDebugging.framework", "TNSDebugging.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= outDistDir %>", src: ["WebInspectorUI/Safari", "WebInspectorUI/Safari/**"], dest: "<%= outPackageDir %>" },
                     { expand: true, cwd: "<%= outMetadataGeneratorDir %>", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
-                    { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
+                    { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
                 ],
                 options: {
                     mode: true
                 }
-            }
+            },
+            packageJson: { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
         },
 
         shell: {
@@ -320,7 +320,6 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask("build", [
-        "shell:getGitSHA",
         "package",
         "shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa",
         "exec:tnsAppBuildStats"
@@ -335,6 +334,8 @@ module.exports = function (grunt) {
         "clean:outPackage",
         "mkdir:outPackageFramework",
         "copy:packageComponents",
+        "shell:getGitSHA",
+        "copy:packageJson",
         "exec:npmPackPackage"
     ]);
 
