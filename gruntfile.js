@@ -28,12 +28,32 @@ module.exports = function (grunt) {
     var outWebInspectorUIChromeDir = outWebInspectorUIDir + "/Chrome";
     var outBuildLog = outDistDir + "/build_log.txt";
 
-    var updatePackageVersion = function (content, srcPath) {
-        var packageVersion = process.env.PACKAGE_VERSION;
-        if (!packageVersion)
-            return content;
+    var commitSHA = (process.env.GIT_COMMIT) ? process.env.GIT_COMMIT : "";
 
-        return content.replace(/"(version"\s*:\s*"\d+\.\d+\.\d+)"/, "\"$1-" + packageVersion + "\"");
+    var assignGitSHA = function(err, stdout, stderr, cb) {
+        if (!commitSHA) {
+            commitSHA = stdout.replace("\n", "");
+        }
+        cb();
+    };
+
+    var getPackageVersion = function(baseVersion) {
+        var buildVersion = process.env.PACKAGE_VERSION;
+        if (!buildVersion) {
+            return baseVersion;
+        }
+        return baseVersion + "-" + buildVersion;
+    };
+
+    var updatePackageVersion = function (content, srcPath) {
+        var contentAsObject = JSON.parse(content);
+
+        contentAsObject.version = getPackageVersion(contentAsObject.version);
+        if (commitSHA) {
+            contentAsObject.repository.url += "/commit/" + commitSHA;
+        }
+
+        return JSON.stringify(contentAsObject, null, "\t")
     };
 
     // /Applications/Xcode.app
@@ -216,13 +236,13 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outDistDir %>", src: ["TNSDebugging.framework", "TNSDebugging.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= outDistDir %>", src: ["WebInspectorUI/Safari", "WebInspectorUI/Safari/**"], dest: "<%= outPackageDir %>" },
                     { expand: true, cwd: "<%= outMetadataGeneratorDir %>", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
-                    { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
+                    { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
                 ],
                 options: {
                     mode: true
                 }
-            }
+            },
+            packageJson: { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
         },
 
         shell: {
@@ -279,6 +299,12 @@ module.exports = function (grunt) {
                     console.log("RunTests CMD: " + cmd);
                     return cmd;
                 }
+            },
+            getGitSHA: {
+                command: "git rev-parse HEAD",
+                options: {
+                    callback: assignGitSHA
+                }
             }
         }
     });
@@ -308,6 +334,8 @@ module.exports = function (grunt) {
         "clean:outPackage",
         "mkdir:outPackageFramework",
         "copy:packageComponents",
+        "shell:getGitSHA",
+        "copy:packageJson",
         "exec:npmPackPackage"
     ]);
 
