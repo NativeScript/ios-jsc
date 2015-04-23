@@ -28,12 +28,32 @@ module.exports = function (grunt) {
     var outWebInspectorUIChromeDir = outWebInspectorUIDir + "/Chrome";
     var outBuildLog = outDistDir + "/build_log.txt";
 
-    var updatePackageVersion = function (content, srcPath) {
-        var packageVersion = process.env.PACKAGE_VERSION;
-        if (!packageVersion)
-            return content;
+    var commitSHA = (process.env.GIT_COMMIT) ? process.env.GIT_COMMIT : "";
 
-        return content.replace(/"(version"\s*:\s*"\d+\.\d+\.\d+)"/, "\"$1-" + packageVersion + "\"");
+    var assignGitSHA = function(err, stdout, stderr, cb) {
+        if (!commitSHA) {
+            commitSHA = stdout.replace("\n", "");
+        }
+        cb();
+    };
+
+    var getPackageVersion = function(baseVersion) {
+        var buildVersion = process.env.PACKAGE_VERSION;
+        if (!buildVersion) {
+            return baseVersion;
+        }
+        return baseVersion + "-" + buildVersion;
+    };
+
+    var updatePackageVersion = function (content, srcPath) {
+        var contentAsObject = JSON.parse(content);
+
+        contentAsObject.version = getPackageVersion(contentAsObject.version);
+        if (localCfg.commitSHA) {
+            contentAsObject.repository.url += "/commit/" + localCfg.commitSHA;
+        }
+
+        return JSON.stringify(contentAsObject, null, "\t")
     };
 
     // /Applications/Xcode.app
@@ -279,6 +299,12 @@ module.exports = function (grunt) {
                     console.log("RunTests CMD: " + cmd);
                     return cmd;
                 }
+            },
+            getGitSHA: {
+                command: "git rev-parse HEAD",
+                options: {
+                    callback: assignGitSHA
+                }
             }
         }
     });
@@ -294,6 +320,7 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask("build", [
+        "shell:getGitSHA",
         "package",
         "shell:archiveApp:examples/TNSApp/TNSApp.xcodeproj:TNSApp:examples/TNSApp/build/TNSApp.ipa",
         "exec:tnsAppBuildStats"
