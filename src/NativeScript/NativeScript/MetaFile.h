@@ -16,12 +16,25 @@ typedef int32_t MetaFileOffset;
 // Elements count for arrays in metadata file
 typedef int32_t MetaArrayCount;
 
+#pragma pack(push, 1)
+struct MetaFileHead {
+    int8_t pointer_size;
+    int8_t array_count_size;
+    MetaFileOffset modulesOffset;
+    MetaFileOffset globalTableOffset;
+    MetaFileOffset heapOffset;
+};
+#pragma pack(pop)
+
 class MetaFile {
 
 private:
     const void* file;
+    const MetaFileHead* _head;
     MetaArrayCount globalTableSlotsCount;
     MetaFileOffset* globalTableStart;
+    MetaArrayCount moduleTableSlotsCount;
+    MetaFileOffset* moduleTableStart;
     Byte* heapStart;
 
 public:
@@ -38,6 +51,18 @@ public:
 
     UInt32 getGlobalTableSlotsCount() const {
         return globalTableSlotsCount;
+    }
+
+    const MetaFileOffset goToModuleTable(UInt32 index) const {
+        return *(moduleTableStart + index);
+    }
+
+    UInt32 getModuleTableSlotsCount() const {
+        return moduleTableSlotsCount;
+    }
+
+    const MetaFileHead* head() const {
+        return this->_head;
     }
 };
 }

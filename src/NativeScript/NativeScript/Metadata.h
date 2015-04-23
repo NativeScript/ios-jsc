@@ -254,18 +254,8 @@ public:
         return (MetaType)(this->_flags & MetaTypeMask);
     }
 
-    const char* fullModuleName() const {
+    const char* moduleName() const {
         return getMetadata()->moveInHeap(this->_frameworkId)->readString();
-    }
-
-    std::string framework() const {
-        const char* moduleName = this->fullModuleName();
-        char* delimiterPos = strchr(moduleName, '.');
-        if (delimiterPos && *delimiterPos != '\0') {
-            return std::string(moduleName, delimiterPos - moduleName);
-        } else {
-            return "";
-        }
     }
 
     bool hasName() const {
@@ -318,7 +308,7 @@ public:
 #if DEBUG
     void logMeta() const {
         const char* realName = this->hasName() ? this->name() : "";
-        printf("name: %s(%s) frmwk: %s", this->jsName(), realName, this->framework().c_str());
+        printf("name: %s(%s) frmwk: %s", this->jsName(), realName, this->moduleName());
     }
 #endif
 };

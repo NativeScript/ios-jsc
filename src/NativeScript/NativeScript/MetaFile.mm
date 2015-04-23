@@ -28,9 +28,11 @@ MetaFile::MetaFile(const char* filePath)
     : MetaFile(loadFile(filePath)) {}
 
 MetaFile::MetaFile(void* fileStart)
-    : file(fileStart)
-    , globalTableSlotsCount(*(const MetaArrayCount*)this->file)
-    , globalTableStart((MetaFileOffset*)((MetaArrayCount*)this->file + 1))
-    , heapStart((Byte*)(this->globalTableStart + this->globalTableSlotsCount)) {
-}
+        : file(fileStart),
+          _head((const MetaFileHead*)this->file),
+          globalTableSlotsCount(*(const MetaArrayCount*)((Byte*)fileStart + this->_head->globalTableOffset)),
+          globalTableStart((MetaFileOffset*)((Byte*)fileStart + this->_head->globalTableOffset + this->_head->array_count_size)),
+          moduleTableSlotsCount(*(const MetaArrayCount*)((Byte*)fileStart + this->_head->modulesOffset)),
+          moduleTableStart((MetaFileOffset*)((Byte*)fileStart + this->_head->modulesOffset + this->_head->array_count_size)),
+          heapStart((Byte*)((Byte*)fileStart + this->_head->heapOffset)) { }
 }
