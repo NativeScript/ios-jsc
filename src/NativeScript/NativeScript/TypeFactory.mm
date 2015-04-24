@@ -276,7 +276,7 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
 
     Class klass = objc_getClass(klassNameCharPtr);
     if (!klass) {
-        SymbolLoader::instance().ensureFramework(metadata->framework());
+        SymbolLoader::instance().ensureFramework(metadata->topLevelModuleName());
         klass = objc_getClass(klassNameCharPtr);
     }
 
