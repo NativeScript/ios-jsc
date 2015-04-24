@@ -12,6 +12,7 @@
 #include "ObjCConstructorCall.h"
 #include "SymbolLoader.h"
 #include "ObjCMethodCallback.h"
+#include "Interop.h"
 
 namespace NativeScript {
 
@@ -54,11 +55,12 @@ void ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName
     if (MethodMeta* meta = constructor->_metadata->staticMethod(propertyName.publicName())) {
         Class klass = object_getClass(constructor->klass());
 
+        std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
         ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, value, meta);
-        IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), meta->compilerEncoding());
+        IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
         SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
-        class_addMethod(klass, nativeSelector, nativeImp, meta->compilerEncoding());
+        class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
         if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(constructor->get(execState, propertyName))) {
             nativeMethod->setSelector(nativeSelector);

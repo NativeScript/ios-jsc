@@ -1830,4 +1830,15 @@ describe(module.id, function () {
         var object = new MyObject();
         expect(object.method()).toBe(1);
     });
+
+    it('CompilerEncodingOfOverridenMethod', function () {
+        var MyObject = TNSBaseInterface.extend({
+            baseMethod: function () {
+                return this.super.baseMethod();
+            }
+        });
+        var method = class_getInstanceMethod(MyObject.class(), "baseMethod");
+        var encoding = method_getTypeEncoding(method);
+        expect(NSString.stringWithCString(encoding).toString()).toBe("v@:");
+    });
 });

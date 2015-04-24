@@ -9,6 +9,9 @@
 #ifndef __NativeScript__Interop__
 #define __NativeScript__Interop__
 
+#include <string>
+#include "Metadata.h"
+
 namespace NativeScript {
 class PointerInstance;
 class ReferenceInstance;
@@ -17,6 +20,10 @@ void* tryHandleofValue(const JSC::JSValue&, bool*);
 
 size_t sizeofValue(const JSC::JSValue&);
 
+const char* getCompilerEncoding(JSC::JSCell*);
+
+std::string getCompilerEncoding(JSC::JSGlobalObject *, Metadata::MethodMeta*);
+    
 class Interop : public JSC::JSObject {
 public:
     typedef JSC::JSObject Base;

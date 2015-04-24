@@ -449,12 +449,6 @@ public:
         return getMetadata()->moveInHeap(this->_encoding)->readByte();
     }
 
-    // TODO: Compiler encoding is no more needed and must not be used. This method should be removed
-    // and all calls to it must be substituted with generated from TypeFactory compiler encoding.
-    const char* compilerEncoding() const {
-        return "";
-    }
-
     bool ownsReturnedCocoaObject() const {
         return this->flag(MethodOwnsReturnedCocoaObjectBitIndex);
     }
