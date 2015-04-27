@@ -886,7 +886,6 @@ hasParametersEncodings: @[]];
     XCTAssertEqual(isVariadic, methodMeta->isVariadic());
     XCTAssertEqual(0, strcmp(selector, methodMeta->selectorAsString()));
     XCTAssertEqual(0, strcmp(encoding, methodMeta->encoding()));
-    XCTAssertEqual(0, strcmp(compilerEncoding, methodMeta->compilerEncoding()));
 }
 
 - (void)assertProperty:(PropertyMeta*)propertyMeta

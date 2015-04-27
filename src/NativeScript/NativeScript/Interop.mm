@@ -10,6 +10,7 @@
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <JavaScriptCore/ObjectConstructor.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
+#include <sstream>
 #include "FFIType.h"
 #include "FFISimpleType.h"
 #include "TypeFactory.h"
@@ -104,6 +105,30 @@ size_t sizeofValue(const JSC::JSValue& value) {
     }
 
     return size;
+}
+    
+const char* getCompilerEncoding(JSCell* value) {
+    const FFITypeMethodTable* table;
+    tryGetFFITypeMethodTable(value, &table);
+    return table->encode(value);
+}
+    
+std::string getCompilerEncoding(JSC::JSGlobalObject *globalObject, Metadata::MethodMeta* method) {
+    Metadata::MetaFileOffset encoding = method->encodingOffset();
+    GlobalObject *nsGlobalObject = jsCast<GlobalObject*>(globalObject);
+    JSCell* returnTypeCell = nsGlobalObject->typeFactory()->parseType(nsGlobalObject, encoding);
+    const WTF::Vector<JSCell*> parameterTypesCells = nsGlobalObject->typeFactory()->parseTypes(nsGlobalObject, encoding, method->encodingCount() - 1);
+    
+    std::stringstream compilerEncoding;
+    
+    compilerEncoding << getCompilerEncoding(returnTypeCell);
+    compilerEncoding << "@:"; // id self, SEL _cmd
+    
+    for(JSCell* cell : parameterTypesCells) {
+        compilerEncoding << getCompilerEncoding(cell);
+    }
+    
+    return compilerEncoding.str();
 }
 
 const ClassInfo Interop::s_info = { "interop", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(Interop) };

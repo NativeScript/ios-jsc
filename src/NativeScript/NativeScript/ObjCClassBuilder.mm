@@ -8,6 +8,7 @@
 
 #include "ObjCClassBuilder.h"
 #include <JavaScriptCore/StrongInlines.h>
+#include <sstream>
 #include "Metadata.h"
 #include "TypeFactory.h"
 #include "ObjCConstructorNative.h"
@@ -17,7 +18,7 @@
 #include "ObjCProtocolWrapper.h"
 #include "ObjCTypes.h"
 #include "FFIType.h"
-#include <sstream>
+#include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -101,22 +102,18 @@ static bool isValidType(ExecState* execState, JSValue& value) {
     return true;
 }
 
-const char* encodeType(JSCell* value) {
-    const FFITypeMethodTable* table;
-    tryGetFFITypeMethodTable(value, &table);
-    return table->encode(value);
-}
-
 static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, MethodMeta* meta) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
+    std::string compilerEncoding = getCompilerEncoding(globalObject, meta);
+    
     MetaFileOffset encoding = meta->encodingOffset();
     JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encoding);
     const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encoding, meta->encodingCount() - 1);
-
+    
     ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeCell, parameterTypesCells);
     gcProtect(callback);
-    if (!class_addMethod(klass, meta->selector(), reinterpret_cast<IMP>(callback->functionPointer()), meta->compilerEncoding())) {
+    if (!class_addMethod(klass, meta->selector(), reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.c_str())) {
         WTFCrash();
     }
 }
@@ -151,7 +148,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
         return;
     }
 
-    compilerEncoding << encodeType(returnTypeValue.asCell());
+    compilerEncoding << getCompilerEncoding(returnTypeValue.asCell());
     compilerEncoding << "@:"; // id self, SEL _cmd
 
     JSValue parameterTypesValue = typeEncodingObj->get(execState, Identifier(execState, WTF::ASCIILiteral("params")));
@@ -169,7 +166,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
             }
 
             parameterTypesCells.append(parameterType.asCell());
-            compilerEncoding << encodeType(parameterType.asCell());
+            compilerEncoding << getCompilerEncoding(parameterType.asCell());
         }
     }
 
@@ -323,7 +320,8 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
             ObjCMethodCallback* getterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.getter().asCell(), returnType, parameterTypes);
             gcProtect(getterCallback);
-            if (!class_addMethod(klass, getter->selector(), reinterpret_cast<IMP>(getterCallback->functionPointer()), getter->compilerEncoding())) {
+            std::string compilerEncoding = getCompilerEncoding(globalObject, getter);
+            if (!class_addMethod(klass, getter->selector(), reinterpret_cast<IMP>(getterCallback->functionPointer()), compilerEncoding.c_str())) {
                 WTFCrash();
             }
         }
@@ -335,7 +333,8 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
             ObjCMethodCallback* setterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.setter().asCell(), returnType, parameterTypes);
             gcProtect(setterCallback);
-            if (!class_addMethod(klass, setter->selector(), reinterpret_cast<IMP>(setterCallback->functionPointer()), setter->compilerEncoding())) {
+            std::string compilerEncoding = getCompilerEncoding(globalObject, setter);
+            if (!class_addMethod(klass, setter->selector(), reinterpret_cast<IMP>(setterCallback->functionPointer()), compilerEncoding.c_str())) {
                 WTFCrash();
             }
         }

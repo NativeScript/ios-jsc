@@ -172,9 +172,6 @@ static const int MetaIsIosAppExtensionAvailableBitIndex = 6;
 static const int FunctionIsVariadicBitIndex = 5;
 static const int FunctionOwnsReturnedCocoaObjectBitIndex = 4;
 
-static const int MemberIsLocalJsNameDuplicateBitIndex = 0;
-static const int MemberHasJsNameDuplicateInHierarchyBitIndex = 1;
-
 static const int MethodIsVariadicBitIndex = 2;
 static const int MethodIsNullTerminatedVariadicBitIndex = 3;
 static const int MethodOwnsReturnedCocoaObjectBitIndex = 4;
@@ -258,7 +255,7 @@ public:
         return getMetadata()->moveInHeap(this->_frameworkId)->readString();
     }
 
-    std::string framework() const {
+    std::string topLevelModuleName() const {
         const char* moduleName = this->fullModuleName();
         char* delimiterPos = strchr(moduleName, '.');
         if (delimiterPos && *delimiterPos != '\0') {
@@ -317,8 +314,7 @@ public:
 
 #if DEBUG
     void logMeta() const {
-        const char* realName = this->hasName() ? this->name() : "";
-        printf("name: %s(%s) frmwk: %s", this->jsName(), realName, this->framework().c_str());
+        printf("[jsName: %s realName: %s topLevelModule: %s", this->jsName(), this->name(), this->topLevelModuleName().c_str());
     }
 #endif
 };
@@ -420,23 +416,12 @@ public:
 };
 
 struct MemberMeta : Meta {
-
-public:
-    bool isLocalDuplicate() const {
-        return this->flag(MemberIsLocalJsNameDuplicateBitIndex);
-    }
-
-    bool hasDuplicatesInHierarchy() const {
-        return this->flag(MemberHasJsNameDuplicateInHierarchyBitIndex);
-    }
 };
 
 struct MethodMeta : MemberMeta {
 
 private:
-    MetaFileOffset _selector;
     MetaFileOffset _encoding;
-    MetaFileOffset _compilerEncoding;
 
 public:
     bool isVariadic() const {
@@ -451,8 +436,9 @@ public:
         return sel_registerName(this->selectorAsString());
     }
 
+    // just a more convenient way to get the selector of method
     const char* selectorAsString() const {
-        return getMetadata()->moveInHeap(this->_selector)->readString();
+        return this->name();
     }
 
     MetaFileOffset encodingOffset() const {
@@ -461,10 +447,6 @@ public:
 
     size_t encodingCount() const {
         return getMetadata()->moveInHeap(this->_encoding)->readByte();
-    }
-
-    const char* compilerEncoding() const {
-        return getMetadata()->moveInHeap(this->_compilerEncoding)->readString();
     }
 
     bool ownsReturnedCocoaObject() const {

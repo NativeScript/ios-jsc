@@ -14,6 +14,7 @@
 #include "Metadata.h"
 #include "ObjCMethodCall.h"
 #include "SymbolLoader.h"
+#include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -42,7 +43,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
 
     if (MethodMeta* memberMeta = prototype->_metadata->instanceMethod(propertyName.publicName())) {
-        SymbolLoader::instance().ensureFramework(memberMeta->framework());
+        SymbolLoader::instance().ensureFramework(memberMeta->topLevelModuleName());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
         ObjCMethodCall* method = ObjCMethodCall::create(globalObject->vm(), globalObject, globalObject->objCMethodCallStructure(), memberMeta);
@@ -61,10 +62,11 @@ void ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
         Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klass();
 
         ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, value, meta);
-        IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), meta->compilerEncoding());
+        std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
+        IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
         SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
-        class_addMethod(klass, nativeSelector, nativeImp, meta->compilerEncoding());
+        class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
         if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(prototype->get(execState, propertyName))) {
             nativeMethod->setSelector(nativeSelector);
@@ -88,10 +90,11 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
 
         if (MethodMeta* meta = propertyMeta->getter()) {
             ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.getter(), meta);
-            IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), meta->compilerEncoding());
+            std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
+            IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
             SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
-            class_addMethod(klass, nativeSelector, nativeImp, meta->compilerEncoding());
+            class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
             if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(nativeProperty.getter())) {
                 nativeMethod->setSelector(nativeSelector);
@@ -100,10 +103,11 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
 
         if (MethodMeta* meta = propertyMeta->setter()) {
             ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.setter(), meta);
-            IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), meta->compilerEncoding());
+            std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
+            IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
             SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
-            class_addMethod(klass, nativeSelector, nativeImp, meta->compilerEncoding());
+            class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
             if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(nativeProperty.setter())) {
                 nativeMethod->setSelector(nativeSelector);
@@ -143,7 +147,7 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
     std::vector<PropertyMeta*> properties = const_cast<InterfaceMeta*>(this->_metadata)->propertiesWithProtocols();
 
     for (PropertyMeta* propertyMeta : properties) {
-        SymbolLoader::instance().ensureFramework(propertyMeta->framework());
+        SymbolLoader::instance().ensureFramework(propertyMeta->topLevelModuleName());
 
         MethodMeta* getter = propertyMeta->getter();
         MethodMeta* setter = propertyMeta->setter();

@@ -44,12 +44,16 @@ static void objCInstancetype_postCall(ExecState* execState, const JSValue& value
 static bool objCInstancetype_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isNull() || value.inherits(ObjCWrapperObject::info()) || value.inherits(ObjCConstructorBase::info());
 }
+static const char* objCInstancetype_encode(JSC::JSCell* self) {
+    return "@";
+}
 const FFITypeMethodTable objCInstancetypeTypeMethodTable = {
     .read = &objCInstancetype_read,
     .write = &objCInstancetype_write,
     .postCall = &objCInstancetype_postCall,
     .canConvert = &objCInstancetype_canConvert,
-    .ffiType = &ffi_type_pointer
+    .ffiType = &ffi_type_pointer,
+    .encode = objCInstancetype_encode
 };
 
 #pragma mark objCProtocol
