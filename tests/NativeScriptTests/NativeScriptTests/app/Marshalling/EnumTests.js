@@ -26,4 +26,23 @@ describe(module.id, function () {
     it("AnonymousEnum", function () {
         expect(AnonymousEnumField).toBe(-1);
     });
+    
+    it("EnumShortNames", function () {
+       expect(NSComparisonResult.Ascending).toBe(-1);
+       expect(NSComparisonResult.Same).toBe(0);
+       expect(NSComparisonResult.Descending).toBe(1);
+    });
+         
+    it("EnumLongNames", function () {
+        expect(NSComparisonResult.NSOrderedAscending).toBe(-1);
+        expect(NSComparisonResult.NSOrderedSame).toBe(0);
+        expect(NSComparisonResult.NSOrderedDescending).toBe(1);
+    });
+         
+    it("EnumConstantsAsGlobalVariables", function () {
+        expect(NSOrderedAscending).toBe(-1);
+        expect(NSOrderedSame).toBe(0);
+        expect(NSOrderedDescending).toBe(1);
+    });
+    
 });
