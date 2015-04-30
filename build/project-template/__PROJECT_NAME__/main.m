@@ -10,19 +10,19 @@
 #include <JavaScriptCore/JavaScriptCore.h>
 #include <NativeScript/NativeScript.h>
 
-#ifdef DEBUG
-#include <TNSDebugging/TNSDebugging.h>
-
-static id debuggingServer;
+#ifndef NDEBUG
+#include "TNSDebugging.h"
 #endif
 
-int main(int argc, char* argv[]) {
-    @autoreleasepool {
-        TNSRuntime* runtime = [[TNSRuntime alloc] initWithApplicationPath:[NSBundle mainBundle].bundlePath];
-        [TNSRuntimeInspector setLogsToSystemConsole:YES];
+TNSRuntime *runtime = nil;
 
-#ifdef DEBUG
-        debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
+int main(int argc, char *argv[]) {
+    @autoreleasepool {
+        runtime = [[TNSRuntime alloc] initWithApplicationPath:[[NSBundle mainBundle] bundlePath]];
+
+#ifndef NDEBUG
+        [TNSRuntimeInspector setLogsToSystemConsole:YES];
+        enableDebugging(argc, argv);
 #endif
 
         [runtime executeModule:@"./"];

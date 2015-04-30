@@ -34,20 +34,6 @@
 			remoteGlobalIDString = 85574E5318894B28005EC840;
 			remoteInfo = Gameraww;
 		};
-		C90B54E71A96078E00167E14 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C9A9169019E7C14F002B1CC5;
-			remoteInfo = TNSDebugging;
-		};
-		C90B54E91A96078E00167E14 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C9A9169B19E7C150002B1CC5;
-			remoteInfo = TNSDebuggingTests;
-		};
 		C90B54F61A9607D800167E14 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 85B2A76A197811C200616E60 /* NativeScript.xcodeproj */;
@@ -68,13 +54,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
 			remoteInfo = NativeScript;
-		};
-		C90B55281A962EF600167E14 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = C9A9168F19E7C14F002B1CC5;
-			remoteInfo = TNSDebugging;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -98,7 +77,6 @@
 		85B2A7681978119E00616E60 /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
 		85B2A76A197811C200616E60 /* NativeScript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NativeScript.xcodeproj; path = ../../src/NativeScript/NativeScript.xcodeproj; sourceTree = "<group>"; };
 		85BACA23194A094100D7BF8F /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
-		C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = TNSDebugging.xcodeproj; path = ../../src/debugging/TNSDebugging/TNSDebugging.xcodeproj; sourceTree = "<group>"; };
 		CD45F05D18DC5FE700FB50C0 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		CD45F05E18DC5FE700FB50C0 /* Accounts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accounts.framework; path = System/Library/Frameworks/Accounts.framework; sourceTree = SDKROOT; };
 		CD45F05F18DC5FE700FB50C0 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
@@ -184,7 +162,6 @@
 		85574E4B18894B28005EC840 = {
 			isa = PBXGroup;
 			children = (
-				C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */,
 				85B2A76A197811C200616E60 /* NativeScript.xcodeproj */,
 				85574E5D18894B28005EC840 /* Gameraww */,
 				85574E7618894B28005EC840 /* GamerawwTests */,
@@ -307,15 +284,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		C90B54E31A96078E00167E14 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C90B54E81A96078E00167E14 /* libTNSDebugging.a */,
-				C90B54EA1A96078E00167E14 /* TNSDebuggingTests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		C90B54F21A9607D800167E14 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -340,7 +308,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				C90B55291A962EF600167E14 /* PBXTargetDependency */,
 				C90B55231A962EF300167E14 /* PBXTargetDependency */,
 			);
 			name = Gameraww;
@@ -399,10 +366,6 @@
 					ProductGroup = C90B54F21A9607D800167E14 /* Products */;
 					ProjectRef = 85B2A76A197811C200616E60 /* NativeScript.xcodeproj */;
 				},
-				{
-					ProductGroup = C90B54E31A96078E00167E14 /* Products */;
-					ProjectRef = C9A9178119ED2DE1002B1CC5 /* TNSDebugging.xcodeproj */;
-				},
 			);
 			projectRoot = "";
 			targets = (
@@ -413,20 +376,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		C90B54E81A96078E00167E14 /* libTNSDebugging.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libTNSDebugging.a;
-			remoteRef = C90B54E71A96078E00167E14 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		C90B54EA1A96078E00167E14 /* TNSDebuggingTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = TNSDebuggingTests.xctest;
-			remoteRef = C90B54E91A96078E00167E14 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		C90B54F71A9607D800167E14 /* libNativeScript.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -510,11 +459,6 @@
 			isa = PBXTargetDependency;
 			name = NativeScript;
 			targetProxy = C90B55221A962EF300167E14 /* PBXContainerItemProxy */;
-		};
-		C90B55291A962EF600167E14 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = TNSDebugging;
-			targetProxy = C90B55281A962EF600167E14 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -629,12 +573,14 @@
 					"DEBUG=1",
 					"NATIVESCRIPT_DEBUGGING=1",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/../../src/debugging",
+				);
 				INFOPLIST_FILE = "Gameraww/Gameraww-Info.plist";
 				OTHER_CFLAGS = "-Werror-implicit-function-declaration";
-				OTHER_LDFLAGS = (
-					"-all_load",
-					"-lTNSDebugging",
-				);
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -652,12 +598,14 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Gameraww/Gameraww-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/../../src/debugging",
+				);
 				INFOPLIST_FILE = "Gameraww/Gameraww-Info.plist";
 				OTHER_CFLAGS = "-Werror-implicit-function-declaration";
-				OTHER_LDFLAGS = (
-					"-all_load",
-					"-lTNSDebugging",
-				);
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;

@@ -20,12 +20,10 @@ FOUNDATION_EXPORT NSString* const TNSInspectorRunLoopMode;
 
 @end
 
-typedef BOOL (^TNSRuntimeInspectorMessageHandler)(NSString* message);
-typedef void (^TNSRuntimeDebuggerEnabledHandler)();
+typedef void (^TNSRuntimeInspectorMessageHandler)(NSString* message);
 
 @interface TNSRuntime (Inspector)
 
-- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
-                                 onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler;
+- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler;
 
 @end

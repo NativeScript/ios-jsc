@@ -233,7 +233,7 @@ module.exports = function (grunt) {
             packageComponents: {
                 files: [
                     { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, cwd: "<%= outDistDir %>", src: ["TNSDebugging.framework", "TNSDebugging.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
+                    { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "TNSDebugging.h", dest: "<%= outPackageFrameworkDir %>/__PROJECT_NAME__" },
                     { expand: true, cwd: "<%= outDistDir %>", src: ["WebInspectorUI/Safari", "WebInspectorUI/Safari/**"], dest: "<%= outPackageDir %>" },
                     { expand: true, cwd: "<%= outMetadataGeneratorDir %>", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
@@ -329,7 +329,6 @@ module.exports = function (grunt) {
         "jsc",
         "metadataGenerator",
         "NativeScript",
-        "TNSDebugging",
         "WebInspectorUISafari",
         "clean:outPackage",
         "mkdir:outPackageFramework",
