@@ -45,18 +45,6 @@ bool Meta::isAvailable() const {
     return !((introducedIn != 0) && (introducedIn > systemVersion));
 }
 
-// RecordMeta
-#ifdef DEBUG
-void RecordMeta::logRecord() const {
-    Meta::logMeta();
-    printf(" fields(%zul): ", this->fieldsCount());
-    for (unsigned int i = 0; i < this->fieldsCount(); i++) {
-        printf("%s, ", this->fieldAt(i));
-    }
-    //    printf(" encoding: %s", this->fieldsEncodings());
-}
-#endif
-
 // BaseClassMeta
 MetaFileOffset BaseClassMeta::offsetOf(MemberType type) const {
     MetaFileOffset offset = 0;
@@ -134,30 +122,4 @@ vector<MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<MethodMeta*>&
 
     return container;
 }
-
-#ifdef DEBUG
-void BaseClassMeta::logBaseClass() const {
-    Meta::logMeta();
-    printf("\ninstance methods: ");
-    for (auto methodIter = this->getInstanceMethodsIterator(); methodIter.hasNext(); methodIter.next()) {
-        printf("%s", methodIter.currentItem()->jsName());
-        printf(", ");
-    }
-    printf("\nstatic methods: ");
-    for (auto methodIter = this->getStaticMethodsIterator(); methodIter.hasNext(); methodIter.next()) {
-        printf("%s", methodIter.currentItem()->jsName());
-        printf(", ");
-    }
-    printf("\nproperties: ");
-    for (auto propertyIter = this->getPropertiesIterator(); propertyIter.hasNext(); propertyIter.next()) {
-        printf("%s", propertyIter.currentItem()->jsName());
-        printf(", ");
-    }
-    printf("\nprotocols: ");
-    for (auto protocolIterator = this->getProtocolsIterator(); protocolIterator.hasNext(); protocolIterator.next()) {
-        printf("%s", protocolIterator.currentItem()->jsName());
-        printf(", ");
-    }
-}
-#endif
 }

@@ -238,12 +238,25 @@ bool startsWith(const char* pre, const char* str);
 
 #pragma pack(push, 1)
 
+struct ModuleMeta {
+public:
+    UInt8 _flags;
+    MetaFileOffset _name;
+    MetaFileOffset _libraries;
+};
+
+struct LibraryMeta {
+public:
+    UInt8 _flags;
+    MetaFileOffset _name;
+};
+    
 struct Meta {
 
 private:
     MetaFileOffset _names;
+    MetaFileOffset _topLevelModule;
     UInt8 _flags;
-    UInt16 _frameworkId;
     UInt8 _introduced;
 
 public:
@@ -251,18 +264,9 @@ public:
         return (MetaType)(this->_flags & MetaTypeMask);
     }
 
-    const char* fullModuleName() const {
-        return getMetadata()->moveInHeap(this->_frameworkId)->readString();
-    }
-
     std::string topLevelModuleName() const {
-        const char* moduleName = this->fullModuleName();
-        char* delimiterPos = strchr(moduleName, '.');
-        if (delimiterPos && *delimiterPos != '\0') {
-            return std::string(moduleName, delimiterPos - moduleName);
-        } else {
-            return "";
-        }
+        ModuleMeta *module = (ModuleMeta *)getMetadata()->moveInHeap(this->_topLevelModule)->asPointer();
+        return getMetadata()->moveInHeap(module->_name)->readString();
     }
 
     bool hasName() const {
@@ -307,12 +311,6 @@ public:
     const void* info() const {
         return (const void*)(this + 1);
     }
-
-#ifdef DEBUG
-    void logMeta() const {
-        printf("[jsName: %s realName: %s topLevelModule: %s", this->jsName(), this->name(), this->topLevelModuleName().c_str());
-    }
-#endif
 };
 
 struct RecordMeta : Meta {
@@ -333,10 +331,6 @@ public:
     MetaFileOffset fieldsEncodingsOffset() const {
         return getMetadata()->moveInHeap(this->_fieldsEncodings)->moveWithCounts(1)->asOffsetInHeap();
     }
-
-#ifdef DEBUG
-    void logRecord() const;
-#endif
 };
 
 struct StructMeta : RecordMeta {
@@ -366,13 +360,6 @@ public:
     bool ownsReturnedCocoaObject() const {
         return this->flag(FunctionOwnsReturnedCocoaObjectBitIndex);
     }
-
-#ifdef DEBUG
-    void logFunction() const {
-        Meta::logMeta();
-        //        printf(" encoding: %s, %s ", this->encoding(), this->isVariadic() ? "variadic" : "");
-    }
-#endif
 };
 
 struct JsCodeMeta : Meta {
@@ -384,13 +371,6 @@ public:
     const char* jsCode() const {
         return getMetadata()->moveInHeap(this->_jsCode)->readString();
     }
-
-#ifdef DEBUG
-    void logJsCode() const {
-        Meta::logMeta();
-        printf("Js Code: %s ", this->jsCode());
-    }
-#endif
 };
 
 struct VarMeta : Meta {
@@ -402,13 +382,6 @@ public:
     MetaFileOffset encodingOffset() const {
         return getMetadata()->moveInHeap(this->_encoding)->asOffsetInHeap();
     }
-
-#ifdef DEBUG
-    void logVar() const {
-        Meta::logMeta();
-        //        printf("encoding: %s ", this->encoding());
-    }
-#endif
 };
 
 struct MemberMeta : Meta {
@@ -448,13 +421,6 @@ public:
     bool ownsReturnedCocoaObject() const {
         return this->flag(MethodOwnsReturnedCocoaObjectBitIndex);
     }
-
-#ifdef DEBUG
-    void logMethod() const {
-        Meta::logMeta();
-        //        printf("selector: %s encoding: %s compilerEncoding: %s ", this->selectorAsString(), this->encoding(), this->compilerEncoding());
-    }
-#endif
 };
 
 struct PropertyMeta : MemberMeta {
@@ -482,13 +448,6 @@ public:
         }
         return nullptr;
     }
-
-#ifdef DEBUG
-    void logProperty() const {
-        Meta::logMeta();
-        printf(" getter: %s setter: %s ", this->hasGetter() ? this->getter()->jsName() : "", this->hasSetter() ? this->setter()->jsName() : "");
-    }
-#endif
 };
 
 struct BaseClassMeta : Meta {
@@ -614,10 +573,6 @@ public:
     std::vector<MethodMeta*> initializers(std::vector<MethodMeta*>& container) const;
 
     std::vector<MethodMeta*> initializersWithProtcols(std::vector<MethodMeta*>& container) const;
-
-#ifdef DEBUG
-    void logBaseClass() const;
-#endif
 };
 
 struct ProtocolMeta : BaseClassMeta {
@@ -636,13 +591,6 @@ public:
     const InterfaceMeta* baseMeta() const {
         return this->_baseName ? (const InterfaceMeta*)getMetadata()->findMeta(this->baseName()) : nullptr;
     }
-
-#ifdef DEBUG
-    void logInterface() const {
-        BaseClassMeta::logBaseClass();
-        printf("\nbase: %s ", this->baseName());
-    }
-#endif
 };
 
 #pragma pack(pop)
