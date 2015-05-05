@@ -21,6 +21,7 @@ function(CreateNativeScriptApp _target _main _plist _resources)
         XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "7.0"
         COMPILE_FLAGS "-fobjc-arc"
+        XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "gnu99"
     )
 
     include(SetActiveArchitectures)
