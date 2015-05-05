@@ -1,18 +1,19 @@
 #import <NativeScript.h>
 
-#if DEBUG
-  #include <TNSDebugging.h>
-  static id debuggingServer;
+#ifndef NDEBUG
+#include <TNSDebugging.h>
 #endif
+
+TNSRuntime *runtime = nil;
 
 int main(int argc, char *argv[]) {
   @autoreleasepool {
-    TNSRuntime *runtime = [[TNSRuntime alloc]
+    runtime = [[TNSRuntime alloc]
         initWithApplicationPath:[NSBundle mainBundle].bundlePath];
     TNSRuntimeInspector.logsToSystemConsole = YES;
 
-    #ifdef DEBUG
-      debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
+    #ifndef NDEBUG
+      enableDebugging(argc, argv);
     #endif
 
     [runtime executeModule:@"./"];

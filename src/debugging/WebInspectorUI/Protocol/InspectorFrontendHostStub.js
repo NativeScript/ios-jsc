@@ -40,18 +40,8 @@ if (!window.InspectorFrontendHost) {
 
         initializeWebSocket: function(url, protocol)
         {
-            var _this = this;
-            var socket;
-            var socketInterval = setInterval(function(){
-                if (socket && socket.readyState === 1) {
-                    // The connection is open.
-                    clearInterval(socketInterval);
-                    return;
-                }
-                //var socket = new WebSocket(url, protocol); - protocol parameter is removed because of the Chrome version of WebInspector
-                socket = new WebSocket(url);
-                socket.addEventListener("open", socketReady.bind(_this));
-            }, 1000);
+            var socket = new WebSocket(url);
+            socket.addEventListener("open", socketReady.bind(this));
 
             function socketReady()
             {

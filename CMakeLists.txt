@@ -9,9 +9,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(LIBFFI_DIR "${CMAKE_SOURCE_DIR}/src/libffi")
 set(WEBKIT_DIR "${CMAKE_SOURCE_DIR}/dist/jsc")
-set(POCKET_SOCKET_DIR "${CMAKE_SOURCE_DIR}/src/debugging/PocketSocket")
 set(RUNTIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/NativeScript")
-set(NATIVESCRIPT_DEBUGGING_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/debugging/TNSDebugging")
+set(NATIVESCRIPT_DEBUGGING_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/debugging/")
 set(TESTFIXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/TestFixtures")
 
 file(READ "${TESTFIXTURES_DIR}/exported-symbols.txt" TESTFIXTURES_EXPORTED_SYMBOLS)
@@ -28,7 +27,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG=1")
 # TODO: Clang Analyzer, Tidy ...
 
 add_subdirectory(src/NativeScript)
-add_subdirectory(src/debugging/TNSDebugging)
 add_subdirectory(examples/Gameraww)
 add_subdirectory(examples/BlankApp)
 add_subdirectory(examples/HelloWorldApp)

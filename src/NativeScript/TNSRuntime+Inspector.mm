@@ -30,7 +30,8 @@ public:
 
     virtual bool sendMessageToFrontend(const WTF::String& message) override {
         WTF::RetainPtr<CFStringRef> cfMessage = message.createCFString();
-        return this->_messageHandler([(NSString*)cfMessage.get() copy]);
+        this->_messageHandler([NSString stringWithString:(NSString *)cfMessage.get()]);
+        return true;
     }
 
     virtual ~TNSRuntimeInspectorFrontendChannel() {
@@ -43,26 +44,21 @@ private:
 
 @interface TNSRuntimeInspector ()
 
-@property(nonatomic, copy) TNSRuntimeDebuggerEnabledHandler onDebuggerEnabledCallback;
-
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
-                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
-              onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler;
+                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler;
 
 @end
 
 @implementation TNSRuntime (Inspector)
 
-- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
-                                 onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler {
+- (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
     return [[[TNSRuntimeInspector alloc] initWithRuntime:self
-                                          messageHandler:messageHandler
-                                       onDebuggerEnabled:debuggerHandler] autorelease];
+                                          messageHandler:messageHandler]
+            autorelease];
 }
 
 - (void)flushSourceProviders {
-    JSC::Debugger* debugger = self->_globalObject->debugger();
-    if (self->_globalObject->hasDebugger()) {
+    if (JSC::Debugger* debugger = self->_globalObject->debugger()) {
         for (SourceProvider* e : self->_sourceProviders) {
             debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
         }
@@ -86,17 +82,21 @@ private:
 }
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
-                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler
-              onDebuggerEnabled:(TNSRuntimeDebuggerEnabledHandler)debuggerHandler {
+                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler{
     if (self = [super init]) {
+        JSC::JSLockHolder lock(runtime->_vm.get());
+
         self->_runtime = [runtime retain];
-        self.onDebuggerEnabledCallback = debuggerHandler;
-        self->_frontendChannel = std::make_unique<TNSRuntimeInspectorFrontendChannel>(messageHandler, toJS(self->_runtime.globalContext));
-        self->_inspectorController = &jsCast<GlobalObject*>(toJS([runtime globalContext])->lexicalGlobalObject())->inspectorController();
+        self->_frontendChannel = std::make_unique<TNSRuntimeInspectorFrontendChannel>(messageHandler, self->_runtime->_globalObject->globalExec());
+        self->_inspectorController = &self->_runtime->_globalObject->inspectorController();
         self->_inspectorController->connectFrontend(self->_frontendChannel.get());
     }
 
     return self;
+}
+
+- (void)_dispatchMessage:(NSString*)message {
+    self->_inspectorController->dispatchMessageFromFrontend(message);
 }
 
 - (void)dispatchMessage:(NSString*)message {
@@ -107,17 +107,9 @@ private:
         if ([@"Debugger.enable" isEqual:[json valueForKey:@"method"]]) {
             [self->_runtime flushSourceProviders];
 
-            if (self.onDebuggerEnabledCallback) {
-                self.onDebuggerEnabledCallback();
-            }
-
             method_exchangeImplementations(class_getInstanceMethod([self class], @selector(dispatchMessage:)), class_getInstanceMethod([self class], @selector(_dispatchMessage:)));
         }
     }
-}
-
-- (void)_dispatchMessage:(NSString*)message {
-    self->_inspectorController->dispatchMessageFromFrontend(message);
 }
 
 - (void)dealloc {

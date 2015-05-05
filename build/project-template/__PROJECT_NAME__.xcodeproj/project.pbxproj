@@ -12,6 +12,7 @@
 		858B842A18CA22B800AB12DE /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 858B833518CA111C00AB12DE /* UIKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 858B833A18CA111C00AB12DE /* InfoPlist.strings */; };
 		858B842F18CA22B800AB12DE /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 858B834318CA111C00AB12DE /* Images.xcassets */; };
+		CD1343101AF8E03800D3B65B /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD13430F1AF8E03800D3B65B /* libNativeScript.a */; };
 		CD45EE7C18DC2D5800FB50C0 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CD45EE7A18DC2D5800FB50C0 /* app */; };
 		E0B20F6419A3312900D531CF /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E0B20F4F19A3312900D531CF /* Default-568h@2x.png */; };
 		E0B20F6519A3312900D531CF /* Default-Landscape.png in Resources */ = {isa = PBXBuildFile; fileRef = E0B20F5019A3312900D531CF /* Default-Landscape.png */; };
@@ -37,7 +38,6 @@
 		F9161D911993C00300F9E5FD /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9161D901993C00300F9E5FD /* libc++.dylib */; };
 		F9161D931993C00B00F9E5FD /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9161D921993C00B00F9E5FD /* libz.dylib */; };
 		F9161D951993C01600F9E5FD /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9161D941993C01600F9E5FD /* libicucore.dylib */; };
-		F9411C5B1993BE3A000B92E2 /* NativeScript.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F9411C5A1993BE3A000B92E2 /* NativeScript.framework */; };
 		F9B8C6A41ACEDEEB00547416 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = F9B8C6A21ACEDEEB00547416 /* LaunchScreen.xib */; };
 /* End PBXBuildFile section */
 
@@ -64,7 +64,7 @@
 		858B833F18CA111C00AB12DE /* __PROJECT_NAME__-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "__PROJECT_NAME__-Prefix.pch"; sourceTree = "<group>"; };
 		858B834318CA111C00AB12DE /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		858B843318CA22B800AB12DE /* __PROJECT_NAME__.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = __PROJECT_NAME__.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C9FC49201A3086DF005E5D6A /* TNSDebugging.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = TNSDebugging.framework; sourceTree = "<group>"; };
+		CD13430F1AF8E03800D3B65B /* libNativeScript.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libNativeScript.a; path = "../../dist/package 2/framework/NativeScript/lib/libNativeScript.a"; sourceTree = "<group>"; };
 		CD45EE7A18DC2D5800FB50C0 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
 		E0B20F4F19A3312900D531CF /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "__PROJECT_NAME__/Resources/icons/Default-568h@2x.png"; sourceTree = "<group>"; };
 		E0B20F5019A3312900D531CF /* Default-Landscape.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-Landscape.png"; path = "__PROJECT_NAME__/Resources/icons/Default-Landscape.png"; sourceTree = "<group>"; };
@@ -90,7 +90,6 @@
 		F9161D901993C00300F9E5FD /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
 		F9161D921993C00B00F9E5FD /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		F9161D941993C01600F9E5FD /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
-		F9411C5A1993BE3A000B92E2 /* NativeScript.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = NativeScript.framework; sourceTree = "<group>"; };
 		F9B8C6A31ACEDEEB00547416 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -102,9 +101,9 @@
 				F9161D951993C01600F9E5FD /* libicucore.dylib in Frameworks */,
 				F9161D931993C00B00F9E5FD /* libz.dylib in Frameworks */,
 				F9161D911993C00300F9E5FD /* libc++.dylib in Frameworks */,
-				F9411C5B1993BE3A000B92E2 /* NativeScript.framework in Frameworks */,
 				858B842918CA22B800AB12DE /* Foundation.framework in Frameworks */,
 				858B842A18CA22B800AB12DE /* UIKit.framework in Frameworks */,
+				CD1343101AF8E03800D3B65B /* libNativeScript.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -153,11 +152,10 @@
 		858B833018CA111C00AB12DE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CD13430F1AF8E03800D3B65B /* libNativeScript.a */,
 				F9161D941993C01600F9E5FD /* libicucore.dylib */,
 				F9161D921993C00B00F9E5FD /* libz.dylib */,
 				F9161D901993C00300F9E5FD /* libc++.dylib */,
-				C9FC49201A3086DF005E5D6A /* TNSDebugging.framework */,
-				F9411C5A1993BE3A000B92E2 /* NativeScript.framework */,
 				858B833118CA111C00AB12DE /* Foundation.framework */,
 				858B833518CA111C00AB12DE /* UIKit.framework */,
 			);
@@ -425,12 +423,16 @@
 					"$(inherited)",
 					"DEBUG=1",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode6.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(PROJECT_DIR)/NativeScript/include",
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-framework",
-					TNSDebugging,
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/NativeScript/lib",
 				);
 				PRODUCT_NAME = __PROJECT_NAME__;
 				VALID_ARCHS = "armv7 arm64";
@@ -452,9 +454,17 @@
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "__PROJECT_NAME__/__PROJECT_NAME__-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode6.3.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(PROJECT_DIR)/NativeScript/include",
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_LDFLAGS = "-ObjC";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/NativeScript/lib",
+				);
 				PRODUCT_NAME = __PROJECT_NAME__;
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;

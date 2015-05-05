@@ -133,8 +133,8 @@ module.exports = function (grunt) {
         copy: {
             packageComponents: {
                 files: [
-                    { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, cwd: "<%= outDistDir %>", src: ["TNSDebugging.framework", "TNSDebugging.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
+                    { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript", "NativeScript/**"], dest: "<%= outPackageFrameworkDir %>" },
+                    { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "TNSDebugging.h", dest: "<%= outPackageFrameworkDir %>/__PROJECT_NAME__" },
                     { expand: true, cwd: "<%= srcDir %>/src/debugging/WebInspectorUI", src: "**", dest: "<%= outPackageDir %>/WebInspectorUI/Safari" },
                     { expand: true, cwd: "<%= outDistDir %>/metadataGenerator", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
