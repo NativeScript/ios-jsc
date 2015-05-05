@@ -1,5 +1,7 @@
 set(RESOURCES app)
 
+include_directories(${TESTFIXTURES_DIR})
+
 include(CreateNativeScriptApp)
 CreateNativeScriptApp(TestRunner "${MAIN_TEMPLATE}" "${INFO_PLIST_TEMPLATE}" "${RESOURCES}")
 
