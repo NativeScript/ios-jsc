@@ -1,0 +1,5 @@
+module TNSTests {
+  umbrella header "TestFixtures.h"
+  export *
+  module * { export * }
+}

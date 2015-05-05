@@ -8,7 +8,7 @@
 
 #include <Foundation/Foundation.h>
 #include <JavaScriptCore/JavaScriptCore.h>
-#include <NativeScript/NativeScript.h>
+#include <NativeScript.h>
 
 #ifndef NDEBUG
 #include "TNSDebugging.h"

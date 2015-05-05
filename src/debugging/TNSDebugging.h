@@ -5,7 +5,7 @@
 //  Copyright (c) 2015 г. Telerik. All rights reserved.
 //
 
-#import <NativeScript/NativeScript.h>
+#import <NativeScript.h>
 
 #include <netinet/in.h>
 #include <sys/types.h>
