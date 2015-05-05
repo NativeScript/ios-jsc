@@ -163,8 +163,8 @@ set_target_properties(NativeScript PROPERTIES
         -Wno-shorten-64-to-32 -Wno-bool-conversion -Wno-unused-parameter
     "
     STATIC_LIBRARY_FLAGS "
-        -lJavaScriptCore -L${WEBKIT_DIR}/lib
-        -lffi -L${LIBFFI_DIR}/lib
+        -lJavaScriptCore -L\"${WEBKIT_DIR}/lib\"
+        -lffi -L\"${LIBFFI_DIR}/lib\"
     "
     XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN YES
 )

@@ -16,8 +16,8 @@ set(TESTFIXTURES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/TestFixtures")
 file(READ "${TESTFIXTURES_DIR}/exported-symbols.txt" TESTFIXTURES_EXPORTED_SYMBOLS)
 string(REPLACE "\n" ";" TESTFIXTURES_EXPORTED_SYMBOLS "${TESTFIXTURES_EXPORTED_SYMBOLS}")
 
-set(MAIN_TEMPLATE ${CMAKE_SOURCE_DIR}/cmake/main.m)
-set(INFO_PLIST_TEMPLATE ${CMAKE_SOURCE_DIR}/cmake/Info.plist)
+set(MAIN_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/main.m")
+set(INFO_PLIST_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/Info.plist")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
 
@@ -36,14 +36,14 @@ add_subdirectory(tests/TestRunner)
 include(ExternalProject)
 ExternalProject_Add(MetadataGenerator
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/metadata-generator"
-    CONFIGURE_COMMAND env -i ${CMAKE_COMMAND}
+    CONFIGURE_COMMAND env -i "${CMAKE_COMMAND}"
         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/metadataGenerator
         -DCMAKE_BUILD_TYPE=$<CONFIG>
-        ${CMAKE_SOURCE_DIR}/src/metadata-generator
-    BUILD_COMMAND env -i ${CMAKE_COMMAND}
+        "${CMAKE_SOURCE_DIR}/src/metadata-generator"
+    BUILD_COMMAND env -i "${CMAKE_COMMAND}"
         --build .
         --target install
         --use-stderr
-    INSTALL_COMMAND ${CMAKE_COMMAND}
+    INSTALL_COMMAND "${CMAKE_COMMAND}"
         -E copy "${CMAKE_SOURCE_DIR}/build/scripts/metadata-generation-build-step.sh" "${CMAKE_INSTALL_PREFIX}/metadataGenerator/bin"
 )
