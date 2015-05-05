@@ -30,6 +30,18 @@ With npm install grunt-cli:
 Then install the grunt modules in the **root** of the repo:
 `npm install`
 
+## Building JavaScriptCore
+To build JavaScriptCore run `grunt jsc`.
+
+#### Artefacts
+The build should produce a `dist/jsc` folder.
+
+## Creating an Xcode Project
+```shell
+mkdir cmake-build && cd cmake-build
+cmake .. -G Xcode -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_C_COMPILER_WORKS=YES -DCMAKE_CXX_COMPILER_WORKS=YES -DCMAKE_INSTALL_PREFIX=../dist
+```
+
 ## NPM Package Build
 To build npm package run `grunt package` in the **root** of the repo.
 
