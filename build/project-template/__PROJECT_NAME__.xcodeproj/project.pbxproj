@@ -426,11 +426,6 @@
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-framework",
-					TNSDebugging,
-				);
 				PRODUCT_NAME = __PROJECT_NAME__;
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;
@@ -453,7 +448,6 @@
 				GCC_PREFIX_HEADER = "__PROJECT_NAME__/__PROJECT_NAME__-Prefix.pch";
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = __PROJECT_NAME__;
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;

@@ -54,27 +54,6 @@
 			remoteGlobalIDString = 85B2A6B9197528FF00616E60;
 			remoteInfo = NativeScript;
 		};
-		CDBE48251AC6E7410006895F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C9A9169019E7C14F002B1CC5;
-			remoteInfo = TNSDebugging;
-		};
-		CDBE48271AC6E7410006895F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C9A9169B19E7C150002B1CC5;
-			remoteInfo = TNSDebuggingTests;
-		};
-		CDE8DF961AC95760005960BD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = C9A9168F19E7C14F002B1CC5;
-			remoteInfo = TNSDebugging;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -106,7 +85,6 @@
 		CD7BF9951987F632007FA09B /* TNSPrimitives.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSPrimitives.m; sourceTree = "<group>"; };
 		CD7BF9961987F632007FA09B /* TNSRecords.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNSRecords.h; sourceTree = "<group>"; };
 		CD7BF9971987F632007FA09B /* TNSRecords.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNSRecords.m; sourceTree = "<group>"; };
-		CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = TNSDebugging.xcodeproj; path = ../../src/debugging/TNSDebugging/TNSDebugging.xcodeproj; sourceTree = "<group>"; };
 		CDBEF5C51987EE4C00C7E209 /* NativeScriptTests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeScriptTests.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDBEF5C81987EE4C00C7E209 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		CDBEF5D01987EE4C00C7E209 /* NativeScriptTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "NativeScriptTests-Info.plist"; sourceTree = "<group>"; };
@@ -218,19 +196,9 @@
 			path = Marshalling;
 			sourceTree = "<group>";
 		};
-		CDBE48201AC6E7410006895F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				CDBE48261AC6E7410006895F /* libTNSDebugging.a */,
-				CDBE48281AC6E7410006895F /* TNSDebuggingTests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		CDBEF5BC1987EE4C00C7E209 = {
 			isa = PBXGroup;
 			children = (
-				CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */,
 				CDBEF5F71987EF8700C7E209 /* NativeScript.xcodeproj */,
 				CDBEF5CE1987EE4C00C7E209 /* NativeScriptTests */,
 				CDBEF5C71987EE4C00C7E209 /* Frameworks */,
@@ -299,7 +267,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CDE8DF971AC95760005960BD /* PBXTargetDependency */,
 				C90B54741A79455100167E14 /* PBXTargetDependency */,
 			);
 			name = NativeScriptTests;
@@ -337,10 +304,6 @@
 					ProductGroup = C90B546B1A79453B00167E14 /* Products */;
 					ProjectRef = CDBEF5F71987EF8700C7E209 /* NativeScript.xcodeproj */;
 				},
-				{
-					ProductGroup = CDBE48201AC6E7410006895F /* Products */;
-					ProjectRef = CDBE481F1AC6E7410006895F /* TNSDebugging.xcodeproj */;
-				},
 			);
 			projectRoot = "";
 			targets = (
@@ -362,20 +325,6 @@
 			fileType = wrapper.cfbundle;
 			path = NativeScriptTests.xctest;
 			remoteRef = C90B54711A79453B00167E14 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CDBE48261AC6E7410006895F /* libTNSDebugging.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libTNSDebugging.a;
-			remoteRef = CDBE48251AC6E7410006895F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		CDBE48281AC6E7410006895F /* TNSDebuggingTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = TNSDebuggingTests.xctest;
-			remoteRef = CDBE48271AC6E7410006895F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -439,11 +388,6 @@
 			isa = PBXTargetDependency;
 			name = NativeScript;
 			targetProxy = C90B54731A79455100167E14 /* PBXContainerItemProxy */;
-		};
-		CDE8DF971AC95760005960BD /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = TNSDebugging;
-			targetProxy = CDE8DF961AC95760005960BD /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -547,14 +491,11 @@
 					"$(inherited)",
 					/Applications/Xcode6.0.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/NativeScriptTests",
+					"$(SRCROOT)/../../src/debugging",
 				);
 				INFOPLIST_FILE = "NativeScriptTests/NativeScriptTests-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-all_load",
-					"-lTNSDebugging",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "arm64 armv7";
 				WRAPPER_EXTENSION = app;
@@ -577,13 +518,11 @@
 					"$(inherited)",
 					/Applications/Xcode6.0.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/NativeScriptTests",
+					"$(SRCROOT)/../../src/debugging",
 				);
 				INFOPLIST_FILE = "NativeScriptTests/NativeScriptTests-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-all_load",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "arm64 armv7";
 				WRAPPER_EXTENSION = app;

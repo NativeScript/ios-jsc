@@ -11,9 +11,8 @@
 #import "Utilities.h"
 #import "TNSTestCases.h"
 
-#if DEBUG
-#include <TNSDebugging/TNSDebugging.h>
-static id debuggingServer;
+#ifndef NDEBUG
+#include <TNSDebugging.h>
 #endif
 
 static void PrintError(JSContextRef ctx, JSValueRef error) {
@@ -22,6 +21,8 @@ static void PrintError(JSContextRef ctx, JSValueRef error) {
     NSLog(@"Stack: \n%@", toString(ctx, JSObjectGetProperty(ctx, (JSObjectRef)error, stackRef, 0)));
     JSStringRelease(stackRef);
 }
+
+TNSRuntime *runtime = nil;
 
 int main(int argc, char *argv[]) {
     NSLog(@"Application Start!");
@@ -92,14 +93,14 @@ int main(int argc, char *argv[]) {
     }
 
     @autoreleasepool {
-        TNSRuntime *runtime = [[TNSRuntime alloc] initWithApplicationPath:NSBundle.mainBundle.bundlePath];
+        runtime = [[TNSRuntime alloc] initWithApplicationPath:NSBundle.mainBundle.bundlePath];
         TNSRuntimeInspector.logsToSystemConsole = YES;
 
         JSValueRef exception = NULL;
         JSGlobalContextRef contextRef = runtime.globalContext;
 
-#if DEBUG
-        debuggingServer = [runtime enableDebuggingWithName:[NSBundle mainBundle].bundleIdentifier];
+#ifndef NDEBUG
+        enableDebugging(argc, argv);
 #endif
 
         TNSSetUncaughtErrorHandler(&PrintError);
