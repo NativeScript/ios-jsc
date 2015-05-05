@@ -1,9 +1,7 @@
 //
 //  main.m
-//  TNSBridgeApp
+//  __PROJECT_NAME__
 //
-//  Created by Yavor Georgiev on 07.03.14.
-//  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
 #include <Foundation/Foundation.h>
