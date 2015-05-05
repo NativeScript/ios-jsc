@@ -149,7 +149,7 @@ const char* RecordConstructor::encode(JSCell* cell) {
 
     RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(self->getDirect(vm, vm.propertyNames->prototype));
     for (RecordField* field : recordPrototype->fields()) {
-        ss << field->ffiTypeMethodTable().encode(field);
+        ss << field->ffiTypeMethodTable().encode(field->fieldType());
     }
 
     ss << (self->_recordType == RecordType::Struct ? "}" : ")");
