@@ -287,10 +287,6 @@ public:
         return (this->hasName()) ? getMetadata()->moveWithOffsets(1)->follow()->readString() : getMetadata()->readString();
     }
 
-    const char* key() const {
-        return this->jsName();
-    }
-
     /**
      * \brief The version number in which this entity was introduced.
      */

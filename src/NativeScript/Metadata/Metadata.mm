@@ -114,8 +114,11 @@ vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) 
         methodIter.jumpTo(firstInitIndex);
         for (; methodIter.hasNext(); methodIter.next()) {
             MethodMeta* method = methodIter.currentItem();
-            if (startsWith("init", method->key())) {
+            if (startsWith("init", method->jsName())) {
                 container.push_back(method);
+            }
+            else {
+                break;
             }
         }
     }

@@ -57,7 +57,7 @@ const Meta* MetaFileReader::findMeta(const char* identifierString, size_t length
     const void* arrayBegin = this->moveWithCounts(1)->asPointer();
     for (MetaArrayCount i = 0; i < arrayCount; i++) {
         const Meta* meta = this->moveWithOffsets(i)->follow()->readMetaDirect();
-        const char* jsName = meta->key();
+        const char* jsName = meta->jsName();
         if (compareIdentifiers(jsName, identifierString, length) == 0) {
             this->moveToPointer(savedCursor);
             if (metaPredicate(meta)) {
@@ -85,8 +85,8 @@ int MetaFileReader::findInSortedMetaArray(const char* identifier, int length) {
     while (left <= right) {
         mid = (right + left) / 2;
         const Meta* meta = this->moveWithOffsets(mid)->follow()->readMetaDirect();
-        const char* key = meta->key();
-        int comparisonResult = compareIdentifiers(key, identifier, length);
+        const char* jsName = meta->jsName();
+        int comparisonResult = compareIdentifiers(jsName, identifier, length);
         if (comparisonResult < 0) {
             left = mid + 1;
         } else if (comparisonResult > 0) {

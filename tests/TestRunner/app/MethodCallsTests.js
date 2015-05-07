@@ -859,4 +859,10 @@ describe(module.id, function () {
         var obj3 = NSObject.new();
         expect(obj3.retainCount()).toBe(1);
     });
+    it('initializerResolving', function () {
+        var arr = new NSArray([1, 2, 3]);
+        expect(arr.objectAtIndex(0)).toBe(1);
+        expect(arr.objectAtIndex(1)).toBe(2);
+        expect(arr.objectAtIndex(2)).toBe(3);
+    });
 });
