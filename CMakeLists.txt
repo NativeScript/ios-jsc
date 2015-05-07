@@ -26,6 +26,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG=1")
 
 # TODO: Clang Analyzer, Tidy ...
 
+if(${BUILD_SHARED_LIBS})
+    set(NATIVESCRIPT_LIBRARY_TYPE SHARED)
+else()
+    set(NATIVESCRIPT_LIBRARY_TYPE STATIC)
+endif()
+
 add_subdirectory(src/NativeScript)
 add_subdirectory(examples/Gameraww)
 add_subdirectory(examples/BlankApp)

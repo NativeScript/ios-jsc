@@ -162,12 +162,35 @@ set_target_properties(NativeScript PROPERTIES
         -Werror -Wall -Wextra -Wcast-align -Wformat-security -Wmissing-format-attribute -Wpointer-arith -Wundef -Wwrite-strings
         -Wno-shorten-64-to-32 -Wno-bool-conversion -Wno-unused-parameter
     "
-    STATIC_LIBRARY_FLAGS "
-        -lJavaScriptCore -L\"${WEBKIT_DIR}/lib\"
-        -lffi -L\"${LIBFFI_DIR}/lib\"
-    "
-    XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN YES
+    XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "7.0"
 )
+
+if(${NATIVESCRIPT_LIBRARY_TYPE} STREQUAL "STATIC")
+    set_target_properties(NativeScript PROPERTIES
+        STATIC_LIBRARY_FLAGS "
+            -lJavaScriptCore -L\"${WEBKIT_DIR}/lib\"
+            -lffi -L\"${LIBFFI_DIR}/lib\"
+        "
+        XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN YES
+    )
+elseif(${NATIVESCRIPT_LIBRARY_TYPE} STREQUAL "SHARED")
+    set_target_properties(NativeScript PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION "1.0" # TODO
+        PUBLIC_HEADER "NativeScript.h;TNSRuntime.h;TNSRuntime+Inspector.h" # TODO
+        INSTALL_NAME_DIR "@executable_path/Frameworks"
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
+        MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
+    )
+    target_link_libraries(NativeScript
+        -lJavaScriptCore -L"${WEBKIT_DIR}/lib"
+        -lffi -L"${LIBFFI_DIR}/lib"
+        "-framework UIKit"
+        libicucore.dylib
+        libz.dylib
+        libc++.dylib
+    )
+endif()
 
 include(EmbedResourceInHeader)
 foreach(_jsfile ${JSFILES})
