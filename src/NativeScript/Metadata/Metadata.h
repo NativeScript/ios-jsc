@@ -243,12 +243,32 @@ public:
     UInt8 _flags;
     MetaFileOffset _name;
     MetaFileOffset _libraries;
+    
+    const char *name() const {
+        return getMetadata()->moveInHeap(_name)->readString();
+    }
+    
+    bool isFramework() {
+        return (_flags & 1) > 0;
+    }
+    
+    bool isSystem() {
+        return (_flags & 2) > 0;
+    }
 };
 
 struct LibraryMeta {
 public:
     UInt8 _flags;
     MetaFileOffset _name;
+    
+    const char *name() const {
+        return getMetadata()->moveInHeap(_name)->readString();
+    }
+    
+    bool isFramework() {
+        return (_flags & 1) > 0;
+    }
 };
     
 struct Meta {
@@ -263,10 +283,9 @@ public:
     MetaType type() const {
         return (MetaType)(this->_flags & MetaTypeMask);
     }
-
-    std::string topLevelModuleName() const {
-        ModuleMeta *module = (ModuleMeta *)getMetadata()->moveInHeap(this->_topLevelModule)->asPointer();
-        return getMetadata()->moveInHeap(module->_name)->readString();
+    
+    const ModuleMeta* topLevelModule() const {
+        return getMetadata()->moveInHeap(this->_topLevelModule)->asPtrTo<ModuleMeta>();
     }
 
     bool hasName() const {

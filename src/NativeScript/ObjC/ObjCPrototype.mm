@@ -43,7 +43,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
 
     if (MethodMeta* memberMeta = prototype->_metadata->instanceMethod(propertyName.publicName())) {
-        SymbolLoader::instance().ensureFramework(memberMeta->topLevelModuleName());
+        SymbolLoader::instance().ensureFramework(memberMeta->topLevelModule()->name());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
         ObjCMethodCall* method = ObjCMethodCall::create(globalObject->vm(), globalObject, globalObject->objCMethodCallStructure(), memberMeta);
@@ -147,7 +147,7 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
     std::vector<PropertyMeta*> properties = const_cast<InterfaceMeta*>(this->_metadata)->propertiesWithProtocols();
 
     for (PropertyMeta* propertyMeta : properties) {
-        SymbolLoader::instance().ensureFramework(propertyMeta->topLevelModuleName());
+        SymbolLoader::instance().ensureFramework(propertyMeta->topLevelModule()->name());
 
         MethodMeta* getter = propertyMeta->getter();
         MethodMeta* setter = propertyMeta->setter();
