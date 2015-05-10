@@ -1,6 +1,6 @@
 // This node app runs tests and logs the results in a file.
 // Parameters:
-//  - Path to APK to deploy and run.
+//  - Path to IPA to deploy and run.
 //  - Path for the junit.xml output.
 
 // We need to pass also the device...
