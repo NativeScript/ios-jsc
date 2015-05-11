@@ -283,6 +283,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "pushd \"$SRCROOT/metadataGenerator/bin\"\n./metadata-generation-build-step.sh\npopd";
+			showEnvVarsInLog = 0;
 		};
 		CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -297,6 +298,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ -d \"$SRCROOT/$PROJECT_NAME/tns_modules\" ]\nthen\n    cp -rp \"$SRCROOT/$PROJECT_NAME/tns_modules\" \"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH\"\nfi";
+			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
