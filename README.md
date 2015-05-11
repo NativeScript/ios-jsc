@@ -45,7 +45,7 @@ cmake .. -G Xcode -DCMAKE_OSX_SYSROOT=iphoneos -DCMAKE_C_COMPILER_WORKS=YES -DCM
 To build npm package run `grunt package` in the **root** of the repo.
 
 #### Artefacts
-The build should produce a `dist/tns-ios-*.tgz` file which is the NPM package. It should contain NativeScript.framework, NativeScript template project, Metadata Generator Tool and Metadata Merger Tool.
+The build should produce a `dist/tns-ios-*.tgz` file which is the NPM package. It should contain NativeScript, NativeScript template project, MetadataGenerator and WebInspectorUI.
 
 ## Test
 To run the tests on a connected device: `grunt test`.
