@@ -20,7 +20,6 @@ We have a [grunt](http://gruntjs.com) build setup. To run the build you will nee
  - [xcodebuild](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/xcodebuild.1.html) (using Xcode6, in case of multiple Xcode installations check [xcode-select](https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/xcode-select.1.html))
  - [xcpretty](https://github.com/supermarin/xcpretty)
  - [homebrew](http://brew.sh/) - Used to install various dependencies
- - [mono](http://www.mono-project.com/) - 64 bit version required, install with `brew install mono`
  - [cmake](http://www.cmake.org/) - Required at path, install with `brew install cmake`
  - [llvm](http://llvm.org/) - Install with `brew tap homebrew/versions`, `brew install llvm36`
 
