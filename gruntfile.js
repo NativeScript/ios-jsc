@@ -169,7 +169,7 @@ module.exports = function (grunt) {
             },
 
             NativeScript: {
-                command: './build/build.sh',
+                command: './build/scripts/build.sh',
                 options: {
                     execOptions: {
                         maxBuffer: Infinity
@@ -179,7 +179,7 @@ module.exports = function (grunt) {
 
             runTests: {
                 command: function(app, jUnitLocation, device_udid) {
-                    var cmd = util.format('node build/tasks/run-tests.js %s %s %s', app, jUnitLocation, device_udid);
+                    var cmd = util.format('node build/scripts/run-tests.js %s %s %s', app, jUnitLocation, device_udid);
                     return cmd;
                 }
             },
