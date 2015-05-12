@@ -40,8 +40,11 @@ using namespace JSC;
 }
 
 - (id)objectAtIndex:(NSUInteger)index {
-    JSLockHolder lock(self->_execState);
+    if (!(index < [self count])) {
+        @throw [NSException exceptionWithName:NSRangeException reason:[NSString stringWithFormat:@"Index (%tu) out of bounds", index] userInfo:nil];
+    }
 
+    JSLockHolder lock(self->_execState);
     return toObject(self->_execState, self->_object.get()->get(self->_execState, index));
 }
 
