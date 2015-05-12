@@ -9,34 +9,16 @@
 #include "MetaFileReader.h"
 #include "Metadata.h"
 
-#ifdef TESTING
-#if defined(__LP64__) && __LP64__
-#include "metadataArm64Bin.h"
-#else
-#include "metadataArmv7Bin.h"
-#endif
-#endif
-
 namespace Metadata {
 
 std::function<bool(const Meta*)> metaPredicate = [](const Meta* meta) -> bool {
     return meta->isAvailable();
 };
 
-/// MetaFileReader
-#ifdef TESTING
-#if defined(__LP64__) && __LP64__
-MetaFile file(metadata_arm64_bin);
-#else
-MetaFile file(metadata_armv7_bin);
-#endif
-#else
-MetaFile file((std::string("metadata-") + std::string(CURRENT_ARCH) + ".bin").c_str());
-#endif
+static MetaFile metaFile((std::string("metadata-") + std::string(CURRENT_ARCH) + std::string(".bin")).c_str());
+static MetaFileReader metaFileReader(metaFile);
 
-MetaFileReader metaFile(file);
-
-MetaFileReader* getMetadata() { return &metaFile; }
+MetaFileReader* getMetadata() { return &metaFileReader; }
 
 int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated, size_t length) {
     int result = strncmp(nullTerminated, notNullTerminated, length);
