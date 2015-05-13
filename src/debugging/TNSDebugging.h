@@ -71,7 +71,7 @@ startListening(TNSInspectorFrontendConnectedHandler connectedHandler) {
 
       TNSInspectorSendMessageBlock sender = ^(NSString *message) {
           NSData *messageData =
-              [message dataUsingEncoding:NSUTF8StringEncoding];
+              [message dataUsingEncoding:NSUTF16LittleEndianStringEncoding];
           uint32_t length = htonl(messageData.length);
 
           NSMutableData *payload =
@@ -116,7 +116,7 @@ startListening(TNSInspectorFrontendConnectedHandler connectedHandler) {
 
               NSString *payload =
                   [[NSString alloc] initWithData:(NSData *)data
-                                        encoding:NSUTF8StringEncoding];
+                                        encoding:NSUTF16LittleEndianStringEncoding];
               handler(payload, nil);
 
               dispatch_io_read(io, 0, 4, queue, ioHandler);
