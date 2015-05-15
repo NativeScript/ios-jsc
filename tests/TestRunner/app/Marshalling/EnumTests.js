@@ -28,9 +28,9 @@ describe(module.id, function () {
     });
     
     it("EnumShortNames", function () {
-       expect(NSComparisonResult.Ascending).toBe(-1);
-       expect(NSComparisonResult.Same).toBe(0);
-       expect(NSComparisonResult.Descending).toBe(1);
+       expect(NSComparisonResult.OrderedAscending).toBe(-1);
+       expect(NSComparisonResult.OrderedSame).toBe(0);
+       expect(NSComparisonResult.OrderedDescending).toBe(1);
     });
          
     it("EnumLongNames", function () {
@@ -47,6 +47,7 @@ describe(module.id, function () {
          
     it("EnumWithOneValue", function () {
         expect(NSDataBase64DecodingOptions.NSDataBase64DecodingIgnoreUnknownCharacters).toBe(1);
+        expect(NSDataBase64DecodingOptions.IgnoreUnknownCharacters).toBe(1);
     });
     
 });
