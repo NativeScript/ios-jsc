@@ -197,6 +197,7 @@
 				CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */,
 				85F5BDFC1A9363BE006B9701 /* Embed Frameworks */,
 				C97FD7AC1ADE5369004DB2A4 /* Generate Metadata */,
+				CD3EAD351B05FF060042DBFC /* Strip Dynamic Framework Architectures */,
 			);
 			buildRules = (
 			);
@@ -282,7 +283,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "pushd \"$SRCROOT/metadataGenerator/bin\"\n./metadata-generation-build-step.sh\npopd";
+			shellScript = "cd \"$SRCROOT/metadataGenerator/bin\"\nbash metadata-generation-build-step.sh";
+			showEnvVarsInLog = 0;
+		};
+		CD3EAD351B05FF060042DBFC /* Strip Dynamic Framework Architectures */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Dynamic Framework Architectures";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Remove this step when Xcode starts to do this automatically\n\nbash \"$SRCROOT/$PROJECT_NAME/strip-dynamic-framework-architectures.sh\"";
 			showEnvVarsInLog = 0;
 		};
 		CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */ = {
