@@ -44,5 +44,9 @@ describe(module.id, function () {
         expect(NSOrderedSame).toBe(0);
         expect(NSOrderedDescending).toBe(1);
     });
+         
+    it("EnumWithOneValue", function () {
+        expect(NSDataBase64DecodingOptions.NSDataBase64DecodingIgnoreUnknownCharacters).toBe(1);
+    });
     
 });
