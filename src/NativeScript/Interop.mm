@@ -114,10 +114,11 @@ const char* getCompilerEncoding(JSCell* value) {
 }
     
 std::string getCompilerEncoding(JSC::JSGlobalObject *globalObject, Metadata::MethodMeta* method) {
-    Metadata::MetaFileOffset encoding = method->encodingOffset();
+    Metadata::TypeEncodingsList<Metadata::ArrayCount> *encodings = method->encodings();
     GlobalObject *nsGlobalObject = jsCast<GlobalObject*>(globalObject);
-    JSCell* returnTypeCell = nsGlobalObject->typeFactory()->parseType(nsGlobalObject, encoding);
-    const WTF::Vector<JSCell*> parameterTypesCells = nsGlobalObject->typeFactory()->parseTypes(nsGlobalObject, encoding, method->encodingCount() - 1);
+    Metadata::TypeEncoding *currentEncoding = encodings->first();
+    JSCell* returnTypeCell = nsGlobalObject->typeFactory()->parseType(nsGlobalObject, currentEncoding);
+    const WTF::Vector<JSCell*> parameterTypesCells = nsGlobalObject->typeFactory()->parseTypes(nsGlobalObject, currentEncoding, encodings->_count - 1);
     
     std::stringstream compilerEncoding;
     

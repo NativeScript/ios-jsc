@@ -166,10 +166,10 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     }
 
     StringImpl* symbolName = propertyName.publicName();
-    const Meta* symbolMeta = getMetadata()->findMeta(symbolName);
-    if (!symbolMeta)
+    const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTable()->findMeta(symbolName);
+    if (symbolMeta == nullptr)
         return false;
-
+    
     JSValue symbolWrapper;
 
     switch (symbolMeta->type()) {
@@ -212,9 +212,9 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         void* functionSymbol = SymbolLoader::instance().loadFunctionSymbol(symbolMeta->topLevelModule()->name(), symbolMeta->name());
         if (functionSymbol) {
             const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
-            Metadata::MetaFileOffset cursor = functionMeta->encodingOffset();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, functionMeta->encodingCount() - 1);
+            Metadata::TypeEncoding *encodingPtr = functionMeta->encodings()->first();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr);
+            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->_count - 1);
             symbolWrapper = FFIFunctionCall::create(vm, globalObject->ffiFunctionCallStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
         }
         break;
@@ -223,8 +223,8 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         const VarMeta* varMeta = static_cast<const VarMeta*>(symbolMeta);
         void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule()->name(), varMeta->name());
         if (varSymbol) {
-            MetaFileOffset cursor = varMeta->encodingOffset();
-            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, cursor);
+            Metadata::TypeEncoding *encoding = varMeta->encoding();
+            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding);
             symbolWrapper = getFFITypeMethodTable(symbolType).read(execState, varSymbol, symbolType);
         }
         break;
@@ -258,9 +258,10 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 //
 // Once we start grouping declarations by modules, this can be safely restored.
 void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
-    MetaFileReader* metadata = getMetadata();
-    for (MetaIterator it = metadata->begin(); it != metadata->end(); ++it) {
-        propertyNames.add(Identifier(execState, (*it)->jsName()));
+    const GlobalTable *globalTable = MetaFile::instance()->globalTable();
+    for (Metadata::GlobalTable::iterator it = globalTable->begin(); it != globalTable->end(); it++) {
+        if((*it)->isAvailable())
+            propertyNames.add(Identifier(execState, (*it)->jsName()));
     }
 
     Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
@@ -275,10 +276,10 @@ ObjCConstructorBase* GlobalObject::constructorFor(Class klass, Class fallback) {
         return kvp->second.get();
     }
 
-    const Meta* meta = getMetadata()->findMeta(class_getName(klass));
+    const Meta* meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
     while (!meta) {
         klass = class_getSuperclass(klass);
-        meta = getMetadata()->findMeta(class_getName(klass));
+        meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
     }
 
     if (klass == [NSObject class] && fallback) {
@@ -305,10 +306,10 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     }
 
     CString protocolName = protocol_getName(aProtocol);
-    const Meta* meta = getMetadata()->findMeta(protocolName.data());
+    const Meta* meta = MetaFile::instance()->globalTable()->findMeta(protocolName.data());
     if (meta && meta->type() != MetaType::ProtocolType) {
         protocolName = WTF::String::format("%sProtocol", protocolName.data()).utf8();
-        meta = getMetadata()->findMeta(protocolName.data());
+        meta = MetaFile::instance()->globalTable()->findMeta(protocolName.data());
     }
 
     ObjCProtocolWrapper* protocolWrapper = ObjCProtocolWrapper::create(this->vm(), ObjCProtocolWrapper::createStructure(this->vm(), this, this->objectPrototype()), static_cast<const ProtocolMeta*>(meta), aProtocol);

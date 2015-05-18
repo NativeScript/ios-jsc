@@ -107,9 +107,10 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 
     std::string compilerEncoding = getCompilerEncoding(globalObject, meta);
     
-    MetaFileOffset encoding = meta->encodingOffset();
-    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encoding);
-    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encoding, meta->encodingCount() - 1);
+    TypeEncoding *encodings = meta->encodings()->first();
+    
+    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings);
+    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, meta->encodings()->_count - 1);
     
     ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeCell, parameterTypesCells);
     gcProtect(callback);
@@ -314,9 +315,9 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         VM& vm = globalObject->vm();
 
         if (MethodMeta* getter = propertyMeta->getter()) {
-            Metadata::MetaFileOffset cursor = getter->encodingOffset();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, getter->encodingCount() - 1);
+            TypeEncoding *encodings = getter->encodings()->first();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
+            const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->_count - 1);
 
             ObjCMethodCallback* getterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.getter().asCell(), returnType, parameterTypes);
             gcProtect(getterCallback);
@@ -327,9 +328,9 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         }
 
         if (MethodMeta* setter = propertyMeta->setter()) {
-            Metadata::MetaFileOffset cursor = setter->encodingOffset();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, setter->encodingCount() - 1);
+            TypeEncoding *encodings = setter->encodings()->first();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
+            const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->_count - 1);
 
             ObjCMethodCallback* setterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.setter().asCell(), returnType, parameterTypes);
             gcProtect(setterCallback);
