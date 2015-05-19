@@ -129,18 +129,18 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
         baseClassMetaStack.pop_back();
 
         for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->_instanceMethods->begin(); it != baseClassMeta->_instanceMethods->end(); it++) {
-            if((*it)->isAvailable())
+            if ((*it)->isAvailable())
                 propertyNames.add(Identifier(execState, (*it)->jsName()));
         }
-        
+
         for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->_properties->begin(); it != baseClassMeta->_properties->end(); it++) {
-            if((*it)->isAvailable())
+            if ((*it)->isAvailable())
                 propertyNames.add(Identifier(execState, (*it)->jsName()));
         }
-        
+
         for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->_protocols->begin(); it != baseClassMeta->_protocols->end(); it++) {
-            const ProtocolMeta *protocolMeta = (const ProtocolMeta *)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
-            if(protocolMeta != nullptr)
+            const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
+            if (protocolMeta != nullptr)
                 baseClassMetaStack.push_back(protocolMeta);
         }
     }
@@ -152,7 +152,7 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
     std::vector<PropertyMeta*> properties = const_cast<InterfaceMeta*>(this->_metadata)->propertiesWithProtocols();
 
     for (PropertyMeta* propertyMeta : properties) {
-        if(propertyMeta->isAvailable()) {
+        if (propertyMeta->isAvailable()) {
             SymbolLoader::instance().ensureFramework(propertyMeta->topLevelModule()->name());
 
             MethodMeta* getter = (propertyMeta->getter() != nullptr && propertyMeta->getter()->isAvailable()) ? propertyMeta->getter() : nullptr;

@@ -34,8 +34,8 @@ using namespace Metadata;
 const ClassInfo TypeFactory::s_info = { "TypeFactory", 0, 0, 0, CREATE_METHOD_TABLE(TypeFactory) };
 
 ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, TypeEncodingsList<uint8_t>& typeEncodings) {
-    TypeEncoding *typeEncodingPtr = typeEncodings.first();
-    JSCell *returnType = this->parseType(globalObject, typeEncodingPtr);
+    TypeEncoding* typeEncodingPtr = typeEncodings.first();
+    JSCell* returnType = this->parseType(globalObject, typeEncodingPtr);
     const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings._count - 1);
     return this->getObjCBlockType(globalObject, returnType, parameters);
 }
@@ -63,7 +63,7 @@ ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell*
 }
 
 JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, TypeEncodingsList<uint8_t>& typeEncodings) {
-    TypeEncoding *typeEncodingPtr = typeEncodings.first();
+    TypeEncoding* typeEncodingPtr = typeEncodings.first();
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr);
     const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings._count - 1);
     return this->getFunctionReferenceTypeInstance(globalObject, returnType, parameterTypes);
@@ -118,10 +118,10 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTable()->findMeta(structName.impl()));
     ASSERT(structInfo && structInfo->type() == MetaType::Struct);
 
-    TypeEncoding *encodingsPtr = structInfo->fieldsEncodings()->first();
+    TypeEncoding* encodingsPtr = structInfo->fieldsEncodings()->first();
     fieldsTypes = parseTypes(globalObject, encodingsPtr, structInfo->fieldsEncodings()->_count);
 
-    for(Array<Metadata::String>::iterator it = structInfo->fieldNames().begin(); it != structInfo->fieldNames().end(); it++) {
+    for (Array<Metadata::String>::iterator it = structInfo->fieldNames().begin(); it != structInfo->fieldNames().end(); it++) {
         fieldsNames.append(WTF::ASCIILiteral((*it).valuePtr()));
     }
 
@@ -140,7 +140,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     return constructor;
 }
 
-    RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
+RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
     ffi_type* ffiType = new ffi_type({ .size = 0,
                                        .alignment = 0,
                                        .type = FFI_TYPE_STRUCT });
@@ -156,11 +156,11 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     WTF::Vector<WTF::String> fieldsNames;
 
     for (int i = 0; i < details.fieldsCount; ++i) {
-        Metadata::String *currentName = details.getFieldNames() + i;
+        Metadata::String* currentName = details.getFieldNames() + i;
         fieldsNames.append(WTF::ASCIILiteral(currentName->valuePtr()));
     }
 
-    TypeEncoding *encodingsPtr = details.getFieldsEncodings();
+    TypeEncoding* encodingsPtr = details.getFieldsEncodings();
     fieldsTypes = parseTypes(globalObject, encodingsPtr, details.fieldsCount);
 
     WTF::Vector<RecordField*> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
@@ -224,7 +224,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
             }
         }
 
-        delete[] ffiType -> elements;
+        delete[] ffiType->elements;
         ffiType->elements = new ffi_type* [flattenedFfiTypes.size() + 1];
         memcpy(ffiType->elements, flattenedFfiTypes.data(), flattenedFfiTypes.size() * sizeof(ffi_type*));
         ffiType->elements[flattenedFfiTypes.size()] = nullptr;
@@ -320,129 +320,135 @@ ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject,
 }
 
 JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, Metadata::TypeEncoding*& typeEncoding) {
-    JSC::JSCell *result = nullptr;
+    JSC::JSCell* result = nullptr;
 
     switch (typeEncoding->type) {
-        case BinaryTypeEncodingType::UnknownEncoding:
-            ASSERT_NOT_REACHED();
-        case BinaryTypeEncodingType::VoidEncoding:
-            result = this->_voidType.get(); break;
-        case BinaryTypeEncodingType::BoolEncoding:
-            result = this->_boolType.get(); break;
-        case BinaryTypeEncodingType::ShortEncoding:
-            result = this->_int16Type.get(); break;
-        case BinaryTypeEncodingType::UShortEncoding:
-            result = this->_uint16Type.get(); break;
-        case BinaryTypeEncodingType::IntEncoding:
-            result = this->_int32Type.get(); break;
-        case BinaryTypeEncodingType::UIntEncoding:
-            result = this->_uint32Type.get(); break;
-        case BinaryTypeEncodingType::LongEncoding:
+    case BinaryTypeEncodingType::UnknownEncoding:
+        ASSERT_NOT_REACHED();
+    case BinaryTypeEncodingType::VoidEncoding:
+        result = this->_voidType.get();
+        break;
+    case BinaryTypeEncodingType::BoolEncoding:
+        result = this->_boolType.get();
+        break;
+    case BinaryTypeEncodingType::ShortEncoding:
+        result = this->_int16Type.get();
+        break;
+    case BinaryTypeEncodingType::UShortEncoding:
+        result = this->_uint16Type.get();
+        break;
+    case BinaryTypeEncodingType::IntEncoding:
+        result = this->_int32Type.get();
+        break;
+    case BinaryTypeEncodingType::UIntEncoding:
+        result = this->_uint32Type.get();
+        break;
+    case BinaryTypeEncodingType::LongEncoding:
 #if defined(__LP64__)
-            COMPILE_ASSERT(sizeof(long) == sizeof(int64_t), "sizeof long");
-            result = this->_int64Type.get();
+        COMPILE_ASSERT(sizeof(long) == sizeof(int64_t), "sizeof long");
+        result = this->_int64Type.get();
 #else
-            COMPILE_ASSERT(sizeof(long) == sizeof(int32_t), "sizeof long");
-            result = this->_int32Type.get();
+        COMPILE_ASSERT(sizeof(long) == sizeof(int32_t), "sizeof long");
+        result = this->_int32Type.get();
 #endif
-            break;
-        case BinaryTypeEncodingType::ULongEncoding:
+        break;
+    case BinaryTypeEncodingType::ULongEncoding:
 #if defined(__LP64__)
-            COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint64_t), "sizeof ulong");
-            result = this->_uint64Type.get();
+        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint64_t), "sizeof ulong");
+        result = this->_uint64Type.get();
 #else
-            COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint32_t), "sizeof ulong");
-            result = this->_uint32Type.get();
+        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint32_t), "sizeof ulong");
+        result = this->_uint32Type.get();
 #endif
-             break;
-        case BinaryTypeEncodingType::LongLongEncoding:
-            result = this->_int64Type.get();
-            break;
-        case BinaryTypeEncodingType::ULongLongEncoding:
-            result = this->_uint64Type.get();
-            break;
-        case BinaryTypeEncodingType::CharEncoding:
-            result = this->_int8Type.get();
-            break;
-        case BinaryTypeEncodingType::UCharEncoding:
-            result = this->_uint8Type.get();
-            break;
-        case BinaryTypeEncodingType::UnicharEncoding:
-            result = this->_unicharType.get();
-            break;
-        case BinaryTypeEncodingType::CStringEncoding:
-            result = this->_utf8CStringType.get();
-            break;
-        case BinaryTypeEncodingType::FloatEncoding:
-            result = this->_floatType.get();
-            break;
-        case BinaryTypeEncodingType::DoubleEncoding:
-            result = this->_doubleType.get();
-            break;
-        case BinaryTypeEncodingType::InterfaceDeclarationReference: {
-            WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
-            result = getObjCNativeConstructor(globalObject, declarationName);
-            break;
-        }
-        case BinaryTypeEncodingType::StructDeclarationReference: {
-            WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
-            result = this->getStructConstructor(globalObject, declarationName);
-            break;
-        }
-        case BinaryTypeEncodingType::UnionDeclarationReference: {
-            result = this->_noopType.get(); // unions are not supported
-            break;
-        }
-        case BinaryTypeEncodingType::PointerEncoding: {
-            TypeEncoding *innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
-            JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-            result = (innerType == this->_voidType.get()) ? jsCast<JSCell *>(this->_pointerConstructor.get()) : jsCast<JSCell *>(this->getReferenceType(globalObject, innerType));
-            break;
-        }
-        case BinaryTypeEncodingType::VaListEncoding:
-            result = this->_noopType.get(); // Not supported
-            break;
-        case BinaryTypeEncodingType::SelectorEncoding:
-            result = this->_objCSelectorType.get();
-            break;
-        case BinaryTypeEncodingType::ClassEncoding:
-            result = this->_objCClassType.get();
-            break;
-        case BinaryTypeEncodingType::ProtocolEncoding:
-            result = this->_objCProtocolType.get();
-            break;
-        case BinaryTypeEncodingType::InstanceTypeEncoding:
-            result = this->_objCInstancetypeType.get();
-            break;
-        case BinaryTypeEncodingType::IdEncoding:
-            result = this->NSObjectConstructor(globalObject);
-            break;
-        case BinaryTypeEncodingType::ConstantArrayEncoding: {
-            TypeEncoding *innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
-            JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-            result = this->getReferenceType(globalObject, innerType);
-            break;
-        }
-        case BinaryTypeEncodingType::IncompleteArrayEncoding: {
-            TypeEncoding *innerTypeEncoding = typeEncoding->details.incompleteArray.getInnerType();
-            JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-            result = this->getReferenceType(globalObject, innerType);
-            break;
-        }
-        case BinaryTypeEncodingType::FunctionPointerEncoding:
-            result = this->parseFunctionReferenceType(globalObject, typeEncoding->details.functionPointer.signature);
-            break;
-        case BinaryTypeEncodingType::BlockEncoding:
-            result = this->parseBlockType(globalObject, typeEncoding->details.block.signature);
-            break;
-        case BinaryTypeEncodingType::AnonymousStructEncoding:
-            result = this->getAnonymousStructConstructor(globalObject, typeEncoding->details.anonymousRecord);
-            break;
-        case BinaryTypeEncodingType::AnonymousUnionEncoding:
-            result = this->_noopType.get(); // unions are not supported
-            break;
-        default:
-            ASSERT_NOT_REACHED(); // Unknown type encoding
+        break;
+    case BinaryTypeEncodingType::LongLongEncoding:
+        result = this->_int64Type.get();
+        break;
+    case BinaryTypeEncodingType::ULongLongEncoding:
+        result = this->_uint64Type.get();
+        break;
+    case BinaryTypeEncodingType::CharEncoding:
+        result = this->_int8Type.get();
+        break;
+    case BinaryTypeEncodingType::UCharEncoding:
+        result = this->_uint8Type.get();
+        break;
+    case BinaryTypeEncodingType::UnicharEncoding:
+        result = this->_unicharType.get();
+        break;
+    case BinaryTypeEncodingType::CStringEncoding:
+        result = this->_utf8CStringType.get();
+        break;
+    case BinaryTypeEncodingType::FloatEncoding:
+        result = this->_floatType.get();
+        break;
+    case BinaryTypeEncodingType::DoubleEncoding:
+        result = this->_doubleType.get();
+        break;
+    case BinaryTypeEncodingType::InterfaceDeclarationReference: {
+        WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
+        result = getObjCNativeConstructor(globalObject, declarationName);
+        break;
+    }
+    case BinaryTypeEncodingType::StructDeclarationReference: {
+        WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
+        result = this->getStructConstructor(globalObject, declarationName);
+        break;
+    }
+    case BinaryTypeEncodingType::UnionDeclarationReference: {
+        result = this->_noopType.get(); // unions are not supported
+        break;
+    }
+    case BinaryTypeEncodingType::PointerEncoding: {
+        TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        result = (innerType == this->_voidType.get()) ? jsCast<JSCell*>(this->_pointerConstructor.get()) : jsCast<JSCell*>(this->getReferenceType(globalObject, innerType));
+        break;
+    }
+    case BinaryTypeEncodingType::VaListEncoding:
+        result = this->_noopType.get(); // Not supported
+        break;
+    case BinaryTypeEncodingType::SelectorEncoding:
+        result = this->_objCSelectorType.get();
+        break;
+    case BinaryTypeEncodingType::ClassEncoding:
+        result = this->_objCClassType.get();
+        break;
+    case BinaryTypeEncodingType::ProtocolEncoding:
+        result = this->_objCProtocolType.get();
+        break;
+    case BinaryTypeEncodingType::InstanceTypeEncoding:
+        result = this->_objCInstancetypeType.get();
+        break;
+    case BinaryTypeEncodingType::IdEncoding:
+        result = this->NSObjectConstructor(globalObject);
+        break;
+    case BinaryTypeEncodingType::ConstantArrayEncoding: {
+        TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        result = this->getReferenceType(globalObject, innerType);
+        break;
+    }
+    case BinaryTypeEncodingType::IncompleteArrayEncoding: {
+        TypeEncoding* innerTypeEncoding = typeEncoding->details.incompleteArray.getInnerType();
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        result = this->getReferenceType(globalObject, innerType);
+        break;
+    }
+    case BinaryTypeEncodingType::FunctionPointerEncoding:
+        result = this->parseFunctionReferenceType(globalObject, typeEncoding->details.functionPointer.signature);
+        break;
+    case BinaryTypeEncodingType::BlockEncoding:
+        result = this->parseBlockType(globalObject, typeEncoding->details.block.signature);
+        break;
+    case BinaryTypeEncodingType::AnonymousStructEncoding:
+        result = this->getAnonymousStructConstructor(globalObject, typeEncoding->details.anonymousRecord);
+        break;
+    case BinaryTypeEncodingType::AnonymousUnionEncoding:
+        result = this->_noopType.get(); // unions are not supported
+        break;
+    default:
+        ASSERT_NOT_REACHED(); // Unknown type encoding
     }
     typeEncoding = typeEncoding->next();
     return result;

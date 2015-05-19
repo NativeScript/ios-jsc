@@ -19,7 +19,7 @@ using namespace Metadata;
 ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue value, MethodMeta* meta) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    Metadata::TypeEncoding *typeEncodings = meta->encodings()->first();
+    Metadata::TypeEncoding* typeEncodings = meta->encodings()->first();
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings);
     Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->_count - 1);
 

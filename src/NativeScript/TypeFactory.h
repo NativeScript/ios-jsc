@@ -47,7 +47,7 @@ public:
     }
 
     JSC::JSCell* parseType(GlobalObject*, Metadata::TypeEncoding*&);
-    
+
     const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, Metadata::TypeEncoding*& typeEncodings, int count);
 
     ObjCConstructorNative* getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName);

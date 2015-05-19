@@ -27,13 +27,13 @@ void* loadFileInMemory(const char* filePath) {
     close(fd);
     return file;
 }
-    
+
 static bool isInExtension() {
     NSDictionary* infoDict = [[NSBundle mainBundle] infoDictionary];
     id nsExtensionDictionary = [infoDict objectForKey:@"NSExtension"];
     return nsExtensionDictionary != nil;
 }
-    
+
 /**
  * \brief Gets the system version of the current device.
  */
@@ -44,7 +44,7 @@ static UInt8 getSystemVersion() {
     }
 
     NSString* version = [[UIDevice currentDevice] systemVersion];
-    NSArray *versionTokens = [version componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"."]];
+    NSArray* versionTokens = [version componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"."]];
     UInt8 majorVersion = (UInt8)[versionTokens[0] intValue];
     UInt8 minorVersion = (UInt8)[versionTokens[1] intValue];
 
@@ -58,7 +58,7 @@ bool startsWith(const char* pre, const char* str) {
            lenstr = strlen(str);
     return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
 }
-    
+
 int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated, size_t length) {
     int result = strncmp(nullTerminated, notNullTerminated, length);
     return (result == 0) ? strlen(nullTerminated) - length : result;
@@ -72,15 +72,15 @@ const Meta* GlobalTable::findMeta(const char* identifierString, bool onlyIfAvail
     unsigned hash = WTF::StringHasher::computeHashAndMaskTop8Bits<LChar>((const LChar*)identifierString);
     return this->findMeta(identifierString, strlen(identifierString), hash, onlyIfAvailable);
 }
-    
+
 const Meta* GlobalTable::findMeta(const char* identifierString, size_t length, unsigned hash, bool onlyIfAvailable) const {
     int bucketIndex = hash % buckets.count;
-    if(this->buckets[bucketIndex].isNull()) {
+    if (this->buckets[bucketIndex].isNull()) {
         return nullptr;
     }
     ArrayOfPtrTo<Meta>& bucketContent = buckets[bucketIndex].value();
     for (ArrayOfPtrTo<Meta>::iterator it = bucketContent.begin(); it != bucketContent.end(); it++) {
-        Meta *meta = (*it).valuePtr();
+        Meta* meta = (*it).valuePtr();
         if (compareIdentifiers(meta->jsName(), identifierString, length) == 0) {
             return onlyIfAvailable ? (meta->isAvailable() ? meta : nullptr) : meta;
         }
@@ -91,13 +91,13 @@ const Meta* GlobalTable::findMeta(const char* identifierString, size_t length, u
 // Meta
 bool Meta::isAvailable() const {
     UInt8 introducedIn = this->introducedIn();
-    if(introducedIn == 255)
+    if (introducedIn == 255)
         return false; // has unavailable flag
     UInt8 systemVersion = getSystemVersion();
 
     return introducedIn == 0 || introducedIn <= systemVersion;
 }
-    
+
 UInt8 Meta::introducedIn() const {
     static bool isExtension(isInExtension());
     return isExtension ? this->introducedInExtensions() : this->introducedInHost();
@@ -107,32 +107,32 @@ UInt8 Meta::introducedIn() const {
 MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable) const {
     const ArrayOfPtrTo<MemberMeta>* members;
     switch (type) {
-        case MemberType::InstanceMethod :
-            members = &this->_instanceMethods->castTo<PtrTo<MemberMeta>>();
-            break;
-        case MemberType::StaticMethod :
-            members = &this->_staticMethods->castTo<PtrTo<MemberMeta>>();
-            break;
-        case MemberType::Property :
-            members = &this->_properties->castTo<PtrTo<MemberMeta>>();
-            break;
+    case MemberType::InstanceMethod:
+        members = &this->_instanceMethods->castTo<PtrTo<MemberMeta>>();
+        break;
+    case MemberType::StaticMethod:
+        members = &this->_staticMethods->castTo<PtrTo<MemberMeta>>();
+        break;
+    case MemberType::Property:
+        members = &this->_properties->castTo<PtrTo<MemberMeta>>();
+        break;
     }
-    
+
     int resultIndex = -1;
     if (members != nullptr) {
-        resultIndex = members->binarySearch([&] (const PtrTo<MemberMeta> &member) { return compareIdentifiers(member->jsName(), identifier, length); } );
+        resultIndex = members->binarySearch([&](const PtrTo<MemberMeta>& member) { return compareIdentifiers(member->jsName(), identifier, length); });
     }
 
     if (resultIndex >= 0) {
-        MemberMeta *memberMeta = (*members)[resultIndex].valuePtr();
+        MemberMeta* memberMeta = (*members)[resultIndex].valuePtr();
         return onlyIfAvailable ? (memberMeta->isAvailable() ? memberMeta : nullptr) : memberMeta;
     }
 
     // search in protcols
     if (includeProtocols) {
         for (Array<String>::iterator it = _protocols->begin(); it != _protocols->end(); ++it) {
-            const ProtocolMeta *protocolMeta = (ProtocolMeta *)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
-            if(protocolMeta != nullptr) {
+            const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
+            if (protocolMeta != nullptr) {
                 if (MemberMeta* method = protocolMeta->member(identifier, length, type, onlyIfAvailable)) {
                     return method;
                 }
@@ -142,12 +142,12 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
 
     return nullptr;
 }
-    
+
 std::vector<PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<PropertyMeta*>& container) const {
     this->properties(container);
     for (Array<String>::iterator it = _protocols->begin(); it != _protocols->end(); ++it) {
-        const ProtocolMeta *protocolMeta = (ProtocolMeta *)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
-        if(protocolMeta != nullptr)
+        const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
+        if (protocolMeta != nullptr)
             protocolMeta->propertiesWithProtocols(container);
     }
     return container;
@@ -158,11 +158,10 @@ vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) 
     int16_t firstInitIndex = this->initializersStartIndex();
     if (firstInitIndex != -1) {
         for (int i = firstInitIndex; i < _instanceMethods->count; i++) {
-            MethodMeta *method = _instanceMethods.value()[i].valuePtr();
+            MethodMeta* method = _instanceMethods.value()[i].valuePtr();
             if (startsWith("init", method->jsName())) {
                 container.push_back(method);
-            }
-            else {
+            } else {
                 break;
             }
         }
@@ -173,8 +172,8 @@ vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) 
 vector<MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<MethodMeta*>& container) const {
     this->initializers(container);
     for (Array<String>::iterator it = this->_protocols->begin(); it != this->_protocols->end(); it++) {
-        const ProtocolMeta *protocolMeta = (ProtocolMeta *)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
-        if(protocolMeta != nullptr)
+        const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
+        if (protocolMeta != nullptr)
             protocolMeta->initializersWithProtcols(container);
     }
     return container;
@@ -183,36 +182,34 @@ vector<MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<MethodMeta*>&
 const Meta* GlobalTable::iterator::getCurrent() {
     return this->_globalTable->buckets[_topLevelIndex].value()[_bucketIndex].valuePtr();
 }
-    
+
 GlobalTable::iterator& GlobalTable::iterator::operator++() {
     this->_bucketIndex++;
     this->findNext();
     return *this;
 }
-    
+
 const Meta* GlobalTable::iterator::operator*() {
     return this->getCurrent();
 }
-    
+
 bool GlobalTable::iterator::operator==(const iterator& other) const {
-    return _globalTable == other._globalTable &&
-    _topLevelIndex == other._topLevelIndex &&
-    _bucketIndex == other._bucketIndex;
+    return _globalTable == other._globalTable && _topLevelIndex == other._topLevelIndex && _bucketIndex == other._bucketIndex;
 }
 
 bool GlobalTable::iterator::operator!=(const iterator& other) const {
     return !(*this == other);
 }
-    
+
 void GlobalTable::iterator::findNext() {
     if (this->_topLevelIndex == this->_globalTable->buckets.count) {
         return;
     }
-    
+
     do {
-        if(!this->_globalTable->buckets[_topLevelIndex].isNull()) {
+        if (!this->_globalTable->buckets[_topLevelIndex].isNull()) {
             int bucketLength = this->_globalTable->buckets[_topLevelIndex].value().count;
-            while(this->_bucketIndex < bucketLength) {
+            while (this->_bucketIndex < bucketLength) {
                 if (this->getCurrent() != nullptr) {
                     return;
                 }
@@ -223,10 +220,9 @@ void GlobalTable::iterator::findNext() {
         this->_topLevelIndex++;
     } while (this->_topLevelIndex < this->_globalTable->buckets.count);
 }
-    
-MetaFile *MetaFile::instance() {
-    static MetaFile *instance((MetaFile *)loadFileInMemory((std::string("metadata-") + std::string(CURRENT_ARCH) + std::string(".bin")).c_str()));
+
+MetaFile* MetaFile::instance() {
+    static MetaFile* instance((MetaFile*)loadFileInMemory((std::string("metadata-") + std::string(CURRENT_ARCH) + std::string(".bin")).c_str()));
     return instance;
 }
-
 }

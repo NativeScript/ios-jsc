@@ -106,29 +106,29 @@ size_t sizeofValue(const JSC::JSValue& value) {
 
     return size;
 }
-    
+
 const char* getCompilerEncoding(JSCell* value) {
     const FFITypeMethodTable* table;
     tryGetFFITypeMethodTable(value, &table);
     return table->encode(value);
 }
-    
-std::string getCompilerEncoding(JSC::JSGlobalObject *globalObject, Metadata::MethodMeta* method) {
-    Metadata::TypeEncodingsList<Metadata::ArrayCount> *encodings = method->encodings();
-    GlobalObject *nsGlobalObject = jsCast<GlobalObject*>(globalObject);
-    Metadata::TypeEncoding *currentEncoding = encodings->first();
+
+std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, Metadata::MethodMeta* method) {
+    Metadata::TypeEncodingsList<Metadata::ArrayCount>* encodings = method->encodings();
+    GlobalObject* nsGlobalObject = jsCast<GlobalObject*>(globalObject);
+    Metadata::TypeEncoding* currentEncoding = encodings->first();
     JSCell* returnTypeCell = nsGlobalObject->typeFactory()->parseType(nsGlobalObject, currentEncoding);
     const WTF::Vector<JSCell*> parameterTypesCells = nsGlobalObject->typeFactory()->parseTypes(nsGlobalObject, currentEncoding, encodings->_count - 1);
-    
+
     std::stringstream compilerEncoding;
-    
+
     compilerEncoding << getCompilerEncoding(returnTypeCell);
     compilerEncoding << "@:"; // id self, SEL _cmd
-    
-    for(JSCell* cell : parameterTypesCells) {
+
+    for (JSCell* cell : parameterTypesCells) {
         compilerEncoding << getCompilerEncoding(cell);
     }
-    
+
     return compilerEncoding.str();
 }
 

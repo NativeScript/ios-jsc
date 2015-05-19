@@ -82,13 +82,13 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
 
         for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->_staticMethods->begin(); it != baseClassMeta->_staticMethods->end(); it++) {
             MethodMeta* meta = (*it).valuePtr();
-            if(meta->isAvailable())
+            if (meta->isAvailable())
                 propertyNames.add(Identifier(execState, meta->jsName()));
         }
-        
+
         for (Array<Metadata::String>::iterator it = baseClassMeta->_protocols->begin(); it != baseClassMeta->_protocols->end(); it++) {
-            const ProtocolMeta *protocolMeta = (const ProtocolMeta *)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
-            if(protocolMeta != nullptr)
+            const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
+            if (protocolMeta != nullptr)
                 baseClassMetaStack.push_back(protocolMeta);
         }
     }
@@ -106,7 +106,7 @@ const WTF::Vector<ObjCConstructorCall*> ObjCConstructorNative::initializersGener
         for (std::vector<MethodMeta*>::iterator init = initializers.begin(); init != initializers.end(); ++init) {
             MethodMeta* method = (*init);
 
-            if(method->isAvailable()) {
+            if (method->isAvailable()) {
                 ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), target, method);
                 constructors.append(constructorCall);
             }

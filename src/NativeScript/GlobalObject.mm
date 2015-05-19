@@ -169,7 +169,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTable()->findMeta(symbolName);
     if (symbolMeta == nullptr)
         return false;
-    
+
     JSValue symbolWrapper;
 
     switch (symbolMeta->type()) {
@@ -212,7 +212,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         void* functionSymbol = SymbolLoader::instance().loadFunctionSymbol(symbolMeta->topLevelModule()->name(), symbolMeta->name());
         if (functionSymbol) {
             const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
-            Metadata::TypeEncoding *encodingPtr = functionMeta->encodings()->first();
+            Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
             JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr);
             const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->_count - 1);
             symbolWrapper = FFIFunctionCall::create(vm, globalObject->ffiFunctionCallStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
@@ -223,7 +223,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         const VarMeta* varMeta = static_cast<const VarMeta*>(symbolMeta);
         void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule()->name(), varMeta->name());
         if (varSymbol) {
-            Metadata::TypeEncoding *encoding = varMeta->encoding();
+            Metadata::TypeEncoding* encoding = varMeta->encoding();
             JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding);
             symbolWrapper = getFFITypeMethodTable(symbolType).read(execState, varSymbol, symbolType);
         }
@@ -258,9 +258,9 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 //
 // Once we start grouping declarations by modules, this can be safely restored.
 void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
-    const GlobalTable *globalTable = MetaFile::instance()->globalTable();
+    const GlobalTable* globalTable = MetaFile::instance()->globalTable();
     for (Metadata::GlobalTable::iterator it = globalTable->begin(); it != globalTable->end(); it++) {
-        if((*it)->isAvailable())
+        if ((*it)->isAvailable())
             propertyNames.add(Identifier(execState, (*it)->jsName()));
     }
 

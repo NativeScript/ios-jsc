@@ -36,11 +36,11 @@ public:
     UInt32 getGlobalTableSlotsCount() const {
         return globalTableSlotsCount;
     }
-    
+
     const Offset* goToModulesTable(UInt32 index) const {
         return topLevelModulesTableStart + index;
     }
-    
+
     UInt32 getModulesTableCount() const {
         return topLevelModulesCount;
     }
