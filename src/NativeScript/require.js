@@ -94,7 +94,7 @@
     var modulesCache = new Map();
     function __loadModule(moduleIdentifier, previousPath) {
         if (/\.js$/.test(moduleIdentifier)) {
-            throw new Error('Module identifiers may not have file-name extensions like ".js"');
+            moduleIdentifier = moduleIdentifier.replace(/\.js$/, '');
         }
 
         var moduleMetadata = __findModule(moduleIdentifier, previousPath);
