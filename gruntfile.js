@@ -261,7 +261,7 @@ module.exports = function (grunt) {
     ]);
 
     grunt.registerTask('run-tests', [
-        util.format('shell:runTests:./cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.ipa:./junit-result.xml:%s', DEVICE_UDID)
+        util.format('shell:runTests:./cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.app:./junit-result.xml:%s', DEVICE_UDID)
     ]);
 
     grunt.registerTask('test', [

@@ -251,7 +251,7 @@ describe(module.id, function () {
                 });
             }
 
-            if (counter % 1000 === 0) {
+            if (counter % 100 === 0) {
                 __collect();
             }
         });

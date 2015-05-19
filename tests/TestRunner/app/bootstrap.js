@@ -1,5 +1,5 @@
 // Inform the test results runner that the runtime is up.
-console.log('TNSRuntime is running...');
+console.log('Application Start!');
 
 debugger;
 
