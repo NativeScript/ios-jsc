@@ -194,7 +194,6 @@
 				858B83F218CA22B800AB12DE /* Sources */,
 				858B83F418CA22B800AB12DE /* Frameworks */,
 				858B842C18CA22B800AB12DE /* Resources */,
-				CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */,
 				85F5BDFC1A9363BE006B9701 /* Embed Frameworks */,
 				C97FD7AC1ADE5369004DB2A4 /* Generate Metadata */,
 				CD3EAD351B05FF060042DBFC /* Strip Dynamic Framework Architectures */,
@@ -299,21 +298,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# Remove this step when Xcode starts to do this automatically\n\nbash \"$SRCROOT/$PROJECT_NAME/strip-dynamic-framework-architectures.sh\"";
-			showEnvVarsInLog = 0;
-		};
-		CDCB5C2E1ABC976600EEF517 /* Copy NativeScript Modules From Old Path */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Copy NativeScript Modules From Old Path";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ -d \"$SRCROOT/$PROJECT_NAME/tns_modules\" ]\nthen\n    cp -rp \"$SRCROOT/$PROJECT_NAME/tns_modules\" \"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH\"\nfi";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

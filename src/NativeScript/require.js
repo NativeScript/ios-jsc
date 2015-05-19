@@ -12,21 +12,13 @@
 
     var fileManager = NSFileManager.defaultManager();
     var nsstr = NSString.stringWithString.bind(NSString);
-    var isDirectory = new interop.Reference(interop.types.bool, false);
 
     applicationPath = nsstr(applicationPath).stringByStandardizingPath;
 
     var USER_MODULES_ROOT = nsstr('app');
-
     var CORE_MODULES_ROOT = nsstr('app/tns_modules');
-    var DEPRECATED_CORE_MODULES_ROOT = nsstr('tns_modules');
 
-    var deprecatedCoreModulesPath = NSString.pathWithComponents([applicationPath, DEPRECATED_CORE_MODULES_ROOT]);
-    if (fileManager.fileExistsAtPathIsDirectory(deprecatedCoreModulesPath, isDirectory) && isDirectory.value) {
-        console.warn('NativeScript modules search path changed to "' + DEPRECATED_CORE_MODULES_ROOT + '".' +
-            ' Future releases of NativeScript will search for NativeScript modules only in "' + CORE_MODULES_ROOT + '".');
-        CORE_MODULES_ROOT = DEPRECATED_CORE_MODULES_ROOT;
-    }
+    var isDirectory = new interop.Reference(interop.types.bool, false);
 
     function __findModule(moduleIdentifier, previousPath) {
         var isBootstrap = !previousPath;
