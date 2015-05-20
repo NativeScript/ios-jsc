@@ -33,11 +33,11 @@ using namespace Metadata;
 
 const ClassInfo TypeFactory::s_info = { "TypeFactory", 0, 0, 0, CREATE_METHOD_TABLE(TypeFactory) };
 
-ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, Metadata::MetaFileOffset& cursor) {
-    uint8_t encodingCount = getMetadata()->moveInHeap(cursor++)->readByte();
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, encodingCount - 1);
-    return this->getObjCBlockType(globalObject, returnType, parameterTypes);
+ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
+    const TypeEncoding* typeEncodingPtr = typeEncodings.first();
+    JSCell* returnType = this->parseType(globalObject, typeEncodingPtr);
+    const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
+    return this->getObjCBlockType(globalObject, returnType, parameters);
 }
 
 ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<JSCell*> parametersTypes) {
@@ -62,10 +62,10 @@ ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell*
     return result;
 }
 
-JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, Metadata::MetaFileOffset& cursor) {
-    uint8_t encodingCount = getMetadata()->moveInHeap(cursor++)->readByte();
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, encodingCount - 1);
+JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
+    const TypeEncoding* typeEncodingPtr = typeEncodings.first();
+    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr);
+    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
     return this->getFunctionReferenceTypeInstance(globalObject, returnType, parameterTypes);
 }
 
@@ -115,14 +115,14 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     WTF::Vector<JSCell*> fieldsTypes;
     WTF::Vector<WTF::String> fieldsNames;
 
-    const StructMeta* structInfo = static_cast<const StructMeta*>(getMetadata()->findMeta(structName.utf8().data()));
-    ASSERT(structInfo);
+    const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTable()->findMeta(structName.impl()));
+    ASSERT(structInfo && structInfo->type() == MetaType::Struct);
 
-    MetaFileOffset cursor = structInfo->fieldsEncodingsOffset();
-    fieldsTypes = parseTypes(globalObject, cursor, structInfo->fieldsCount());
+    const TypeEncoding* encodingsPtr = structInfo->fieldsEncodings()->first();
+    fieldsTypes = parseTypes(globalObject, encodingsPtr, structInfo->fieldsEncodings()->count);
 
-    for (unsigned int i = 0; i < structInfo->fieldsCount(); i++) {
-        fieldsNames.append(WTF::ASCIILiteral(structInfo->fieldAt(i)));
+    for (Array<Metadata::String>::iterator it = structInfo->fieldNames().begin(); it != structInfo->fieldNames().end(); it++) {
+        fieldsNames.append(WTF::ASCIILiteral((*it).valuePtr()));
     }
 
     WTF::Vector<RecordField*> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
@@ -140,7 +140,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     return constructor;
 }
 
-RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, Metadata::MetaFileOffset& cursor) {
+RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
     ffi_type* ffiType = new ffi_type({ .size = 0,
                                        .alignment = 0,
                                        .type = FFI_TYPE_STRUCT });
@@ -155,14 +155,13 @@ RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* glob
     WTF::Vector<JSCell*> fieldsTypes;
     WTF::Vector<WTF::String> fieldsNames;
 
-    Byte fieldCount = getMetadata()->moveInHeap(cursor++)->readByte();
-
-    for (int i = 0; i < fieldCount; ++i) {
-        fieldsNames.append(WTF::ASCIILiteral(getMetadata()->moveInHeap(cursor)->follow()->readString()));
-        cursor += sizeof(MetaFileOffset); // advance cursor with one metafileoffset
+    for (int i = 0; i < details.fieldsCount; ++i) {
+        const Metadata::String* currentName = details.getFieldNames() + i;
+        fieldsNames.append(WTF::ASCIILiteral(currentName->valuePtr()));
     }
 
-    fieldsTypes = parseTypes(globalObject, cursor, fieldCount);
+    const TypeEncoding* encodingsPtr = details.getFieldsEncodings();
+    fieldsTypes = parseTypes(globalObject, encodingsPtr, details.fieldsCount);
 
     WTF::Vector<RecordField*> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
     recordPrototype->setFields(vm, globalObject, fields);
@@ -225,7 +224,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
             }
         }
 
-        delete[] ffiType -> elements;
+        delete[] ffiType->elements;
         ffiType->elements = new ffi_type* [flattenedFfiTypes.size() + 1];
         memcpy(ffiType->elements, flattenedFfiTypes.data(), flattenedFfiTypes.size() * sizeof(ffi_type*));
         ffiType->elements[flattenedFfiTypes.size()] = nullptr;
@@ -243,7 +242,7 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     VM& vm = globalObject->vm();
     const CString klassNameUTF8 = klassName.utf8();
     const char* klassNameCharPtr = klassNameUTF8.data();
-    const InterfaceMeta* metadata = static_cast<const InterfaceMeta*>(getMetadata()->findMeta(klassNameCharPtr));
+    const InterfaceMeta* metadata = static_cast<const InterfaceMeta*>(MetaFile::instance()->globalTable()->findMeta(klassNameCharPtr));
     if (!metadata) {
 #ifdef DEBUG
         NSLog(@"** Can not create constructor for \"%s\". Casting it to \"NSObject\". **", klassNameCharPtr);
@@ -320,117 +319,145 @@ ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject,
     return result;
 }
 
-JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, Metadata::MetaFileOffset& cursor) {
-    BinaryTypeEncodingType encodingType = (BinaryTypeEncodingType)getMetadata()->moveInHeap(cursor++)->readByte();
+JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncoding) {
+    JSC::JSCell* result = nullptr;
 
-    switch (encodingType) {
+    switch (typeEncoding->type) {
+    case BinaryTypeEncodingType::UnknownEncoding:
+        ASSERT_NOT_REACHED();
     case BinaryTypeEncodingType::VoidEncoding:
-        return this->_voidType.get();
+        result = this->_voidType.get();
+        break;
     case BinaryTypeEncodingType::BoolEncoding:
-        return this->_boolType.get();
+        result = this->_boolType.get();
+        break;
     case BinaryTypeEncodingType::ShortEncoding:
-        return this->_int16Type.get();
+        result = this->_int16Type.get();
+        break;
     case BinaryTypeEncodingType::UShortEncoding:
-        return this->_uint16Type.get();
+        result = this->_uint16Type.get();
+        break;
     case BinaryTypeEncodingType::IntEncoding:
-        return this->_int32Type.get();
+        result = this->_int32Type.get();
+        break;
     case BinaryTypeEncodingType::UIntEncoding:
-        return this->_uint32Type.get();
+        result = this->_uint32Type.get();
+        break;
     case BinaryTypeEncodingType::LongEncoding:
 #if defined(__LP64__)
         COMPILE_ASSERT(sizeof(long) == sizeof(int64_t), "sizeof long");
-        return this->_int64Type.get();
+        result = this->_int64Type.get();
 #else
         COMPILE_ASSERT(sizeof(long) == sizeof(int32_t), "sizeof long");
-        return this->_int32Type.get();
+        result = this->_int32Type.get();
 #endif
+        break;
     case BinaryTypeEncodingType::ULongEncoding:
 #if defined(__LP64__)
         COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint64_t), "sizeof ulong");
-        return this->_uint64Type.get();
+        result = this->_uint64Type.get();
 #else
         COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint32_t), "sizeof ulong");
-        return this->_uint32Type.get();
+        result = this->_uint32Type.get();
 #endif
+        break;
     case BinaryTypeEncodingType::LongLongEncoding:
-        return this->_int64Type.get();
+        result = this->_int64Type.get();
+        break;
     case BinaryTypeEncodingType::ULongLongEncoding:
-        return this->_uint64Type.get();
+        result = this->_uint64Type.get();
+        break;
     case BinaryTypeEncodingType::CharEncoding:
-        return this->_int8Type.get();
+        result = this->_int8Type.get();
+        break;
     case BinaryTypeEncodingType::UCharEncoding:
-        return this->_uint8Type.get();
+        result = this->_uint8Type.get();
+        break;
     case BinaryTypeEncodingType::UnicharEncoding:
-        return this->_unicharType.get();
+        result = this->_unicharType.get();
+        break;
     case BinaryTypeEncodingType::CStringEncoding:
-        return this->_utf8CStringType.get();
+        result = this->_utf8CStringType.get();
+        break;
     case BinaryTypeEncodingType::FloatEncoding:
-        return this->_floatType.get();
+        result = this->_floatType.get();
+        break;
     case BinaryTypeEncodingType::DoubleEncoding:
-        return this->_doubleType.get();
+        result = this->_doubleType.get();
+        break;
     case BinaryTypeEncodingType::InterfaceDeclarationReference: {
-        WTF::String declarationName = WTF::String(getMetadata()->moveInHeap(cursor)->follow()->readString());
-        cursor += sizeof(MetaFileOffset); // advance cursor with one metafileoffset
-        return getObjCNativeConstructor(globalObject, declarationName);
+        WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
+        result = getObjCNativeConstructor(globalObject, declarationName);
+        break;
     }
     case BinaryTypeEncodingType::StructDeclarationReference: {
-        WTF::String declarationName = WTF::String(getMetadata()->moveInHeap(cursor)->follow()->readString());
-        cursor += sizeof(MetaFileOffset); // advance cursor with one metafileoffset
-        return this->getStructConstructor(globalObject, declarationName);
+        WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
+        result = this->getStructConstructor(globalObject, declarationName);
+        break;
     }
     case BinaryTypeEncodingType::UnionDeclarationReference: {
-        cursor += sizeof(MetaFileOffset); // advance cursor with one metafileoffset
-        return this->_noopType.get(); // unions are not supported
+        result = this->_noopType.get(); // unions are not supported
+        break;
     }
-    case BinaryTypeEncodingType::InterfaceDeclarationEncoding:
-        return this->_noopType.get(); // Not supported
     case BinaryTypeEncodingType::PointerEncoding: {
-        JSCell* innerType = this->parseType(globalObject, cursor);
-        if (innerType == this->_voidType.get()) {
-            return this->_pointerConstructor.get();
-        }
-        return this->getReferenceType(globalObject, innerType);
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        result = (innerType == this->_voidType.get()) ? jsCast<JSCell*>(this->_pointerConstructor.get()) : jsCast<JSCell*>(this->getReferenceType(globalObject, innerType));
+        break;
     }
     case BinaryTypeEncodingType::VaListEncoding:
-        return this->_noopType.get(); // Not supported
+        result = this->_noopType.get(); // Not supported
+        break;
     case BinaryTypeEncodingType::SelectorEncoding:
-        return this->_objCSelectorType.get();
+        result = this->_objCSelectorType.get();
+        break;
     case BinaryTypeEncodingType::ClassEncoding:
-        return this->_objCClassType.get();
+        result = this->_objCClassType.get();
+        break;
     case BinaryTypeEncodingType::ProtocolEncoding:
-        return this->_objCProtocolType.get();
+        result = this->_objCProtocolType.get();
+        break;
     case BinaryTypeEncodingType::InstanceTypeEncoding:
-        return this->_objCInstancetypeType.get();
+        result = this->_objCInstancetypeType.get();
+        break;
     case BinaryTypeEncodingType::IdEncoding:
-        return this->NSObjectConstructor(globalObject);
+        result = this->NSObjectConstructor(globalObject);
+        break;
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
-        cursor += sizeof(MetaArrayCount); // skip array count
-        JSCell* innerType = this->parseType(globalObject, cursor);
-        return this->getReferenceType(globalObject, innerType);
-    };
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        result = this->getReferenceType(globalObject, innerType);
+        break;
+    }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {
-        JSCell* innerType = this->parseType(globalObject, cursor);
-        return this->getReferenceType(globalObject, innerType);
-    };
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.incompleteArray.getInnerType();
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        result = this->getReferenceType(globalObject, innerType);
+        break;
+    }
     case BinaryTypeEncodingType::FunctionPointerEncoding:
-        return this->parseFunctionReferenceType(globalObject, cursor);
+        result = this->parseFunctionReferenceType(globalObject, typeEncoding->details.functionPointer.signature);
+        break;
     case BinaryTypeEncodingType::BlockEncoding:
-        return this->parseBlockType(globalObject, cursor);
+        result = this->parseBlockType(globalObject, typeEncoding->details.block.signature);
+        break;
     case BinaryTypeEncodingType::AnonymousStructEncoding:
-        return this->getAnonymousStructConstructor(globalObject, cursor);
-    case BinaryTypeEncodingType::AnonymousUnionEncodingn:
-        return this->_noopType.get(); // unions are not supported
+        result = this->getAnonymousStructConstructor(globalObject, typeEncoding->details.anonymousRecord);
+        break;
+    case BinaryTypeEncodingType::AnonymousUnionEncoding:
+        result = this->_noopType.get(); // unions are not supported
+        break;
     default:
         ASSERT_NOT_REACHED(); // Unknown type encoding
     }
-
-    return nullptr;
+    typeEncoding = typeEncoding->next();
+    return result;
 }
 
-const WTF::Vector<JSC::JSCell*> TypeFactory::parseTypes(GlobalObject* globalObject, Metadata::MetaFileOffset& cursor, Byte count) {
+const WTF::Vector<JSC::JSCell*> TypeFactory::parseTypes(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncodings, int count) {
     WTF::Vector<JSCell*> types;
-    for (Byte i = 0; i < count; i++) {
-        types.append(parseType(globalObject, cursor));
+    for (int i = 0; i < count; i++) {
+        types.append(parseType(globalObject, typeEncodings));
     }
     return types;
 }

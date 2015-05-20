@@ -13,171 +13,22 @@
 #include <stack>
 #include <string>
 #include <type_traits>
-#include "MetaFileReader.h"
 
 namespace Metadata {
 
-struct Meta;
-struct ProtocolMeta;
-struct MemberMeta;
-
-template <class T>
-class MemberMetaIterator {
-    static_assert(std::is_convertible<T, MemberMeta>::value, "The template parameter must be an MemberMeta type.");
-
-    inline friend bool operator==(const MemberMetaIterator& a, const MemberMetaIterator& b) {
-        return a.offset == b.offset;
-    }
-
-    inline friend bool operator!=(const MemberMetaIterator& a, const MemberMetaIterator& b) {
-        return !operator==(a, b);
-    }
-
-private:
-    int currentIndex;
-    T* currentMeta;
-    MetaArrayCount count;
-    MetaFileOffset offset;
-
-    T* memberAt(int index) {
-        return (T*)getMetadata()->moveInHeap(this->offset)->moveWithCounts(1)->moveWithOffsets(index)->follow()->readMeta();
-    }
-
-    MetaArrayCount membersCount() {
-        return (offset == 0) ? 0 : getMetadata()->moveInHeap(this->offset)->readArrayCount();
-    }
-
-    void findNextMeta() {
-        while (this->hasNext() && (this->currentMeta = this->memberAt(this->currentIndex)) == nullptr) {
-            this->currentIndex++;
-        }
-    }
-
-public:
-    MemberMetaIterator(MetaFileOffset offset) {
-        this->offset = offset;
-        this->count = this->membersCount();
-        this->reset();
-    }
-
-    void reset() {
-        this->currentIndex = 0;
-        this->findNextMeta();
-    }
-
-    void next() {
-        this->currentIndex++;
-        this->findNextMeta();
-    }
-
-    void jumpTo(int index) {
-        if (index >= 0 && index < this->count) {
-            this->currentIndex = index;
-            this->findNextMeta();
-        }
-    }
-
-    MemberMetaIterator& operator++() {
-        this->next();
-        return *this;
-    }
-
-    bool hasNext() {
-        return this->currentIndex < this->count;
-    }
-
-    T* currentItem() {
-        return this->currentMeta;
-    }
-
-    T* operator*() {
-        return this->currentItem();
-    }
-};
-
-class ProtocolIterator {
-private:
-    ProtocolMeta* currentMeta;
-    int currentIndex;
-    MetaArrayCount count;
-    MetaFileOffset _protocolsOffset;
-
-    const char* protocolJsNameAt(int index) const {
-        return getMetadata()->moveInHeap(this->_protocolsOffset)->moveWithCounts(1)->moveWithOffsets(index)->follow()->readString();
-    }
-
-    ProtocolMeta* protocolAt(int index) const {
-        const char* protocolName = this->protocolJsNameAt(index);
-        return (ProtocolMeta*)getMetadata()->findMeta(protocolName);
-    }
-
-    MetaArrayCount protocolsCount() const {
-        return (this->_protocolsOffset == 0) ? 0 : getMetadata()->moveInHeap(this->_protocolsOffset)->readArrayCount();
-    }
-
-    void findNextMeta() {
-        while (this->hasNext() && (this->currentMeta = this->protocolAt(this->currentIndex)) == nullptr) {
-            this->currentIndex++;
-        }
-    }
-
-public:
-    ProtocolIterator(MetaFileOffset offset) {
-        this->_protocolsOffset = offset;
-        this->count = this->protocolsCount();
-        this->reset();
-    }
-
-    void reset() {
-        this->currentIndex = 0;
-        this->findNextMeta();
-    }
-
-    void next() {
-        this->currentIndex++;
-        this->findNextMeta();
-    }
-
-    void jumpTo(int index) {
-        if (index >= 0 && index < this->count) {
-            this->currentIndex = index;
-            this->findNextMeta();
-        }
-    }
-
-    ProtocolIterator& operator++() {
-        this->next();
-        return *this;
-    }
-
-    bool hasNext() {
-        return this->currentIndex < this->count;
-    }
-
-    ProtocolMeta* currentItem() {
-        return this->currentMeta;
-    }
-
-    ProtocolMeta* operator*() {
-        return this->currentItem();
-    }
-};
-
-// Bit indices in flags section
 static const int MetaTypeMask = 7; // 0000 0111
 
-static const int MetaHasNameBitIndex = 7;
-static const int MetaIsIosAppExtensionAvailableBitIndex = 6;
-
-static const int FunctionIsVariadicBitIndex = 5;
-static const int FunctionOwnsReturnedCocoaObjectBitIndex = 4;
-
-static const int MethodIsVariadicBitIndex = 2;
-static const int MethodIsNullTerminatedVariadicBitIndex = 3;
-static const int MethodOwnsReturnedCocoaObjectBitIndex = 4;
-
-static const int PropertyHasGetterBitIndex = 2;
-static const int PropertyHasSetterBitIndex = 3;
+// Bit indices in flags section
+enum MetaFlags {
+    HasName = 7,
+    FunctionIsVariadic = 5,
+    FunctionOwnsReturnedCocoaObject = 4,
+    MethodIsVariadic = 2,
+    MethodIsNullTerminatedVariadic = 3,
+    MethodOwnsReturnedCocoaObject = 4,
+    PropertyHasGetter = 2,
+    PropertyHasSetter = 3
+};
 
 enum MetaType {
     Undefined = 0,
@@ -231,19 +82,333 @@ enum BinaryTypeEncodingType : Byte {
     FunctionPointerEncoding,
     BlockEncoding,
     AnonymousStructEncoding,
-    AnonymousUnionEncodingn
+    AnonymousUnionEncoding
 };
 
-bool startsWith(const char* pre, const char* str);
-
 #pragma pack(push, 1)
+
+template <typename T>
+struct PtrTo;
+struct Meta;
+struct ProtocolMeta;
+struct ModuleMeta;
+struct LibraryMeta;
+struct TypeEncoding;
+
+typedef int32_t ArrayCount;
+
+static const void* offset(const void* from, ptrdiff_t offset) {
+    return reinterpret_cast<const char*>(from) + offset;
+}
+
+template <typename T>
+struct Array {
+    class iterator {
+    private:
+        const T* current;
+
+    public:
+        iterator(const T* item)
+            : current(item) {
+        }
+        bool operator==(const iterator& other) const {
+            return current == other.current;
+        }
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+        iterator& operator++() {
+            current++;
+            return *this;
+        }
+        iterator operator++(int) {
+            iterator tmp(current);
+            operator++();
+            return tmp;
+        }
+        const T& operator*() const {
+            return *current;
+        }
+    };
+
+    ArrayCount count;
+
+    const T* first() const {
+        return reinterpret_cast<const T*>(&count + 1);
+    }
+
+    const T& operator[](int index) const {
+        return *(first() + index);
+    }
+
+    Array<T>::iterator begin() const {
+        return first();
+    }
+
+    Array<T>::iterator end() const {
+        return first() + count;
+    }
+
+    template <typename V>
+    const Array<V>& castTo() const {
+        return *reinterpret_cast<const Array<V>*>(this);
+    }
+
+    int sizeInBytes() const {
+        return sizeof(Array<T>) + sizeof(T) * count;
+    }
+
+    int binarySearch(std::function<int(const T&)> comparer) const {
+        int left = 0, right = count - 1, mid;
+        while (left <= right) {
+            mid = (right + left) / 2;
+            const T& current = (*this)[mid]; //this[mid];
+            int comparisonResult = comparer(current);
+            if (comparisonResult < 0) {
+                left = mid + 1;
+            } else if (comparisonResult > 0) {
+                right = mid - 1;
+            } else {
+                return mid;
+            }
+        }
+        return -(left + 1);
+    }
+};
+
+template <typename T>
+using ArrayOfPtrTo = Array<PtrTo<T>>;
+using String = PtrTo<char>;
+
+struct GlobalTable {
+    class iterator {
+    private:
+        const GlobalTable* _globalTable;
+        int _topLevelIndex;
+        int _bucketIndex;
+
+        void findNext();
+
+        const Meta* getCurrent();
+
+    public:
+        iterator(const GlobalTable* globalTable)
+            : iterator(globalTable, 0, 0) {
+            findNext();
+        }
+
+        iterator(const GlobalTable* globalTable, int32_t topLevelIndex, int32_t bucketIndex)
+            : _globalTable(globalTable)
+            , _topLevelIndex(topLevelIndex)
+            , _bucketIndex(bucketIndex) {
+            findNext();
+        }
+
+        bool operator==(const iterator& other) const;
+
+        bool operator!=(const iterator& other) const;
+
+        iterator& operator++();
+
+        iterator operator++(int) {
+            iterator tmp(_globalTable, _topLevelIndex, _bucketIndex);
+            operator++();
+            return tmp;
+        }
+
+        const Meta* operator*();
+    };
+
+    iterator begin() const {
+        return iterator(this);
+    }
+
+    iterator end() const {
+        return iterator(this, this->buckets.count, 0);
+    }
+
+    ArrayOfPtrTo<ArrayOfPtrTo<Meta>> buckets;
+
+    const Meta* findMeta(WTF::StringImpl* identifier, bool onlyIfAvailable = true) const;
+
+    const Meta* findMeta(const char* identifierString, bool onlyIfAvailable = true) const;
+
+    const Meta* findMeta(const char* identifierString, size_t length, unsigned hash, bool onlyIfAvailable = true) const;
+
+    int sizeInBytes() const {
+        return buckets.sizeInBytes();
+    }
+};
+
+struct ModuleTable {
+    ArrayOfPtrTo<ModuleMeta> modules;
+
+    int sizeInBytes() const {
+        return modules.sizeInBytes();
+    }
+};
+
+struct MetaFile {
+private:
+    GlobalTable _globalTable;
+
+public:
+    static MetaFile* instance();
+
+    const GlobalTable* globalTable() const {
+        return &this->_globalTable;
+    }
+
+    const void* heap() const {
+        const GlobalTable* gt = this->globalTable();
+        return offset(gt, gt->sizeInBytes());
+    }
+};
+
+template <typename T>
+struct PtrTo {
+    int32_t offset;
+
+    bool isNull() const {
+        return offset == 0;
+    }
+    PtrTo<T> operator+(int value) const {
+        return add(value);
+    }
+    const T* operator->() const {
+        return valuePtr();
+    }
+    PtrTo<T> add(int value) const {
+        return PtrTo<T>{ .offset = this->offset + value * sizeof(T) };
+    }
+    PtrTo<T> addBytes(int bytes) const {
+        return PtrTo<T>{ .offset = this->offset + bytes };
+    }
+    template <typename V>
+    PtrTo<V>& castTo() const {
+        return reinterpret_cast<PtrTo<V>>(this);
+    }
+    const T* valuePtr() const {
+        return isNull() ? nullptr : reinterpret_cast<const T*>(Metadata::offset(MetaFile::instance()->heap(), this->offset));
+    }
+    const T& value() const {
+        return *valuePtr();
+    }
+};
+
+template <typename T>
+struct TypeEncodingsList {
+    T count;
+
+    const TypeEncoding* first() const {
+        return reinterpret_cast<const TypeEncoding*>(this + 1);
+    }
+};
+
+union TypeEncodingDetails {
+    struct IncompleteArrayDetails {
+        const TypeEncoding* getInnerType() const {
+            return reinterpret_cast<const TypeEncoding*>(this);
+        }
+    } incompleteArray;
+    struct ConstantArrayDetails {
+        int32_t size;
+        const TypeEncoding* getInnerType() const {
+            return reinterpret_cast<const TypeEncoding*>(this + 1);
+        }
+    } constantArray;
+    struct DeclarationReferenceDetails {
+        String name;
+    } declarationReference;
+    struct PointerDetails {
+        const TypeEncoding* getInnerType() const {
+            return reinterpret_cast<const TypeEncoding*>(this);
+        }
+    } pointer;
+    struct BlockDetails {
+        TypeEncodingsList<uint8_t> signature;
+    } block;
+    struct FunctionPointerDetails {
+        TypeEncodingsList<uint8_t> signature;
+    } functionPointer;
+    struct AnonymousRecordDetails {
+        uint8_t fieldsCount;
+        const String* getFieldNames() const {
+            return reinterpret_cast<const String*>(this + 1);
+        }
+        const TypeEncoding* getFieldsEncodings() const {
+            return reinterpret_cast<const TypeEncoding*>(getFieldNames() + this->fieldsCount);
+        }
+    } anonymousRecord;
+};
+
+struct TypeEncoding {
+    BinaryTypeEncodingType type;
+    TypeEncodingDetails details;
+
+    const TypeEncoding* next() const {
+        const TypeEncoding* afterTypePtr = reinterpret_cast<const TypeEncoding*>(offset(this, sizeof(type)));
+
+        switch (this->type) {
+        case BinaryTypeEncodingType::ConstantArrayEncoding: {
+            return this->details.constantArray.getInnerType()->next();
+        }
+        case BinaryTypeEncodingType::IncompleteArrayEncoding: {
+            return this->details.incompleteArray.getInnerType()->next();
+        }
+        case BinaryTypeEncodingType::PointerEncoding: {
+            return this->details.pointer.getInnerType()->next();
+        }
+        case BinaryTypeEncodingType::BlockEncoding: {
+            const TypeEncoding* current = this->details.block.signature.first();
+            for (int i = 0; i < this->details.block.signature.count; i++) {
+                current = current->next();
+            }
+            return current;
+        }
+        case BinaryTypeEncodingType::FunctionPointerEncoding: {
+            const TypeEncoding* current = this->details.functionPointer.signature.first();
+            for (int i = 0; i < this->details.functionPointer.signature.count; i++) {
+                current = current->next();
+            }
+            return current;
+        }
+        case BinaryTypeEncodingType::InterfaceDeclarationReference:
+        case BinaryTypeEncodingType::StructDeclarationReference:
+        case BinaryTypeEncodingType::UnionDeclarationReference: {
+            return reinterpret_cast<const TypeEncoding*>(offset(afterTypePtr, sizeof(TypeEncodingDetails::DeclarationReferenceDetails)));
+        }
+        case BinaryTypeEncodingType::AnonymousStructEncoding:
+        case BinaryTypeEncodingType::AnonymousUnionEncoding: {
+            const TypeEncoding* current = this->details.anonymousRecord.getFieldsEncodings();
+            for (int i = 0; i < this->details.anonymousRecord.fieldsCount; i++) {
+                current = current->next();
+            }
+            return current;
+        }
+        default: {
+            return afterTypePtr;
+        }
+        }
+    }
+};
+
+struct JsNameAndName {
+    String jsName;
+    String name;
+};
+
+union MetaNames {
+    String name;
+    PtrTo<JsNameAndName> names;
+};
 
 struct Meta {
 
 private:
-    MetaFileOffset _names;
+    MetaNames _names;
+    String _topLevelModuleName;
     UInt8 _flags;
-    UInt16 _frameworkId;
     UInt8 _introduced;
 
 public:
@@ -251,26 +416,12 @@ public:
         return (MetaType)(this->_flags & MetaTypeMask);
     }
 
-    const char* fullModuleName() const {
-        return getMetadata()->moveInHeap(this->_frameworkId)->readString();
-    }
-
-    std::string topLevelModuleName() const {
-        const char* moduleName = this->fullModuleName();
-        char* delimiterPos = strchr(moduleName, '.');
-        if (delimiterPos && *delimiterPos != '\0') {
-            return std::string(moduleName, delimiterPos - moduleName);
-        } else {
-            return "";
-        }
+    const char* topLevelModuleName() const {
+        return this->_topLevelModuleName.valuePtr();
     }
 
     bool hasName() const {
-        return this->flag(MetaHasNameBitIndex);
-    }
-
-    bool IsIosAppExtensionAvailable() const {
-        return this->flag(MetaIsIosAppExtensionAvailableBitIndex);
+        return this->flag(MetaFlags::HasName);
     }
 
     bool flag(int index) const {
@@ -278,13 +429,11 @@ public:
     }
 
     const char* jsName() const {
-        getMetadata()->moveInHeap(this->_names);
-        return (this->hasName()) ? getMetadata()->follow()->readString() : getMetadata()->readString();
+        return (this->hasName()) ? this->_names.names->jsName.valuePtr() : this->_names.name.valuePtr();
     }
 
     const char* name() const {
-        getMetadata()->moveInHeap(this->_names);
-        return (this->hasName()) ? getMetadata()->moveWithOffsets(1)->follow()->readString() : getMetadata()->readString();
+        return (this->hasName()) ? this->_names.names->name.valuePtr() : this->jsName();
     }
 
     /**
@@ -303,40 +452,26 @@ public:
     * > have been introduced in this or prior version;
     */
     bool isAvailable() const;
-
-    const void* info() const {
-        return (const void*)(this + 1);
-    }
-
-#ifdef DEBUG
-    void logMeta() const {
-        printf("[jsName: %s realName: %s topLevelModule: %s", this->jsName(), this->name(), this->topLevelModuleName().c_str());
-    }
-#endif
 };
 
 struct RecordMeta : Meta {
 
 private:
-    MetaFileOffset _fieldsNames;
-    MetaFileOffset _fieldsEncodings;
+    PtrTo<Array<String>> _fieldsNames;
+    PtrTo<TypeEncodingsList<ArrayCount>> _fieldsEncodings;
 
 public:
+    const Array<String>& fieldNames() const {
+        return _fieldsNames.value();
+    }
+
     size_t fieldsCount() const {
-        return getMetadata()->moveInHeap(this->_fieldsEncodings)->readByte();
+        return fieldNames().count;
     }
 
-    const char* fieldAt(int index) const {
-        return getMetadata()->moveInHeap(this->_fieldsNames)->moveWithCounts(1)->moveWithOffsets(index)->follow()->readString();
+    const TypeEncodingsList<ArrayCount>* fieldsEncodings() const {
+        return _fieldsEncodings.valuePtr();
     }
-
-    MetaFileOffset fieldsEncodingsOffset() const {
-        return getMetadata()->moveInHeap(this->_fieldsEncodings)->moveWithCounts(1)->asOffsetInHeap();
-    }
-
-#ifdef DEBUG
-    void logRecord() const;
-#endif
 };
 
 struct StructMeta : RecordMeta {
@@ -348,67 +483,42 @@ struct UnionMeta : RecordMeta {
 struct FunctionMeta : Meta {
 
 private:
-    MetaFileOffset _encoding;
+    PtrTo<TypeEncodingsList<ArrayCount>> _encoding;
 
 public:
     bool isVariadic() const {
-        return this->flag(FunctionIsVariadicBitIndex);
+        return this->flag(MetaFlags::FunctionIsVariadic);
     }
 
-    MetaFileOffset encodingOffset() const {
-        return getMetadata()->moveInHeap(this->_encoding)->moveWithCounts(1)->asOffsetInHeap();
-    }
-
-    size_t encodingCount() const {
-        return getMetadata()->moveInHeap(this->_encoding)->readByte();
+    const TypeEncodingsList<ArrayCount>* encodings() const {
+        return _encoding.valuePtr();
     }
 
     bool ownsReturnedCocoaObject() const {
-        return this->flag(FunctionOwnsReturnedCocoaObjectBitIndex);
+        return this->flag(MetaFlags::FunctionOwnsReturnedCocoaObject);
     }
-
-#ifdef DEBUG
-    void logFunction() const {
-        Meta::logMeta();
-        //        printf(" encoding: %s, %s ", this->encoding(), this->isVariadic() ? "variadic" : "");
-    }
-#endif
 };
 
 struct JsCodeMeta : Meta {
 
 private:
-    MetaFileOffset _jsCode;
+    String _jsCode;
 
 public:
     const char* jsCode() const {
-        return getMetadata()->moveInHeap(this->_jsCode)->readString();
+        return _jsCode.valuePtr();
     }
-
-#ifdef DEBUG
-    void logJsCode() const {
-        Meta::logMeta();
-        printf("Js Code: %s ", this->jsCode());
-    }
-#endif
 };
 
 struct VarMeta : Meta {
 
 private:
-    MetaFileOffset _encoding;
+    PtrTo<TypeEncoding> _encoding;
 
 public:
-    MetaFileOffset encodingOffset() const {
-        return getMetadata()->moveInHeap(this->_encoding)->asOffsetInHeap();
+    const TypeEncoding* encoding() const {
+        return _encoding.valuePtr();
     }
-
-#ifdef DEBUG
-    void logVar() const {
-        Meta::logMeta();
-        //        printf("encoding: %s ", this->encoding());
-    }
-#endif
 };
 
 struct MemberMeta : Meta {
@@ -417,15 +527,15 @@ struct MemberMeta : Meta {
 struct MethodMeta : MemberMeta {
 
 private:
-    MetaFileOffset _encoding;
+    PtrTo<TypeEncodingsList<ArrayCount>> _encodings;
 
 public:
     bool isVariadic() const {
-        return this->flag(MethodIsVariadicBitIndex);
+        return this->flag(MetaFlags::MethodIsVariadic);
     }
 
     bool isVariadicNullTerminated() const {
-        return this->flag(MethodIsNullTerminatedVariadicBitIndex);
+        return this->flag(MetaFlags::MethodIsNullTerminatedVariadic);
     }
 
     SEL selector() const {
@@ -437,187 +547,117 @@ public:
         return this->name();
     }
 
-    MetaFileOffset encodingOffset() const {
-        return getMetadata()->moveInHeap(this->_encoding)->moveWithCounts(1)->asOffsetInHeap();
-    }
-
-    size_t encodingCount() const {
-        return getMetadata()->moveInHeap(this->_encoding)->readByte();
+    const TypeEncodingsList<ArrayCount>* encodings() const {
+        return this->_encodings.valuePtr();
     }
 
     bool ownsReturnedCocoaObject() const {
-        return this->flag(MethodOwnsReturnedCocoaObjectBitIndex);
+        return this->flag(MetaFlags::MethodOwnsReturnedCocoaObject);
     }
-
-#ifdef DEBUG
-    void logMethod() const {
-        Meta::logMeta();
-        //        printf("selector: %s encoding: %s compilerEncoding: %s ", this->selectorAsString(), this->encoding(), this->compilerEncoding());
-    }
-#endif
 };
 
 struct PropertyMeta : MemberMeta {
+    PtrTo<MethodMeta> method1;
+    PtrTo<MethodMeta> method2;
 
 public:
     bool hasGetter() const {
-        return this->flag(PropertyHasGetterBitIndex);
+        return this->flag(MetaFlags::PropertyHasGetter);
     }
 
     bool hasSetter() const {
-        return this->flag(PropertyHasSetterBitIndex);
+        return this->flag(MetaFlags::PropertyHasSetter);
     }
 
-    MethodMeta* getter() const {
-        if (this->hasGetter()) {
-            return (MethodMeta*)getMetadata()->moveToPointer(this->info())->follow()->readMeta();
-        }
-        return nullptr;
+    const MethodMeta* getter() const {
+        return this->hasGetter() ? method1.valuePtr() : nullptr;
     }
 
-    MethodMeta* setter() const {
-        if (this->hasSetter()) {
-            int offset = this->hasGetter() ? 1 : 0;
-            return (MethodMeta*)getMetadata()->moveToPointer(this->info())->moveWithOffsets(offset)->follow()->readMeta();
-        }
-        return nullptr;
+    const MethodMeta* setter() const {
+        return (this->hasSetter()) ? (this->hasGetter() ? method2.valuePtr() : method1.valuePtr()) : nullptr;
     }
-
-#ifdef DEBUG
-    void logProperty() const {
-        Meta::logMeta();
-        printf(" getter: %s setter: %s ", this->hasGetter() ? this->getter()->jsName() : "", this->hasSetter() ? this->setter()->jsName() : "");
-    }
-#endif
 };
 
 struct BaseClassMeta : Meta {
 
-private:
-    MetaFileOffset _instanceMethods;
-    MetaFileOffset _staticMethods;
-    MetaFileOffset _properties;
-    MetaFileOffset _protocols;
-    int16_t _initializersStartIndex;
+    PtrTo<ArrayOfPtrTo<MethodMeta>> instanceMethods;
+    PtrTo<ArrayOfPtrTo<MethodMeta>> staticMethods;
+    PtrTo<ArrayOfPtrTo<PropertyMeta>> props;
+    PtrTo<Array<String>> protocols;
+    int16_t initializersStartIndex;
 
-public:
-    MetaFileOffset offsetOf(MemberType type) const;
+    const MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
 
-    MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols = true) const;
-
-    MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
-        const char* identif = (const char*)identifier->characters8();
+    const MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
+        const char* identif = reinterpret_cast<const char*>(identifier->characters8());
         size_t length = (size_t)identifier->length();
         return this->member(identif, length, type, includeProtocols);
     }
 
-    MemberMeta* member(const char* identifier, MemberType type, bool includeProtocols = true) const {
+    const MemberMeta* member(const char* identifier, MemberType type, bool includeProtocols = true) const {
         return this->member(identifier, strlen(identifier), type, includeProtocols);
     }
 
     /// instance methods
-
-    MethodMeta* instanceMethod(const char* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::InstanceMethod, includeProtocols);
+    const MethodMeta* instanceMethod(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols));
     }
 
-    MethodMeta* instanceMethod(StringImpl* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::InstanceMethod, includeProtocols);
-    }
-
-    MemberMetaIterator<MethodMeta> getInstanceMethodsIterator() const {
-        return MemberMetaIterator<MethodMeta>(this->_instanceMethods);
+    const MethodMeta* instanceMethod(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols));
     }
 
     /// static methods
-
-    MethodMeta* staticMethod(const char* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::StaticMethod, includeProtocols);
+    const MethodMeta* staticMethod(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::StaticMethod, includeProtocols));
     }
 
-    MethodMeta* staticMethod(StringImpl* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::StaticMethod, includeProtocols);
-    }
-
-    MemberMetaIterator<MethodMeta> getStaticMethodsIterator() const {
-        return MemberMetaIterator<MethodMeta>(this->_staticMethods);
+    const MethodMeta* staticMethod(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::StaticMethod, includeProtocols));
     }
 
     /// properties
-
-    PropertyMeta* property(const char* identifier, bool includeProtocols = true) const {
-        return (PropertyMeta*)this->member(identifier, MemberType::Property, includeProtocols);
+    const PropertyMeta* property(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::Property, includeProtocols));
     }
 
-    PropertyMeta* property(StringImpl* identifier, bool includeProtocols = true) const {
-        return (PropertyMeta*)this->member(identifier, MemberType::Property, includeProtocols);
-    }
-
-    MemberMetaIterator<PropertyMeta> getPropertiesIterator() const {
-        return MemberMetaIterator<PropertyMeta>(this->_properties);
-    }
-
-    /// protocols
-
-    const char* protocolJsNameAt(int index) const {
-        return getMetadata()->moveInHeap(this->_protocols)->moveWithCounts(1)->moveWithOffsets(index)->follow()->readString();
-    }
-
-    ProtocolMeta* protocolAt(int index) const {
-        const char* protocolName = this->protocolJsNameAt(index);
-        return (ProtocolMeta*)getMetadata()->findMeta(protocolName);
-    }
-
-    MetaArrayCount protocolsCount() const {
-        return (this->_protocols == 0) ? 0 : getMetadata()->moveInHeap(this->_protocols)->readArrayCount();
-    }
-
-    ProtocolIterator getProtocolsIterator() const {
-        return ProtocolIterator(this->_protocols);
+    const PropertyMeta* property(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::Property, includeProtocols));
     }
 
     /// vectors
-
-    std::vector<PropertyMeta*> properties() {
-        std::vector<PropertyMeta*> properties;
+    std::vector<const PropertyMeta*> properties() const {
+        std::vector<const PropertyMeta*> properties;
         return this->properties(properties);
     }
 
-    std::vector<PropertyMeta*> propertiesWithProtocols() {
-        std::vector<PropertyMeta*> properties;
+    std::vector<const PropertyMeta*> propertiesWithProtocols() const {
+        std::vector<const PropertyMeta*> properties;
         return this->propertiesWithProtocols(properties);
     }
 
-    std::vector<PropertyMeta*> properties(std::vector<PropertyMeta*>& container) {
-        for (auto propertyIter = this->getPropertiesIterator(); propertyIter.hasNext(); propertyIter.next()) {
-            container.push_back(propertyIter.currentItem());
+    std::vector<const PropertyMeta*> properties(std::vector<const PropertyMeta*>& container) const {
+        for (Array<PtrTo<PropertyMeta>>::iterator it = this->props->begin(); it != this->props->end(); it++) {
+            container.push_back((*it).valuePtr());
         }
         return container;
     }
 
-    std::vector<PropertyMeta*> propertiesWithProtocols(std::vector<PropertyMeta*>& container);
+    std::vector<const PropertyMeta*> propertiesWithProtocols(std::vector<const PropertyMeta*>& container) const;
 
-    int16_t initializersStartIndex() const {
-        return this->_initializersStartIndex;
-    }
-
-    std::vector<MethodMeta*> initializers() const {
-        std::vector<MethodMeta*> initializers;
+    std::vector<const MethodMeta*> initializers() const {
+        std::vector<const MethodMeta*> initializers;
         return this->initializers(initializers);
     }
 
-    std::vector<MethodMeta*> initializersWithProtcols() const {
-        std::vector<MethodMeta*> initializers;
+    std::vector<const MethodMeta*> initializersWithProtcols() const {
+        std::vector<const MethodMeta*> initializers;
         return this->initializersWithProtcols(initializers);
     }
 
-    std::vector<MethodMeta*> initializers(std::vector<MethodMeta*>& container) const;
+    std::vector<const MethodMeta*> initializers(std::vector<const MethodMeta*>& container) const;
 
-    std::vector<MethodMeta*> initializersWithProtcols(std::vector<MethodMeta*>& container) const;
-
-#ifdef DEBUG
-    void logBaseClass() const;
-#endif
+    std::vector<const MethodMeta*> initializersWithProtcols(std::vector<const MethodMeta*>& container) const;
 };
 
 struct ProtocolMeta : BaseClassMeta {
@@ -626,23 +666,20 @@ struct ProtocolMeta : BaseClassMeta {
 struct InterfaceMeta : BaseClassMeta {
 
 private:
-    MetaFileOffset _baseName;
+    String _baseName;
 
 public:
     const char* baseName() const {
-        return this->_baseName ? getMetadata()->moveInHeap(this->_baseName)->readString() : nullptr;
+        return _baseName.valuePtr();
     }
 
     const InterfaceMeta* baseMeta() const {
-        return this->_baseName ? (const InterfaceMeta*)getMetadata()->findMeta(this->baseName()) : nullptr;
+        if (this->baseName() != nullptr) {
+            const Meta* baseMeta = MetaFile::instance()->globalTable()->findMeta(this->baseName());
+            return baseMeta->type() == MetaType::Interface ? reinterpret_cast<const InterfaceMeta*>(baseMeta) : nullptr;
+        }
+        return nullptr;
     }
-
-#ifdef DEBUG
-    void logInterface() const {
-        BaseClassMeta::logBaseClass();
-        printf("\nbase: %s ", this->baseName());
-    }
-#endif
 };
 
 #pragma pack(pop)

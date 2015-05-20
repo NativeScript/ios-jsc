@@ -48,7 +48,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
     __block Class blockKlass = newKlass;
     IMP allocWithZone = findNotOverridenMethod(metaClass, @selector(allocWithZone:));
-    IMP newAllocWithZone = imp_implementationWithBlock(^(id self, NSZone* nsZone) {
+    IMP newAllocWithZone = imp_implementationWithBlock (^(id self, NSZone * nsZone) {
         id instance = allocWithZone(self, @selector(allocWithZone:), nsZone);
         VM& vm = globalObject->vm();
         JSLockHolder lockHolder(vm);
@@ -67,7 +67,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
 
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
-    IMP newRetain = imp_implementationWithBlock(^(id self) {
+    IMP newRetain = imp_implementationWithBlock (^(id self) {
         if ([self retainCount] == 1) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 JSLockHolder lockHolder(globalObject->vm());
@@ -80,7 +80,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(newKlass, @selector(retain), newRetain, "@@:");
 
     void (*release)(id, SEL) = (void (*)(id, SEL))findNotOverridenMethod(newKlass, @selector(release));
-    IMP newRelease = imp_implementationWithBlock(^(id self) {
+    IMP newRelease = imp_implementationWithBlock (^(id self) {
         if ([self retainCount] == 2) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 JSLockHolder lockHolder(globalObject->vm());
@@ -102,15 +102,16 @@ static bool isValidType(ExecState* execState, JSValue& value) {
     return true;
 }
 
-static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, MethodMeta* meta) {
+static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, const MethodMeta* meta) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     std::string compilerEncoding = getCompilerEncoding(globalObject, meta);
-    
-    MetaFileOffset encoding = meta->encodingOffset();
-    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encoding);
-    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encoding, meta->encodingCount() - 1);
-    
+
+    const TypeEncoding* encodings = meta->encodings()->first();
+
+    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings);
+    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, meta->encodings()->count - 1);
+
     ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeCell, parameterTypesCells);
     gcProtect(callback);
     if (!class_addMethod(klass, meta->selector(), reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.c_str())) {
@@ -260,7 +261,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
     WTF::StringImpl* methodName = jsName.impl();
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    MethodMeta* methodMeta = nullptr;
+    const MethodMeta* methodMeta = nullptr;
 
     do {
         methodMeta = currentClass->instanceMethod(methodName);
@@ -294,7 +295,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
     WTF::StringImpl* propertyName = name.impl();
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    PropertyMeta* propertyMeta = nullptr;
+    const PropertyMeta* propertyMeta = nullptr;
     do {
         propertyMeta = currentClass->property(propertyName);
         currentClass = currentClass->baseMeta();
@@ -313,10 +314,10 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         VM& vm = globalObject->vm();
 
-        if (MethodMeta* getter = propertyMeta->getter()) {
-            Metadata::MetaFileOffset cursor = getter->encodingOffset();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, getter->encodingCount() - 1);
+        if (const MethodMeta* getter = propertyMeta->getter()) {
+            const TypeEncoding* encodings = getter->encodings()->first();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
+            const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->count - 1);
 
             ObjCMethodCallback* getterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.getter().asCell(), returnType, parameterTypes);
             gcProtect(getterCallback);
@@ -326,10 +327,10 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
             }
         }
 
-        if (MethodMeta* setter = propertyMeta->setter()) {
-            Metadata::MetaFileOffset cursor = setter->encodingOffset();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-            WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, setter->encodingCount() - 1);
+        if (const MethodMeta* setter = propertyMeta->setter()) {
+            const TypeEncoding* encodings = setter->encodings()->first();
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
+            const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->count - 1);
 
             ObjCMethodCallback* setterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.setter().asCell(), returnType, parameterTypes);
             gcProtect(setterCallback);
@@ -398,7 +399,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
 void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
     WTF::StringImpl* methodName = jsName.impl();
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    MethodMeta* methodMeta = nullptr;
+    const MethodMeta* methodMeta = nullptr;
 
     do {
         methodMeta = currentClass->staticMethod(methodName);

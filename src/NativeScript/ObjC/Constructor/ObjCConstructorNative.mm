@@ -36,7 +36,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
-    if (MethodMeta* method = constructor->_metadata->staticMethod(propertyName.publicName())) {
+    if (const MethodMeta* method = constructor->_metadata->staticMethod(propertyName.publicName())) {
         SymbolLoader::instance().ensureFramework(method->topLevelModuleName());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -52,7 +52,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 void ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
 
-    if (MethodMeta* meta = constructor->_metadata->staticMethod(propertyName.publicName())) {
+    if (const MethodMeta* meta = constructor->_metadata->staticMethod(propertyName.publicName())) {
         Class klass = object_getClass(constructor->klass());
 
         std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
@@ -80,13 +80,16 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
         const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
         baseClassMetaStack.pop_back();
 
-        for (auto methodIterator = baseClassMeta->getStaticMethodsIterator(); methodIterator.hasNext(); methodIterator.next()) {
-            MethodMeta* meta = methodIterator.currentItem();
-            propertyNames.add(Identifier(execState, meta->jsName()));
+        for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->staticMethods->begin(); it != baseClassMeta->staticMethods->end(); it++) {
+            const MethodMeta* meta = (*it).valuePtr();
+            if (meta->isAvailable())
+                propertyNames.add(Identifier(execState, meta->jsName()));
         }
 
-        for (auto protocolIterator = baseClassMeta->getProtocolsIterator(); protocolIterator.hasNext(); protocolIterator.next()) {
-            baseClassMetaStack.push_back(protocolIterator.currentItem());
+        for (Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
+            const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
+            if (protocolMeta != nullptr)
+                baseClassMetaStack.push_back(protocolMeta);
         }
     }
 
@@ -99,12 +102,14 @@ const WTF::Vector<ObjCConstructorCall*> ObjCConstructorNative::initializersGener
     WTF::Vector<ObjCConstructorCall*> constructors;
 
     do {
-        std::vector<MethodMeta*> initializers = metadata->initializersWithProtcols();
-        for (std::vector<MethodMeta*>::iterator init = initializers.begin(); init != initializers.end(); ++init) {
-            MethodMeta* method = (*init);
+        std::vector<const MethodMeta*> initializers = metadata->initializersWithProtcols();
+        for (std::vector<const MethodMeta*>::iterator init = initializers.begin(); init != initializers.end(); ++init) {
+            const MethodMeta* method = (*init);
 
-            ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), target, method);
-            constructors.append(constructorCall);
+            if (method->isAvailable()) {
+                ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), target, method);
+                constructors.append(constructorCall);
+            }
         }
 
         metadata = metadata->baseMeta();

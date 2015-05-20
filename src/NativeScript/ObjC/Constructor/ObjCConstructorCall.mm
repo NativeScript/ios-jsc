@@ -20,10 +20,10 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     Base::finishCreation(vm, metadata->jsName());
     this->_klass = klass;
 
-    Metadata::MetaFileOffset cursor = metadata->encodingOffset();
+    const Metadata::TypeEncoding* encodings = metadata->encodings()->first();
 
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, cursor);
-    const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, cursor, metadata->encodingCount() - 1);
+    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
+    const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);
 
     Base::initializeFFI(vm, returnType, parametersTypes, 2);
     Base::setArgument(1, metadata->selector());

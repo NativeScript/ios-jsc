@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <wtf/HashFunctions.h>
 #include "WeakHandleOwners.h"
-#include "MetaFileReader.h"
+#include "Metadata/Metadata.h"
 
 namespace Metadata {
 struct InterfaceMeta;
@@ -46,9 +46,9 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    JSC::JSCell* parseType(GlobalObject*, Metadata::MetaFileOffset& typeEncodingOffset);
+    JSC::JSCell* parseType(GlobalObject*, const Metadata::TypeEncoding*&);
 
-    const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, Metadata::MetaFileOffset& typeEncodingOffset, Byte count);
+    const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, const Metadata::TypeEncoding*& typeEncodings, int count);
 
     ObjCConstructorNative* getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName);
 
@@ -140,11 +140,11 @@ private:
 
     WTF::Vector<RecordField*> createRecordFields(GlobalObject*, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
 
-    ObjCBlockType* parseBlockType(GlobalObject*, Metadata::MetaFileOffset& cursor);
+    ObjCBlockType* parseBlockType(GlobalObject*, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
 
-    JSC::JSCell* parseFunctionReferenceType(GlobalObject* globalObject, Metadata::MetaFileOffset& cursor);
+    JSC::JSCell* parseFunctionReferenceType(GlobalObject* globalObject, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
 
-    RecordConstructor* getAnonymousStructConstructor(GlobalObject*, Metadata::MetaFileOffset& cursor);
+    RecordConstructor* getAnonymousStructConstructor(GlobalObject*, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details);
 
     JSC::WriteBarrier<FFISimpleType> _noopType;
     JSC::WriteBarrier<FFISimpleType> _voidType;
