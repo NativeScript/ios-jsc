@@ -21,10 +21,10 @@ const ClassInfo ObjCMethodCall::s_info = { "ObjCMethodCall", &Base::s_info, 0, 0
 
 void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const MethodMeta* metadata, SEL aSelector) {
     Base::finishCreation(vm, metadata->jsName());
-    MetaFileOffset encoding = metadata->encodingOffset();
+    TypeEncoding* encodings = metadata->encodings()->first();
 
-    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encoding);
-    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encoding, metadata->encodingCount() - 1);
+    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings);
+    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->_count - 1);
 
     Base::initializeFFI(vm, returnTypeCell, parameterTypesCells, 2);
     this->_retainsReturnedCocoaObjects = metadata->ownsReturnedCocoaObject();

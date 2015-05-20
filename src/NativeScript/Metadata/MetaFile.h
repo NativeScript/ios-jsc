@@ -11,33 +11,38 @@
 
 namespace Metadata {
 
-// Offset in metadata file
-typedef int32_t MetaFileOffset;
-// Elements count for arrays in metadata file
-typedef int32_t MetaArrayCount;
-
 class MetaFile {
 
 private:
     const void* file;
-    MetaArrayCount globalTableSlotsCount;
-    MetaFileOffset* globalTableStart;
+    ArrayCount globalTableSlotsCount;
+    Offset* globalTableStart;
+    ArrayCount topLevelModulesCount;
+    Offset* topLevelModulesTableStart;
     Byte* heapStart;
 
 public:
     MetaFile(const char* filePath);
     MetaFile(void* fileStart);
 
-    const void* goToHeap(MetaFileOffset offset) const {
+    const void* goToHeap(Offset offset) const {
         return heapStart + offset;
     }
 
-    const MetaFileOffset* goToGlobalTable(UInt32 index) const {
+    const Offset* goToGlobalTable(UInt32 index) const {
         return globalTableStart + index;
     }
 
     UInt32 getGlobalTableSlotsCount() const {
         return globalTableSlotsCount;
+    }
+
+    const Offset* goToModulesTable(UInt32 index) const {
+        return topLevelModulesTableStart + index;
+    }
+
+    UInt32 getModulesTableCount() const {
+        return topLevelModulesCount;
     }
 };
 }

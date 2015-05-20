@@ -36,4 +36,12 @@ describe(module.id, function() {
             expect(global.SKTerminateForInvalidReceipt).not.toBeUndefined();
         }
     });
+         
+    it("FunctionDiff", function() {
+        if (SYSTEM_VERSION_LESS_THAN("8.0")) {
+            expect(global.SCNAction).toBeUndefined();
+        } else {
+            expect(global.SCNAction).not.toBeUndefined();
+        }
+    });
 });

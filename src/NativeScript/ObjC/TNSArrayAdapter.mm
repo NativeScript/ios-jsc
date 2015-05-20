@@ -22,7 +22,8 @@ using namespace JSC;
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_execState = execState;
-        [TNSValueWrapper attachValue:jsObject toHost:self];
+        [TNSValueWrapper attachValue:jsObject
+                              toHost:self];
     }
 
     return self;
@@ -41,7 +42,9 @@ using namespace JSC;
 
 - (id)objectAtIndex:(NSUInteger)index {
     if (!(index < [self count])) {
-        @throw [NSException exceptionWithName:NSRangeException reason:[NSString stringWithFormat:@"Index (%tu) out of bounds", index] userInfo:nil];
+        @throw [NSException exceptionWithName:NSRangeException
+                                       reason:[NSString stringWithFormat:@"Index (%tu) out of bounds", index]
+                                     userInfo:nil];
     }
 
     JSLockHolder lock(self->_execState);

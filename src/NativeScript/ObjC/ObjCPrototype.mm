@@ -43,7 +43,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
 
     if (MethodMeta* memberMeta = prototype->_metadata->instanceMethod(propertyName.publicName())) {
-        SymbolLoader::instance().ensureFramework(memberMeta->topLevelModuleName());
+        SymbolLoader::instance().ensureFramework(memberMeta->topLevelModule()->name());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
         ObjCMethodCall* method = ObjCMethodCall::create(globalObject->vm(), globalObject, globalObject->objCMethodCallStructure(), memberMeta);
@@ -128,15 +128,20 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
         const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
         baseClassMetaStack.pop_back();
 
-        for (auto methodIter = baseClassMeta->getInstanceMethodsIterator(); methodIter.hasNext(); methodIter.next()) {
-            propertyNames.add(Identifier(execState, methodIter.currentItem()->jsName()));
-        }
-        for (auto propertyIter = baseClassMeta->getPropertiesIterator(); propertyIter.hasNext(); propertyIter.next()) {
-            propertyNames.add(Identifier(execState, propertyIter.currentItem()->jsName()));
+        for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->_instanceMethods->begin(); it != baseClassMeta->_instanceMethods->end(); it++) {
+            if ((*it)->isAvailable())
+                propertyNames.add(Identifier(execState, (*it)->jsName()));
         }
 
-        for (auto protocolIterator = baseClassMeta->getProtocolsIterator(); protocolIterator.hasNext(); protocolIterator.next()) {
-            baseClassMetaStack.push_back(protocolIterator.currentItem());
+        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->_properties->begin(); it != baseClassMeta->_properties->end(); it++) {
+            if ((*it)->isAvailable())
+                propertyNames.add(Identifier(execState, (*it)->jsName()));
+        }
+
+        for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->_protocols->begin(); it != baseClassMeta->_protocols->end(); it++) {
+            const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
+            if (protocolMeta != nullptr)
+                baseClassMetaStack.push_back(protocolMeta);
         }
     }
 
@@ -147,20 +152,22 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
     std::vector<PropertyMeta*> properties = const_cast<InterfaceMeta*>(this->_metadata)->propertiesWithProtocols();
 
     for (PropertyMeta* propertyMeta : properties) {
-        SymbolLoader::instance().ensureFramework(propertyMeta->topLevelModuleName());
+        if (propertyMeta->isAvailable()) {
+            SymbolLoader::instance().ensureFramework(propertyMeta->topLevelModule()->name());
 
-        MethodMeta* getter = propertyMeta->getter();
-        MethodMeta* setter = propertyMeta->setter();
+            MethodMeta* getter = (propertyMeta->getter() != nullptr && propertyMeta->getter()->isAvailable()) ? propertyMeta->getter() : nullptr;
+            MethodMeta* setter = (propertyMeta->setter() != nullptr && propertyMeta->setter()->isAvailable()) ? propertyMeta->setter() : nullptr;
 
-        PropertyDescriptor descriptor;
-        descriptor.setConfigurable(true);
-        descriptor.setGetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), getter));
+            PropertyDescriptor descriptor;
+            descriptor.setConfigurable(true);
+            descriptor.setGetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), getter));
 
-        if (setter) {
-            descriptor.setSetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), setter));
+            if (setter) {
+                descriptor.setSetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), setter));
+            }
+
+            Base::defineOwnProperty(this, globalObject->globalExec(), Identifier(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
         }
-
-        Base::defineOwnProperty(this, globalObject->globalExec(), Identifier(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
     }
 }
 }
