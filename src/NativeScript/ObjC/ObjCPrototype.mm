@@ -128,17 +128,17 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
         const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
         baseClassMetaStack.pop_back();
 
-        for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->_instanceMethods->begin(); it != baseClassMeta->_instanceMethods->end(); it++) {
+        for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->instanceMethods->begin(); it != baseClassMeta->instanceMethods->end(); it++) {
             if ((*it)->isAvailable())
                 propertyNames.add(Identifier(execState, (*it)->jsName()));
         }
 
-        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->_properties->begin(); it != baseClassMeta->_properties->end(); it++) {
+        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->props->begin(); it != baseClassMeta->props->end(); it++) {
             if ((*it)->isAvailable())
                 propertyNames.add(Identifier(execState, (*it)->jsName()));
         }
 
-        for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->_protocols->begin(); it != baseClassMeta->_protocols->end(); it++) {
+        for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
             const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
             if (protocolMeta != nullptr)
                 baseClassMetaStack.push_back(protocolMeta);

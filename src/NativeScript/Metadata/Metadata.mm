@@ -94,13 +94,13 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
     const ArrayOfPtrTo<MemberMeta>* members;
     switch (type) {
     case MemberType::InstanceMethod:
-        members = &this->_instanceMethods->castTo<PtrTo<MemberMeta>>();
+        members = &this->instanceMethods->castTo<PtrTo<MemberMeta>>();
         break;
     case MemberType::StaticMethod:
-        members = &this->_staticMethods->castTo<PtrTo<MemberMeta>>();
+        members = &this->staticMethods->castTo<PtrTo<MemberMeta>>();
         break;
     case MemberType::Property:
-        members = &this->_properties->castTo<PtrTo<MemberMeta>>();
+        members = &this->props->castTo<PtrTo<MemberMeta>>();
         break;
     }
 
@@ -116,7 +116,7 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
 
     // search in protcols
     if (includeProtocols) {
-        for (Array<String>::iterator it = _protocols->begin(); it != _protocols->end(); ++it) {
+        for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
             const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
             if (protocolMeta != nullptr) {
                 if (MemberMeta* method = protocolMeta->member(identifier, length, type, onlyIfAvailable)) {
@@ -131,7 +131,7 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
 
 std::vector<PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<PropertyMeta*>& container) const {
     this->properties(container);
-    for (Array<String>::iterator it = _protocols->begin(); it != _protocols->end(); ++it) {
+    for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
         const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
         if (protocolMeta != nullptr)
             protocolMeta->propertiesWithProtocols(container);
@@ -141,10 +141,10 @@ std::vector<PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<Pr
 
 vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) const {
     // search in instance methods
-    int16_t firstInitIndex = this->initializersStartIndex();
+    int16_t firstInitIndex = this->initializersStartIndex;
     if (firstInitIndex != -1) {
-        for (int i = firstInitIndex; i < _instanceMethods->count; i++) {
-            MethodMeta* method = _instanceMethods.value()[i].valuePtr();
+        for (int i = firstInitIndex; i < instanceMethods->count; i++) {
+            MethodMeta* method = instanceMethods.value()[i].valuePtr();
             if (startsWith("init", method->jsName())) {
                 container.push_back(method);
             } else {
@@ -157,7 +157,7 @@ vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) 
 
 vector<MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<MethodMeta*>& container) const {
     this->initializers(container);
-    for (Array<String>::iterator it = this->_protocols->begin(); it != this->_protocols->end(); it++) {
+    for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); it++) {
         const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
         if (protocolMeta != nullptr)
             protocolMeta->initializersWithProtcols(container);

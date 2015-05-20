@@ -36,7 +36,7 @@ const ClassInfo TypeFactory::s_info = { "TypeFactory", 0, 0, 0, CREATE_METHOD_TA
 ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, TypeEncodingsList<uint8_t>& typeEncodings) {
     TypeEncoding* typeEncodingPtr = typeEncodings.first();
     JSCell* returnType = this->parseType(globalObject, typeEncodingPtr);
-    const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings._count - 1);
+    const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
     return this->getObjCBlockType(globalObject, returnType, parameters);
 }
 
@@ -65,7 +65,7 @@ ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell*
 JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, TypeEncodingsList<uint8_t>& typeEncodings) {
     TypeEncoding* typeEncodingPtr = typeEncodings.first();
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr);
-    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings._count - 1);
+    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
     return this->getFunctionReferenceTypeInstance(globalObject, returnType, parameterTypes);
 }
 
@@ -119,7 +119,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     ASSERT(structInfo && structInfo->type() == MetaType::Struct);
 
     TypeEncoding* encodingsPtr = structInfo->fieldsEncodings()->first();
-    fieldsTypes = parseTypes(globalObject, encodingsPtr, structInfo->fieldsEncodings()->_count);
+    fieldsTypes = parseTypes(globalObject, encodingsPtr, structInfo->fieldsEncodings()->count);
 
     for (Array<Metadata::String>::iterator it = structInfo->fieldNames().begin(); it != structInfo->fieldNames().end(); it++) {
         fieldsNames.append(WTF::ASCIILiteral((*it).valuePtr()));

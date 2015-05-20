@@ -80,13 +80,13 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
         const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
         baseClassMetaStack.pop_back();
 
-        for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->_staticMethods->begin(); it != baseClassMeta->_staticMethods->end(); it++) {
+        for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->staticMethods->begin(); it != baseClassMeta->staticMethods->end(); it++) {
             MethodMeta* meta = (*it).valuePtr();
             if (meta->isAvailable())
                 propertyNames.add(Identifier(execState, meta->jsName()));
         }
 
-        for (Array<Metadata::String>::iterator it = baseClassMeta->_protocols->begin(); it != baseClassMeta->_protocols->end(); it++) {
+        for (Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
             const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
             if (protocolMeta != nullptr)
                 baseClassMetaStack.push_back(protocolMeta);

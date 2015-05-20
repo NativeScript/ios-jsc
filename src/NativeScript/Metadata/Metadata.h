@@ -294,7 +294,7 @@ struct PtrTo {
 
 template <typename T>
 struct TypeEncodingsList {
-    T _count;
+    T count;
 
     TypeEncoding* first() {
         return (TypeEncoding*)(this + 1);
@@ -357,14 +357,14 @@ struct TypeEncoding {
         }
         case BinaryTypeEncodingType::BlockEncoding: {
             TypeEncoding* current = this->details.block.signature.first();
-            for (int i = 0; i < this->details.block.signature._count; i++) {
+            for (int i = 0; i < this->details.block.signature.count; i++) {
                 current = current->next();
             }
             return current;
         }
         case BinaryTypeEncodingType::FunctionPointerEncoding: {
             TypeEncoding* current = this->details.functionPointer.signature.first();
-            for (int i = 0; i < this->details.functionPointer.signature._count; i++) {
+            for (int i = 0; i < this->details.functionPointer.signature.count; i++) {
                 current = current->next();
             }
             return current;
@@ -395,8 +395,8 @@ struct JsNameAndName {
 };
 
 union MetaNames {
-    String _name;
-    PtrTo<JsNameAndName> _names;
+    String name;
+    PtrTo<JsNameAndName> names;
 };
 
 struct Meta {
@@ -425,11 +425,11 @@ public:
     }
 
     const char* jsName() const {
-        return (this->hasName()) ? this->_names._names->jsName.valuePtr() : this->_names._name.valuePtr();
+        return (this->hasName()) ? this->_names.names->jsName.valuePtr() : this->_names.name.valuePtr();
     }
 
     const char* name() const {
-        return (this->hasName()) ? this->_names._names->name.valuePtr() : this->jsName();
+        return (this->hasName()) ? this->_names.names->name.valuePtr() : this->jsName();
     }
 
     /**
@@ -553,8 +553,8 @@ public:
 };
 
 struct PropertyMeta : MemberMeta {
-    PtrTo<MethodMeta> _method1;
-    PtrTo<MethodMeta> _method2;
+    PtrTo<MethodMeta> method1;
+    PtrTo<MethodMeta> method2;
 
 public:
     bool hasGetter() const {
@@ -566,21 +566,21 @@ public:
     }
 
     MethodMeta* getter() const {
-        return this->hasGetter() ? _method1.valuePtr() : nullptr;
+        return this->hasGetter() ? method1.valuePtr() : nullptr;
     }
 
     MethodMeta* setter() const {
-        return (this->hasSetter()) ? (this->hasGetter() ? _method2.valuePtr() : _method1.valuePtr()) : nullptr;
+        return (this->hasSetter()) ? (this->hasGetter() ? method2.valuePtr() : method1.valuePtr()) : nullptr;
     }
 };
 
 struct BaseClassMeta : Meta {
 
-    PtrTo<ArrayOfPtrTo<MethodMeta>> _instanceMethods;
-    PtrTo<ArrayOfPtrTo<MethodMeta>> _staticMethods;
-    PtrTo<ArrayOfPtrTo<PropertyMeta>> _properties;
-    PtrTo<Array<String>> _protocols;
-    int16_t _initializersStartIndex;
+    PtrTo<ArrayOfPtrTo<MethodMeta>> instanceMethods;
+    PtrTo<ArrayOfPtrTo<MethodMeta>> staticMethods;
+    PtrTo<ArrayOfPtrTo<PropertyMeta>> props;
+    PtrTo<Array<String>> protocols;
+    int16_t initializersStartIndex;
 
     MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
 
@@ -633,17 +633,13 @@ struct BaseClassMeta : Meta {
     }
 
     std::vector<PropertyMeta*> properties(std::vector<PropertyMeta*>& container) const {
-        for (Array<PtrTo<PropertyMeta>>::iterator it = this->_properties->begin(); it != this->_properties->end(); it++) {
+        for (Array<PtrTo<PropertyMeta>>::iterator it = this->props->begin(); it != this->props->end(); it++) {
             container.push_back((*it).valuePtr());
         }
         return container;
     }
 
     std::vector<PropertyMeta*> propertiesWithProtocols(std::vector<PropertyMeta*>& container) const;
-
-    int16_t initializersStartIndex() const {
-        return this->_initializersStartIndex;
-    }
 
     std::vector<MethodMeta*> initializers() const {
         std::vector<MethodMeta*> initializers;

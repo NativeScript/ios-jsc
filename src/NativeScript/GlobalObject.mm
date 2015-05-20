@@ -214,7 +214,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
             const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
             Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
             JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr);
-            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->_count - 1);
+            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1);
             symbolWrapper = FFIFunctionCall::create(vm, globalObject->ffiFunctionCallStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
         }
         break;

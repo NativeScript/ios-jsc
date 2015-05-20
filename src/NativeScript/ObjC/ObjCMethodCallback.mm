@@ -21,7 +21,7 @@ ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue 
 
     Metadata::TypeEncoding* typeEncodings = meta->encodings()->first();
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings);
-    Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->_count - 1);
+    Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1);
 
     ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), value.asCell(), returnType, parameterTypes);
     gcProtect(methodCallback);
