@@ -18,7 +18,7 @@ struct MethodMeta;
 namespace NativeScript {
 class ObjCMethodCallback;
 
-ObjCMethodCallback* createProtectedMethodCallback(JSC::ExecState*, JSC::JSValue, Metadata::MethodMeta*);
+ObjCMethodCallback* createProtectedMethodCallback(JSC::ExecState*, JSC::JSValue, const Metadata::MethodMeta*);
 
 class ObjCMethodCallback : public FFICallback<ObjCMethodCallback> {
 public:

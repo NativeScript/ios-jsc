@@ -59,11 +59,11 @@ int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated
 }
 
 const Meta* GlobalTable::findMeta(WTF::StringImpl* identifier, bool onlyIfAvailable) const {
-    return this->findMeta((const char*)identifier->characters8(), identifier->length(), identifier->hash(), onlyIfAvailable);
+    return this->findMeta(reinterpret_cast<const char*>(identifier->characters8()), identifier->length(), identifier->hash(), onlyIfAvailable);
 }
 
 const Meta* GlobalTable::findMeta(const char* identifierString, bool onlyIfAvailable) const {
-    unsigned hash = WTF::StringHasher::computeHashAndMaskTop8Bits<LChar>((const LChar*)identifierString);
+    unsigned hash = WTF::StringHasher::computeHashAndMaskTop8Bits<LChar>(reinterpret_cast<const LChar*>(identifierString));
     return this->findMeta(identifierString, strlen(identifierString), hash, onlyIfAvailable);
 }
 
@@ -72,9 +72,9 @@ const Meta* GlobalTable::findMeta(const char* identifierString, size_t length, u
     if (this->buckets[bucketIndex].isNull()) {
         return nullptr;
     }
-    ArrayOfPtrTo<Meta>& bucketContent = buckets[bucketIndex].value();
+    const ArrayOfPtrTo<Meta>& bucketContent = buckets[bucketIndex].value();
     for (ArrayOfPtrTo<Meta>::iterator it = bucketContent.begin(); it != bucketContent.end(); it++) {
-        Meta* meta = (*it).valuePtr();
+        const Meta* meta = (*it).valuePtr();
         if (compareIdentifiers(meta->jsName(), identifierString, length) == 0) {
             return onlyIfAvailable ? (meta->isAvailable() ? meta : nullptr) : meta;
         }
@@ -90,7 +90,7 @@ bool Meta::isAvailable() const {
 }
 
 // BaseClassMeta
-MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable) const {
+const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable) const {
     const ArrayOfPtrTo<MemberMeta>* members;
     switch (type) {
     case MemberType::InstanceMethod:
@@ -110,7 +110,7 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
     }
 
     if (resultIndex >= 0) {
-        MemberMeta* memberMeta = (*members)[resultIndex].valuePtr();
+        const MemberMeta* memberMeta = (*members)[resultIndex].valuePtr();
         return onlyIfAvailable ? (memberMeta->isAvailable() ? memberMeta : nullptr) : memberMeta;
     }
 
@@ -119,7 +119,7 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
         for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
             const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr()));
             if (protocolMeta != nullptr) {
-                if (MemberMeta* method = protocolMeta->member(identifier, length, type, onlyIfAvailable)) {
+                if (const MemberMeta* method = protocolMeta->member(identifier, length, type, onlyIfAvailable)) {
                     return method;
                 }
             }
@@ -129,7 +129,7 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
     return nullptr;
 }
 
-std::vector<PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<PropertyMeta*>& container) const {
+std::vector<const PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<const PropertyMeta*>& container) const {
     this->properties(container);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
         const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
@@ -139,12 +139,12 @@ std::vector<PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<Pr
     return container;
 }
 
-vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) const {
+vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>& container) const {
     // search in instance methods
     int16_t firstInitIndex = this->initializersStartIndex;
     if (firstInitIndex != -1) {
         for (int i = firstInitIndex; i < instanceMethods->count; i++) {
-            MethodMeta* method = instanceMethods.value()[i].valuePtr();
+            const MethodMeta* method = instanceMethods.value()[i].valuePtr();
             if (startsWith("init", method->jsName())) {
                 container.push_back(method);
             } else {
@@ -155,7 +155,7 @@ vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) 
     return container;
 }
 
-vector<MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<MethodMeta*>& container) const {
+vector<const MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<const MethodMeta*>& container) const {
     this->initializers(container);
     for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); it++) {
         const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));

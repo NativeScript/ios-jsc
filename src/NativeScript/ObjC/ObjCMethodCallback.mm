@@ -16,10 +16,10 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue value, MethodMeta* meta) {
+ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue value, const MethodMeta* meta) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    Metadata::TypeEncoding* typeEncodings = meta->encodings()->first();
+    const Metadata::TypeEncoding* typeEncodings = meta->encodings()->first();
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings);
     Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1);
 

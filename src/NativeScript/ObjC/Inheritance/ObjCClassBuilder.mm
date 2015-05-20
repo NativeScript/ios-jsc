@@ -102,12 +102,12 @@ static bool isValidType(ExecState* execState, JSValue& value) {
     return true;
 }
 
-static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, MethodMeta* meta) {
+static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, const MethodMeta* meta) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     std::string compilerEncoding = getCompilerEncoding(globalObject, meta);
 
-    TypeEncoding* encodings = meta->encodings()->first();
+    const TypeEncoding* encodings = meta->encodings()->first();
 
     JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings);
     const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, meta->encodings()->count - 1);
@@ -261,7 +261,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
     WTF::StringImpl* methodName = jsName.impl();
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    MethodMeta* methodMeta = nullptr;
+    const MethodMeta* methodMeta = nullptr;
 
     do {
         methodMeta = currentClass->instanceMethod(methodName);
@@ -295,7 +295,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
     WTF::StringImpl* propertyName = name.impl();
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    PropertyMeta* propertyMeta = nullptr;
+    const PropertyMeta* propertyMeta = nullptr;
     do {
         propertyMeta = currentClass->property(propertyName);
         currentClass = currentClass->baseMeta();
@@ -314,8 +314,8 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         VM& vm = globalObject->vm();
 
-        if (MethodMeta* getter = propertyMeta->getter()) {
-            TypeEncoding* encodings = getter->encodings()->first();
+        if (const MethodMeta* getter = propertyMeta->getter()) {
+            const TypeEncoding* encodings = getter->encodings()->first();
             JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
             const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->count - 1);
 
@@ -327,8 +327,8 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
             }
         }
 
-        if (MethodMeta* setter = propertyMeta->setter()) {
-            TypeEncoding* encodings = setter->encodings()->first();
+        if (const MethodMeta* setter = propertyMeta->setter()) {
+            const TypeEncoding* encodings = setter->encodings()->first();
             JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
             const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->count - 1);
 
@@ -399,7 +399,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
 void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
     WTF::StringImpl* methodName = jsName.impl();
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    MethodMeta* methodMeta = nullptr;
+    const MethodMeta* methodMeta = nullptr;
 
     do {
         methodMeta = currentClass->staticMethod(methodName);

@@ -20,7 +20,7 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     Base::finishCreation(vm, metadata->jsName());
     this->_klass = klass;
 
-    Metadata::TypeEncoding* encodings = metadata->encodings()->first();
+    const Metadata::TypeEncoding* encodings = metadata->encodings()->first();
 
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
     const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);

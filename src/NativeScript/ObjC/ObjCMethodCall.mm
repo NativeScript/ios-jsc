@@ -21,7 +21,7 @@ const ClassInfo ObjCMethodCall::s_info = { "ObjCMethodCall", &Base::s_info, 0, 0
 
 void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const MethodMeta* metadata, SEL aSelector) {
     Base::finishCreation(vm, metadata->jsName());
-    TypeEncoding* encodings = metadata->encodings()->first();
+    const TypeEncoding* encodings = metadata->encodings()->first();
 
     JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings);
     const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);

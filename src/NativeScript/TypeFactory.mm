@@ -33,8 +33,8 @@ using namespace Metadata;
 
 const ClassInfo TypeFactory::s_info = { "TypeFactory", 0, 0, 0, CREATE_METHOD_TABLE(TypeFactory) };
 
-ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, TypeEncodingsList<uint8_t>& typeEncodings) {
-    TypeEncoding* typeEncodingPtr = typeEncodings.first();
+ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
+    const TypeEncoding* typeEncodingPtr = typeEncodings.first();
     JSCell* returnType = this->parseType(globalObject, typeEncodingPtr);
     const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
     return this->getObjCBlockType(globalObject, returnType, parameters);
@@ -62,8 +62,8 @@ ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell*
     return result;
 }
 
-JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, TypeEncodingsList<uint8_t>& typeEncodings) {
-    TypeEncoding* typeEncodingPtr = typeEncodings.first();
+JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
+    const TypeEncoding* typeEncodingPtr = typeEncodings.first();
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr);
     const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
     return this->getFunctionReferenceTypeInstance(globalObject, returnType, parameterTypes);
@@ -118,7 +118,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTable()->findMeta(structName.impl()));
     ASSERT(structInfo && structInfo->type() == MetaType::Struct);
 
-    TypeEncoding* encodingsPtr = structInfo->fieldsEncodings()->first();
+    const TypeEncoding* encodingsPtr = structInfo->fieldsEncodings()->first();
     fieldsTypes = parseTypes(globalObject, encodingsPtr, structInfo->fieldsEncodings()->count);
 
     for (Array<Metadata::String>::iterator it = structInfo->fieldNames().begin(); it != structInfo->fieldNames().end(); it++) {
@@ -140,7 +140,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     return constructor;
 }
 
-RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
+RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
     ffi_type* ffiType = new ffi_type({ .size = 0,
                                        .alignment = 0,
                                        .type = FFI_TYPE_STRUCT });
@@ -156,11 +156,11 @@ RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* glob
     WTF::Vector<WTF::String> fieldsNames;
 
     for (int i = 0; i < details.fieldsCount; ++i) {
-        Metadata::String* currentName = details.getFieldNames() + i;
+        const Metadata::String* currentName = details.getFieldNames() + i;
         fieldsNames.append(WTF::ASCIILiteral(currentName->valuePtr()));
     }
 
-    TypeEncoding* encodingsPtr = details.getFieldsEncodings();
+    const TypeEncoding* encodingsPtr = details.getFieldsEncodings();
     fieldsTypes = parseTypes(globalObject, encodingsPtr, details.fieldsCount);
 
     WTF::Vector<RecordField*> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
@@ -319,7 +319,7 @@ ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject,
     return result;
 }
 
-JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, Metadata::TypeEncoding*& typeEncoding) {
+JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncoding) {
     JSC::JSCell* result = nullptr;
 
     switch (typeEncoding->type) {
@@ -400,7 +400,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, Metadata::TypeEn
         break;
     }
     case BinaryTypeEncodingType::PointerEncoding: {
-        TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
         result = (innerType == this->_voidType.get()) ? jsCast<JSCell*>(this->_pointerConstructor.get()) : jsCast<JSCell*>(this->getReferenceType(globalObject, innerType));
         break;
@@ -424,13 +424,13 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, Metadata::TypeEn
         result = this->NSObjectConstructor(globalObject);
         break;
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
-        TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
         result = this->getReferenceType(globalObject, innerType);
         break;
     }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {
-        TypeEncoding* innerTypeEncoding = typeEncoding->details.incompleteArray.getInnerType();
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.incompleteArray.getInnerType();
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
         result = this->getReferenceType(globalObject, innerType);
         break;
@@ -454,7 +454,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, Metadata::TypeEn
     return result;
 }
 
-const WTF::Vector<JSC::JSCell*> TypeFactory::parseTypes(GlobalObject* globalObject, Metadata::TypeEncoding*& typeEncodings, int count) {
+const WTF::Vector<JSC::JSCell*> TypeFactory::parseTypes(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncodings, int count) {
     WTF::Vector<JSCell*> types;
     for (int i = 0; i < count; i++) {
         types.append(parseType(globalObject, typeEncodings));

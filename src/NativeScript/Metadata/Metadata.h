@@ -97,14 +97,18 @@ struct TypeEncoding;
 
 typedef int32_t ArrayCount;
 
+static const void* offset(const void* from, ptrdiff_t offset) {
+    return reinterpret_cast<const char*>(from) + offset;
+}
+
 template <typename T>
 struct Array {
     class iterator {
     private:
-        T* current;
+        const T* current;
 
     public:
-        iterator(T* item)
+        iterator(const T* item)
             : current(item) {
         }
         bool operator==(const iterator& other) const {
@@ -122,18 +126,18 @@ struct Array {
             operator++();
             return tmp;
         }
-        T& operator*() const {
+        const T& operator*() const {
             return *current;
         }
     };
 
     ArrayCount count;
 
-    T* first() const {
-        return (T*)(&count + 1);
+    const T* first() const {
+        return reinterpret_cast<const T*>(&count + 1);
     }
 
-    T& operator[](int index) const {
+    const T& operator[](int index) const {
         return *(first() + index);
     }
 
@@ -255,9 +259,9 @@ public:
         return &this->_globalTable;
     }
 
-    void* heap() const {
+    const void* heap() const {
         const GlobalTable* gt = this->globalTable();
-        return (char*)gt + gt->sizeInBytes();
+        return offset(gt, gt->sizeInBytes());
     }
 };
 
@@ -271,7 +275,7 @@ struct PtrTo {
     PtrTo<T> operator+(int value) const {
         return add(value);
     }
-    T* operator->() const {
+    const T* operator->() const {
         return valuePtr();
     }
     PtrTo<T> add(int value) const {
@@ -284,10 +288,10 @@ struct PtrTo {
     PtrTo<V>& castTo() const {
         return reinterpret_cast<PtrTo<V>>(this);
     }
-    T* valuePtr() const {
-        return isNull() ? nullptr : reinterpret_cast<T*>((char*)MetaFile::instance()->heap() + this->offset);
+    const T* valuePtr() const {
+        return isNull() ? nullptr : reinterpret_cast<const T*>(Metadata::offset(MetaFile::instance()->heap(), this->offset));
     }
-    T& value() const {
+    const T& value() const {
         return *valuePtr();
     }
 };
@@ -296,29 +300,29 @@ template <typename T>
 struct TypeEncodingsList {
     T count;
 
-    TypeEncoding* first() {
-        return reinterpret_cast<TypeEncoding*>(this + 1);
+    const TypeEncoding* first() const {
+        return reinterpret_cast<const TypeEncoding*>(this + 1);
     }
 };
 
 union TypeEncodingDetails {
     struct IncompleteArrayDetails {
-        TypeEncoding* getInnerType() {
-            return reinterpret_cast<TypeEncoding*>(this);
+        const TypeEncoding* getInnerType() const {
+            return reinterpret_cast<const TypeEncoding*>(this);
         }
     } incompleteArray;
     struct ConstantArrayDetails {
         int32_t size;
-        TypeEncoding* getInnerType() {
-            return reinterpret_cast<TypeEncoding*>(this + 1);
+        const TypeEncoding* getInnerType() const {
+            return reinterpret_cast<const TypeEncoding*>(this + 1);
         }
     } constantArray;
     struct DeclarationReferenceDetails {
         String name;
     } declarationReference;
     struct PointerDetails {
-        TypeEncoding* getInnerType() {
-            return reinterpret_cast<TypeEncoding*>(this);
+        const TypeEncoding* getInnerType() const {
+            return reinterpret_cast<const TypeEncoding*>(this);
         }
     } pointer;
     struct BlockDetails {
@@ -329,11 +333,11 @@ union TypeEncodingDetails {
     } functionPointer;
     struct AnonymousRecordDetails {
         uint8_t fieldsCount;
-        String* getFieldNames() {
-            return reinterpret_cast<String*>(this + 1);
+        const String* getFieldNames() const {
+            return reinterpret_cast<const String*>(this + 1);
         }
-        TypeEncoding* getFieldsEncodings() {
-            return reinterpret_cast<TypeEncoding*>(getFieldNames() + this->fieldsCount);
+        const TypeEncoding* getFieldsEncodings() const {
+            return reinterpret_cast<const TypeEncoding*>(getFieldNames() + this->fieldsCount);
         }
     } anonymousRecord;
 };
@@ -342,8 +346,8 @@ struct TypeEncoding {
     BinaryTypeEncodingType type;
     TypeEncodingDetails details;
 
-    TypeEncoding* next() {
-        TypeEncoding* afterTypePtr = reinterpret_cast<TypeEncoding*>((char*)this + sizeof(type));
+    const TypeEncoding* next() const {
+        const TypeEncoding* afterTypePtr = reinterpret_cast<const TypeEncoding*>(offset(this, sizeof(type)));
 
         switch (this->type) {
         case BinaryTypeEncodingType::ConstantArrayEncoding: {
@@ -356,14 +360,14 @@ struct TypeEncoding {
             return this->details.pointer.getInnerType()->next();
         }
         case BinaryTypeEncodingType::BlockEncoding: {
-            TypeEncoding* current = this->details.block.signature.first();
+            const TypeEncoding* current = this->details.block.signature.first();
             for (int i = 0; i < this->details.block.signature.count; i++) {
                 current = current->next();
             }
             return current;
         }
         case BinaryTypeEncodingType::FunctionPointerEncoding: {
-            TypeEncoding* current = this->details.functionPointer.signature.first();
+            const TypeEncoding* current = this->details.functionPointer.signature.first();
             for (int i = 0; i < this->details.functionPointer.signature.count; i++) {
                 current = current->next();
             }
@@ -372,11 +376,11 @@ struct TypeEncoding {
         case BinaryTypeEncodingType::InterfaceDeclarationReference:
         case BinaryTypeEncodingType::StructDeclarationReference:
         case BinaryTypeEncodingType::UnionDeclarationReference: {
-            return reinterpret_cast<TypeEncoding*>((char*)afterTypePtr + sizeof(TypeEncodingDetails::DeclarationReferenceDetails));
+            return reinterpret_cast<const TypeEncoding*>(offset(afterTypePtr, sizeof(TypeEncodingDetails::DeclarationReferenceDetails)));
         }
         case BinaryTypeEncodingType::AnonymousStructEncoding:
         case BinaryTypeEncodingType::AnonymousUnionEncoding: {
-            TypeEncoding* current = this->details.anonymousRecord.getFieldsEncodings();
+            const TypeEncoding* current = this->details.anonymousRecord.getFieldsEncodings();
             for (int i = 0; i < this->details.anonymousRecord.fieldsCount; i++) {
                 current = current->next();
             }
@@ -465,7 +469,7 @@ public:
         return fieldNames().count;
     }
 
-    TypeEncodingsList<ArrayCount>* fieldsEncodings() const {
+    const TypeEncodingsList<ArrayCount>* fieldsEncodings() const {
         return _fieldsEncodings.valuePtr();
     }
 };
@@ -486,7 +490,7 @@ public:
         return this->flag(MetaFlags::FunctionIsVariadic);
     }
 
-    TypeEncodingsList<ArrayCount>* encodings() const {
+    const TypeEncodingsList<ArrayCount>* encodings() const {
         return _encoding.valuePtr();
     }
 
@@ -512,7 +516,7 @@ private:
     PtrTo<TypeEncoding> _encoding;
 
 public:
-    TypeEncoding* encoding() const {
+    const TypeEncoding* encoding() const {
         return _encoding.valuePtr();
     }
 };
@@ -543,7 +547,7 @@ public:
         return this->name();
     }
 
-    TypeEncodingsList<ArrayCount>* encodings() const {
+    const TypeEncodingsList<ArrayCount>* encodings() const {
         return this->_encodings.valuePtr();
     }
 
@@ -565,11 +569,11 @@ public:
         return this->flag(MetaFlags::PropertyHasSetter);
     }
 
-    MethodMeta* getter() const {
+    const MethodMeta* getter() const {
         return this->hasGetter() ? method1.valuePtr() : nullptr;
     }
 
-    MethodMeta* setter() const {
+    const MethodMeta* setter() const {
         return (this->hasSetter()) ? (this->hasGetter() ? method2.valuePtr() : method1.valuePtr()) : nullptr;
     }
 };
@@ -582,78 +586,78 @@ struct BaseClassMeta : Meta {
     PtrTo<Array<String>> protocols;
     int16_t initializersStartIndex;
 
-    MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
+    const MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
 
-    MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
-        const char* identif = (const char*)identifier->characters8();
+    const MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
+        const char* identif = reinterpret_cast<const char*>(identifier->characters8());
         size_t length = (size_t)identifier->length();
         return this->member(identif, length, type, includeProtocols);
     }
 
-    MemberMeta* member(const char* identifier, MemberType type, bool includeProtocols = true) const {
+    const MemberMeta* member(const char* identifier, MemberType type, bool includeProtocols = true) const {
         return this->member(identifier, strlen(identifier), type, includeProtocols);
     }
 
     /// instance methods
-    MethodMeta* instanceMethod(const char* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::InstanceMethod, includeProtocols);
+    const MethodMeta* instanceMethod(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols));
     }
 
-    MethodMeta* instanceMethod(StringImpl* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::InstanceMethod, includeProtocols);
+    const MethodMeta* instanceMethod(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols));
     }
 
     /// static methods
-    MethodMeta* staticMethod(const char* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::StaticMethod, includeProtocols);
+    const MethodMeta* staticMethod(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::StaticMethod, includeProtocols));
     }
 
-    MethodMeta* staticMethod(StringImpl* identifier, bool includeProtocols = true) const {
-        return (MethodMeta*)this->member(identifier, MemberType::StaticMethod, includeProtocols);
+    const MethodMeta* staticMethod(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::StaticMethod, includeProtocols));
     }
 
     /// properties
-    PropertyMeta* property(const char* identifier, bool includeProtocols = true) const {
-        return (PropertyMeta*)this->member(identifier, MemberType::Property, includeProtocols);
+    const PropertyMeta* property(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::Property, includeProtocols));
     }
 
-    PropertyMeta* property(StringImpl* identifier, bool includeProtocols = true) const {
-        return (PropertyMeta*)this->member(identifier, MemberType::Property, includeProtocols);
+    const PropertyMeta* property(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::Property, includeProtocols));
     }
 
     /// vectors
-    std::vector<PropertyMeta*> properties() const {
-        std::vector<PropertyMeta*> properties;
+    std::vector<const PropertyMeta*> properties() const {
+        std::vector<const PropertyMeta*> properties;
         return this->properties(properties);
     }
 
-    std::vector<PropertyMeta*> propertiesWithProtocols() const {
-        std::vector<PropertyMeta*> properties;
+    std::vector<const PropertyMeta*> propertiesWithProtocols() const {
+        std::vector<const PropertyMeta*> properties;
         return this->propertiesWithProtocols(properties);
     }
 
-    std::vector<PropertyMeta*> properties(std::vector<PropertyMeta*>& container) const {
+    std::vector<const PropertyMeta*> properties(std::vector<const PropertyMeta*>& container) const {
         for (Array<PtrTo<PropertyMeta>>::iterator it = this->props->begin(); it != this->props->end(); it++) {
             container.push_back((*it).valuePtr());
         }
         return container;
     }
 
-    std::vector<PropertyMeta*> propertiesWithProtocols(std::vector<PropertyMeta*>& container) const;
+    std::vector<const PropertyMeta*> propertiesWithProtocols(std::vector<const PropertyMeta*>& container) const;
 
-    std::vector<MethodMeta*> initializers() const {
-        std::vector<MethodMeta*> initializers;
+    std::vector<const MethodMeta*> initializers() const {
+        std::vector<const MethodMeta*> initializers;
         return this->initializers(initializers);
     }
 
-    std::vector<MethodMeta*> initializersWithProtcols() const {
-        std::vector<MethodMeta*> initializers;
+    std::vector<const MethodMeta*> initializersWithProtcols() const {
+        std::vector<const MethodMeta*> initializers;
         return this->initializersWithProtcols(initializers);
     }
 
-    std::vector<MethodMeta*> initializers(std::vector<MethodMeta*>& container) const;
+    std::vector<const MethodMeta*> initializers(std::vector<const MethodMeta*>& container) const;
 
-    std::vector<MethodMeta*> initializersWithProtcols(std::vector<MethodMeta*>& container) const;
+    std::vector<const MethodMeta*> initializersWithProtcols(std::vector<const MethodMeta*>& container) const;
 };
 
 struct ProtocolMeta : BaseClassMeta {
@@ -672,7 +676,7 @@ public:
     const InterfaceMeta* baseMeta() const {
         if (this->baseName() != nullptr) {
             const Meta* baseMeta = MetaFile::instance()->globalTable()->findMeta(this->baseName());
-            return baseMeta->type() == MetaType::Interface ? (InterfaceMeta*)baseMeta : nullptr;
+            return baseMeta->type() == MetaType::Interface ? reinterpret_cast<const InterfaceMeta*>(baseMeta) : nullptr;
         }
         return nullptr;
     }

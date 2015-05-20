@@ -113,10 +113,10 @@ const char* getCompilerEncoding(JSCell* value) {
     return table->encode(value);
 }
 
-std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, Metadata::MethodMeta* method) {
-    Metadata::TypeEncodingsList<Metadata::ArrayCount>* encodings = method->encodings();
+std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, const Metadata::MethodMeta* method) {
+    const Metadata::TypeEncodingsList<Metadata::ArrayCount>* encodings = method->encodings();
     GlobalObject* nsGlobalObject = jsCast<GlobalObject*>(globalObject);
-    Metadata::TypeEncoding* currentEncoding = encodings->first();
+    const Metadata::TypeEncoding* currentEncoding = encodings->first();
     JSCell* returnTypeCell = nsGlobalObject->typeFactory()->parseType(nsGlobalObject, currentEncoding);
     const WTF::Vector<JSCell*> parameterTypesCells = nsGlobalObject->typeFactory()->parseTypes(nsGlobalObject, currentEncoding, encodings->count - 1);
 

@@ -22,8 +22,8 @@ size_t sizeofValue(const JSC::JSValue&);
 
 const char* getCompilerEncoding(JSC::JSCell*);
 
-std::string getCompilerEncoding(JSC::JSGlobalObject *, Metadata::MethodMeta*);
-    
+std::string getCompilerEncoding(JSC::JSGlobalObject*, const Metadata::MethodMeta*);
+
 class Interop : public JSC::JSObject {
 public:
     typedef JSC::JSObject Base;
