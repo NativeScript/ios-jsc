@@ -259,9 +259,14 @@ public:
         return &this->_globalTable;
     }
 
-    const void* heap() const {
+    const ModuleTable* topLevelModulesTable() const {
         const GlobalTable* gt = this->globalTable();
-        return offset(gt, gt->sizeInBytes());
+        return reinterpret_cast<const ModuleTable*>(offset(gt, gt->sizeInBytes()));
+    }
+
+    const void* heap() const {
+        const ModuleTable* mt = this->topLevelModulesTable();
+        return offset(mt, mt->sizeInBytes());
     }
 };
 
@@ -393,6 +398,39 @@ struct TypeEncoding {
     }
 };
 
+struct ModuleMeta {
+public:
+    UInt8 flags;
+    String name;
+    PtrTo<ArrayOfPtrTo<LibraryMeta>> libraries;
+
+    const char* getName() const {
+        return name.valuePtr();
+    }
+
+    bool isFramework() const {
+        return (flags & 1) > 0;
+    }
+
+    bool isSystem() const {
+        return (flags & 2) > 0;
+    }
+};
+
+struct LibraryMeta {
+public:
+    UInt8 flags;
+    String name;
+
+    const char* getName() const {
+        return name.valuePtr();
+    }
+
+    bool isFramework() const {
+        return (flags & 1) > 0;
+    }
+};
+
 struct JsNameAndName {
     String jsName;
     String name;
@@ -407,7 +445,7 @@ struct Meta {
 
 private:
     MetaNames _names;
-    String _topLevelModuleName;
+    PtrTo<ModuleMeta> _topLevelModule;
     UInt8 _flags;
     UInt8 _introduced;
 
@@ -416,8 +454,8 @@ public:
         return (MetaType)(this->_flags & MetaTypeMask);
     }
 
-    const char* topLevelModuleName() const {
-        return this->_topLevelModuleName.valuePtr();
+    const ModuleMeta* topLevelModule() const {
+        return this->_topLevelModule.valuePtr();
     }
 
     bool hasName() const {
