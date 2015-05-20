@@ -80,13 +80,16 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
         const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
         baseClassMetaStack.pop_back();
 
-        for (auto methodIterator = baseClassMeta->getStaticMethodsIterator(); methodIterator.hasNext(); methodIterator.next()) {
-            MethodMeta* meta = methodIterator.currentItem();
-            propertyNames.add(Identifier(execState, meta->jsName()));
+        for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->_staticMethods->begin(); it != baseClassMeta->_staticMethods->end(); it++) {
+            MethodMeta* meta = (*it).valuePtr();
+            if (meta->isAvailable())
+                propertyNames.add(Identifier(execState, meta->jsName()));
         }
 
-        for (auto protocolIterator = baseClassMeta->getProtocolsIterator(); protocolIterator.hasNext(); protocolIterator.next()) {
-            baseClassMetaStack.push_back(protocolIterator.currentItem());
+        for (Array<Metadata::String>::iterator it = baseClassMeta->_protocols->begin(); it != baseClassMeta->_protocols->end(); it++) {
+            const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
+            if (protocolMeta != nullptr)
+                baseClassMetaStack.push_back(protocolMeta);
         }
     }
 
@@ -103,8 +106,10 @@ const WTF::Vector<ObjCConstructorCall*> ObjCConstructorNative::initializersGener
         for (std::vector<MethodMeta*>::iterator init = initializers.begin(); init != initializers.end(); ++init) {
             MethodMeta* method = (*init);
 
-            ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), target, method);
-            constructors.append(constructorCall);
+            if (method->isAvailable()) {
+                ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), target, method);
+                constructors.append(constructorCall);
+            }
         }
 
         metadata = metadata->baseMeta();

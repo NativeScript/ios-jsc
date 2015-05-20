@@ -33,8 +33,6 @@ set(HEADER_FILES
     Marshalling/Reference/ReferenceTypeConstructor.h
     Marshalling/Reference/ReferenceTypeInstance.h
     Metadata/Metadata.h
-    Metadata/MetaFile.h
-    Metadata/MetaFileReader.h
     NativeScript.h
     ObjC/Block/ObjCBlockCall.h
     ObjC/Block/ObjCBlockCallback.h
@@ -99,8 +97,6 @@ set(SOURCE_FILES
     Marshalling/Reference/ReferenceTypeConstructor.cpp
     Marshalling/Reference/ReferenceTypeInstance.cpp
     Metadata/Metadata.mm
-    Metadata/MetaFile.mm
-    Metadata/MetaFileReader.cpp
     ObjC/Block/ObjCBlockCall.mm
     ObjC/Block/ObjCBlockCallback.cpp
     ObjC/Block/ObjCBlockType.mm
