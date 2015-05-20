@@ -285,7 +285,7 @@ struct PtrTo {
         return reinterpret_cast<PtrTo<V>>(this);
     }
     T* valuePtr() const {
-        return isNull() ? nullptr : (T*)((char*)MetaFile::instance()->heap() + this->offset);
+        return isNull() ? nullptr : reinterpret_cast<T*>((char*)MetaFile::instance()->heap() + this->offset);
     }
     T& value() const {
         return *valuePtr();
@@ -297,20 +297,20 @@ struct TypeEncodingsList {
     T count;
 
     TypeEncoding* first() {
-        return (TypeEncoding*)(this + 1);
+        return reinterpret_cast<TypeEncoding*>(this + 1);
     }
 };
 
 union TypeEncodingDetails {
     struct IncompleteArrayDetails {
         TypeEncoding* getInnerType() {
-            return (TypeEncoding*)this;
+            return reinterpret_cast<TypeEncoding*>(this);
         }
     } incompleteArray;
     struct ConstantArrayDetails {
         int32_t size;
         TypeEncoding* getInnerType() {
-            return (TypeEncoding*)(this + 1);
+            return reinterpret_cast<TypeEncoding*>(this + 1);
         }
     } constantArray;
     struct DeclarationReferenceDetails {
@@ -318,7 +318,7 @@ union TypeEncodingDetails {
     } declarationReference;
     struct PointerDetails {
         TypeEncoding* getInnerType() {
-            return (TypeEncoding*)this;
+            return reinterpret_cast<TypeEncoding*>(this);
         }
     } pointer;
     struct BlockDetails {
@@ -330,10 +330,10 @@ union TypeEncodingDetails {
     struct AnonymousRecordDetails {
         uint8_t fieldsCount;
         String* getFieldNames() {
-            return (String*)(this + 1);
+            return reinterpret_cast<String*>(this + 1);
         }
         TypeEncoding* getFieldsEncodings() {
-            return (TypeEncoding*)(getFieldNames() + this->fieldsCount);
+            return reinterpret_cast<TypeEncoding*>(getFieldNames() + this->fieldsCount);
         }
     } anonymousRecord;
 };
@@ -343,7 +343,7 @@ struct TypeEncoding {
     TypeEncodingDetails details;
 
     TypeEncoding* next() {
-        TypeEncoding* afterTypePtr = (TypeEncoding*)((char*)this + sizeof(type));
+        TypeEncoding* afterTypePtr = reinterpret_cast<TypeEncoding*>((char*)this + sizeof(type));
 
         switch (this->type) {
         case BinaryTypeEncodingType::ConstantArrayEncoding: {
@@ -372,7 +372,7 @@ struct TypeEncoding {
         case BinaryTypeEncodingType::InterfaceDeclarationReference:
         case BinaryTypeEncodingType::StructDeclarationReference:
         case BinaryTypeEncodingType::UnionDeclarationReference: {
-            return (TypeEncoding*)((char*)afterTypePtr + sizeof(TypeEncodingDetails::DeclarationReferenceDetails));
+            return reinterpret_cast<TypeEncoding*>((char*)afterTypePtr + sizeof(TypeEncodingDetails::DeclarationReferenceDetails));
         }
         case BinaryTypeEncodingType::AnonymousStructEncoding:
         case BinaryTypeEncodingType::AnonymousUnionEncoding: {

@@ -117,7 +117,7 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
     // search in protcols
     if (includeProtocols) {
         for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-            const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
+            const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr()));
             if (protocolMeta != nullptr) {
                 if (MemberMeta* method = protocolMeta->member(identifier, length, type, onlyIfAvailable)) {
                     return method;
@@ -132,7 +132,7 @@ MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberT
 std::vector<PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<PropertyMeta*>& container) const {
     this->properties(container);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-        const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
+        const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
         if (protocolMeta != nullptr)
             protocolMeta->propertiesWithProtocols(container);
     }
@@ -158,7 +158,7 @@ vector<MethodMeta*> BaseClassMeta::initializers(vector<MethodMeta*>& container) 
 vector<MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<MethodMeta*>& container) const {
     this->initializers(container);
     for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); it++) {
-        const ProtocolMeta* protocolMeta = (ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false);
+        const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
         if (protocolMeta != nullptr)
             protocolMeta->initializersWithProtcols(container);
     }
@@ -208,7 +208,7 @@ void GlobalTable::iterator::findNext() {
 }
 
 MetaFile* MetaFile::instance() {
-    static MetaFile* instance((MetaFile*)loadFileInMemory((std::string("metadata-") + std::string(CURRENT_ARCH) + std::string(".bin")).c_str()));
+    static MetaFile* instance(reinterpret_cast<MetaFile*>(loadFileInMemory((std::string("metadata-") + std::string(CURRENT_ARCH) + std::string(".bin")).c_str())));
     return instance;
 }
 }
