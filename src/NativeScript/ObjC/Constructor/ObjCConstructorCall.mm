@@ -42,7 +42,11 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorCall::executeCall(ExecState* execSta
     self->executeFFICall(execState, FFI_FN(&objc_msgSend));
 
     JSValue result = self->postCall(execState);
-    [instance release];
+
+    // wrapping the object retains it, we need to balance the +1 from alloc-ing it
+    id resultObject = *static_cast<id*>(self->getReturn());
+    [resultObject release];
+
     return JSValue::encode(result);
 }
 

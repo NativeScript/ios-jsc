@@ -7,6 +7,7 @@ set(HEADER_FILES
     Interfaces/TNSConstructorResolution.h
     Interfaces/TNSInheritance.h
     Interfaces/TNSMethodCalls.h
+    Interfaces/TNSClassWithPlaceholder.h
     Marshalling/TNSFunctionPointers.h
     Marshalling/TNSObjCTypes.h
     Marshalling/TNSPrimitivePointers.h
@@ -22,6 +23,7 @@ set(SOURCE_FILES
     Interfaces/TNSConstructorResolution.m
     Interfaces/TNSInheritance.m
     Interfaces/TNSMethodCalls.m
+    Interfaces/TNSClassWithPlaceholder.m
     Marshalling/TNSFunctionPointers.m
     Marshalling/TNSObjCTypes.m
     Marshalling/TNSPrimitivePointers.m
@@ -30,6 +32,8 @@ set(SOURCE_FILES
     TNSTestNativeCallbacks.m
     TNSTestCommon.m
 )
+
+set_source_files_properties(Interfaces/TNSClassWithPlaceholder.m PROPERTIES COMPILE_FLAGS -fno-objc-arc)
 
 add_library(TestFixtures STATIC ${HEADER_FILES} ${SOURCE_FILES})
 

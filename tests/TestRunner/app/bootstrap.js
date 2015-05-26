@@ -55,6 +55,7 @@ require('./MethodCallsTests');
 require('./FunctionsTests');
 require('./VersionDiffTests');
 require('./ApiTests');
+require('./ObjCConstructors');
 
 require('./MetadataTests');
 
