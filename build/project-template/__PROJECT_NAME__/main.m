@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
 #ifndef NDEBUG
         [TNSRuntimeInspector setLogsToSystemConsole:YES];
-        enableDebugging(argc, argv);
+        TNSEnableRemoteInspector(argc, argv);
 #endif
 
         [runtime executeModule:@"./"];
