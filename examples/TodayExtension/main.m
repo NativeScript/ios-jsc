@@ -11,7 +11,6 @@
 
 static TNSRuntime* runtime;
 
-// TODO: The order between this constructor and MetadataFile constructor is random
 __attribute__((constructor))
 static void initRuntime() {
     runtime = [[TNSRuntime alloc] initWithApplicationPath:[NSBundle mainBundle].bundlePath];
