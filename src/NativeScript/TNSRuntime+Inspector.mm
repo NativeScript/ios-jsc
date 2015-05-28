@@ -16,6 +16,7 @@
 
 #import "TNSRuntime+Inspector.h"
 #import "TNSRuntime+Private.h"
+#include "JSErrors.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -110,6 +111,13 @@ private:
             method_exchangeImplementations(class_getInstanceMethod([self class], @selector(dispatchMessage:)), class_getInstanceMethod([self class], @selector(_dispatchMessage:)));
         }
     }
+}
+
+- (void)reportFatalError:(JSValueRef)error {
+    JSC::JSLockHolder lock(_runtime->_vm.get());
+
+    ExecState* globalExec = self->_runtime->_globalObject->globalExec();
+    reportFatalErrorBeforeShutdown(globalExec, toJS(globalExec, error));
 }
 
 - (void)dealloc {
