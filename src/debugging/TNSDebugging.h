@@ -48,8 +48,7 @@ typedef TNSInspectorProtocolHandler (^TNSInspectorFrontendConnectedHandler)(
                                 [[NSBundle mainBundle] bundleIdentifier], \
                                 name] UTF8String]
 
-static dispatch_source_t
-startListening(TNSInspectorFrontendConnectedHandler connectedHandler) {
+static dispatch_source_t TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler) {
     dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
 
     dispatch_fd_t listenSocket = socket(PF_INET, SOCK_STREAM, 0);
@@ -142,7 +141,7 @@ static void TNSObjectiveCUncaughtExceptionHandler(NSException* exception) {
     [inspector reportFatalError:error];
 }
 
-static void enableDebugging(int argc, char** argv) {
+static void TNSEnableRemoteInspector(int argc, char** argv) {
     __block dispatch_source_t listenSource = nil;
 
     dispatch_block_t clear = ^ {
@@ -218,7 +217,7 @@ static void enableDebugging(int argc, char** argv) {
         return;
       }
 
-      listenSource = startListening(connectionHandler);
+      listenSource = TNSCreateInspectorServer(connectionHandler);
       notify_post(NOTIFICATION("ReadyForAttach"));
 
       dispatch_time_t delay =
