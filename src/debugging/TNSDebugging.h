@@ -189,7 +189,9 @@ static void enableDebugging(int argc, char** argv) {
                              dispatch_get_main_queue(), ^(int token) {
       isWaitingForDebugger = YES;
       NSLog(@"NativeScript waiting for debugger.");
-      CFRunLoopRunInMode(kCFRunLoopDefaultMode, 30, false);
+      CFRunLoopPerformBlock(CFRunLoopGetCurrent(), kCFRunLoopDefaultMode, ^{
+          CFRunLoopRunInMode(kCFRunLoopDefaultMode, 30, false);
+      });
     });
 
     int attachRequestSubscription;
