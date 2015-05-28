@@ -36,12 +36,6 @@ using namespace NativeScript;
         self->_applicationPath = [applicationPath copy];
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
-        NSSetUncaughtExceptionHandler([](NSException* exception) {
-            ExecState* execState = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData)->_globalObject->globalExec();
-            JSValue error = createError(execState, exception.description);
-            reportFatalErrorBeforeShutdown(execState, error);
-        });
-
         JSLockHolder lock(*self->_vm);
         self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
 

@@ -5,6 +5,8 @@
 //  Copyright (c) 2015 г. Telerik. All rights reserved.
 //
 
+#import <JavaScriptCore/JavaScript.h>
+#import <JavaScriptCore/JSStringRefCF.h>
 #import <NativeScript.h>
 
 #include <netinet/in.h>
@@ -131,15 +133,29 @@ startListening(TNSInspectorFrontendConnectedHandler connectedHandler) {
     return listenSource;
 }
 
+static void TNSObjectiveCUncaughtExceptionHandler(NSException* exception) {
+    JSStringRef exceptionMessage = JSStringCreateWithCFString((__bridge CFStringRef)(exception.description));
+
+    JSValueRef errorArguments[] = { JSValueMakeString(runtime.globalContext, exceptionMessage) };
+    JSObjectRef error = JSObjectMakeError(runtime.globalContext, 1, errorArguments, NULL);
+
+    [inspector reportFatalError:error];
+}
+
 static void enableDebugging(int argc, char** argv) {
     __block dispatch_source_t listenSource = nil;
-    TNSInspectorFrontendConnectedHandler connectionHandler = ^TNSInspectorProtocolHandler(
-                                                                 TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error) {
+
+    dispatch_block_t clear = ^ {
+        dispatch_source_cancel(listenSource);
+        listenSource = nil;
+        inspector = nil;
+        NSSetUncaughtExceptionHandler(NULL);
+    };
+
+    TNSInspectorFrontendConnectedHandler connectionHandler = ^TNSInspectorProtocolHandler(TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error) {
       if (error) {
         if (listenSource) {
-          dispatch_source_cancel(listenSource);
-          listenSource = nil;
-          inspector = nil;
+          clear();
         }
 
         NSLog(@"NativeScript debugger encountered %@.", error);
@@ -153,6 +169,8 @@ static void enableDebugging(int argc, char** argv) {
       NSLog(@"NativeScript debugger attached.");
 
       inspector = [runtime attachInspectorWithHandler:sendMessageToFrontend];
+
+      NSSetUncaughtExceptionHandler(&TNSObjectiveCUncaughtExceptionHandler);
 
       if (isWaitingForDebugger) {
         isWaitingForDebugger = NO;
@@ -169,9 +187,7 @@ static void enableDebugging(int argc, char** argv) {
                                   ^{ [inspector dispatchMessage:message]; });
             CFRunLoopWakeUp(runloop);
           } else {
-            dispatch_source_cancel(listenSource);
-            listenSource = nil;
-            inspector = nil;
+            clear();
 
             if (error) {
               NSLog(@"NativeScript debugger received %@. Disconnecting.",
