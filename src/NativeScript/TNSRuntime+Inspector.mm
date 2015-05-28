@@ -96,19 +96,13 @@ private:
     return self;
 }
 
-- (void)_dispatchMessage:(NSString*)message {
-    self->_inspectorController->dispatchMessageFromFrontend(message);
-}
-
 - (void)dispatchMessage:(NSString*)message {
-    [self _dispatchMessage:message];
+    self->_inspectorController->dispatchMessageFromFrontend(message);
 
     id json = [NSJSONSerialization JSONObjectWithData:[message dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
     if ([json isKindOfClass:[NSDictionary class]]) {
         if ([@"Debugger.enable" isEqual:[json valueForKey:@"method"]]) {
             [self->_runtime flushSourceProviders];
-
-            method_exchangeImplementations(class_getInstanceMethod([self class], @selector(dispatchMessage:)), class_getInstanceMethod([self class], @selector(_dispatchMessage:)));
         }
     }
 }
