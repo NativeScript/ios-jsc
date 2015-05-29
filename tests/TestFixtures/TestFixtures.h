@@ -21,6 +21,7 @@
 #import "Interfaces/TNSMethodCalls.h"
 #import "Interfaces/TNSConstructorResolution.h"
 #import "Interfaces/TNSInheritance.h"
+#import "Interfaces/TNSClassWithPlaceholder.h"
 
 #import "TNSTestCommon.h"
 
