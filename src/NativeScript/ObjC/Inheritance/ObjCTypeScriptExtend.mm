@@ -81,6 +81,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
             return;
         }
 
+        JSLockHolder lock(globalObject->vm());
         ExecState* globalExec = globalObject->globalExec();
 
         JSObject* instanceMethods = jsCast<JSObject*>(derivedConstructor->get(globalExec, globalExec->vm().propertyNames->prototype));
