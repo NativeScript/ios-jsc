@@ -40,7 +40,7 @@ WebInspector.DOMTreeUpdater = function(treeOutline)
 
     this._treeOutline = treeOutline;
     this._recentlyModifiedNodes = [];
-}
+};
 
 WebInspector.DOMTreeUpdater.prototype = {
     close: function()
@@ -120,6 +120,7 @@ WebInspector.DOMTreeUpdater.prototype = {
 
             var parentNodeItem = this._treeOutline.findTreeElement(parent);
             if (parentNodeItem && !parentNodeItem.alreadyUpdatedChildren) {
+                parentNodeItem.updateTitle();
                 parentNodeItem.updateChildren();
                 parentNodeItem.alreadyUpdatedChildren = true;
                 updatedParentTreeElements.push(parentNodeItem);
@@ -137,4 +138,4 @@ WebInspector.DOMTreeUpdater.prototype = {
         WebInspector.domTreeManager.hideDOMNodeHighlight();
         this._recentlyModifiedNodes = [];
     }
-}
+};

@@ -23,84 +23,61 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.GeneralTreeElement = function(classNames, title, subtitle, representedObject, hasChildren)
+WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.TreeElement
 {
-    TreeElement.call(this, "", representedObject, hasChildren);
+    constructor(classNames, title, subtitle, representedObject, hasChildren)
+    {
+        super("", representedObject, hasChildren);
 
-    this.classNames = classNames;
+        this.classNames = classNames;
 
-    this._tooltipHandledSeparately = false;
-    this._mainTitle = title || "";
-    this._subtitle = subtitle || "";
-    this._status = "";
-}
-
-WebInspector.GeneralTreeElement.StyleClassName = "item";
-WebInspector.GeneralTreeElement.DisclosureButtonStyleClassName = "disclosure-button";
-WebInspector.GeneralTreeElement.IconElementStyleClassName = "icon";
-WebInspector.GeneralTreeElement.StatusElementStyleClassName = "status";
-WebInspector.GeneralTreeElement.TitlesElementStyleClassName = "titles";
-WebInspector.GeneralTreeElement.MainTitleElementStyleClassName = "title";
-WebInspector.GeneralTreeElement.SubtitleElementStyleClassName = "subtitle";
-WebInspector.GeneralTreeElement.NoSubtitleStyleClassName = "no-subtitle";
-WebInspector.GeneralTreeElement.SmallStyleClassName = "small";
-WebInspector.GeneralTreeElement.TwoLineStyleClassName = "two-line";
-
-WebInspector.GeneralTreeElement.Event = {
-    MainTitleDidChange: "general-tree-element-main-title-did-change"
-};
-
-WebInspector.GeneralTreeElement.prototype = {
-    constructor: WebInspector.GeneralTreeElement,
+        this._tooltipHandledSeparately = false;
+        this._mainTitle = title || "";
+        this._subtitle = subtitle || "";
+        this._status = "";
+    }
 
     // Public
 
     get element()
     {
         return this._listItemNode;
-    },
-
-    get disclosureButton()
-    {
-        this._createElementsIfNeeded();
-        return this._disclosureButton;
-    },
+    }
 
     get iconElement()
     {
         this._createElementsIfNeeded();
         return this._iconElement;
-    },
+    }
 
     get titlesElement()
     {
         this._createElementsIfNeeded();
         return this._titlesElement;
-    },
+    }
 
     get mainTitleElement()
     {
         this._createElementsIfNeeded();
         return this._mainTitleElement;
-    },
+    }
 
     get subtitleElement()
     {
         this._createElementsIfNeeded();
         this._createSubtitleElementIfNeeded();
         return this._subtitleElement;
-    },
+    }
 
     get classNames()
     {
         return this._classNames;
-    },
+    }
 
     set classNames(x)
     {
         if (this._listItemNode && this._classNames) {
-            for (var i = 0; i < this._classNames.length; ++i)
-                this._listItemNode.classList.remove(this._classNames[i]);
+            this._listItemNode.classList.remove(...this._classNames);
         }
 
         if (typeof x === "string")
@@ -109,37 +86,36 @@ WebInspector.GeneralTreeElement.prototype = {
         this._classNames = x || [];
 
         if (this._listItemNode) {
-            for (var i = 0; i < this._classNames.length; ++i)
-                this._listItemNode.classList.add(this._classNames[i]);
+            this._listItemNode.classList.add(...this._classNames);
         }
-    },
+    }
 
-    addClassName: function(className)
+    addClassName(className)
     {
-        if (this._classNames.contains(className))
+        if (this._classNames.includes(className))
             return;
 
         this._classNames.push(className);
 
         if (this._listItemNode)
             this._listItemNode.classList.add(className);
-    },
+    }
 
-    removeClassName: function(className)
+    removeClassName(className)
     {
-        if (!this._classNames.contains(className))
+        if (!this._classNames.includes(className))
             return;
 
         this._classNames.remove(className);
 
         if (this._listItemNode)
             this._listItemNode.classList.remove(className);
-    },
+    }
 
     get small()
     {
         return this._small;
-    },
+    }
 
     set small(x)
     {
@@ -151,12 +127,12 @@ WebInspector.GeneralTreeElement.prototype = {
             else
                 this._listItemNode.classList.remove(WebInspector.GeneralTreeElement.SmallStyleClassName);
         }
-    },
+    }
 
     get twoLine()
     {
         return this._twoLine;
-    },
+    }
 
     set twoLine(x)
     {
@@ -168,12 +144,12 @@ WebInspector.GeneralTreeElement.prototype = {
             else
                 this._listItemNode.classList.remove(WebInspector.GeneralTreeElement.TwoLineStyleClassName);
         }
-    },
+    }
 
     get mainTitle()
     {
         return this._mainTitle;
-    },
+    }
 
     set mainTitle(x)
     {
@@ -181,65 +157,71 @@ WebInspector.GeneralTreeElement.prototype = {
         this._updateTitleElements();
         this.didChange();
         this.dispatchEventToListeners(WebInspector.GeneralTreeElement.Event.MainTitleDidChange);
-    },
+    }
 
     get subtitle()
     {
         return this._subtitle;
-    },
+    }
 
     set subtitle(x)
     {
         this._subtitle = x || "";
         this._updateTitleElements();
         this.didChange();
-    },
+    }
 
     get status()
     {
         return this._status;
-    },
+    }
 
     set status(x)
     {
+        if (this._status === x)
+            return;
+
+        if (!this._statusElement) {
+            this._statusElement = document.createElement("div");
+            this._statusElement.className = WebInspector.GeneralTreeElement.StatusElementStyleClassName;
+        }
+
         this._status = x || "";
         this._updateStatusElement();
-    },
+        this.didChange();
+    }
 
     get filterableData()
     {
         return {text: [this.mainTitle, this.subtitle]};
-    },
+    }
 
     get tooltipHandledSeparately()
     {
         return this._tooltipHandledSeparately;
-    },
+    }
 
     set tooltipHandledSeparately(x)
     {
         this._tooltipHandledSeparately = x || false;
-    },
+    }
 
     // Overrides from TreeElement (Private)
 
-    isEventWithinDisclosureTriangle: function(event)
+    isEventWithinDisclosureTriangle(event)
     {
         return event.target === this._disclosureButton;
-    },
+    }
 
-    onattach: function()
+    onattach()
     {
         this._createElementsIfNeeded();
         this._updateTitleElements();
-        this._updateStatusElement();
 
-        this._listItemNode.classList.add(WebInspector.GeneralTreeElement.StyleClassName);
+        this._listItemNode.classList.add("item");
 
-        if (this._classNames) {
-            for (var i = 0; i < this._classNames.length; ++i)
-                this._listItemNode.classList.add(this._classNames[i]);
-        }
+        if (this._classNames)
+            this._listItemNode.classList.add(...this._classNames);
 
         if (this._small)
             this._listItemNode.classList.add(WebInspector.GeneralTreeElement.SmallStyleClassName);
@@ -249,37 +231,38 @@ WebInspector.GeneralTreeElement.prototype = {
 
         this._listItemNode.appendChild(this._disclosureButton);
         this._listItemNode.appendChild(this._iconElement);
-        this._listItemNode.appendChild(this._statusElement);
+        if (this._statusElement)
+            this._listItemNode.appendChild(this._statusElement);
         this._listItemNode.appendChild(this._titlesElement);
 
         if (this.oncontextmenu && typeof this.oncontextmenu === "function") {
             this._boundContextMenuEventHandler = this.oncontextmenu.bind(this);
-            this._listItemNode.addEventListener("contextmenu", this._boundContextMenuEventHandler, true);
+            this._listItemNode.addEventListener("contextmenu", this._boundContextMenuEventHandler);
         }
 
         if (!this._boundContextMenuEventHandler && this.treeOutline.oncontextmenu && typeof this.treeOutline.oncontextmenu === "function") {
             this._boundContextMenuEventHandler = function(event) { this.treeOutline.oncontextmenu(event, this); }.bind(this);
-            this._listItemNode.addEventListener("contextmenu", this._boundContextMenuEventHandler, true);
+            this._listItemNode.addEventListener("contextmenu", this._boundContextMenuEventHandler);
         }
-    },
+    }
 
-    ondetach: function()
+    ondetach()
     {
         if (this._boundContextMenuEventHandler) {
-            this._listItemNode.removeEventListener("contextmenu", this._boundContextMenuEventHandler, true);
+            this._listItemNode.removeEventListener("contextmenu", this._boundContextMenuEventHandler);
             delete this._boundContextMenuEventHandler;
         }
-    },
+    }
 
-    onreveal: function()
+    onreveal()
     {
         if (this._listItemNode)
             this._listItemNode.scrollIntoViewIfNeeded(false);
-    },
+    }
 
     // Protected
 
-    callFirstAncestorFunction: function(functionName, args)
+    callFirstAncestorFunction(functionName, args)
     {
         // Call the first ancestor that implements a function named functionName (if any).
         var currentNode = this.parent;
@@ -291,11 +274,11 @@ WebInspector.GeneralTreeElement.prototype = {
 
             currentNode = currentNode.parent;
         }
-    },
+    }
 
     // Private
 
-    _createElementsIfNeeded: function()
+    _createElementsIfNeeded()
     {
         if (this._createdElements)
             return;
@@ -310,9 +293,6 @@ WebInspector.GeneralTreeElement.prototype = {
         this._iconElement = document.createElement("img");
         this._iconElement.className = WebInspector.GeneralTreeElement.IconElementStyleClassName;
 
-        this._statusElement = document.createElement("div");
-        this._statusElement.className = WebInspector.GeneralTreeElement.StatusElementStyleClassName;
-
         this._titlesElement = document.createElement("div");
         this._titlesElement.className = WebInspector.GeneralTreeElement.TitlesElementStyleClassName;
 
@@ -321,9 +301,9 @@ WebInspector.GeneralTreeElement.prototype = {
         this._titlesElement.appendChild(this._mainTitleElement);
 
         this._createdElements = true;
-    },
+    }
 
-    _createSubtitleElementIfNeeded: function()
+    _createSubtitleElementIfNeeded()
     {
         if (this._subtitleElement)
             return;
@@ -331,9 +311,9 @@ WebInspector.GeneralTreeElement.prototype = {
         this._subtitleElement = document.createElement("span");
         this._subtitleElement.className = WebInspector.GeneralTreeElement.SubtitleElementStyleClassName;
         this._titlesElement.appendChild(this._subtitleElement);
-    },
+    }
 
-    _updateTitleElements: function()
+    _updateTitleElements()
     {
         if (!this._createdElements)
             return;
@@ -377,12 +357,15 @@ WebInspector.GeneralTreeElement.prototype = {
             else
                 this._listItemNode.title = subtitleText;
         }
-    },
+    }
 
-    _updateStatusElement: function()
+    _updateStatusElement()
     {
-        if (!this._createdElements)
+        if (!this._statusElement)
             return;
+
+        if (!this._statusElement.parentNode && this._listItemNode)
+            this._listItemNode.insertBefore(this._statusElement, this._titlesElement);
 
         if (this._status instanceof Node) {
             this._statusElement.removeChildren();
@@ -390,6 +373,18 @@ WebInspector.GeneralTreeElement.prototype = {
         } else
             this._statusElement.textContent = this._status;
     }
-}
+};
 
-WebInspector.GeneralTreeElement.prototype.__proto__ = TreeElement.prototype;
+WebInspector.GeneralTreeElement.DisclosureButtonStyleClassName = "disclosure-button";
+WebInspector.GeneralTreeElement.IconElementStyleClassName = "icon";
+WebInspector.GeneralTreeElement.StatusElementStyleClassName = "status";
+WebInspector.GeneralTreeElement.TitlesElementStyleClassName = "titles";
+WebInspector.GeneralTreeElement.MainTitleElementStyleClassName = "title";
+WebInspector.GeneralTreeElement.SubtitleElementStyleClassName = "subtitle";
+WebInspector.GeneralTreeElement.NoSubtitleStyleClassName = "no-subtitle";
+WebInspector.GeneralTreeElement.SmallStyleClassName = "small";
+WebInspector.GeneralTreeElement.TwoLineStyleClassName = "two-line";
+
+WebInspector.GeneralTreeElement.Event = {
+    MainTitleDidChange: "general-tree-element-main-title-did-change"
+};

@@ -23,37 +23,28 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ScopeChainNode = function(type, object)
+WebInspector.ScopeChainNode = class ScopeChainNode extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor(type, object)
+    {
+        super();
 
-    console.assert(typeof type === "string");
-    console.assert(object instanceof WebInspector.RemoteObject);
+        console.assert(typeof type === "string");
+        console.assert(object instanceof WebInspector.RemoteObject);
 
-    if (type in WebInspector.ScopeChainNode.Type)
-        type = WebInspector.ScopeChainNode.Type[type];
+        if (type in WebInspector.ScopeChainNode.Type)
+            type = WebInspector.ScopeChainNode.Type[type];
 
-    this._type = type || null;
-    this._object = object || null;
-};
-
-WebInspector.ScopeChainNode.Type = {
-    Local: "scope-chain-type-local",
-    Global: "scope-chain-type-global",
-    With: "scope-chain-type-with",
-    Closure: "scope-chain-type-closure",
-    Catch: "scope-chain-type-catch"
-};
-
-WebInspector.ScopeChainNode.prototype = {
-    constructor: WebInspector.ScopeChainNode,
+        this._type = type || null;
+        this._object = object || null;
+    }
 
     // Public
 
     get type()
     {
         return this._type;
-    },
+    }
 
     get object()
     {
@@ -61,4 +52,11 @@ WebInspector.ScopeChainNode.prototype = {
     }
 };
 
-WebInspector.ScopeChainNode.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.ScopeChainNode.Type = {
+    Local: "scope-chain-type-local",
+    Global: "scope-chain-type-global",
+    With: "scope-chain-type-with",
+    Closure: "scope-chain-type-closure",
+    Catch: "scope-chain-type-catch",
+    FunctionName: "scope-chain-type-functionName"
+};

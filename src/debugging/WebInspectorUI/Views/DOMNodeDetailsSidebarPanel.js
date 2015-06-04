@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, 2014 Apple Inc. All rights reserved.
+ * Copyright (C) 2013-2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,80 +23,78 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DOMNodeDetailsSidebarPanel = function() {
-    WebInspector.DOMDetailsSidebarPanel.call(this, "dom-node-details", WebInspector.UIString("Node"), WebInspector.UIString("Node"), "Images/NavigationItemAngleBrackets.svg", "2");
+WebInspector.DOMNodeDetailsSidebarPanel = class DOMNodeDetailsSidebarPanel extends WebInspector.DOMDetailsSidebarPanel
+{
+    constructor()
+    {
+        super("dom-node-details", WebInspector.UIString("Node"), WebInspector.UIString("Node"));
 
-    WebInspector.domTreeManager.addEventListener(WebInspector.DOMTreeManager.Event.AttributeModified, this._attributesChanged, this);
-    WebInspector.domTreeManager.addEventListener(WebInspector.DOMTreeManager.Event.AttributeRemoved, this._attributesChanged, this);
+        WebInspector.domTreeManager.addEventListener(WebInspector.DOMTreeManager.Event.AttributeModified, this._attributesChanged, this);
+        WebInspector.domTreeManager.addEventListener(WebInspector.DOMTreeManager.Event.AttributeRemoved, this._attributesChanged, this);
+        WebInspector.domTreeManager.addEventListener(WebInspector.DOMTreeManager.Event.CharacterDataModified, this._characterDataModified, this);
 
-    this.element.classList.add(WebInspector.DOMNodeDetailsSidebarPanel.StyleClassName);
+        this.element.classList.add("dom-node");
 
-    this._identityNodeTypeRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Type"));
-    this._identityNodeNameRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Name"));
-    this._identityNodeValueRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Value"));
+        this._identityNodeTypeRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Type"));
+        this._identityNodeNameRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Name"));
+        this._identityNodeValueRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Value"));
 
-    var identityGroup = new WebInspector.DetailsSectionGroup([this._identityNodeTypeRow, this._identityNodeNameRow, this._identityNodeValueRow]);
-    var identitySection = new WebInspector.DetailsSection("dom-node-identity", WebInspector.UIString("Identity"), [identityGroup]);
+        var identityGroup = new WebInspector.DetailsSectionGroup([this._identityNodeTypeRow, this._identityNodeNameRow, this._identityNodeValueRow]);
+        var identitySection = new WebInspector.DetailsSection("dom-node-identity", WebInspector.UIString("Identity"), [identityGroup]);
 
-    this._attributesDataGridRow = new WebInspector.DetailsSectionDataGridRow(null, WebInspector.UIString("No Attributes"));
+        this._attributesDataGridRow = new WebInspector.DetailsSectionDataGridRow(null, WebInspector.UIString("No Attributes"));
 
-    var attributesGroup = new WebInspector.DetailsSectionGroup([this._attributesDataGridRow]);
-    var attributesSection = new WebInspector.DetailsSection("dom-node-attributes", WebInspector.UIString("Attributes"), [attributesGroup]);
+        var attributesGroup = new WebInspector.DetailsSectionGroup([this._attributesDataGridRow]);
+        var attributesSection = new WebInspector.DetailsSection("dom-node-attributes", WebInspector.UIString("Attributes"), [attributesGroup]);
 
-    this._propertiesRow = new WebInspector.DetailsSectionRow;
+        this._propertiesRow = new WebInspector.DetailsSectionRow;
 
-    var propertiesGroup = new WebInspector.DetailsSectionGroup([this._propertiesRow]);
-    var propertiesSection = new WebInspector.DetailsSection("dom-node-properties", WebInspector.UIString("Properties"), [propertiesGroup]);
+        var propertiesGroup = new WebInspector.DetailsSectionGroup([this._propertiesRow]);
+        var propertiesSection = new WebInspector.DetailsSection("dom-node-properties", WebInspector.UIString("Properties"), [propertiesGroup]);
 
-    this._eventListenersSectionGroup = new WebInspector.DetailsSectionGroup;
-    var eventListenersSection = new WebInspector.DetailsSection("dom-node-event-listeners", WebInspector.UIString("Event Listeners"), [this._eventListenersSectionGroup]);    
+        this._eventListenersSectionGroup = new WebInspector.DetailsSectionGroup;
+        var eventListenersSection = new WebInspector.DetailsSection("dom-node-event-listeners", WebInspector.UIString("Event Listeners"), [this._eventListenersSectionGroup]);
 
-    this.element.appendChild(identitySection.element);
-    this.element.appendChild(attributesSection.element);
-    this.element.appendChild(propertiesSection.element);
-    this.element.appendChild(eventListenersSection.element);
+        this.contentElement.appendChild(identitySection.element);
+        this.contentElement.appendChild(attributesSection.element);
+        this.contentElement.appendChild(propertiesSection.element);
+        this.contentElement.appendChild(eventListenersSection.element);
 
-    if (this._accessibilitySupported()) {
-        this._accessibilityEmptyRow = new WebInspector.DetailsSectionRow(WebInspector.UIString("No Accessibility Information"));
-        this._accessibilityNodeActiveDescendantRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Shared Focus"));
-        this._accessibilityNodeBusyRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Busy"));
-        this._accessibilityNodeCheckedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Checked"));
-        this._accessibilityNodeChildrenRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Children"));
-        this._accessibilityNodeControlsRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Controls"));
-        this._accessibilityNodeDisabledRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Disabled"));
-        this._accessibilityNodeExpandedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Expanded"));
-        this._accessibilityNodeFlowsRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Flows"));
-        this._accessibilityNodeFocusedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Focused"));
-        this._accessibilityNodeIgnoredRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Ignored"));
-        this._accessibilityNodeInvalidRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Invalid"));
-        this._accessibilityNodeLiveRegionStatusRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Live"));
-        this._accessibilityNodeMouseEventRow = new WebInspector.DetailsSectionSimpleRow("");
-        this._accessibilityNodeLabelRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Label"));
-        this._accessibilityNodeOwnsRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Owns"));
-        this._accessibilityNodeParentRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Parent"));
-        this._accessibilityNodePressedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Pressed"));
-        this._accessibilityNodeReadonlyRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Readonly"));
-        this._accessibilityNodeRequiredRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Required"));
-        this._accessibilityNodeRoleRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Role"));
-        this._accessibilityNodeSelectedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Selected"));
-        this._accessibilityNodeSelectedChildrenRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Selected Items"));
-    
-        this._accessibilityGroup = new WebInspector.DetailsSectionGroup([this._accessibilityEmptyRow]);
-        var accessibilitySection = new WebInspector.DetailsSection("dom-node-accessibility", WebInspector.UIString("Accessibility"), [this._accessibilityGroup]);    
+        if (this._accessibilitySupported()) {
+            this._accessibilityEmptyRow = new WebInspector.DetailsSectionRow(WebInspector.UIString("No Accessibility Information"));
+            this._accessibilityNodeActiveDescendantRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Shared Focus"));
+            this._accessibilityNodeBusyRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Busy"));
+            this._accessibilityNodeCheckedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Checked"));
+            this._accessibilityNodeChildrenRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Children"));
+            this._accessibilityNodeControlsRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Controls"));
+            this._accessibilityNodeDisabledRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Disabled"));
+            this._accessibilityNodeExpandedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Expanded"));
+            this._accessibilityNodeFlowsRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Flows"));
+            this._accessibilityNodeFocusedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Focused"));
+            this._accessibilityNodeIgnoredRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Ignored"));
+            this._accessibilityNodeInvalidRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Invalid"));
+            this._accessibilityNodeLiveRegionStatusRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Live"));
+            this._accessibilityNodeMouseEventRow = new WebInspector.DetailsSectionSimpleRow("");
+            this._accessibilityNodeLabelRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Label"));
+            this._accessibilityNodeOwnsRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Owns"));
+            this._accessibilityNodeParentRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Parent"));
+            this._accessibilityNodePressedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Pressed"));
+            this._accessibilityNodeReadonlyRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Readonly"));
+            this._accessibilityNodeRequiredRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Required"));
+            this._accessibilityNodeRoleRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Role"));
+            this._accessibilityNodeSelectedRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Selected"));
+            this._accessibilityNodeSelectedChildrenRow = new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Selected Items"));
 
-        this.element.appendChild(accessibilitySection.element);
-    }
-};
+            this._accessibilityGroup = new WebInspector.DetailsSectionGroup([this._accessibilityEmptyRow]);
+            var accessibilitySection = new WebInspector.DetailsSection("dom-node-accessibility", WebInspector.UIString("Accessibility"), [this._accessibilityGroup]);
 
-WebInspector.DOMNodeDetailsSidebarPanel.StyleClassName = "dom-node";
-WebInspector.DOMNodeDetailsSidebarPanel.PropertiesObjectGroupName = "dom-node-details-sidebar-properties-object-group";
-
-WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
-    constructor: WebInspector.DOMNodeDetailsSidebarPanel,
+            this.contentElement.appendChild(accessibilitySection.element);
+        }
+        }
 
     // Public
 
-    refresh: function()
+    refresh()
     {
         var domNode = this.domNode;
         if (!domNode)
@@ -110,21 +108,21 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
         this._refreshProperties();
         this._refreshEventListeners();
         this._refreshAccessibility();
-    },
+    }
 
     // Private
 
-    _accessibilitySupported: function()
+    _accessibilitySupported()
     {
         return window.DOMAgent && DOMAgent.getAccessibilityPropertiesForNode;
-    },
+    }
 
-    _refreshAttributes: function()
+    _refreshAttributes()
     {
         this._attributesDataGridRow.dataGrid = this._createAttributesDataGrid();
-    },
+    }
 
-    _refreshProperties: function()
+    _refreshProperties()
     {
         var domNode = this.domNode;
         if (!domNode)
@@ -159,20 +157,20 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
                 return result;
             }
 
-            object.callFunction(collectPrototypes, undefined, nodePrototypesReady.bind(this));
+            object.callFunction(collectPrototypes, undefined, false, nodePrototypesReady.bind(this));
             object.release();
         }
 
-        function nodePrototypesReady(object)
+        function nodePrototypesReady(error, object, wasThrown)
         {
-            if (!object)
+            if (error || wasThrown || !object)
                 return;
 
             // Bail if the DOM node changed while we were waiting for the async response.
             if (this.domNode !== domNode)
                 return;
 
-            object.getOwnProperties(fillSection.bind(this));
+            object.deprecatedGetOwnProperties(fillSection.bind(this));
         }
 
         function fillSection(prototypes)
@@ -200,17 +198,20 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
                 else if (title === "Object")
                     title = title + WebInspector.UIString(" (Prototype)");
 
-                var propertiesSection = new WebInspector.ObjectPropertiesSection(prototype);
+                // FIXME: <https://webkit.org/b/142833> Web Inspector: Node Details Sidebar Properties Section has "undefined" for all prototype properties
+
+                var objectTree = new WebInspector.ObjectTreeView(prototype, WebInspector.ObjectTreeView.Mode.Properties);
+                objectTree.showOnlyProperties();
 
                 var detailsSection = new WebInspector.DetailsSection(prototype.description.hash + "-prototype-properties", title, null, null, true);
-                detailsSection.groups[0].rows = [new WebInspector.DetailsSectionPropertiesRow(propertiesSection)];
+                detailsSection.groups[0].rows = [new WebInspector.DetailsSectionPropertiesRow(objectTree)];
 
                 element.appendChild(detailsSection.element);
             }
         }
-    },
+    }
 
-    _refreshEventListeners: function()
+    _refreshEventListeners()
     {
         var domNode = this.domNode;
         if (!domNode)
@@ -258,11 +259,18 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
                 rows.push(eventListenerSections[eventListenerTypes[i]]);
             this._eventListenersSectionGroup.rows = rows;
         }
-    },
+    }
 
-    _refreshAccessibility: (function() {
+    _refreshAccessibility()
+    {
+        if (!this._accessibilitySupported())
+            return;
+
+        var domNode = this.domNode;
+        if (!domNode)
+            return;
+
         var properties = {};
-        var domNode;
 
         function booleanValueToLocalizedStringIfTrue(property) {
             if (properties[property])
@@ -360,6 +368,8 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
                 else if (accessibilityProperties.invalid === DOMAgent.AccessibilityPropertiesInvalid.Spelling)
                     invalid = WebInspector.UIString("Spelling");
 
+                var label = accessibilityProperties.label;
+
                 var liveRegionStatus = "";
                 var liveRegionStatusNode = null;
                 var liveRegionStatusToken = accessibilityProperties.liveRegionStatus;
@@ -423,11 +433,6 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
                     else
                         mouseEventNodeLink = linkForNodeId(mouseEventNodeId);
                 }
-
-                // FIXME: label will always come back as empty. Blocked by http://webkit.org/b/121134
-                var label = accessibilityProperties.label;
-                if (label && label !== domNode.getAttribute("aria-label"))
-                    label = WebInspector.UIString("%s (computed)").format(label);
 
                 var ownedNodeLinkList = linkListForNodeIds(accessibilityProperties.ownedNodeIds);
 
@@ -522,30 +527,25 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
             }
         }
 
-        function refreshAX() {
-            if (!this._accessibilitySupported())
-                return;
+        domNode.accessibilityProperties(accessibilityPropertiesCallback.bind(this));
+    }
 
-            // Make sure the domNode is available in the closure scope.
-            domNode = this.domNode;
-            if (!domNode)
-                return;
-
-            domNode.accessibilityProperties(accessibilityPropertiesCallback.bind(this));
-        }
-
-        return refreshAX;
-    }()),
-
-    _attributesChanged: function(event)
+    _attributesChanged(event)
     {
         if (event.data.node !== this.domNode)
             return;
         this._refreshAttributes();
         this._refreshAccessibility();
-    },
+    }
 
-    _nodeTypeDisplayName: function()
+    _characterDataModified(event)
+    {
+        if (event.data.node !== this.domNode)
+            return;
+        this._identityNodeValueRow.value = this.domNode.nodeValue();
+    }
+
+    _nodeTypeDisplayName()
     {
         switch (this.domNode.nodeType()) {
         case Node.ELEMENT_NODE:
@@ -568,9 +568,9 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
             console.error("Unknown DOM node type: ", this.domNode.nodeType());
             return this.domNode.nodeType();
         }
-    },
+    }
 
-    _createAttributesDataGrid: function()
+    _createAttributesDataGrid()
     {
         var domNode = this.domNode;
         if (!domNode || !domNode.hasAttributes())
@@ -584,8 +584,6 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
             var attribute = attributes[i];
 
             var node = new WebInspector.DataGridNode({name: attribute.name, value: attribute.value || ""}, false);
-            node.selectable = true;
-
             dataGrid.appendChild(node);
         }
 
@@ -593,4 +591,4 @@ WebInspector.DOMNodeDetailsSidebarPanel.prototype = {
     }
 };
 
-WebInspector.DOMNodeDetailsSidebarPanel.prototype.__proto__ = WebInspector.DOMDetailsSidebarPanel.prototype;
+WebInspector.DOMNodeDetailsSidebarPanel.PropertiesObjectGroupName = "dom-node-details-sidebar-properties-object-group";

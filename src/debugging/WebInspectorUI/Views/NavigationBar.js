@@ -24,12 +24,13 @@
  */
 
 WebInspector.NavigationBar = function(element, navigationItems, role, label) {
-    WebInspector.Object.call(this);
+    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
+    // WebInspector.Object.call(this);
 
     this._element = element || document.createElement("div");
     this._element.classList.add(this.constructor.StyleClassName || WebInspector.NavigationBar.StyleClassName);
     this._element.tabIndex = 0;
-    
+
     if (role)
         this._element.setAttribute("role", role);
     if (label)
@@ -54,7 +55,8 @@ WebInspector.NavigationBar = function(element, navigationItems, role, label) {
     document.head.appendChild(this._styleElement);
 };
 
-WebInspector.Object.addConstructorFunctions(WebInspector.NavigationBar);
+// FIXME: Move to a WebInspector.Object subclass and we can remove this.
+WebInspector.Object.deprecatedAddConstructorFunctions(WebInspector.NavigationBar);
 
 WebInspector.NavigationBar.StyleClassName = "navigation-bar";
 WebInspector.NavigationBar.CollapsedStyleClassName = "collapsed";
@@ -77,7 +79,7 @@ WebInspector.NavigationBar.prototype = {
     {
         console.assert(navigationItem instanceof WebInspector.NavigationItem);
         if (!(navigationItem instanceof WebInspector.NavigationItem))
-            return;
+            return null;
 
         if (navigationItem.parentNavigationBar)
             navigationItem.parentNavigationBar.removeNavigationItem(navigationItem);
@@ -107,11 +109,11 @@ WebInspector.NavigationBar.prototype = {
         return navigationItem;
     },
 
-    removeNavigationItem: function(navigationItemOrIdentifierOrIndex, index)
+    removeNavigationItem: function(navigationItemOrIdentifierOrIndex)
     {
         var navigationItem = this._findNavigationItem(navigationItemOrIdentifierOrIndex);
         if (!navigationItem)
-            return;
+            return null;
 
         navigationItem._parentNavigationBar = null;
 
@@ -177,10 +179,10 @@ WebInspector.NavigationBar.prototype = {
             if (this._navigationItems[i] instanceof WebInspector.FlexibleSpaceNavigationItem)
                 continue;
 
-            totalItemWidth += this._navigationItems[i].element.offsetWidth;
+            totalItemWidth += this._navigationItems[i].element.realOffsetWidth;
         }
 
-        var barWidth = this._element.offsetWidth;
+        var barWidth = this._element.realOffsetWidth;
 
         // Add the collapsed class back if the items are wider than the bar.
         if (totalItemWidth > barWidth)
@@ -233,7 +235,7 @@ WebInspector.NavigationBar.prototype = {
 
     get minimumWidth()
     {
-        if (typeof this._minimumWidth === "undefined" || this._minimumWidthNeedsRecalculation) {
+        if (this._minimumWidth === undefined || this._minimumWidthNeedsRecalculation) {
             this._minimumWidth = this._calculateMinimumWidth();
             delete this._minimumWidthNeedsRecalculation;
         }
@@ -254,7 +256,7 @@ WebInspector.NavigationBar.prototype = {
         var navigationItem = null;
 
         if (navigationItemOrIdentifierOrIndex instanceof WebInspector.NavigationItem) {
-            if (this._navigationItems.contains(navigationItemOrIdentifierOrIndex))
+            if (this._navigationItems.includes(navigationItemOrIdentifierOrIndex))
                 navigationItem = navigationItemOrIdentifierOrIndex;
         } else if (typeof navigationItemOrIdentifierOrIndex === "number") {
             navigationItem = this._navigationItems[navigationItemOrIdentifierOrIndex];
@@ -437,7 +439,7 @@ WebInspector.NavigationBar.prototype = {
             // Skip flexible space items since they can take up no space at the minimum width.
             if (this._navigationItems[i] instanceof WebInspector.FlexibleSpaceNavigationItem)
                 continue;
-            totalItemWidth += this._navigationItems[i].element.offsetWidth;
+            totalItemWidth += this._navigationItems[i].element.realOffsetWidth;
         }
 
         // Remove the collapsed style class if we were not collapsed before.

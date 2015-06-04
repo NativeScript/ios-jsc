@@ -24,15 +24,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.NetworkTimelineOverviewGraph = function(recording)
+WebInspector.NetworkTimelineOverviewGraph = function(timeline)
 {
-    WebInspector.TimelineOverviewGraph.call(this, recording);
+    WebInspector.TimelineOverviewGraph.call(this, timeline);
 
     this.element.classList.add(WebInspector.NetworkTimelineOverviewGraph.StyleClassName);
 
-    var networkTimeline = recording.timelines.get(WebInspector.TimelineRecord.Type.Network);
-    networkTimeline.addEventListener(WebInspector.Timeline.Event.RecordAdded, this._networkTimelineRecordAdded, this);
-    networkTimeline.addEventListener(WebInspector.Timeline.Event.TimesUpdated, this.needsLayout, this);
+    timeline.addEventListener(WebInspector.Timeline.Event.RecordAdded, this._networkTimelineRecordAdded, this);
+    timeline.addEventListener(WebInspector.Timeline.Event.TimesUpdated, this.needsLayout, this);
 
     this.reset();
 };
@@ -75,8 +74,7 @@ WebInspector.NetworkTimelineOverviewGraph.prototype = {
     {
         WebInspector.TimelineOverviewGraph.prototype.updateLayout.call(this);
 
-        var visibleWidth = this.element.offsetWidth;
-        var secondsPerPixel = (this.endTime - this.startTime) / visibleWidth;
+        var secondsPerPixel = this.timelineOverview.secondsPerPixel;
 
         var recordBarIndex = 0;
 
@@ -84,9 +82,11 @@ WebInspector.NetworkTimelineOverviewGraph.prototype = {
         {
             var timelineRecordBar = rowRecordBars[recordBarIndex];
             if (!timelineRecordBar)
-                timelineRecordBar = rowRecordBars[recordBarIndex] = new WebInspector.TimelineRecordBar;
-            timelineRecordBar.renderMode = renderMode;
-            timelineRecordBar.records = records;
+                timelineRecordBar = rowRecordBars[recordBarIndex] = new WebInspector.TimelineRecordBar(records, renderMode);
+            else {
+                timelineRecordBar.renderMode = renderMode;
+                timelineRecordBar.records = records;
+            }
             timelineRecordBar.refresh(this);
             if (!timelineRecordBar.element.parentNode)
                 rowElement.appendChild(timelineRecordBar.element);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,23 +23,22 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.SourceCodeTreeElement = function(sourceCode, classNames, title, subtitle, representedObject, hasChildren)
+WebInspector.SourceCodeTreeElement = class SourceCodeTreeElement extends WebInspector.FolderizedTreeElement
 {
-    console.assert(sourceCode instanceof WebInspector.SourceCode);
+    constructor(sourceCode, classNames, title, subtitle, representedObject, hasChildren)
+    {
+        console.assert(sourceCode instanceof WebInspector.SourceCode);
 
-    WebInspector.GeneralTreeElement.call(this, classNames, title, subtitle, representedObject || sourceCode, hasChildren);
+        super(classNames, title, subtitle, representedObject || sourceCode, hasChildren);
 
-    this.small = true;
+        this.small = true;
 
-    this._updateSourceCode(sourceCode);
-};
-
-WebInspector.SourceCodeTreeElement.prototype = {
-    constructor: WebInspector.SourceCodeTreeElement,
+        this._updateSourceCode(sourceCode);
+    }
 
     // Public
 
-    updateSourceMapResources: function()
+    updateSourceMapResources()
     {
         if (!this.treeOutline || !this.treeOutline.includeSourceMapResourceChildren)
             return;
@@ -49,18 +48,18 @@ WebInspector.SourceCodeTreeElement.prototype = {
 
         if (!this.hasChildren)
             this.removeChildren();
-    },
+    }
 
     // Overrides from TreeElement
 
-    onattach: function()
+    onattach()
     {
         WebInspector.GeneralTreeElement.prototype.onattach.call(this);
 
         this.updateSourceMapResources();
-    },
+    }
 
-    onpopulate: function()
+    onpopulate()
     {
         if (!this.treeOutline || !this.treeOutline.includeSourceMapResourceChildren)
             return;
@@ -129,11 +128,11 @@ WebInspector.SourceCodeTreeElement.prototype = {
 
         for (var i = 0; i < this.children.length; ++i)
             findAndCombineFolderChains(this.children[i], null);
-    },
+    }
 
     // Protected
 
-    createFoldersAsNeededForSubpath: function(subpath)
+    createFoldersAsNeededForSubpath(subpath)
     {
         if (!subpath)
             return this;
@@ -148,7 +147,7 @@ WebInspector.SourceCodeTreeElement.prototype = {
         var currentPath = "";
         var currentFolderTreeElement = this;
 
-        for (var i = 0 ; i < components.length - 1; ++i) {
+        for (var i = 0; i < components.length - 1; ++i) {
             var componentName = components[i];
             currentPath += (i ? "/" : "") + componentName;
 
@@ -168,9 +167,9 @@ WebInspector.SourceCodeTreeElement.prototype = {
         }
 
         return currentFolderTreeElement;
-    },
+    }
 
-    descendantResourceTreeElementTypeDidChange: function(childTreeElement, oldType)
+    descendantResourceTreeElementTypeDidChange(childTreeElement, oldType)
     {
         // Called by descendant SourceMapResourceTreeElements.
 
@@ -184,11 +183,11 @@ WebInspector.SourceCodeTreeElement.prototype = {
 
         if (wasSelected)
             childTreeElement.revealAndSelect(true, false, true, true);
-    },
+    }
 
     // Protected (ResourceTreeElement calls this when its Resource changes dynamically for Frames)
 
-    _updateSourceCode: function(sourceCode)
+    _updateSourceCode(sourceCode)
     {
         console.assert(sourceCode instanceof WebInspector.SourceCode);
 
@@ -204,5 +203,3 @@ WebInspector.SourceCodeTreeElement.prototype = {
         this.updateSourceMapResources();
     }
 };
-
-WebInspector.SourceCodeTreeElement.prototype.__proto__ = WebInspector.GeneralTreeElement.prototype;

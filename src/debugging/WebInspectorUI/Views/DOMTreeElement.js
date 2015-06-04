@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008, 2013 Apple Inc.  All rights reserved.
+ * Copyright (C) 2007, 2008, 2013, 2015 Apple Inc.  All rights reserved.
  * Copyright (C) 2008 Matt Lilek <webkit@mattlilek.com>
  * Copyright (C) 2009 Joseph Pecoraro
  *
@@ -28,61 +28,78 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DOMTreeElement = function(node, elementCloseTag)
+WebInspector.DOMTreeElement = class DOMTreeElement extends WebInspector.TreeElement
 {
-    this._elementCloseTag = elementCloseTag;
-    var hasChildrenOverride = !elementCloseTag && node.hasChildNodes() && !this._showInlineText(node);
+    constructor(node, elementCloseTag)
+    {
+        super("", node);
 
-    // The title will be updated in onattach.
-    TreeElement.call(this, "", node, hasChildrenOverride);
+        this._elementCloseTag = elementCloseTag;
+        this.hasChildren = !elementCloseTag && node.hasChildNodes() && !this._showInlineText(node);
 
-    if (this.representedObject.nodeType() == Node.ELEMENT_NODE && !elementCloseTag)
-        this._canAddAttributes = true;
-    this._searchQuery = null;
-    this._expandedChildrenLimit = WebInspector.DOMTreeElement.InitialChildrenLimit;
-}
+        if (this.representedObject.nodeType() === Node.ELEMENT_NODE && !elementCloseTag)
+            this._canAddAttributes = true;
+        this._searchQuery = null;
+        this._expandedChildrenLimit = WebInspector.DOMTreeElement.InitialChildrenLimit;
+    }
 
-WebInspector.DOMTreeElement.InitialChildrenLimit = 500;
-WebInspector.DOMTreeElement.MaximumInlineTextChildLength = 80;
-
-// A union of HTML4 and HTML5-Draft elements that explicitly
-// or implicitly (for HTML5) forbid the closing tag.
-// FIXME: Revise once HTML5 Final is published.
-WebInspector.DOMTreeElement.ForbiddenClosingTagElements = [
-    "area", "base", "basefont", "br", "canvas", "col", "command", "embed", "frame",
-    "hr", "img", "input", "isindex", "keygen", "link", "meta", "param", "source"
-].keySet();
-
-// These tags we do not allow editing their tag name.
-WebInspector.DOMTreeElement.EditTagBlacklist = [
-    "html", "head", "body"
-].keySet();
-
-WebInspector.DOMTreeElement.prototype = {
-    isCloseTag: function()
+    isCloseTag()
     {
         return this._elementCloseTag;
-    },
+    }
 
-    highlightSearchResults: function(searchQuery)
+    highlightSearchResults(searchQuery)
     {
         if (this._searchQuery !== searchQuery) {
             this._updateSearchHighlight(false);
-            delete this._highlightResult; // A new search query.
+            this._highlightResult = undefined; // A new search query.
         }
 
         this._searchQuery = searchQuery;
         this._searchHighlightsVisible = true;
         this.updateTitle(true);
-    },
+    }
 
-    hideSearchHighlights: function()
+    hideSearchHighlights()
     {
-        delete this._searchHighlightsVisible;
+        this._searchHighlightsVisible = false;
         this._updateSearchHighlight(false);
-    },
+    }
 
-    _updateSearchHighlight: function(show)
+    emphasizeSearchHighlight()
+    {
+        var highlightElement = this.title.querySelector("." + WebInspector.DOMTreeElement.SearchHighlightStyleClassName);
+        console.assert(highlightElement);
+        if (!highlightElement)
+            return;
+
+        if (this._bouncyHighlightElement)
+            this._bouncyHighlightElement.remove();
+
+        this._bouncyHighlightElement = document.createElement("div");
+        this._bouncyHighlightElement.className = WebInspector.DOMTreeElement.BouncyHighlightStyleClassName;
+        this._bouncyHighlightElement.textContent = highlightElement.textContent;
+
+        // Position and show the bouncy highlight adjusting the coordinates to be inside the TreeOutline's space.
+        var highlightElementRect = highlightElement.getBoundingClientRect();
+        var treeOutlineRect = this.treeOutline.element.getBoundingClientRect();
+        this._bouncyHighlightElement.style.top = (highlightElementRect.top - treeOutlineRect.top) + "px";
+        this._bouncyHighlightElement.style.left = (highlightElementRect.left - treeOutlineRect.left) + "px";
+        this.title.appendChild(this._bouncyHighlightElement);
+
+        function animationEnded()
+        {
+            if (!this._bouncyHighlightElement)
+                return;
+
+            this._bouncyHighlightElement.remove();
+            this._bouncyHighlightElement = null;
+        }
+
+        this._bouncyHighlightElement.addEventListener("webkitAnimationEnd", animationEnded.bind(this));
+    }
+
+    _updateSearchHighlight(show)
     {
         if (!this._highlightResult)
             return;
@@ -116,12 +133,12 @@ WebInspector.DOMTreeElement.prototype = {
 
         for (var i = 0, size = this._highlightResult.length; i < size; ++i)
             updater(this._highlightResult[i]);
-    },
+    }
 
     get hovered()
     {
         return this._hovered;
-    },
+    }
 
     set hovered(x)
     {
@@ -138,12 +155,20 @@ WebInspector.DOMTreeElement.prototype = {
                 this.listItemElement.classList.remove("hovered");
             }
         }
-    },
+    }
+
+    get editable()
+    {
+        if (this.representedObject.isInShadowTree())
+            return false;
+
+        return this.treeOutline.editable;
+    }
 
     get expandedChildrenLimit()
     {
         return this._expandedChildrenLimit;
-    },
+    }
 
     set expandedChildrenLimit(x)
     {
@@ -153,7 +178,7 @@ WebInspector.DOMTreeElement.prototype = {
         this._expandedChildrenLimit = x;
         if (this.treeOutline && !this._updateChildrenInProgress)
             this._updateChildren(true);
-    },
+    }
 
     get expandedChildCount()
     {
@@ -163,12 +188,13 @@ WebInspector.DOMTreeElement.prototype = {
         if (count && this.children[count - 1].expandAllButton)
             count--;
         return count;
-    },
+    }
 
-    showChild: function(index)
+    showChild(index)
     {
+        console.assert(!this._elementCloseTag);
         if (this._elementCloseTag)
-            return;
+            return false;
 
         if (index >= this.expandedChildrenLimit) {
             this._expandedChildrenLimit = index + 1;
@@ -177,17 +203,17 @@ WebInspector.DOMTreeElement.prototype = {
 
         // Whether index-th child is visible in the children tree
         return this.expandedChildCount > index;
-    },
+    }
 
-    _createTooltipForNode: function()
+    _createTooltipForNode()
     {
         var node = this.representedObject;
         if (!node.nodeName() || node.nodeName().toLowerCase() !== "img")
             return;
 
-        function setTooltip(result)
+        function setTooltip(error, result, wasThrown)
         {
-            if (!result || result.type !== "string")
+            if (error || wasThrown || !result || result.type !== "string")
                 return;
 
             try {
@@ -215,13 +241,13 @@ WebInspector.DOMTreeElement.prototype = {
                 return "[" + this.offsetWidth + "," + this.offsetHeight + "," + this.naturalWidth + "," + this.naturalHeight + "]";
             }
 
-            object.callFunction(dimensions, undefined, setTooltip.bind(this));
+            object.callFunction(dimensions, undefined, false, setTooltip.bind(this));
             object.release();
         }
         WebInspector.RemoteObject.resolveNode(node, "", resolvedNode.bind(this));
-    },
+    }
 
-    updateSelection: function()
+    updateSelection()
     {
         var listItemElement = this.listItemElement;
         if (!listItemElement)
@@ -240,9 +266,9 @@ WebInspector.DOMTreeElement.prototype = {
         }
 
         this.selectionElement.style.height = listItemElement.offsetHeight + "px";
-    },
+    }
 
-    onattach: function()
+    onattach()
     {
         if (this._hovered) {
             this.updateSelection();
@@ -250,53 +276,51 @@ WebInspector.DOMTreeElement.prototype = {
         }
 
         this.updateTitle();
-        this.listItemElement.draggable = true;
-        this.listItemElement.addEventListener("dragstart", this);
-    },
 
-    onpopulate: function()
+        if (this.editable) {
+            this.listItemElement.draggable = true;
+            this.listItemElement.addEventListener("dragstart", this);
+        }
+    }
+
+    onpopulate()
     {
         if (this.children.length || this._showInlineText(this.representedObject) || this._elementCloseTag)
             return;
 
         this.updateChildren();
-    },
+    }
 
-    expandRecursively: function()
+    expandRecursively()
     {
-        function callback()
-        {
-            TreeElement.prototype.expandRecursively.call(this, Number.MAX_VALUE);
-        }
+        this.representedObject.getSubtree(-1, super.expandRecursively.bind(this, Number.MAX_VALUE));
+    }
 
-        this.representedObject.getSubtree(-1, callback.bind(this));
-    },
-
-    updateChildren: function(fullRefresh)
+    updateChildren(fullRefresh)
     {
         if (this._elementCloseTag)
             return;
         this.representedObject.getChildNodes(this._updateChildren.bind(this, fullRefresh));
-    },
+    }
 
-    insertChildElement: function(child, index, closingTag)
+    insertChildElement(child, index, closingTag)
     {
         var newElement = new WebInspector.DOMTreeElement(child, closingTag);
         newElement.selectable = this.treeOutline._selectEnabled;
         this.insertChild(newElement, index);
         return newElement;
-    },
+    }
 
-    moveChild: function(child, targetIndex)
+    moveChild(child, targetIndex)
     {
         var wasSelected = child.selected;
         this.removeChild(child);
         this.insertChild(child, targetIndex);
         if (wasSelected)
             child.select();
-    },
+    }
 
-    _updateChildren: function(fullRefresh)
+    _updateChildren(fullRefresh)
     {
         if (this._updateChildrenInProgress || !this.treeOutline._visible)
             return;
@@ -373,7 +397,7 @@ WebInspector.DOMTreeElement.prototype = {
         this.adjustCollapsedRange();
 
         var lastChild = this.children.lastValue;
-        if (this.representedObject.nodeType() == Node.ELEMENT_NODE && (!lastChild || !lastChild._elementCloseTag))
+        if (this.representedObject.nodeType() === Node.ELEMENT_NODE && (!lastChild || !lastChild._elementCloseTag))
             this.insertChildElement(this.representedObject, this.children.length, true);
 
         // We want to restore the original selection and tree scroll position after a full refresh, if possible.
@@ -383,26 +407,26 @@ WebInspector.DOMTreeElement.prototype = {
                 treeOutlineContainerElement.scrollTop = originalScrollTop;
         }
 
-        delete this._updateChildrenInProgress;
-    },
+        this._updateChildrenInProgress = false;
+    }
 
-    adjustCollapsedRange: function()
+    adjustCollapsedRange()
     {
         // Ensure precondition: only the tree elements for node children are found in the tree
         // (not the Expand All button or the closing tag).
         if (this.expandAllButtonElement && this.expandAllButtonElement.__treeElement.parent)
             this.removeChild(this.expandAllButtonElement.__treeElement);
 
-        const node = this.representedObject;
+        var node = this.representedObject;
         if (!node.children)
             return;
-        const childNodeCount = node.children.length;
+        var childNodeCount = node.children.length;
 
         // In case some nodes from the expanded range were removed, pull some nodes from the collapsed range into the expanded range at the bottom.
         for (var i = this.expandedChildCount, limit = Math.min(this.expandedChildrenLimit, childNodeCount); i < limit; ++i)
             this.insertChildElement(node.children[i], i);
 
-        const expandedChildCount = this.expandedChildCount;
+        var expandedChildCount = this.expandedChildCount;
         if (childNodeCount > this.expandedChildCount) {
             var targetButtonIndex = expandedChildCount;
             if (!this.expandAllButtonElement) {
@@ -410,7 +434,7 @@ WebInspector.DOMTreeElement.prototype = {
                 button.className = "show-all-nodes";
                 button.value = "";
 
-                var item = new TreeElement(button, null, false);
+                var item = new WebInspector.TreeElement(button, null, false);
                 item.selectable = false;
                 item.expandAllButton = true;
 
@@ -423,33 +447,33 @@ WebInspector.DOMTreeElement.prototype = {
 
             this.expandAllButtonElement.textContent = WebInspector.UIString("Show All Nodes (%d More)").format(childNodeCount - expandedChildCount);
         } else if (this.expandAllButtonElement)
-            delete this.expandAllButtonElement;
-    },
+            this.expandAllButtonElement = null;
+    }
 
-    handleLoadAllChildren: function()
+    handleLoadAllChildren()
     {
         this.expandedChildrenLimit = Math.max(this.representedObject.childNodeCount, this.expandedChildrenLimit + WebInspector.DOMTreeElement.InitialChildrenLimit);
-    },
+    }
 
-    onexpand: function()
+    onexpand()
     {
         if (this._elementCloseTag)
             return;
 
         this.updateTitle();
         this.treeOutline.updateSelection();
-    },
+    }
 
-    oncollapse: function()
+    oncollapse()
     {
         if (this._elementCloseTag)
             return;
 
         this.updateTitle();
         this.treeOutline.updateSelection();
-    },
+    }
 
-    onreveal: function()
+    onreveal()
     {
         if (this.listItemElement) {
             var tagSpans = this.listItemElement.getElementsByClassName("html-tag-name");
@@ -458,9 +482,9 @@ WebInspector.DOMTreeElement.prototype = {
             else
                 this.listItemElement.scrollIntoViewIfNeeded(false);
         }
-    },
+    }
 
-    onselect: function(treeElement, selectedByUser)
+    onselect(treeElement, selectedByUser)
     {
         this.treeOutline.suppressRevealAndSelect = true;
         this.treeOutline.selectDOMNode(this.representedObject, selectedByUser);
@@ -468,22 +492,31 @@ WebInspector.DOMTreeElement.prototype = {
             WebInspector.domTreeManager.highlightDOMNode(this.representedObject.id);
         this.updateSelection();
         this.treeOutline.suppressRevealAndSelect = false;
-    },
+    }
 
-    ondeselect: function(treeElement)
+    ondeselect(treeElement)
     {
         this.treeOutline.selectDOMNode(null);
-    },
+    }
 
-    ondelete: function()
+    ondelete()
     {
+        if (!this.editable)
+            return false;
+
         var startTagTreeElement = this.treeOutline.findTreeElement(this.representedObject);
-        startTagTreeElement ? startTagTreeElement.remove() : this.remove();
+        if (startTagTreeElement)
+            startTagTreeElement.remove();
+        else
+            this.remove();
         return true;
-    },
+    }
 
-    onenter: function()
+    onenter()
     {
+        if (!this.editable)
+            return false;
+
         // On Enter or Return start editing the first attribute
         // or create a new attribute on the selected element.
         if (this.treeOutline.editing)
@@ -493,11 +526,11 @@ WebInspector.DOMTreeElement.prototype = {
 
         // prevent a newline from being immediately inserted
         return true;
-    },
+    }
 
-    selectOnMouseDown: function(event)
+    selectOnMouseDown(event)
     {
-        TreeElement.prototype.selectOnMouseDown.call(this, event);
+        super.selectOnMouseDown(event);
 
         if (this._editing)
             return;
@@ -505,10 +538,13 @@ WebInspector.DOMTreeElement.prototype = {
         // Prevent selecting the nearest word on double click.
         if (event.detail >= 2)
             event.preventDefault();
-    },
+    }
 
-    ondblclick: function(event)
+    ondblclick(event)
     {
+        if (!this.editable)
+            return false;
+
         if (this._editing || this._elementCloseTag)
             return;
 
@@ -517,29 +553,32 @@ WebInspector.DOMTreeElement.prototype = {
 
         if (this.hasChildren && !this.expanded)
             this.expand();
-    },
+    }
 
-    _insertInLastAttributePosition: function(tag, node)
+    _insertInLastAttributePosition(tag, node)
     {
         if (tag.getElementsByClassName("html-attribute").length > 0)
             tag.insertBefore(node, tag.lastChild);
         else {
             var nodeName = tag.textContent.match(/^<(.*?)>$/)[1];
             tag.textContent = "";
-            tag.appendChild(document.createTextNode("<"+nodeName));
+            tag.appendChild(document.createTextNode("<" + nodeName));
             tag.appendChild(node);
             tag.appendChild(document.createTextNode(">"));
         }
 
         this.updateSelection();
-    },
+    }
 
-    _startEditingTarget: function(eventTarget)
+    _startEditingTarget(eventTarget)
     {
-        if (this.treeOutline.selectedDOMNode() != this.representedObject)
-            return;
+        if (this.treeOutline.selectedDOMNode() !== this.representedObject)
+            return false;
 
-        if (this.representedObject.nodeType() != Node.ELEMENT_NODE && this.representedObject.nodeType() != Node.TEXT_NODE)
+        if (this.representedObject.isInShadowTree())
+            return false;
+
+        if (this.representedObject.nodeType() !== Node.ELEMENT_NODE && this.representedObject.nodeType() !== Node.TEXT_NODE)
             return false;
 
         var textNode = eventTarget.enclosingNodeOrSelfWithClass("html-text-node");
@@ -554,66 +593,73 @@ WebInspector.DOMTreeElement.prototype = {
         if (tagName)
             return this._startEditingTagName(tagName);
 
-        var newAttribute = eventTarget.enclosingNodeOrSelfWithClass("add-attribute");
-        if (newAttribute)
-            return this._addNewAttribute();
-
         return false;
-    },
+    }
 
-    _populateTagContextMenu: function(contextMenu, event)
+    _populateTagContextMenu(contextMenu, event)
     {
-        var attribute = event.target.enclosingNodeOrSelfWithClass("html-attribute");
-        var newAttribute = event.target.enclosingNodeOrSelfWithClass("add-attribute");
+        var node = this.representedObject;
+        if (!node.isInShadowTree()) {
+            var attribute = event.target.enclosingNodeOrSelfWithClass("html-attribute");
 
-        // Add attribute-related actions.
-        contextMenu.appendItem(WebInspector.UIString("Add Attribute"), this._addNewAttribute.bind(this));
-        if (attribute && !newAttribute)
-            contextMenu.appendItem(WebInspector.UIString("Edit Attribute"), this._startEditingAttribute.bind(this, attribute, event.target));
-        contextMenu.appendSeparator();
+            // Add attribute-related actions.
+            if (this.editable) {
+                contextMenu.appendItem(WebInspector.UIString("Add Attribute"), this._addNewAttribute.bind(this));
+                if (attribute)
+                    contextMenu.appendItem(WebInspector.UIString("Edit Attribute"), this._startEditingAttribute.bind(this, attribute, event.target));
+                contextMenu.appendSeparator();
+            }
 
-        if (WebInspector.cssStyleManager.canForcePseudoClasses()) {
-            var pseudoSubMenu = contextMenu.appendSubMenuItem(WebInspector.UIString("Forced Pseudo-Classes"));
-            this._populateForcedPseudoStateItems(pseudoSubMenu);
-            contextMenu.appendSeparator();
+            if (WebInspector.cssStyleManager.canForcePseudoClasses()) {
+                var pseudoSubMenu = contextMenu.appendSubMenuItem(WebInspector.UIString("Forced Pseudo-Classes"));
+                this._populateForcedPseudoStateItems(pseudoSubMenu);
+                contextMenu.appendSeparator();
+            }
         }
 
         this._populateNodeContextMenu(contextMenu);
         this.treeOutline._populateContextMenu(contextMenu, this.representedObject);
-    },
+    }
 
-    _populateForcedPseudoStateItems: function(subMenu)
+    _populateForcedPseudoStateItems(subMenu)
     {
         var node = this.representedObject;
         var enabledPseudoClasses = node.enabledPseudoClasses;
         // These strings don't need to be localized as they are CSS pseudo-classes.
         WebInspector.CSSStyleManager.ForceablePseudoClasses.forEach(function(pseudoClass) {
             var label = pseudoClass.capitalize();
-            var enabled = enabledPseudoClasses.contains(pseudoClass);
+            var enabled = enabledPseudoClasses.includes(pseudoClass);
             subMenu.appendCheckboxItem(label, function() {
                 node.setPseudoClassEnabled(pseudoClass, !enabled);
             }, enabled, false);
         });
-    },
+    }
 
-    _populateTextContextMenu: function(contextMenu, textNode)
+    _populateTextContextMenu(contextMenu, textNode)
     {
-        contextMenu.appendItem(WebInspector.UIString("Edit Text"), this._startEditingTextNode.bind(this, textNode));
-        this._populateNodeContextMenu(contextMenu);
-    },
+        if (this.editable)
+            contextMenu.appendItem(WebInspector.UIString("Edit Text"), this._startEditingTextNode.bind(this, textNode));
 
-    _populateNodeContextMenu: function(contextMenu)
+        this._populateNodeContextMenu(contextMenu);
+    }
+
+    _populateNodeContextMenu(contextMenu)
     {
         // Add free-form node-related actions.
-        contextMenu.appendItem(WebInspector.UIString("Edit as HTML"), this._editAsHTML.bind(this));
+        if (this.editable)
+            contextMenu.appendItem(WebInspector.UIString("Edit as HTML"), this._editAsHTML.bind(this));
         contextMenu.appendItem(WebInspector.UIString("Copy as HTML"), this._copyHTML.bind(this));
-        contextMenu.appendItem(WebInspector.UIString("Delete Node"), this.remove.bind(this));
-    },
+        if (this.editable)
+            contextMenu.appendItem(WebInspector.UIString("Delete Node"), this.remove.bind(this));
+    }
 
-    _startEditing: function()
+    _startEditing()
     {
         if (this.treeOutline.selectedDOMNode() !== this.representedObject)
-            return;
+            return false;
+
+        if (!this.editable)
+            return false;
 
         var listItem = this._listItemNode;
 
@@ -629,11 +675,11 @@ WebInspector.DOMTreeElement.prototype = {
             var textNode = listItem.getElementsByClassName("html-text-node")[0];
             if (textNode)
                 return this._startEditingTextNode(textNode);
-            return;
+            return false;
         }
-    },
+    }
 
-    _addNewAttribute: function()
+    _addNewAttribute()
     {
         // Cannot just convert the textual html into an element without
         // a parent node. Use a temporary span container for the HTML.
@@ -646,9 +692,9 @@ WebInspector.DOMTreeElement.prototype = {
         var tag = this.listItemElement.getElementsByClassName("html-tag")[0];
         this._insertInLastAttributePosition(tag, attr);
         return this._startEditingAttribute(attr, attr);
-    },
+    }
 
-    _triggerEditAttribute: function(attributeName)
+    _triggerEditAttribute(attributeName)
     {
         var attributeElements = this.listItemElement.getElementsByClassName("html-attribute-name");
         for (var i = 0, len = attributeElements.length; i < len; ++i) {
@@ -662,9 +708,9 @@ WebInspector.DOMTreeElement.prototype = {
                 }
             }
         }
-    },
+    }
 
-    _startEditingAttribute: function(attribute, elementForSelection)
+    _startEditingAttribute(attribute, elementForSelection)
     {
         if (WebInspector.isBeingEdited(attribute))
             return true;
@@ -698,9 +744,9 @@ WebInspector.DOMTreeElement.prototype = {
         window.getSelection().setBaseAndExtent(elementForSelection, 0, elementForSelection, 1);
 
         return true;
-    },
+    }
 
-    _startEditingTextNode: function(textNode)
+    _startEditingTextNode(textNode)
     {
         if (WebInspector.isBeingEdited(textNode))
             return true;
@@ -711,9 +757,9 @@ WebInspector.DOMTreeElement.prototype = {
         window.getSelection().setBaseAndExtent(textNode, 0, textNode, 1);
 
         return true;
-    },
+    }
 
-    _startEditingTagName: function(tagNameElement)
+    _startEditingTagName(tagNameElement)
     {
         if (!tagNameElement) {
             tagNameElement = this.listItemElement.getElementsByClassName("html-tag-name")[0];
@@ -754,9 +800,9 @@ WebInspector.DOMTreeElement.prototype = {
         this._editing = WebInspector.startEditing(tagNameElement, config);
         window.getSelection().setBaseAndExtent(tagNameElement, 0, tagNameElement, 1);
         return true;
-    },
+    }
 
-    _startEditingAsHTML: function(commitCallback, error, initialValue)
+    _startEditingAsHTML(commitCallback, error, initialValue)
     {
         if (error)
             return;
@@ -793,7 +839,7 @@ WebInspector.DOMTreeElement.prototype = {
 
             // Remove editor.
             this.listItemElement.removeChild(this._htmlEditElement);
-            delete this._htmlEditElement;
+            this._htmlEditElement = null;
             // Unhide children item.
             if (this._childrenListNode)
                 this._childrenListNode.style.removeProperty("display");
@@ -810,9 +856,9 @@ WebInspector.DOMTreeElement.prototype = {
         var config = new WebInspector.EditingConfig(commit.bind(this), dispose.bind(this));
         config.setMultiline(true);
         this._editing = WebInspector.startEditing(this._htmlEditElement, config);
-    },
+    }
 
-    _attributeEditingCommitted: function(element, newText, oldText, attributeName, moveDirection)
+    _attributeEditingCommitted(element, newText, oldText, attributeName, moveDirection)
     {
         this._editing = false;
 
@@ -867,9 +913,9 @@ WebInspector.DOMTreeElement.prototype = {
         }
 
         this.representedObject.setAttribute(attributeName, newText, moveToNextAttributeIfNeeded.bind(this));
-    },
+    }
 
-    _tagNameEditingCommitted: function(element, newText, oldText, tagName, moveDirection)
+    _tagNameEditingCommitted(element, newText, oldText, tagName, moveDirection)
     {
         this._editing = false;
         var self = this;
@@ -928,9 +974,9 @@ WebInspector.DOMTreeElement.prototype = {
         }
 
         this.representedObject.setNodeName(newText, changeTagNameCallback);
-    },
+    }
 
-    _textNodeEditingCommitted: function(element, newText)
+    _textNodeEditingCommitted(element, newText)
     {
         this._editing = false;
 
@@ -939,21 +985,21 @@ WebInspector.DOMTreeElement.prototype = {
             // We only show text nodes inline in elements if the element only
             // has a single child, and that child is a text node.
             textNode = this.representedObject.firstChild;
-        } else if (this.representedObject.nodeType() == Node.TEXT_NODE)
+        } else if (this.representedObject.nodeType() === Node.TEXT_NODE)
             textNode = this.representedObject;
 
         textNode.setNodeValue(newText, this.updateTitle.bind(this));
-    },
+    }
 
-    _editingCancelled: function(element, context)
+    _editingCancelled(element, context)
     {
         this._editing = false;
 
         // Need to restore attributes structure.
         this.updateTitle();
-    },
+    }
 
-    _distinctClosingTagElement: function()
+    _distinctClosingTagElement()
     {
         // FIXME: Improve the Tree Element / Outline Abstraction to prevent crawling the DOM
 
@@ -961,17 +1007,17 @@ WebInspector.DOMTreeElement.prototype = {
         // in the child element list.
         if (this.expanded) {
             var closers = this._childrenListNode.querySelectorAll(".close");
-            return closers[closers.length-1];
+            return closers[closers.length - 1];
         }
 
         // Remaining cases are single line non-expanded elements with a closing
         // tag, or HTML elements without a closing tag (such as <br>). Return
         // null in the case where there isn't a closing tag.
         var tags = this.listItemElement.getElementsByClassName("html-tag");
-        return (tags.length === 1 ? null : tags[tags.length-1]);
-    },
+        return (tags.length === 1 ? null : tags[tags.length - 1]);
+    }
 
-    updateTitle: function(onlySearchQueryChanged)
+    updateTitle(onlySearchQueryChanged)
     {
         // If we are editing, return early to prevent canceling the edit.
         // After editing is committed updateTitle will be called.
@@ -982,19 +1028,17 @@ WebInspector.DOMTreeElement.prototype = {
             if (this._highlightResult)
                 this._updateSearchHighlight(false);
         } else {
-            var highlightElement = document.createElement("span");
-            highlightElement.className = "highlight";
-            highlightElement.appendChild(this._nodeTitleInfo().titleDOM);
-            this.title = highlightElement;
-            delete this._highlightResult;
+            this.title = document.createElement("span");
+            this.title.appendChild(this._nodeTitleInfo().titleDOM);
+            this._highlightResult = undefined;
         }
 
-        delete this.selectionElement;
+        this.selectionElement = null;
         this.updateSelection();
         this._highlightSearchResults();
-    },
+    }
 
-    _buildAttributeDOM: function(parentElement, name, value, node)
+    _buildAttributeDOM(parentElement, name, value, node)
     {
         var hasText = (value.length > 0);
         var attrSpanElement = parentElement.createChild("span", "html-attribute");
@@ -1031,9 +1075,9 @@ WebInspector.DOMTreeElement.prototype = {
 
         if (hasText)
             attrSpanElement.appendChild(document.createTextNode("\""));
-    },
+    }
 
-    _buildTagDOM: function(parentElement, tagName, isClosingTag, isDistinctTreeElement)
+    _buildTagDOM(parentElement, tagName, isClosingTag, isDistinctTreeElement)
     {
         var node = this.representedObject;
         var classes = [ "html-tag" ];
@@ -1055,12 +1099,19 @@ WebInspector.DOMTreeElement.prototype = {
         }
         tagElement.appendChild(document.createTextNode(">"));
         parentElement.appendChild(document.createTextNode("\u200B"));
-    },
+    }
 
-    _nodeTitleInfo: function()
+    _nodeTitleInfo()
     {
         var node = this.representedObject;
         var info = {titleDOM: document.createDocumentFragment(), hasChildren: this.hasChildren};
+
+        function trimedNodeValue()
+        {
+            // Trim empty lines from the beginning and extra space at the end since most style and script tags begin with a newline
+            // and end with a newline and indentation for the end tag.
+            return node.nodeValue().replace(/^[\n\r]*/, "").replace(/\s*$/, "");
+        }
 
         switch (node.nodeType()) {
             case Node.DOCUMENT_FRAGMENT_NODE:
@@ -1121,13 +1172,6 @@ WebInspector.DOMTreeElement.prototype = {
                 break;
 
             case Node.TEXT_NODE:
-                function trimedNodeValue()
-                {
-                    // Trim empty lines from the beginning and extra space at the end since most style and script tags begin with a newline
-                    // and end with a newline and indentation for the end tag.
-                    return node.nodeValue().replace(/^[\n\r]*/, "").replace(/\s*$/, "");
-                }
-
                 if (node.parentNode && node.parentNode.nodeName().toLowerCase() === "script") {
                     var newNode = info.titleDOM.createChild("span", "html-text-node large");
                     newNode.appendChild(WebInspector.syntaxHighlightStringAsDocumentFragment(trimedNodeValue(), "text/javascript"));
@@ -1167,14 +1211,23 @@ WebInspector.DOMTreeElement.prototype = {
                 var cdataElement = info.titleDOM.createChild("span", "html-text-node");
                 cdataElement.appendChild(document.createTextNode("<![CDATA[" + node.nodeValue() + "]]>"));
                 break;
+
+            case Node.PROCESSING_INSTRUCTION_NODE:
+                var processingInstructionElement = info.titleDOM.createChild("span", "html-processing-instruction");
+                var data = node.nodeValue();
+                var dataString = data.length ? " " + data : "";
+                var title = "<?" + node.nodeNameInCorrectCase() + dataString + "?>";
+                processingInstructionElement.appendChild(document.createTextNode(title));
+                break;
+
             default:
                 var defaultElement = info.titleDOM.appendChild(document.createTextNode(node.nodeNameInCorrectCase().collapseWhitespace()));
         }
 
         return info;
-    },
+    }
 
-    _singleTextChild: function(node)
+    _singleTextChild(node)
     {
         if (!node)
             return null;
@@ -1188,9 +1241,9 @@ WebInspector.DOMTreeElement.prototype = {
 
         var sibling = firstChild.nextSibling;
         return sibling ? null : firstChild;
-    },
+    }
 
-    _showInlineText: function(node)
+    _showInlineText(node)
     {
         if (node.nodeType() === Node.ELEMENT_NODE) {
             var textChild = this._singleTextChild(node);
@@ -1198,9 +1251,9 @@ WebInspector.DOMTreeElement.prototype = {
                 return true;
         }
         return false;
-    },
+    }
 
-    remove: function()
+    remove()
     {
         var parentElement = this.parent;
         if (!parentElement)
@@ -1220,9 +1273,9 @@ WebInspector.DOMTreeElement.prototype = {
         }
 
         this.representedObject.removeNode(removeNodeCallback);
-    },
+    }
 
-    _editAsHTML: function()
+    _editAsHTML()
     {
         var treeOutline = this.treeOutline;
         var node = this.representedObject;
@@ -1257,31 +1310,32 @@ WebInspector.DOMTreeElement.prototype = {
         }
 
         node.getOuterHTML(this._startEditingAsHTML.bind(this, commitChange));
-    },
+    }
 
-    _copyHTML: function()
+    _copyHTML()
     {
         this.representedObject.copyNode();
-    },
+    }
 
-    _highlightSearchResults: function()
+    _highlightSearchResults()
     {
-        if (!this._searchQuery || !this._searchHighlightsVisible)
+        if (!this.title || !this._searchQuery || !this._searchHighlightsVisible)
             return;
+
         if (this._highlightResult) {
             this._updateSearchHighlight(true);
             return;
         }
 
-        var text = this.listItemElement.textContent;
-        var regexObject = createPlainTextSearchRegex(this._searchQuery, "gi");
+        var text = this.title.textContent;
+        var searchRegex = new RegExp(this._searchQuery.escapeForRegExp(), "gi");
 
         var offset = 0;
-        var match = regexObject.exec(text);
+        var match = searchRegex.exec(text);
         var matchRanges = [];
         while (match) {
             matchRanges.push({ offset: match.index, length: match[0].length });
-            match = regexObject.exec(text);
+            match = searchRegex.exec(text);
         }
 
         // Fall back for XPath, etc. matches.
@@ -1289,14 +1343,31 @@ WebInspector.DOMTreeElement.prototype = {
             matchRanges.push({ offset: 0, length: text.length });
 
         this._highlightResult = [];
-        highlightSearchResults(this.listItemElement, matchRanges, this._highlightResult);
-    },
+        WebInspector.highlightRangesWithStyleClass(this.title, matchRanges, WebInspector.DOMTreeElement.SearchHighlightStyleClassName, this._highlightResult);
+    }
 
-    handleEvent: function(event)
+    handleEvent(event)
     {
         if (event.type === "dragstart" && this._editing)
             event.preventDefault();
     }
-}
+};
 
-WebInspector.DOMTreeElement.prototype.__proto__ = TreeElement.prototype;
+WebInspector.DOMTreeElement.InitialChildrenLimit = 500;
+WebInspector.DOMTreeElement.MaximumInlineTextChildLength = 80;
+
+// A union of HTML4 and HTML5-Draft elements that explicitly
+// or implicitly (for HTML5) forbid the closing tag.
+WebInspector.DOMTreeElement.ForbiddenClosingTagElements = [
+    "area", "base", "basefont", "br", "canvas", "col", "command", "embed", "frame",
+    "hr", "img", "input", "isindex", "keygen", "link", "meta", "param", "source",
+    "wbr", "track", "menuitem"
+].keySet();
+
+// These tags we do not allow editing their tag name.
+WebInspector.DOMTreeElement.EditTagBlacklist = [
+    "html", "head", "body"
+].keySet();
+
+WebInspector.DOMTreeElement.SearchHighlightStyleClassName = "search-highlight";
+WebInspector.DOMTreeElement.BouncyHighlightStyleClassName = "bouncy-highlight";

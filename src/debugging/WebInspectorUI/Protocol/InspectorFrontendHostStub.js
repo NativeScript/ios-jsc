@@ -30,15 +30,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+if (!window.Symbol) {
+    window.Symbol = function(string)
+    {
+        return string;
+    }
+}
+
 if (!window.InspectorFrontendHost) {
     WebInspector.InspectorFrontendHostStub = function()
     {
-    }
+    };
 
     WebInspector.InspectorFrontendHostStub.prototype = {
         // Public
 
-        initializeWebSocket: function(url, protocol)
+        initializeWebSocket: function(url)
         {
             var socket = new WebSocket(url);
             socket.addEventListener("open", socketReady.bind(this));
@@ -96,7 +103,7 @@ if (!window.InspectorFrontendHost) {
 
         debuggableType: function()
         {
-            return "js";
+            return "web";
         },
 
         inspectedURLChanged: function(title)
@@ -143,6 +150,10 @@ if (!window.InspectorFrontendHost) {
         {
         },
 
+        showContextMenu: function(event, menuObject)
+        {
+        },
+
         // Private
 
         _sendPendingMessagesToBackendIfNeeded: function()
@@ -155,7 +166,7 @@ if (!window.InspectorFrontendHost) {
 
             delete this._pendingMessages;
         }
-    }
+    };
 
     InspectorFrontendHost = new WebInspector.InspectorFrontendHostStub();
     
@@ -168,6 +179,7 @@ if (!window.InspectorFrontendHost) {
         host = "localhost:8080";
     }
 
-    InspectorFrontendHost.initializeWebSocket("ws://" + host + "/", "TNSDebuggingProtocol");
+    InspectorFrontendHost.initializeWebSocket("ws://" + host + "/");
+
     WebInspector.dontLocalizeUserInterface = true;
 }

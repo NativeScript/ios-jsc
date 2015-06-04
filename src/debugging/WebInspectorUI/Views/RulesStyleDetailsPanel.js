@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,23 +23,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.RulesStyleDetailsPanel = function()
+WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebInspector.StyleDetailsPanel
 {
-    WebInspector.StyleDetailsPanel.call(this, WebInspector.RulesStyleDetailsPanel.StyleClassName, "rules", WebInspector.UIString("Rules"));
+    constructor()
+    {
+        super("rules", "rules", WebInspector.UIString("Rules"));
 
-    this._sections = [];
-};
-
-WebInspector.RulesStyleDetailsPanel.StyleClassName = "rules";
-WebInspector.RulesStyleDetailsPanel.LabelElementStyleClassName = "label";
-WebInspector.RulesStyleDetailsPanel.NewRuleElementStyleClassName = "new-rule";
-
-WebInspector.RulesStyleDetailsPanel.prototype = {
-    constructor: WebInspector.RulesStyleDetailsPanel,
+        this._sections = [];
+    }
 
     // Public
 
-    refresh: function(significantChange)
+    refresh(significantChange)
     {
         // We only need to do a rebuild on significant changes. Other changes are handled
         // by the sections and text editors themselves.
@@ -92,6 +87,31 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
             });
         }
 
+        function uniqueOrderedStyles(orderedStyles)
+        {
+            var uniqueStyles = [];
+
+            for (var style of orderedStyles) {
+                var rule = style.ownerRule;
+                if (!rule) {
+                    uniqueStyles.push(style);
+                    continue;
+                }
+
+                var found = false;
+                for (var existingStyle of uniqueStyles) {
+                    if (rule.isEqualTo(existingStyle.ownerRule)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    uniqueStyles.push(style);
+            }
+
+            return uniqueStyles;
+        }
+
         function appendStyleSection(style)
         {
             var section = style.__rulesSection;
@@ -123,14 +143,16 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
             if (previousSection)
                 previousSection.lastInGroup = true;
 
-            var newRuleButton = document.createElement("div");
-            newRuleButton.className = WebInspector.RulesStyleDetailsPanel.NewRuleElementStyleClassName;
-            newRuleButton.addEventListener("click", this._newRuleClicked.bind(this));
+            if (!this.nodeStyles.node.isInShadowTree()) {
+                var newRuleButton = document.createElement("div");
+                newRuleButton.className = "new-rule";
+                newRuleButton.addEventListener("click", this._newRuleClicked.bind(this));
 
-            newRuleButton.appendChild(document.createElement("img"));
-            newRuleButton.appendChild(document.createTextNode(WebInspector.UIString("New Rule")));
+                newRuleButton.appendChild(document.createElement("img"));
+                newRuleButton.appendChild(document.createTextNode(WebInspector.UIString("New Rule")));
 
-            newDOMFragment.appendChild(newRuleButton);
+                newDOMFragment.appendChild(newRuleButton);
+            }
 
             addedNewRuleButton = true;
         }
@@ -138,10 +160,9 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
         var pseudoElements = this.nodeStyles.pseudoElements;
         for (var pseudoIdentifier in pseudoElements) {
             var pseudoElement = pseudoElements[pseudoIdentifier];
-            for (var i = 0; i < pseudoElement.orderedStyles.length; ++i) {
-                var style = pseudoElement.orderedStyles[i];
+            var orderedStyles = uniqueOrderedStyles(pseudoElement.orderedStyles);
+            for (var style of orderedStyles)
                 appendStyleSection.call(this, style);
-            }
 
             if (previousSection)
                 previousSection.lastInGroup = true;
@@ -149,7 +170,7 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
 
         var addedNewRuleButton = false;
 
-        var orderedStyles = this.nodeStyles.orderedStyles;
+        var orderedStyles = uniqueOrderedStyles(this.nodeStyles.orderedStyles);
         for (var i = 0; i < orderedStyles.length; ++i) {
             var style = orderedStyles[i];
 
@@ -163,7 +184,7 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
                 prefixElement.textContent = WebInspector.UIString("Inherited From: ");
 
                 var inheritedLabel = document.createElement("div");
-                inheritedLabel.className = WebInspector.RulesStyleDetailsPanel.LabelElementStyleClassName;
+                inheritedLabel.className = "label";
                 inheritedLabel.appendChild(prefixElement);
                 inheritedLabel.appendChild(WebInspector.linkifyNodeReference(style.node));
                 newDOMFragment.appendChild(inheritedLabel);
@@ -186,7 +207,7 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
                     prefixElement.textContent = WebInspector.UIString("Media: ");
 
                     var mediaLabel = document.createElement("div");
-                    mediaLabel.className = WebInspector.RulesStyleDetailsPanel.LabelElementStyleClassName;
+                    mediaLabel.className = "label";
                     mediaLabel.appendChild(prefixElement);
                     mediaLabel.appendChild(document.createTextNode(media.text));
 
@@ -216,23 +237,13 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
         for (var i = 0; i < this._sections.length; ++i)
             this._sections[i].updateLayout();
 
-        if (previousFocusedSection) {
+        if (previousFocusedSection)
             previousFocusedSection.focus();
-
-            function scrollToFocusedSection()
-            {
-                previousFocusedSection.element.scrollIntoViewIfNeeded(true);
-            }
-
-            // Do the scroll on a timeout since StyleDetailsPanel restores scroll position
-            // after the refresh, and we might not need to scroll after the restore.
-            setTimeout(scrollToFocusedSection, 0);
-        }
-    },
+    }
 
     // Protected
 
-    shown: function()
+    shown()
     {
         WebInspector.StyleDetailsPanel.prototype.shown.call(this);
 
@@ -243,9 +254,9 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
             section.style.__rulesSection = section;
             section.updateLayout();
         }
-    },
+    }
 
-    hidden: function()
+    hidden()
     {
         WebInspector.StyleDetailsPanel.prototype.hidden.call(this);
 
@@ -253,21 +264,19 @@ WebInspector.RulesStyleDetailsPanel.prototype = {
         // to release their objects when this panel is not visible.
         for (var i = 0; i < this._sections.length; ++i)
             delete this._sections[i].style.__rulesSection;
-    },
+    }
 
-    widthDidChange: function()
+    widthDidChange()
     {
         for (var i = 0; i < this._sections.length; ++i)
             this._sections[i].updateLayout();
-    },
+    }
 
     // Private
 
-    _newRuleClicked: function(event)
+    _newRuleClicked(event)
     {
         this._focusNextNewInspectorRule = true;
-        this.nodeStyles.addRule();
+        this.nodeStyles.addEmptyRule();
     }
 };
-
-WebInspector.RulesStyleDetailsPanel.prototype.__proto__ = WebInspector.StyleDetailsPanel.prototype;

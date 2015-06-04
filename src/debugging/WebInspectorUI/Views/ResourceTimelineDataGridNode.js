@@ -42,7 +42,8 @@ WebInspector.ResourceTimelineDataGridNode = function(resourceTimelineRecord, gra
     }
 };
 
-WebInspector.Object.addConstructorFunctions(WebInspector.ResourceTimelineDataGridNode);
+// FIXME: Move to a WebInspector.Object subclass and we can remove this.
+WebInspector.Object.deprecatedAddConstructorFunctions(WebInspector.ResourceTimelineDataGridNode);
 
 WebInspector.ResourceTimelineDataGridNode.IconStyleClassName = "icon";
 WebInspector.ResourceTimelineDataGridNode.ErrorStyleClassName = "error";
@@ -74,7 +75,6 @@ WebInspector.ResourceTimelineDataGridNode.prototype = {
         if (!this._graphOnly) {
             var zeroTime = this.graphDataSource ? this.graphDataSource.zeroTime : 0;
 
-            data.name = WebInspector.displayNameForURL(resource.url, resource.urlComponents);
             data.domain = WebInspector.displayNameForHost(resource.urlComponents.host);
             data.scheme = resource.urlComponents.scheme ? resource.urlComponents.scheme.toUpperCase() : "";
             data.method = resource.requestMethod;
@@ -105,29 +105,8 @@ WebInspector.ResourceTimelineDataGridNode.prototype = {
         var value = this.data[columnIdentifier];
 
         switch (columnIdentifier) {
-        case "name":
-            cell.classList.add(WebInspector.ResourceTreeElement.ResourceIconStyleClassName);
-            cell.classList.add(resource.type);
-
-            var fragment = document.createDocumentFragment();
-
-            var goToButton = WebInspector.createGoToArrowButton();
-            goToButton.addEventListener("click", this._goToResource.bind(this));
-            fragment.appendChild(goToButton);
-
-            var icon = document.createElement("div");
-            icon.className = WebInspector.ResourceTimelineDataGridNode.IconStyleClassName;
-            fragment.appendChild(icon);
-
-            var text = document.createTextNode(value);
-            fragment.appendChild(text);
-
-            cell.title = resource.url;
-
-            return fragment;
-
         case "type":
-            return WebInspector.Resource.Type.displayName(value);
+            return WebInspector.Resource.displayNameForType(value);
 
         case "statusCode":
             cell.title = resource.statusText || "";
@@ -177,11 +156,6 @@ WebInspector.ResourceTimelineDataGridNode.prototype = {
             return;
 
         this._scheduledRefreshIdentifier = requestAnimationFrame(this.refresh.bind(this));
-    },
-
-    _goToResource: function(event)
-    {
-        WebInspector.resourceSidebarPanel.showSourceCode(this._resource);
     },
 
     _timelineRecordUpdated: function(event)

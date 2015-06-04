@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, 2014 Apple Inc. All rights reserved.
+ * Copyright (C) 2013-2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,77 +23,57 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DefaultDashboardView = function(representedObject)
+WebInspector.DefaultDashboardView = class DefaultDashboardView extends WebInspector.DashboardView
 {
-    WebInspector.DashboardView.call(this, representedObject, "default");
+    constructor(representedObject)
+    {
+        super(representedObject, "default");
 
-    representedObject.addEventListener(WebInspector.DefaultDashboard.Event.DataDidChange, window.requestAnimationFrame.bind(null, this._updateDisplay.bind(this)));
+        representedObject.addEventListener(WebInspector.DefaultDashboard.Event.DataDidChange, window.requestAnimationFrame.bind(null, this._updateDisplay.bind(this)));
 
-    this._items = {
-        resourcesCount: {
-            tooltip: WebInspector.UIString("Total number of resources, click to show the Resources navigation sidebar"),
-            handler: this._resourcesWasClicked
-        },
-        resourcesSize: {
-            tooltip: WebInspector.UIString("Total size of all resources, click to show the Network Requests timeline"),
-            handler: this._networkItemWasClicked
-        },
-        time: {
-            tooltip: WebInspector.UIString("Time until the load event fired, click to show the Network Requests timeline"),
-            handler: this._networkItemWasClicked
-        },
-        logs: {
-            tooltip: WebInspector.UIString("Console logs, click to show the Console"),
-            handler: this._consoleItemWasClicked.bind(this, WebInspector.LogContentView.Scopes.Logs)
-        },
-        errors: {
-            tooltip: WebInspector.UIString("Console errors, click to show the Console"),
-            handler: this._consoleItemWasClicked.bind(this, WebInspector.LogContentView.Scopes.Errors)
-        },
-        issues: {
-            tooltip: WebInspector.UIString("Console warnings, click to show the Console"),
-            handler: this._consoleItemWasClicked.bind(this, WebInspector.LogContentView.Scopes.Warnings)
-        }
-    };
+        this._items = {
+            resourcesCount: {
+                tooltip: WebInspector.UIString("Total number of resources, click to show the Resources tab"),
+                handler: this._resourcesWasClicked
+            },
+            logs: {
+                tooltip: WebInspector.UIString("Console logs, click to show the Console tab"),
+                handler: this._consoleItemWasClicked.bind(this, WebInspector.LogContentView.Scopes.Logs)
+            },
+            errors: {
+                tooltip: WebInspector.UIString("Console errors, click to show the Console tab"),
+                handler: this._consoleItemWasClicked.bind(this, WebInspector.LogContentView.Scopes.Errors)
+            },
+            issues: {
+                tooltip: WebInspector.UIString("Console warnings, click to show the Console tab"),
+                handler: this._consoleItemWasClicked.bind(this, WebInspector.LogContentView.Scopes.Warnings)
+            }
+        };
 
-    for (var name in this._items)
-        this._appendElementForNamedItem(name);
-};
-
-WebInspector.DefaultDashboardView.EnabledItemStyleClassName = "enabled";
-
-WebInspector.DefaultDashboardView.prototype = {
-    constructor: WebInspector.DefaultDashboardView,
-    __proto__: WebInspector.DashboardView.prototype,
-
+        for (var name in this._items)
+            this._appendElementForNamedItem(name);
+    }
+    
     // Private
 
-    _updateDisplay: function()
+    _updateDisplay()
     {
         var dashboard = this.representedObject;
 
         for (var category of ["logs", "issues", "errors"])
             this._setConsoleItemValue(category, dashboard[category]);
 
-        var timeItem = this._items.time;
-        timeItem.text = dashboard.time ? Number.secondsToString(dashboard.time) : "\u2014";
-        this._setItemEnabled(timeItem, dashboard.time > 0);
-
         var countItem = this._items.resourcesCount;
         countItem.text = this._formatPossibleLargeNumber(dashboard.resourcesCount);
         this._setItemEnabled(countItem, dashboard.resourcesCount > 0);
+    }
 
-        var sizeItem = this._items.resourcesSize;
-        sizeItem.text = dashboard.resourcesSize ? Number.bytesToString(dashboard.resourcesSize, false) : "\u2014";
-        this._setItemEnabled(sizeItem, dashboard.resourcesSize > 0);
-    },
-
-    _formatPossibleLargeNumber: function(number)
+    _formatPossibleLargeNumber(number)
     {
         return number > 999 ? WebInspector.UIString("999+") : number;
-    },
+    }
 
-    _appendElementForNamedItem: function(name)
+    _appendElementForNamedItem(name)
     {
         var item = this._items[name];
 
@@ -105,8 +85,7 @@ WebInspector.DefaultDashboardView.prototype = {
 
         item.outlet = item.container.appendChild(document.createElement("div"));
 
-        Object.defineProperty(item, "text",
-        {
+        Object.defineProperty(item, "text", {
             set: function(newText)
             {
                 if (newText === item.outlet.textContent)
@@ -118,9 +97,9 @@ WebInspector.DefaultDashboardView.prototype = {
         item.container.addEventListener("click", function(event) {
             this._itemWasClicked(name);
         }.bind(this));
-    },
+    }
 
-    _itemWasClicked: function(name)
+    _itemWasClicked(name)
     {
         var item = this._items[name];
         if (!item.container.classList.contains(WebInspector.DefaultDashboardView.EnabledItemStyleClassName))
@@ -128,25 +107,19 @@ WebInspector.DefaultDashboardView.prototype = {
 
         if (item.handler)
             item.handler.call(this);
-    },
+    }
 
-    _resourcesWasClicked: function()
+    _resourcesWasClicked()
     {
-        WebInspector.navigationSidebar.selectedSidebarPanel = WebInspector.resourceSidebarPanel;
-        WebInspector.navigationSidebar.collapsed = false;
-    },
+        WebInspector.showResourcesTab();
+    }
 
-    _networkItemWasClicked: function()
+    _consoleItemWasClicked(scope)
     {
-        WebInspector.navigationSidebar.selectedSidebarPanel = WebInspector.timelineSidebarPanel;
-    },
+        WebInspector.showConsoleTab(scope);
+    }
 
-    _consoleItemWasClicked: function(scope)
-    {
-        WebInspector.showConsoleView(scope);
-    },
-
-    _setConsoleItemValue: function(itemName, newValue)
+    _setConsoleItemValue(itemName, newValue)
     {
         var iVarName = "_" + itemName;
         var previousValue = this[iVarName];
@@ -178,9 +151,9 @@ WebInspector.DefaultDashboardView.prototype = {
             container.addEventListener("webkitAnimationEnd", animationEnded);
 
         container.classList.add("pulsing");
-    },
+    }
 
-    _setItemEnabled: function(item, enabled)
+    _setItemEnabled(item, enabled)
     {
         if (enabled)
             item.container.classList.add(WebInspector.DefaultDashboardView.EnabledItemStyleClassName);
@@ -188,3 +161,5 @@ WebInspector.DefaultDashboardView.prototype = {
             item.container.classList.remove(WebInspector.DefaultDashboardView.EnabledItemStyleClassName);
     }
 };
+
+WebInspector.DefaultDashboardView.EnabledItemStyleClassName = "enabled";

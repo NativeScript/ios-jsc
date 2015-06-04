@@ -50,9 +50,17 @@ WebInspector.ScriptContentView = function(script)
 
     var toolTip = WebInspector.UIString("Pretty print");
     var activatedToolTip = WebInspector.UIString("Original formatting");
-    this._prettyPrintButtonNavigationItem = new WebInspector.ActivateButtonNavigationItem("pretty-print", toolTip, activatedToolTip, "Images/NavigationItemCurleyBraces.svg", 16, 16);
+    this._prettyPrintButtonNavigationItem = new WebInspector.ActivateButtonNavigationItem("pretty-print", toolTip, activatedToolTip, "Images/NavigationItemCurleyBraces.svg", 13, 13);
     this._prettyPrintButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._togglePrettyPrint, this);
     this._prettyPrintButtonNavigationItem.enabled = false; // Enabled when the text editor is populated with content.
+
+    var toolTipTypes = WebInspector.UIString("Show type information");
+    var activatedToolTipTypes = WebInspector.UIString("Hide type information");
+    this._showTypesButtonNavigationItem = new WebInspector.ActivateButtonNavigationItem("show-types", toolTipTypes, activatedToolTipTypes, "Images/NavigationItemTypes.svg", 13, 14);
+    this._showTypesButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._toggleTypeAnnotations, this);
+    this._showTypesButtonNavigationItem.enabled = false;
+
+    WebInspector.showJavaScriptTypeInformationSetting.addEventListener(WebInspector.Setting.Event.Changed, this._showJavaScriptTypeInformationSettingChanged, this);
 };
 
 WebInspector.ScriptContentView.StyleClassName = "script";
@@ -64,7 +72,7 @@ WebInspector.ScriptContentView.prototype = {
 
     get navigationItems()
     {
-        return [this._prettyPrintButtonNavigationItem];
+        return [this._prettyPrintButtonNavigationItem, this._showTypesButtonNavigationItem];
     },
 
     get script()
@@ -104,6 +112,8 @@ WebInspector.ScriptContentView.prototype = {
 
     closed: function()
     {
+        WebInspector.showJavaScriptTypeInformationSetting.removeEventListener(null, null, this);
+
         this._textEditor.close();
     },
 
@@ -127,7 +137,7 @@ WebInspector.ScriptContentView.prototype = {
     get saveData()
     {
         var url = this._script.url || "web-inspector:///" + encodeURI(this._script.displayName) + ".js";
-        return {url: url, content: this._textEditor.string};
+        return {url, content: this._textEditor.string};
     },
 
     get supportsSearch()
@@ -198,12 +208,24 @@ WebInspector.ScriptContentView.prototype = {
     _contentDidPopulate: function(event)
     {
         this._prettyPrintButtonNavigationItem.enabled = this._textEditor.canBeFormatted();
+        this._showTypesButtonNavigationItem.enabled = this._textEditor.canShowTypeAnnotations();
+        this._showTypesButtonNavigationItem.activated = WebInspector.showJavaScriptTypeInformationSetting.value;
     },
 
     _togglePrettyPrint: function(event)
     {
         var activated = !this._prettyPrintButtonNavigationItem.activated;
         this._textEditor.formatted = activated;
+    },
+
+    _toggleTypeAnnotations: function(event)
+    {
+        this._textEditor.toggleTypeAnnotations();
+    },
+
+    _showJavaScriptTypeInformationSettingChanged: function(event)
+    {
+        this._showTypesButtonNavigationItem.activated = WebInspector.showJavaScriptTypeInformationSetting.value;
     },
 
     _textEditorFormattingDidChange: function(event)

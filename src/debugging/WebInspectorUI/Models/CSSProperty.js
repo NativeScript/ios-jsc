@@ -23,49 +23,41 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CSSProperty = function(index, text, name, value, priority, enabled, overridden, implicit, anonymous, valid, styleSheetTextRange, styleDeclarationTextRange)
+WebInspector.CSSProperty = class CSSProperty extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor(index, text, name, value, priority, enabled, overridden, implicit, anonymous, valid, styleSheetTextRange, styleDeclarationTextRange)
+    {
+        super();
 
-    this._ownerStyle = null;
-    this._index = index;
+        this._ownerStyle = null;
+        this._index = index;
 
-    this.update(text, name, value, priority, enabled, overridden, implicit, anonymous, valid, styleSheetTextRange, styleDeclarationTextRange, true);
-};
-
-WebInspector.Object.addConstructorFunctions(WebInspector.CSSProperty);
-
-WebInspector.CSSProperty.Event = {
-    Changed: "css-property-changed",
-    OverriddenStatusChanged: "css-property-overridden-status-changed"
-};
-
-WebInspector.CSSProperty.prototype = {
-    constructor: WebInspector.CSSProperty,
+        this.update(text, name, value, priority, enabled, overridden, implicit, anonymous, valid, styleSheetTextRange, styleDeclarationTextRange, true);
+    }
 
     // Public
 
     get ownerStyle()
     {
         return this._ownerStyle;
-    },
+    }
 
     set ownerStyle(ownerStyle)
     {
         this._ownerStyle = ownerStyle || null;
-    },
+    }
 
     get index()
     {
         return this._index;
-    },
+    }
 
     set index(index)
     {
         this._index = index;
-    },
+    }
 
-    update: function(text, name, value, priority, enabled, overridden, implicit, anonymous, valid, styleSheetTextRange, styleDeclarationTextRange, dontFireEvents)
+    update(text, name, value, priority, enabled, overridden, implicit, anonymous, valid, styleSheetTextRange, styleDeclarationTextRange, dontFireEvents)
     {
         text = text || "";
         name = name || "";
@@ -113,15 +105,9 @@ WebInspector.CSSProperty.prototype = {
         delete this._canonicalName;
         delete this._hasOtherVendorNameOrKeyword;
 
-        if (!this._updatePropertySoonTimeout) {
-            delete this._pendingName;
-            delete this._pendingValue;
-            delete this._pendingPriority;
-        }
-
         if (changed)
             this.dispatchEventToListeners(WebInspector.CSSProperty.Event.Changed);
-    },
+    }
 
     get synthesizedText()
     {
@@ -131,67 +117,17 @@ WebInspector.CSSProperty.prototype = {
 
         var priority = this.priority;
         return name + ": " + this.value.trim() + (priority ? " !" + priority : "") + ";";
-    },
+    }
 
     get text()
     {
         return this._text || this.synthesizedText;
-    },
-
-    set text(text)
-    {
-        if (!this._ownerStyle || !this._ownerStyle.editable)
-            return;
-
-        if (this._text === text)
-            return;
-
-        if (isNaN(this._index)) {
-            this._text = text || "";
-
-            // Clear the name, value and priority since they might not match the text now.
-            this._name = "";
-            this._value = "";
-            this._priority = "";
-
-            // Ditto for the canonical and pending properties.
-            delete this._canonicalName;
-            delete this._pendingName;
-            delete this._pendingValue;
-            delete this._pendingPriority;
-
-            return;
-        }
-
-        this._cancelPendingUpdate();
-        this._ownerStyle.nodeStyles.changePropertyText(this, text);
-    },
+    }
 
     get name()
     {
-        if (isNaN(this._index))
-            return this._pendingName || this._name;
         return this._name;
-    },
-
-    set name(name)
-    {
-        if (!this._ownerStyle || !this._ownerStyle.editable)
-            return;
-
-        if (this._name === name)
-            return;
-
-        if (isNaN(this._index)) {
-            this._name = name;
-            this._text = "";
-
-            delete this._canonicalName;
-        } else {
-            this._pendingName = name;
-            this._updatePropertySoon();
-        }
-    },
+    }
 
     get canonicalName()
     {
@@ -201,83 +137,32 @@ WebInspector.CSSProperty.prototype = {
         this._canonicalName = WebInspector.cssStyleManager.canonicalNameForPropertyName(this.name);
 
         return this._canonicalName;
-    },
+    }
 
     get value()
     {
-        if (isNaN(this._index))
-            return this._pendingValue || this._value;
         return this._value;
-    },
-
-    set value(value)
-    {
-        if (!this._ownerStyle || !this._ownerStyle.editable)
-            return;
-
-        if (this._value === value)
-            return;
-
-        if (isNaN(this._index)) {
-            this._value = value;
-            this._text = "";
-        } else {
-            this._pendingValue = value;
-            this._updatePropertySoon();
-        }
-    },
+    }
 
     get important()
     {
         return this.priority === "important";
-    },
-
-    set important(important)
-    {
-        this.priority = important ? "important" : "";
-    },
+    }
 
     get priority()
     {
-        if (isNaN(this._index))
-            return this._pendingPriority || this._priority;
         return this._priority;
-    },
-
-    set priority(priority)
-    {
-        if (!this._ownerStyle || !this._ownerStyle.editable)
-            return;
-
-        if (this._priority === priority)
-            return;
-
-        if (isNaN(this._index)) {
-            this._priority = priority;
-            this._text = "";
-        } else {
-            this._pendingPriority = priority;
-            this._updatePropertySoon();
-        }
-    },
+    }
 
     get enabled()
     {
         return this._enabled && this._ownerStyle && (!isNaN(this._index) || this._ownerStyle.type === WebInspector.CSSStyleDeclaration.Type.Computed);
-    },
-
-    set enabled(enabled)
-    {
-        if (!this._ownerStyle || !this._ownerStyle.editable)
-            return;
-
-        this._ownerStyle.nodeStyles.changePropertyEnabledState(this, enabled);
-    },
+    }
 
     get overridden()
     {
         return this._overridden;
-    },
+    }
 
     set overridden(overridden)
     {
@@ -304,32 +189,32 @@ WebInspector.CSSProperty.prototype = {
         }
 
         this._overriddenStatusChangedTimeout = setTimeout(delayed.bind(this), 0);
-    },
+    }
 
     get implicit()
     {
         return this._implicit;
-    },
+    }
 
     get anonymous()
     {
         return this._anonymous;
-    },
+    }
 
     get inherited()
     {
         return this._inherited;
-    },
+    }
 
     get valid()
     {
         return this._valid;
-    },
+    }
 
     get styleSheetTextRange()
     {
         return this._styleSheetTextRange;
-    },
+    }
 
     get styleDeclarationTextRange()
     {
@@ -357,34 +242,34 @@ WebInspector.CSSProperty.prototype = {
         this._styleDeclarationTextRange = new WebInspector.TextRange(startLine, startColumn, endLine, endColumn);
 
         return this._styleDeclarationTextRange;
-    },
+    }
 
     get relatedShorthandProperty()
     {
         return this._relatedShorthandProperty;
-    },
+    }
 
     set relatedShorthandProperty(property)
     {
         this._relatedShorthandProperty = property || null;
-    },
+    }
 
     get relatedLonghandProperties()
     {
         return this._relatedLonghandProperties;
-    },
+    }
 
-    addRelatedLonghandProperty: function(property)
+    addRelatedLonghandProperty(property)
     {
         this._relatedLonghandProperties.push(property);
-    },
+    }
 
-    clearRelatedLonghandProperties: function(property)
+    clearRelatedLonghandProperties(property)
     {
         this._relatedLonghandProperties = [];
-    },
+    }
 
-    hasOtherVendorNameOrKeyword: function()
+    hasOtherVendorNameOrKeyword()
     {
         if ("_hasOtherVendorNameOrKeyword" in this)
             return this._hasOtherVendorNameOrKeyword;
@@ -392,63 +277,10 @@ WebInspector.CSSProperty.prototype = {
         this._hasOtherVendorNameOrKeyword = WebInspector.cssStyleManager.propertyNameHasOtherVendorPrefix(this.name) || WebInspector.cssStyleManager.propertyValueHasOtherVendorKeyword(this.value);
 
         return this._hasOtherVendorNameOrKeyword;
-    },
-
-    add: function()
-    {
-        // We can only add if the index is NaN. Return early otherwise.
-        if (!this._ownerStyle || !this._ownerStyle.editable || !isNaN(this._index))
-            return;
-
-        this._cancelPendingUpdate();
-        this._ownerStyle.addProperty(this);
-    },
-
-    remove: function()
-    {
-        // We can only remove if the index is not NaN. Return early otherwise.
-        if (!this._ownerStyle || !this._ownerStyle.editable || isNaN(this._index))
-            return;
-
-        this._cancelPendingUpdate();
-        this._ownerStyle.removeProperty(this);
-    },
-
-    // Private
-
-    _updatePropertySoon: function()
-    {
-        if (!this._ownerStyle || isNaN(this._index) || this._updatePropertySoonTimeout)
-            return;
-
-        function performUpdate()
-        {
-            delete this._updatePropertySoonTimeout;
-
-            if (!this._ownerStyle || isNaN(this._index))
-                return;
-
-            var name = "_pendingName" in this ? this._pendingName : this._name;
-            var value = "_pendingValue" in this ? this._pendingValue : this._value;
-            var priority = "_pendingPriority" in this ? this._pendingPriority : this._priority;
-
-            delete this._pendingName;
-            delete this._pendingValue;
-            delete this._pendingPriority;
-
-            this._ownerStyle.nodeStyles.changeProperty(this, name, value, priority);
-        }
-
-        this._updatePropertySoonTimeout = setTimeout(performUpdate.bind(this), 0);
-    },
-
-    _cancelPendingUpdate: function()
-    {
-        if (!this._updatePropertySoonTimeout)
-            return;
-        clearTimeout(this._updatePropertySoonTimeout);
-        delete this._updatePropertySoonTimeout;
     }
 };
 
-WebInspector.CSSProperty.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.CSSProperty.Event = {
+    Changed: "css-property-changed",
+    OverriddenStatusChanged: "css-property-overridden-status-changed"
+};

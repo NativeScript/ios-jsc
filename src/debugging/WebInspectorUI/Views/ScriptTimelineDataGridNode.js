@@ -33,7 +33,8 @@ WebInspector.ScriptTimelineDataGridNode = function(scriptTimelineRecord, baseSta
     this._rangeEndTime = typeof rangeEndTime === "number" ? rangeEndTime : Infinity;
 };
 
-WebInspector.Object.addConstructorFunctions(WebInspector.ScriptTimelineDataGridNode);
+// FIXME: Move to a WebInspector.Object subclass and we can remove this.
+WebInspector.Object.deprecatedAddConstructorFunctions(WebInspector.ScriptTimelineDataGridNode);
 
 WebInspector.ScriptTimelineDataGridNode.IconStyleClassName = "icon";
 
@@ -63,27 +64,9 @@ WebInspector.ScriptTimelineDataGridNode.prototype = {
         return this._rangeStartTime;
     },
 
-    set rangeStartTime(x)
-    {
-        if (this._rangeStartTime === x)
-            return;
-
-        this._rangeStartTime = x;
-        this.needsRefresh();
-    },
-
     get rangeEndTime()
     {
         return this._rangeEndTime;
-    },
-
-    set rangeEndTime(x)
-    {
-        if (this._rangeEndTime === x)
-            return;
-
-        this._rangeEndTime = x;
-        this.needsRefresh();
     },
 
     get data()
@@ -92,8 +75,35 @@ WebInspector.ScriptTimelineDataGridNode.prototype = {
         var duration = Math.min(this._record.startTime + this._record.duration, this._rangeEndTime) - startTime;
         var callFrameOrSourceCodeLocation = this._record.initiatorCallFrame || this._record.sourceCodeLocation;
 
-        return {eventType: this._record.eventType, startTime: startTime, selfTime: duration, totalTime: duration,
+        return {eventType: this._record.eventType, startTime, selfTime: duration, totalTime: duration,
             averageTime: duration, callCount: 1, location: callFrameOrSourceCodeLocation};
+    },
+
+    updateRangeTimes: function(startTime, endTime)
+    {
+        var oldRangeStartTime = this._rangeStartTime;
+        var oldRangeEndTime = this._rangeEndTime;
+
+        if (oldRangeStartTime === startTime && oldRangeEndTime === endTime)
+            return;
+
+        this._rangeStartTime = startTime;
+        this._rangeEndTime = endTime;
+
+        // If we have no duration the range does not matter.
+        if (!this._record.duration)
+            return;
+
+        // We only need a refresh if the new range time changes the visible portion of this record.
+        var recordStart = this._record.startTime;
+        var recordEnd = this._record.startTime + this._record.duration;
+        var oldStartBoundary = clamp(recordStart, oldRangeStartTime, recordEnd);
+        var oldEndBoundary = clamp(recordStart, oldRangeEndTime, recordEnd);
+        var newStartBoundary = clamp(recordStart, startTime, recordEnd);
+        var newEndBoundary = clamp(recordStart, endTime, recordEnd);
+
+        if (oldStartBoundary !== newStartBoundary || oldEndBoundary !== newEndBoundary)
+            this.needsRefresh();
     },
 
     createCellContent: function(columnIdentifier, cell)

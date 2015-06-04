@@ -36,16 +36,11 @@
 
 .sidebar > .panel.details.css-style .rules .label + .style-declaration-section {
     margin-top: 5px;
-    border-top: 1px solid rgb(210, 210, 210);
-}
-
-body.mac-platform.legacy .sidebar > .panel.details.css-style .rules .label + .style-declaration-section {
-    border-top: none;
+    border-top: 1px solid rgb(179, 179, 179);
 }
 
 .sidebar > .panel.details.css-style .rules .new-rule {
     font-size: 12px;
-    font-weight: bold;
 
     color: black;
 
@@ -57,17 +52,8 @@ body.mac-platform.legacy .sidebar > .panel.details.css-style .rules .label + .st
     opacity: 0.5;
 }
 
-body.mac-platform.legacy .sidebar > .panel.details.css-style .rules .new-rule {
-    text-shadow: white 0 1px 0;
-    border-bottom: none;
-}
-
 .sidebar > .panel.details.css-style .rules .new-rule + .style-declaration-section {
-    border-top: 1px solid rgb(210, 210, 210);
-}
-
-body.mac-platform.legacy .sidebar > .panel.details.css-style .rules .new-rule + .style-declaration-section {
-    border-top: none;
+    border-top: 1px solid rgb(179, 179, 179);
 }
 
 .sidebar > .panel.details.css-style .rules .new-rule img {

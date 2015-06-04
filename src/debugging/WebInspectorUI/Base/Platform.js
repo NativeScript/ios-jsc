@@ -25,7 +25,6 @@
 
 WebInspector.Platform = {
     name: InspectorFrontendHost.platform(),
-    isLegacyMacOS: false,
     isNightlyBuild: false,
     version: {
         base: 0,
@@ -40,7 +39,6 @@ WebInspector.Platform = {
     if (versionMatch && versionMatch[1].indexOf("+") !== -1 && document.styleSheets.length < 10)
         WebInspector.Platform.isNightlyBuild = true;
 
-    var isLegacyMacOS = false;
     var osVersionMatch = / Mac OS X (\d+)_(\d+)/.exec(navigator.appVersion);
     if (osVersionMatch && osVersionMatch[1] === "10") {
         WebInspector.Platform.version.base = 10;
@@ -52,12 +50,14 @@ WebInspector.Platform = {
             case "9":
                 WebInspector.Platform.version.name = "mavericks";
                 WebInspector.Platform.version.release = 9;
-                WebInspector.Platform.isLegacyMacOS = true;
                 break;
             case "8":
                 WebInspector.Platform.version.name = "mountain-lion";
                 WebInspector.Platform.version.release = 8;
-                WebInspector.Platform.isLegacyMacOS = true;
+                break;
+            default:
+                WebInspector.Platform.version.name = "unknown-mac";
+                WebInspector.Platform.version.release = parseInt(osVersionMatch[2]);
                 break;
         }
     }

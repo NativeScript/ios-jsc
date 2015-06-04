@@ -23,38 +23,30 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CSSMedia = function(type, text, sourceCodeLocation)
+WebInspector.CSSMedia = class CSSMedia extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor(type, text, sourceCodeLocation)
+    {
+        super();
 
-    this._type = type || null;
-    this._text = text || "";
-    this._sourceCodeLocation = sourceCodeLocation || null;
-};
+        console.assert(!sourceCodeLocation || sourceCodeLocation instanceof WebInspector.SourceCodeLocation);
 
-WebInspector.Object.addConstructorFunctions(WebInspector.CSSMedia);
-
-WebInspector.CSSMedia.Type = {
-    MediaRule: "css-media-type-media-rule",
-    ImportRule: "css-media-type-import-rule",
-    LinkedStyleSheet: "css-media-type-linked-stylesheet",
-    InlineStyleSheet: "css-media-type-inline-stylesheet"
-};
-
-WebInspector.CSSMedia.prototype = {
-    constructor: WebInspector.CSSMedia,
+        this._type = type || null;
+        this._text = text || "";
+        this._sourceCodeLocation = sourceCodeLocation || null;
+    }
 
     // Public
 
     get type()
     {
         return this._type;
-    },
+    }
 
     get text()
     {
         return this._text;
-    },
+    }
 
     get sourceCodeLocation()
     {
@@ -62,4 +54,9 @@ WebInspector.CSSMedia.prototype = {
     }
 };
 
-WebInspector.CSSMedia.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.CSSMedia.Type = {
+    MediaRule: "css-media-type-media-rule",
+    ImportRule: "css-media-type-import-rule",
+    LinkedStyleSheet: "css-media-type-linked-stylesheet",
+    InlineStyleSheet: "css-media-type-inline-stylesheet"
+};

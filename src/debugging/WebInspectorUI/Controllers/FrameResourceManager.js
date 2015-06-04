@@ -23,32 +23,25 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.FrameResourceManager = function()
+WebInspector.FrameResourceManager = class FrameResourceManager extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor()
+    {
+        super();
 
-    if (window.PageAgent)
-        PageAgent.enable();
-    if (window.NetworkAgent)
-        NetworkAgent.enable();
+        if (window.PageAgent)
+            PageAgent.enable();
+        if (window.NetworkAgent)
+            NetworkAgent.enable();
 
-    this.initialize();
-};
+        WebInspector.notifications.addEventListener(WebInspector.Notification.ExtraDomainsActivated, this._extraDomainsActivated, this);
 
-WebInspector.Object.addConstructorFunctions(WebInspector.FrameResourceManager);
-
-WebInspector.FrameResourceManager.Event = {
-    FrameWasAdded: "frame-resource-manager-frame-was-added",
-    FrameWasRemoved: "frame-resource-manager-frame-was-removed",
-    MainFrameDidChange: "frame-resource-manager-main-frame-did-change"
-};
-
-WebInspector.FrameResourceManager.prototype = {
-    constructor: WebInspector.FrameResourceManager,
+        this.initialize();
+    }
 
     // Public
 
-    initialize: function()
+    initialize()
     {
         var oldMainFrame = this._mainFrame;
 
@@ -62,12 +55,12 @@ WebInspector.FrameResourceManager.prototype = {
         this._waitingForMainFrameResourceTreePayload = true;
         if (window.PageAgent)
             PageAgent.getResourceTree(this._processMainFrameResourceTreePayload.bind(this));
-    },
+    }
 
     get mainFrame()
     {
         return this._mainFrame;
-    },
+    }
 
     get frames()
     {
@@ -76,14 +69,14 @@ WebInspector.FrameResourceManager.prototype = {
             frames.push(this._frameIdentifierMap[key]);
 
         return frames;
-    },
+    }
 
-    frameForIdentifier: function(frameId)
+    frameForIdentifier(frameId)
     {
         return this._frameIdentifierMap[frameId] || null;
-    },
+    }
 
-    frameDidNavigate: function(framePayload)
+    frameDidNavigate(framePayload)
     {
         // Called from WebInspector.PageObserver.
 
@@ -144,9 +137,9 @@ WebInspector.FrameResourceManager.prototype = {
 
         if (frameWasLoadedInstantly)
             frame.mainResource.markAsFinished();
-    },
+    }
 
-    frameDidDetach: function(frameId)
+    frameDidDetach(frameId)
     {
         // Called from WebInspector.PageObserver.
 
@@ -170,13 +163,13 @@ WebInspector.FrameResourceManager.prototype = {
 
         frame.clearExecutionContexts();
 
-        this.dispatchEventToListeners(WebInspector.FrameResourceManager.Event.FrameWasRemoved, {frame: frame});
+        this.dispatchEventToListeners(WebInspector.FrameResourceManager.Event.FrameWasRemoved, {frame});
 
         if (this._mainFrame !== oldMainFrame)
             this._mainFrameDidChange(oldMainFrame);
-    },
+    }
 
-    resourceRequestWillBeSent: function(requestIdentifier, frameIdentifier, loaderIdentifier, request, type, redirectResponse, timestamp, initiator)
+    resourceRequestWillBeSent(requestIdentifier, frameIdentifier, loaderIdentifier, request, type, redirectResponse, timestamp, initiator)
     {
         // Called from WebInspector.NetworkObserver.
 
@@ -184,24 +177,25 @@ WebInspector.FrameResourceManager.prototype = {
         if (this._waitingForMainFrameResourceTreePayload)
             return;
 
+        var elapsedTime = WebInspector.timelineManager.computeElapsedTime(timestamp);
         var resource = this._resourceRequestIdentifierMap[requestIdentifier];
         if (resource) {
             // This is an existing request which is being redirected, update the resource.
             console.assert(redirectResponse);
-            resource.updateForRedirectResponse(request.url, request.headers, timestamp);
+            resource.updateForRedirectResponse(request.url, request.headers, elapsedTime);
             return;
         }
 
         var initiatorSourceCodeLocation = this._initiatorSourceCodeLocationFromPayload(initiator);
 
         // This is a new request, make a new resource and add it to the right frame.
-        resource = this._addNewResourceToFrame(requestIdentifier, frameIdentifier, loaderIdentifier, request.url, type, request.method, request.headers, request.postData, timestamp, null, null, initiatorSourceCodeLocation);
+        resource = this._addNewResourceToFrame(requestIdentifier, frameIdentifier, loaderIdentifier, request.url, type, request.method, request.headers, request.postData, elapsedTime, null, null, initiatorSourceCodeLocation);
 
         // Associate the resource with the requestIdentifier so it can be found in future loading events.
         this._resourceRequestIdentifierMap[requestIdentifier] = resource;
-    },
+    }
 
-    markResourceRequestAsServedFromMemoryCache: function(requestIdentifier)
+    markResourceRequestAsServedFromMemoryCache(requestIdentifier)
     {
         // Called from WebInspector.NetworkObserver.
 
@@ -218,9 +212,9 @@ WebInspector.FrameResourceManager.prototype = {
             return;
 
         resource.markAsCached();
-    },
+    }
 
-    resourceRequestWasServedFromMemoryCache: function(requestIdentifier, frameIdentifier, loaderIdentifier, cachedResourcePayload, timestamp, initiator)
+    resourceRequestWasServedFromMemoryCache(requestIdentifier, frameIdentifier, loaderIdentifier, cachedResourcePayload, timestamp, initiator)
     {
         // Called from WebInspector.NetworkObserver.
 
@@ -230,22 +224,22 @@ WebInspector.FrameResourceManager.prototype = {
 
         console.assert(!(requestIdentifier in this._resourceRequestIdentifierMap));
 
+        var elapsedTime = WebInspector.timelineManager.computeElapsedTime(timestamp);
         var initiatorSourceCodeLocation = this._initiatorSourceCodeLocationFromPayload(initiator);
-
         var response = cachedResourcePayload.response;
-        var resource = this._addNewResourceToFrame(requestIdentifier, frameIdentifier, loaderIdentifier, cachedResourcePayload.url, cachedResourcePayload.type, null, null, timestamp, null, null, initiatorSourceCodeLocation);
+        var resource = this._addNewResourceToFrame(requestIdentifier, frameIdentifier, loaderIdentifier, cachedResourcePayload.url, cachedResourcePayload.type, null, null, elapsedTime, null, null, initiatorSourceCodeLocation);
         resource.markAsCached();
-        resource.updateForResponse(cachedResourcePayload.url, response.mimeType, cachedResourcePayload.type, response.headers, response.status, response.statusText, timestamp);
-        resource.markAsFinished(timestamp);
+        resource.updateForResponse(cachedResourcePayload.url, response.mimeType, cachedResourcePayload.type, response.headers, response.status, response.statusText, elapsedTime);
+        resource.markAsFinished(elapsedTime);
 
         if (cachedResourcePayload.sourceMapURL)
             WebInspector.sourceMapManager.downloadSourceMap(cachedResourcePayload.sourceMapURL, resource.url, resource);
 
         // No need to associate the resource with the requestIdentifier, since this is the only event
         // sent for memory cache resource loads.
-    },
+    }
 
-    resourceRequestDidReceiveResponse: function(requestIdentifier, frameIdentifier, loaderIdentifier, type, response, timestamp)
+    resourceRequestDidReceiveResponse(requestIdentifier, frameIdentifier, loaderIdentifier, type, response, timestamp)
     {
         // Called from WebInspector.NetworkObserver.
 
@@ -253,6 +247,7 @@ WebInspector.FrameResourceManager.prototype = {
         if (this._waitingForMainFrameResourceTreePayload)
             return;
 
+        var elapsedTime = WebInspector.timelineManager.computeElapsedTime(timestamp);
         var resource = this._resourceRequestIdentifierMap[requestIdentifier];
 
         // We might not have a resource if the inspector was opened during the page load (after resourceRequestWillBeSent is called).
@@ -275,7 +270,7 @@ WebInspector.FrameResourceManager.prototype = {
         // If we haven't found an existing Resource by now, then it is a resource that was loading when the inspector
         // opened and we just missed the resourceRequestWillBeSent for it. So make a new resource and add it.
         if (!resource) {
-            resource = this._addNewResourceToFrame(requestIdentifier, frameIdentifier, loaderIdentifier, response.url, type, null, response.requestHeaders, timestamp, null, null);
+            resource = this._addNewResourceToFrame(requestIdentifier, frameIdentifier, loaderIdentifier, response.url, type, null, response.requestHeaders, elapsedTime, null, null);
 
             // Associate the resource with the requestIdentifier so it can be found in future loading events.
             this._resourceRequestIdentifierMap[requestIdentifier] = resource;
@@ -284,10 +279,10 @@ WebInspector.FrameResourceManager.prototype = {
         if (response.fromDiskCache)
             resource.markAsCached();
 
-        resource.updateForResponse(response.url, response.mimeType, type, response.headers, response.status, response.statusText, timestamp);
-    },
+        resource.updateForResponse(response.url, response.mimeType, type, response.headers, response.status, response.statusText, elapsedTime);
+    }
 
-    resourceRequestDidReceiveData: function(requestIdentifier, dataLength, encodedDataLength, timestamp)
+    resourceRequestDidReceiveData(requestIdentifier, dataLength, encodedDataLength, timestamp)
     {
         // Called from WebInspector.NetworkObserver.
 
@@ -296,6 +291,7 @@ WebInspector.FrameResourceManager.prototype = {
             return;
 
         var resource = this._resourceRequestIdentifierMap[requestIdentifier];
+        var elapsedTime = WebInspector.timelineManager.computeElapsedTime(timestamp);
 
         // We might not have a resource if the inspector was opened during the page load (after resourceRequestWillBeSent is called).
         // We don't want to assert in this case since we do likely have the resource, via PageAgent.getResourceTree. The Resource
@@ -303,13 +299,13 @@ WebInspector.FrameResourceManager.prototype = {
         if (!resource)
             return;
 
-        resource.increaseSize(dataLength, timestamp);
+        resource.increaseSize(dataLength, elapsedTime);
 
         if (encodedDataLength !== -1)
             resource.increaseTransferSize(encodedDataLength);
-    },
+    }
 
-    resourceRequestDidFinishLoading: function(requestIdentifier, timestamp, sourceMapURL)
+    resourceRequestDidFinishLoading(requestIdentifier, timestamp, sourceMapURL)
     {
         // Called from WebInspector.NetworkObserver.
 
@@ -324,15 +320,16 @@ WebInspector.FrameResourceManager.prototype = {
         if (!resource)
             return;
 
-        resource.markAsFinished(timestamp);
+        var elapsedTime = WebInspector.timelineManager.computeElapsedTime(timestamp);
+        resource.markAsFinished(elapsedTime);
 
         if (sourceMapURL)
             WebInspector.sourceMapManager.downloadSourceMap(sourceMapURL, resource.url, resource);
 
         delete this._resourceRequestIdentifierMap[requestIdentifier];
-    },
+    }
 
-    resourceRequestDidFailLoading: function(requestIdentifier, canceled, timestamp)
+    resourceRequestDidFailLoading(requestIdentifier, canceled, timestamp)
     {
         // Called from WebInspector.NetworkObserver.
 
@@ -347,15 +344,16 @@ WebInspector.FrameResourceManager.prototype = {
         if (!resource)
             return;
 
-        resource.markAsFailed(canceled, timestamp);
+        var elapsedTime = WebInspector.timelineManager.computeElapsedTime(timestamp);
+        resource.markAsFailed(canceled, elapsedTime);
 
         if (resource === resource.parentFrame.provisionalMainResource)
             resource.parentFrame.clearProvisionalLoad();
 
         delete this._resourceRequestIdentifierMap[requestIdentifier];
-    },
+    }
 
-    executionContextCreated: function(contextPayload)
+    executionContextCreated(contextPayload)
     {
         // Called from WebInspector.RuntimeObserver.
 
@@ -367,9 +365,9 @@ WebInspector.FrameResourceManager.prototype = {
         var displayName = contextPayload.name || frame.mainResource.displayName;
         var executionContext = new WebInspector.ExecutionContext(contextPayload.id, displayName, contextPayload.isPageContext, frame);
         frame.addExecutionContext(executionContext);
-    },
+    }
 
-    resourceForURL: function(url)
+    resourceForURL(url)
     {
         if (!this._mainFrame)
             return null;
@@ -378,15 +376,13 @@ WebInspector.FrameResourceManager.prototype = {
             return this._mainFrame.mainResource;
 
         return this._mainFrame.resourceForURL(url, true);
-    },
+    }
 
     // Private
 
-    _addNewResourceToFrame: function(requestIdentifier, frameIdentifier, loaderIdentifier, url, type, requestMethod, requestHeaders, requestData, timestamp, frameName, frameSecurityOrigin, initiatorSourceCodeLocation)
+    _addNewResourceToFrame(requestIdentifier, frameIdentifier, loaderIdentifier, url, type, requestMethod, requestHeaders, requestData, elapsedTime, frameName, frameSecurityOrigin, initiatorSourceCodeLocation)
     {
         console.assert(!this._waitingForMainFrameResourceTreePayload);
-        if (this._waitingForMainFrameResourceTreePayload)
-            return;
 
         var resource = null;
 
@@ -398,12 +394,12 @@ WebInspector.FrameResourceManager.prototype = {
             else if (frame.provisionalMainResource && frame.provisionalMainResource.url === url && frame.provisionalLoaderIdentifier === loaderIdentifier)
                 resource = frame.provisionalMainResource;
             else {
-                resource = new WebInspector.Resource(url, null, type, loaderIdentifier, requestIdentifier, requestMethod, requestHeaders, requestData, timestamp, initiatorSourceCodeLocation);
+                resource = new WebInspector.Resource(url, null, type, loaderIdentifier, requestIdentifier, requestMethod, requestHeaders, requestData, elapsedTime, initiatorSourceCodeLocation);
                 this._addResourceToFrame(frame, resource);
             }
         } else {
             // This is a new request for a new frame, which is always the main resource.
-            resource = new WebInspector.Resource(url, null, type, loaderIdentifier, requestIdentifier, requestMethod, requestHeaders, requestData, timestamp, initiatorSourceCodeLocation);
+            resource = new WebInspector.Resource(url, null, type, loaderIdentifier, requestIdentifier, requestMethod, requestHeaders, requestData, elapsedTime, initiatorSourceCodeLocation);
             frame = new WebInspector.Frame(frameIdentifier, frameName, frameSecurityOrigin, loaderIdentifier, resource);
             this._frameIdentifierMap[frame.id] = frame;
 
@@ -420,9 +416,9 @@ WebInspector.FrameResourceManager.prototype = {
         console.assert(resource);
 
         return resource;
-    },
+    }
 
-    _addResourceToFrame: function(frame, resource)
+    _addResourceToFrame(frame, resource)
     {
         console.assert(!this._waitingForMainFrameResourceTreePayload);
         if (this._waitingForMainFrameResourceTreePayload)
@@ -441,9 +437,9 @@ WebInspector.FrameResourceManager.prototype = {
         // This is just another resource, either for the main loader or the provisional loader.
         console.assert(resource.loaderIdentifier === frame.loaderIdentifier || resource.loaderIdentifier === frame.provisionalLoaderIdentifier);
         frame.addResource(resource);
-    },
+    }
 
-    _initiatorSourceCodeLocationFromPayload: function(initiatorPayload)
+    _initiatorSourceCodeLocationFromPayload(initiatorPayload)
     {
         if (!initiatorPayload)
             return null;
@@ -486,9 +482,9 @@ WebInspector.FrameResourceManager.prototype = {
             return null;
 
         return sourceCode.createSourceCodeLocation(lineNumber, columnNumber);
-    },
+    }
 
-    _processMainFrameResourceTreePayload: function(error, mainFramePayload)
+    _processMainFrameResourceTreePayload(error, mainFramePayload)
     {
         console.assert(this._waitingForMainFrameResourceTreePayload);
         delete this._waitingForMainFrameResourceTreePayload;
@@ -510,9 +506,9 @@ WebInspector.FrameResourceManager.prototype = {
 
         if (this._mainFrame !== oldMainFrame)
             this._mainFrameDidChange(oldMainFrame);
-    },
+    }
 
-    _createFrame: function(payload)
+    _createFrame(payload)
     {
         // If payload.url is missing or empty then this page is likely the special empty page. In that case
         // we will just say it is "about:blank" so we have a URL, which is required for resources.
@@ -524,9 +520,9 @@ WebInspector.FrameResourceManager.prototype = {
         mainResource.markAsFinished();
 
         return frame;
-    },
+    }
 
-    _createResource: function(payload, framePayload)
+    _createResource(payload, framePayload)
     {
         var resource = new WebInspector.Resource(payload.url, payload.mimeType, payload.type, framePayload.loaderId);
 
@@ -534,9 +530,9 @@ WebInspector.FrameResourceManager.prototype = {
             WebInspector.sourceMapManager.downloadSourceMap(payload.sourceMapURL, resource.url, resource);
 
         return resource;
-    },
+    }
 
-    _addFrameTreeFromFrameResourceTreePayload: function(payload, isMainFrame)
+    _addFrameTreeFromFrameResourceTreePayload(payload, isMainFrame)
     {
         var frame = this._createFrame(payload.frame);
         if (isMainFrame)
@@ -566,21 +562,31 @@ WebInspector.FrameResourceManager.prototype = {
         this._dispatchFrameWasAddedEvent(frame);
 
         return frame;
-    },
+    }
 
-    _dispatchFrameWasAddedEvent: function(frame)
+    _dispatchFrameWasAddedEvent(frame)
     {
-        this.dispatchEventToListeners(WebInspector.FrameResourceManager.Event.FrameWasAdded, {frame: frame});
-    },
+        this.dispatchEventToListeners(WebInspector.FrameResourceManager.Event.FrameWasAdded, {frame});
+    }
 
-    _mainFrameDidChange: function(oldMainFrame)
+    _mainFrameDidChange(oldMainFrame)
     {
         if (oldMainFrame)
             oldMainFrame.unmarkAsMainFrame();
         if (this._mainFrame)
             this._mainFrame.markAsMainFrame();
-        this.dispatchEventToListeners(WebInspector.FrameResourceManager.Event.MainFrameDidChange, {oldMainFrame: oldMainFrame});
+        this.dispatchEventToListeners(WebInspector.FrameResourceManager.Event.MainFrameDidChange, {oldMainFrame});
+    }
+
+    _extraDomainsActivated(event)
+    {
+        if (event.data.domains.includes("Page") && window.PageAgent)
+            PageAgent.getResourceTree(this._processMainFrameResourceTreePayload.bind(this));
     }
 };
 
-WebInspector.FrameResourceManager.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.FrameResourceManager.Event = {
+    FrameWasAdded: "frame-resource-manager-frame-was-added",
+    FrameWasRemoved: "frame-resource-manager-frame-was-removed",
+    MainFrameDidChange: "frame-resource-manager-main-frame-did-change"
+};

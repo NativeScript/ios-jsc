@@ -23,30 +23,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.LayerTreeManager = function() {
-    WebInspector.Object.call(this);
+WebInspector.LayerTreeManager = class LayerTreeManager extends WebInspector.Object
+{
+    constructor()
+    {
+        super();
 
-    this._supported = !!window.LayerTreeAgent;
+        this._supported = !!window.LayerTreeAgent;
 
-    if (this._supported)
-        LayerTreeAgent.enable();
-};
-
-WebInspector.LayerTreeManager.Event = {
-    LayerTreeDidChange: "layer-tree-did-change"
-};
-
-WebInspector.LayerTreeManager.prototype = {
-    constructor: WebInspector.LayerTreeManager,
+        if (this._supported)
+            LayerTreeAgent.enable();
+    }
 
     // Public
 
     get supported()
     {
         return this._supported;
-    },
+    }
 
-    layerTreeMutations: function(previousLayers, newLayers)
+    layerTreeMutations(previousLayers, newLayers)
     {
         console.assert(this.supported);
 
@@ -90,7 +86,7 @@ WebInspector.LayerTreeManager.prototype = {
         newLayers.forEach(function(layer) {
             layerIdsInNewLayers.push(layer.layerId);
 
-            var existed = layerIdsInPreviousLayers.contains(layer.layerId);
+            var existed = layerIdsInPreviousLayers.includes(layer.layerId);
 
             var nodeId = nodeIdForLayer(layer);
             if (!nodeId)
@@ -98,10 +94,10 @@ WebInspector.LayerTreeManager.prototype = {
 
             if (layer.isReflection) {
                 nodeIdsForReflectionsInNewLayers.push(nodeId);
-                existed = existed || nodeIdsForReflectionsInPreviousLayers.contains(nodeId);
+                existed = existed || nodeIdsForReflectionsInPreviousLayers.includes(nodeId);
             } else {
                 nodeIdsInNewLayers.push(nodeId);
-                existed = existed || nodeIdsInPreviousLayers.contains(nodeId);
+                existed = existed || nodeIdsInPreviousLayers.includes(nodeId);
             }
 
             if (existed)
@@ -114,19 +110,15 @@ WebInspector.LayerTreeManager.prototype = {
             var nodeId = nodeIdForLayer(layer);
 
             if (layer.isReflection)
-                return !nodeIdsForReflectionsInNewLayers.contains(nodeId);
+                return !nodeIdsForReflectionsInNewLayers.includes(nodeId);
             else
-                return !nodeIdsInNewLayers.contains(nodeId) && !layerIdsInNewLayers.contains(layer.layerId);
+                return !nodeIdsInNewLayers.includes(nodeId) && !layerIdsInNewLayers.includes(layer.layerId);
         });
 
-        return {
-            preserved: preserved,
-            additions: additions,
-            removals: removals
-        };
-    },
+        return {preserved, additions, removals};
+    }
 
-    layersForNode: function(node, callback)
+    layersForNode(node, callback)
     {
         console.assert(this.supported);
 
@@ -139,22 +131,24 @@ WebInspector.LayerTreeManager.prototype = {
             var firstLayer = layers[0];
             var layerForNode = firstLayer.nodeId === node.id && !firstLayer.isGeneratedContent ? layers.shift() : null;
             callback(layerForNode, layers);
-        }.bind(this));
-    },
+        });
+    }
 
-    reasonsForCompositingLayer: function(layer, callback)
+    reasonsForCompositingLayer(layer, callback)
     {
         console.assert(this.supported);
 
         LayerTreeAgent.reasonsForCompositingLayer(layer.layerId, function(error, reasons) {
             callback(error ? 0 : reasons);
         });
-    },
+    }
 
-    layerTreeDidChange: function()
+    layerTreeDidChange()
     {
         this.dispatchEventToListeners(WebInspector.LayerTreeManager.Event.LayerTreeDidChange);
     }
 };
 
-WebInspector.LayerTreeManager.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.LayerTreeManager.Event = {
+    LayerTreeDidChange: "layer-tree-did-change"
+};

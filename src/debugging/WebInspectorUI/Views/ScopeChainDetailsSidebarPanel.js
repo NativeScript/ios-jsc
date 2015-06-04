@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,21 +23,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ScopeChainDetailsSidebarPanel = function() {
-    WebInspector.DetailsSidebarPanel.call(this, "scope-chain", WebInspector.UIString("Scope Chain"), WebInspector.UIString("Scope Chain"), "Images/NavigationItemVariable.svg", "5");
+WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel extends WebInspector.DetailsSidebarPanel
+{
+    constructor()
+    {
+        super("scope-chain", WebInspector.UIString("Scope Chain"), WebInspector.UIString("Scope Chain"));
 
-    this._callFrame = null;
-    
-    // Update on console prompt eval as objects in the scope chain may have changed.
-    WebInspector.runtimeManager.addEventListener(WebInspector.RuntimeManager.Event.DidEvaluate, this.needsRefresh, this);
-};
+        this._callFrame = null;
 
-WebInspector.ScopeChainDetailsSidebarPanel.prototype = {
-    constructor: WebInspector.ScopeChainDetailsSidebarPanel,
+        // Update on console prompt eval as objects in the scope chain may have changed.
+        WebInspector.runtimeManager.addEventListener(WebInspector.RuntimeManager.Event.DidEvaluate, this.needsRefresh, this);
+    }
 
     // Public
 
-    inspect: function(objects)
+    inspect(objects)
     {
         // Convert to a single item array if needed.
         if (!(objects instanceof Array))
@@ -56,12 +56,12 @@ WebInspector.ScopeChainDetailsSidebarPanel.prototype = {
         this.callFrame = callFrameToInspect;
 
         return !!this.callFrame;
-    },
+    }
 
     get callFrame()
     {
         return this._callFrame;
-    },
+    }
 
     set callFrame(callFrame)
     {
@@ -71,9 +71,9 @@ WebInspector.ScopeChainDetailsSidebarPanel.prototype = {
         this._callFrame = callFrame;
 
         this.needsRefresh();
-    },
+    }
 
-    refresh: function()
+    refresh()
     {
         var callFrame = this.callFrame;
         if (!callFrame)
@@ -91,9 +91,8 @@ WebInspector.ScopeChainDetailsSidebarPanel.prototype = {
             var scope = scopeChain[i];
 
             var title = null;
-            var extraProperties = null;
+            var extraPropertyDescriptor = null;
             var collapsedByDefault = false;
-            var dontHighlightNonEnumerableProperties = true;
 
             ++sectionCountByType[scope.type];
 
@@ -101,47 +100,56 @@ WebInspector.ScopeChainDetailsSidebarPanel.prototype = {
                 case WebInspector.ScopeChainNode.Type.Local:
                     foundLocalScope = true;
                     collapsedByDefault = false;
-                    dontHighlightNonEnumerableProperties = true;
 
                     title = WebInspector.UIString("Local Variables");
 
                     if (callFrame.thisObject)
-                        extraProperties = [new WebInspector.RemoteObjectProperty("this", callFrame.thisObject)];
+                        extraPropertyDescriptor = new WebInspector.PropertyDescriptor({name: "this", value: callFrame.thisObject});
                     break;
 
                 case WebInspector.ScopeChainNode.Type.Closure:
                     title = WebInspector.UIString("Closure Variables");
-                    dontHighlightNonEnumerableProperties = true;
                     collapsedByDefault = false;
                     break;
 
                 case WebInspector.ScopeChainNode.Type.Catch:
                     title = WebInspector.UIString("Catch Variables");
-                    dontHighlightNonEnumerableProperties = true;
                     collapsedByDefault = false;
+                    break;
+
+                case WebInspector.ScopeChainNode.Type.FunctionName:
+                    title = WebInspector.UIString("Function Name Variable");
+                    collapsedByDefault = true;
                     break;
 
                 case WebInspector.ScopeChainNode.Type.With:
                     title = WebInspector.UIString("With Object Properties");
                     collapsedByDefault = foundLocalScope;
-                    dontHighlightNonEnumerableProperties = false;
                     break;
 
                 case WebInspector.ScopeChainNode.Type.Global:
                     title = WebInspector.UIString("Global Variables");
-                    dontHighlightNonEnumerableProperties = false;
                     collapsedByDefault = true;
                     break;
             }
 
             var detailsSectionIdentifier = scope.type + "-" + sectionCountByType[scope.type];
 
-            var section = new WebInspector.ObjectPropertiesSection(scope.object, null, null, null, true, extraProperties, WebInspector.ScopeVariableTreeElement);
-            section.dontHighlightNonEnumerablePropertiesAtTopLevel = dontHighlightNonEnumerableProperties;
-            section.__propertyIdentifierPrefix = detailsSectionIdentifier;
+            var scopePropertyPath = WebInspector.PropertyPath.emptyPropertyPathForScope(scope.object);
+            var objectTree = new WebInspector.ObjectTreeView(scope.object, WebInspector.ObjectTreeView.Mode.Properties, scopePropertyPath);
+
+            objectTree.showOnlyProperties();
+
+            if (extraPropertyDescriptor)
+                objectTree.appendExtraPropertyDescriptor(extraPropertyDescriptor);
+
+            var treeOutline = objectTree.treeOutline;
+            treeOutline.onadd = this._objectTreeAddHandler.bind(this, detailsSectionIdentifier);
+            treeOutline.onexpand = this._objectTreeExpandHandler.bind(this, detailsSectionIdentifier);
+            treeOutline.oncollapse = this._objectTreeCollapseHandler.bind(this, detailsSectionIdentifier);
 
             var detailsSection = new WebInspector.DetailsSection(detailsSectionIdentifier, title, null, null, collapsedByDefault);
-            detailsSection.groups[0].rows = [new WebInspector.DetailsSectionPropertiesRow(section)];
+            detailsSection.groups[0].rows = [new WebInspector.DetailsSectionPropertiesRow(objectTree)];
             detailsSections.push(detailsSection);
         }
 
@@ -154,20 +162,61 @@ WebInspector.ScopeChainDetailsSidebarPanel.prototype = {
             if (this.callFrame !== callFrame)
                 return;
 
-            this.element.removeChildren();
+            this.contentElement.removeChildren();
             for (var i = 0; i < detailsSections.length; ++i)
-                this.element.appendChild(detailsSections[i].element);
+                this.contentElement.appendChild(detailsSections[i].element);
         }
 
         // We need a timeout in place in case there are long running, pending backend dispatches. This can happen
         // if the debugger is paused in code that was executed from the console. The console will be waiting for
         // the result of the execution and without a timeout we would never update the scope variables.
-        var timeout = setTimeout(delayedWork.bind(this), 50);
+        var delay = WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.size === 0 ? 50 : 250;
+        var timeout = setTimeout(delayedWork.bind(this), delay);
 
-        // Since ObjectPropertiesSection populates asynchronously, we want to wait to replace the existing content
+        // Since ObjectTreeView populates asynchronously, we want to wait to replace the existing content
         // until after all the pending asynchronous requests are completed. This prevents severe flashing while stepping.
         InspectorBackend.runAfterPendingDispatches(delayedWork.bind(this));
     }
+
+    _propertyPathIdentifierForTreeElement(identifier, objectPropertyTreeElement)
+    {
+        if (!objectPropertyTreeElement.property)
+            return null;
+
+        var propertyPath = objectPropertyTreeElement.thisPropertyPath();
+        if (propertyPath.isFullPathImpossible())
+            return null;
+
+        return identifier + "-" + propertyPath.fullPath;
+    }
+
+    _objectTreeAddHandler(identifier, treeElement)
+    {
+        var propertyPathIdentifier = this._propertyPathIdentifierForTreeElement(identifier, treeElement);
+        if (!propertyPathIdentifier)
+            return;
+
+        if (WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.has(propertyPathIdentifier))
+            treeElement.expand();
+    }
+
+    _objectTreeExpandHandler(identifier, treeElement)
+    {
+        var propertyPathIdentifier = this._propertyPathIdentifierForTreeElement(identifier, treeElement);
+        if (!propertyPathIdentifier)
+            return;
+
+        WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.add(propertyPathIdentifier);
+    }
+
+    _objectTreeCollapseHandler(identifier, treeElement)
+    {
+        var propertyPathIdentifier = this._propertyPathIdentifierForTreeElement(identifier, treeElement);
+        if (!propertyPathIdentifier)
+            return;
+
+        WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.delete(propertyPathIdentifier);
+    }
 };
 
-WebInspector.ScopeChainDetailsSidebarPanel.prototype.__proto__ = WebInspector.DetailsSidebarPanel.prototype;
+WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties = new Set;

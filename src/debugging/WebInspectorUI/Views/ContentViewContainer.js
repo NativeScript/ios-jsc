@@ -25,7 +25,8 @@
 
 WebInspector.ContentViewContainer = function(element)
 {
-    WebInspector.Object.call(this);
+    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
+    // WebInspector.Object.call(this);
 
     this._element = element || document.createElement("div");
     this._element.classList.add(WebInspector.ContentViewContainer.StyleClassName);
@@ -81,7 +82,7 @@ WebInspector.ContentViewContainer.prototype = {
             currentContentView.updateLayout();
     },
 
-    contentViewForRepresentedObject: function(representedObject, onlyExisting)
+    contentViewForRepresentedObject: function(representedObject, onlyExisting, extraArguments)
     {
         console.assert(representedObject);
         if (!representedObject)
@@ -106,13 +107,17 @@ WebInspector.ContentViewContainer.prototype = {
         if (onlyExisting)
             return null;
 
-        try {
-            // No existing content view found, make a new one.
-            contentView = new WebInspector.ContentView(representedObject);
-        } catch (e) {
-            console.error(e);
+        // No existing content view found, make a new one.
+        contentView = new WebInspector.ContentView(representedObject, extraArguments);
+
+        console.assert(contentView, "Unknown representedObject", representedObject);
+        if (!contentView)
             return null;
-        }
+
+        // The representedObject can change in the constructor for ContentView. Remember the
+        // contentViews on the real representedObject and not the one originally supplied.
+        // The main case for this is a Frame being passed in and the main Resource being used.
+        representedObject = contentView.representedObject;
 
         // Remember this content view for future calls.
         if (!representedObject.__contentViews)
@@ -122,9 +127,9 @@ WebInspector.ContentViewContainer.prototype = {
         return contentView;
     },
 
-    showContentViewForRepresentedObject: function(representedObject)
+    showContentViewForRepresentedObject: function(representedObject, extraArguments)
     {
-        var contentView = this.contentViewForRepresentedObject(representedObject);
+        var contentView = this.contentViewForRepresentedObject(representedObject, false, extraArguments);
         if (!contentView)
             return null;
 
@@ -148,8 +153,11 @@ WebInspector.ContentViewContainer.prototype = {
         var currentEntry = this.currentBackForwardEntry;
         var provisionalEntry = new WebInspector.BackForwardEntry(contentView, cookie);
         // Don't do anything if we would have added an identical back/forward list entry.
-        if (currentEntry && currentEntry.contentView === contentView && Object.shallowEqual(provisionalEntry.cookie, currentEntry.cookie))
+        if (currentEntry && currentEntry.contentView === contentView && Object.shallowEqual(provisionalEntry.cookie, currentEntry.cookie)) {
+            const shouldCallShown = false;
+            currentEntry.prepareToShow(shouldCallShown);
             return currentEntry.contentView;
+        }
 
         // Showing a content view will truncate the back/forward list after the current index and insert the content view
         // at the end of the list. Finally, the current index will be updated to point to the end of the back/forward list.
@@ -166,11 +174,12 @@ WebInspector.ContentViewContainer.prototype = {
         // Disassociate with the removed content views.
         for (var i = 0; i < removedEntries.length; ++i) {
             // Skip disassociation if this content view is still in the back/forward list.
-            var shouldDissociateContentView = this._backForwardList.some(function(existingEntry) {
+            var shouldDissociateContentView = !this._backForwardList.some(function(existingEntry) {
                 return existingEntry.contentView === removedEntries[i].contentView;
             });
+
             if (shouldDissociateContentView)
-                this._disassociateFromContentView(removedEntries[i]);
+                this._disassociateFromContentView(removedEntries[i].contentView);
         }
 
         // Associate with the new content view.
@@ -190,16 +199,19 @@ WebInspector.ContentViewContainer.prototype = {
         if (this._currentIndex === index)
             return;
 
-        // Hide the currently visible content view.
         var previousEntry = this.currentBackForwardEntry;
-        if (previousEntry)
-            this._hideEntry(previousEntry);
-
         this._currentIndex = index;
         var currentEntry = this.currentBackForwardEntry;
         console.assert(currentEntry);
 
-        this._showEntry(currentEntry);
+        var isNewContentView = !previousEntry || !currentEntry.contentView.visible;
+        if (isNewContentView) {
+            // Hide the currently visible content view.
+            if (previousEntry)
+                this._hideEntry(previousEntry);
+            this._showEntry(currentEntry, true);
+        } else
+            this._showEntry(currentEntry, false);
 
         this.dispatchEventToListeners(WebInspector.ContentViewContainer.Event.CurrentContentViewDidChange);
     },
@@ -240,7 +252,7 @@ WebInspector.ContentViewContainer.prototype = {
 
         // Re-show the current entry, because its content view instance was replaced.
         if (currentlyShowing) {
-            this._showEntry(this.currentBackForwardEntry);
+            this._showEntry(this.currentBackForwardEntry, true);
             this.dispatchEventToListeners(WebInspector.ContentViewContainer.Event.CurrentContentViewDidChange);
         }
     },
@@ -267,7 +279,7 @@ WebInspector.ContentViewContainer.prototype = {
             return;
         }
 
-        var oldCurrentContentView = this.currentContentView;
+        var visibleContentView = this.currentContentView;
 
         var backForwardListDidChange = false;
         // Hide and disassociate with all the content views that are instances of the constructor.
@@ -276,7 +288,7 @@ WebInspector.ContentViewContainer.prototype = {
             if (!(entry.contentView instanceof constructor))
                 continue;
 
-            if (entry.contentView === oldCurrentContentView)
+            if (entry.contentView === visibleContentView)
                 this._hideEntry(entry);
 
             if (this._currentIndex >= i) {
@@ -295,8 +307,64 @@ WebInspector.ContentViewContainer.prototype = {
         var currentEntry = this.currentBackForwardEntry;
         console.assert(currentEntry || (!currentEntry && this._currentIndex === -1));
 
-        if (currentEntry && currentEntry.contentView !== oldCurrentContentView || backForwardListDidChange) {
-            this._showEntry(currentEntry);
+        if (currentEntry && currentEntry.contentView !== visibleContentView || backForwardListDidChange) {
+            this._showEntry(currentEntry, true);
+            this.dispatchEventToListeners(WebInspector.ContentViewContainer.Event.CurrentContentViewDidChange);
+        }
+    },
+
+    closeContentView: function(contentViewToClose)
+    {
+        if (!this._backForwardList.length) {
+            console.assert(this._currentIndex === -1);
+            return;
+        }
+
+        // Do a check to see if all the content views are instances of this prototype.
+        // If they all are we can use the quicker closeAllContentViews method.
+        var allSameContentView = true;
+        for (var i = this._backForwardList.length - 1; i >= 0; --i) {
+            if (this._backForwardList[i].contentView !== contentViewToClose) {
+                allSameContentView = false;
+                break;
+            }
+        }
+
+        if (allSameContentView) {
+            this.closeAllContentViews();
+            return;
+        }
+
+        var visibleContentView = this.currentContentView;
+
+        var backForwardListDidChange = false;
+        // Hide and disassociate with all the content views that are the same as contentViewToClose.
+        for (var i = this._backForwardList.length - 1; i >= 0; --i) {
+            var entry = this._backForwardList[i];
+            if (entry.contentView !== contentViewToClose)
+                continue;
+
+            if (entry.contentView === visibleContentView)
+                this._hideEntry(entry);
+
+            if (this._currentIndex >= i) {
+                // Decrement the currentIndex since we will remove an item in the back/forward array
+                // that it the current index or comes before it.
+                --this._currentIndex;
+            }
+
+            this._disassociateFromContentView(entry.contentView);
+
+            // Remove the item from the back/forward list.
+            this._backForwardList.splice(i, 1);
+            backForwardListDidChange = true;
+        }
+
+        var currentEntry = this.currentBackForwardEntry;
+        console.assert(currentEntry || (!currentEntry && this._currentIndex === -1));
+
+        if (currentEntry && currentEntry.contentView !== visibleContentView || backForwardListDidChange) {
+            this._showEntry(currentEntry, true);
             this.dispatchEventToListeners(WebInspector.ContentViewContainer.Event.CurrentContentViewDidChange);
         }
     },
@@ -308,10 +376,12 @@ WebInspector.ContentViewContainer.prototype = {
             return;
         }
 
+        var visibleContentView = this.currentContentView;
+
         // Hide and disassociate with all the content views.
         for (var i = 0; i < this._backForwardList.length; ++i) {
             var entry = this._backForwardList[i];
-            if (i === this._currentIndex)
+            if (entry.contentView === visibleContentView)
                 this._hideEntry(entry);
             this._disassociateFromContentView(entry.contentView);
         }
@@ -352,7 +422,7 @@ WebInspector.ContentViewContainer.prototype = {
         if (!currentEntry)
             return;
 
-        this._showEntry(currentEntry);
+        this._showEntry(currentEntry, true);
     },
 
     hidden: function()
@@ -382,23 +452,24 @@ WebInspector.ContentViewContainer.prototype = {
     {
         console.assert(!contentView.visible);
 
+        if (!contentView._parentContainer)
+            return;
+
         contentView._parentContainer = null;
 
         var representedObject = contentView.representedObject;
-        if (!representedObject || !representedObject.__contentViews)
-            return;
-
-        representedObject.__contentViews.remove(contentView);
+        if (representedObject && representedObject.__contentViews)
+            representedObject.__contentViews.remove(contentView);
 
         contentView.closed();
     },
 
-    _showEntry: function(entry)
+    _showEntry: function(entry, shouldCallShown)
     {
         console.assert(entry instanceof WebInspector.BackForwardEntry);
 
         this._addContentViewElement(entry.contentView);
-        entry.prepareToShow();
+        entry.prepareToShow(shouldCallShown);
     },
 
     _hideEntry: function(entry)

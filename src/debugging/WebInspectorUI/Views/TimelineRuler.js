@@ -25,7 +25,8 @@
 
 WebInspector.TimelineRuler = function()
 {
-    WebInspector.Object.call(this);
+    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
+    // WebInspector.Object.call(this);
 
     this._element = document.createElement("div");
     this._element.className = WebInspector.TimelineRuler.StyleClassName;
@@ -48,9 +49,10 @@ WebInspector.TimelineRuler = function()
     this._endTimePinned = false;
     this._allowsClippedLabels = false;
     this._allowsTimeRangeSelection = false;
+    this._formatLabelCallback = null;
 
     this._markerElementMap = new Map;
-}
+};
 
 WebInspector.TimelineRuler.MinimumLeftDividerSpacing = 48;
 WebInspector.TimelineRuler.MinimumDividerSpacing = 64;
@@ -86,7 +88,7 @@ WebInspector.TimelineRuler.prototype = {
 
     get allowsClippedLabels()
     {
-        return this._allowsClippedLabels
+        return this._allowsClippedLabels;
     },
 
     set allowsClippedLabels(x)
@@ -95,6 +97,18 @@ WebInspector.TimelineRuler.prototype = {
             return;
 
         this._allowsClippedLabels = x || false;
+
+        this._needsLayout();
+    },
+
+    set formatLabelCallback(x)
+    {
+        console.assert(typeof x === "function" || !x, x);
+
+        if (this._formatLabelCallback === x)
+            return;
+
+        this._formatLabelCallback = x || null;
 
         this._needsLayout();
     },
@@ -290,8 +304,7 @@ WebInspector.TimelineRuler.prototype = {
         marker.addEventListener(WebInspector.TimelineMarker.Event.TimeChanged, this._timelineMarkerTimeChanged, this);
 
         var markerElement = document.createElement("div");
-        markerElement.classList.add(WebInspector.TimelineRuler.BaseMarkerElementStyleClassName);
-        markerElement.classList.add(marker.type);
+        markerElement.classList.add(marker.type, WebInspector.TimelineRuler.BaseMarkerElementStyleClassName);
 
         this._markerElementMap.set(marker, markerElement);
 
@@ -348,6 +361,16 @@ WebInspector.TimelineRuler.prototype = {
         if (!this._endTimePinned)
             ++dividerCount;
 
+        var dividerData = {
+            count: dividerCount,
+            firstTime: firstDividerTime,
+            lastTime: lastDividerTime,
+        };
+
+        if (Object.shallowEqual(dividerData, this._currentDividers))
+            return;
+        this._currentDividers = dividerData;
+
         var markerDividers = this._markersElement.querySelectorAll("." + WebInspector.TimelineRuler.DividerElementStyleClassName);
 
         var dividerElement = this._headerElement.firstChild;
@@ -360,7 +383,6 @@ WebInspector.TimelineRuler.prototype = {
 
                 var labelElement = document.createElement("div");
                 labelElement.className = WebInspector.TimelineRuler.DividerLabelElementStyleClassName;
-                dividerElement._labelElement = labelElement;
                 dividerElement.appendChild(labelElement);
             }
 
@@ -392,7 +414,9 @@ WebInspector.TimelineRuler.prototype = {
             this._updatePositionOfElement(dividerElement, newLeftPosition, visibleWidth);
             this._updatePositionOfElement(markerDividerElement, newLeftPosition, visibleWidth);
 
-            dividerElement._labelElement.textContent = isNaN(dividerTime) ? "" : Number.secondsToString(dividerTime - this._zeroTime, true);
+            console.assert(dividerElement.firstChild.classList.contains(WebInspector.TimelineRuler.DividerLabelElementStyleClassName));
+
+            dividerElement.firstChild.textContent = isNaN(dividerTime) ? "" : this._formatDividerLabelText(dividerTime - this._zeroTime);
             dividerElement = dividerElement.nextSibling;
         }
 
@@ -581,6 +605,14 @@ WebInspector.TimelineRuler.prototype = {
             this._dispatchTimeRangeSelectionChangedEvent();
     },
 
+    _formatDividerLabelText: function(value)
+    {
+        if (this._formatLabelCallback)
+            return this._formatLabelCallback(value);
+
+        return Number.secondsToString(value, true);
+    },
+
     _dispatchTimeRangeSelectionChangedEvent: function()
     {
         delete this._timeRangeSelectionChanged;
@@ -604,11 +636,15 @@ WebInspector.TimelineRuler.prototype = {
 
         this._selectionIsMove = event.target === this._selectionDragElement;
         this._suppressTimeRangeSelectionChangedEvent = !this._selectionIsMove;
+        this._rulerBoundingClientRect = this._element.getBoundingClientRect();
 
-        if (this._selectionIsMove)
+        if (this._selectionIsMove) {
             this._lastMousePosition = event.pageX;
-        else
-            this._mouseDownPosition = event.pageX - this._element.totalOffsetLeft;
+            var selectionDragElementRect = this._selectionDragElement.getBoundingClientRect();
+            this._moveSelectionMaximumLeftOffset = this._rulerBoundingClientRect.left + (event.pageX - selectionDragElementRect.left);
+            this._moveSelectionMaximumRightOffset = this._rulerBoundingClientRect.right - (selectionDragElementRect.right - event.pageX);
+        } else
+            this._mouseDownPosition = event.pageX - this._rulerBoundingClientRect.left;
 
         this._mouseMoveEventListener = this._handleMouseMove.bind(this);
         this._mouseUpEventListener = this._handleMouseUp.bind(this);
@@ -626,7 +662,7 @@ WebInspector.TimelineRuler.prototype = {
         console.assert(event.button === 0);
 
         if (this._selectionIsMove) {
-            var currentMousePosition = event.pageX;
+            var currentMousePosition = Math.max(this._moveSelectionMaximumLeftOffset, Math.min(this._moveSelectionMaximumRightOffset, event.pageX));
 
             var offsetTime = (currentMousePosition - this._lastMousePosition) * this.secondsPerPixel;
             var selectionDuration = this.selectionEndTime - this.selectionStartTime;
@@ -636,7 +672,7 @@ WebInspector.TimelineRuler.prototype = {
 
             this._lastMousePosition = currentMousePosition;
         } else {
-            var currentMousePosition = event.pageX - this._element.totalOffsetLeft;
+            var currentMousePosition = event.pageX - this._rulerBoundingClientRect.left;
 
             this.selectionStartTime = Math.max(this.startTime, this.startTime + (Math.min(currentMousePosition, this._mouseDownPosition) * this.secondsPerPixel));
             this.selectionEndTime = Math.min(this.startTime + (Math.max(currentMousePosition, this._mouseDownPosition) * this.secondsPerPixel), this.endTime);
@@ -654,13 +690,13 @@ WebInspector.TimelineRuler.prototype = {
 
         if (!this._selectionIsMove && this.selectionEndTime - this.selectionStartTime < WebInspector.TimelineRuler.MinimumSelectionTimeRange) {
             // The section is smaller than allowed, grow in the direction of the drag to meet the minumum.
-            var currentMousePosition = event.pageX - this._element.totalOffsetLeft;
+            var currentMousePosition = event.pageX - this._rulerBoundingClientRect.left;
             if (currentMousePosition > this._mouseDownPosition) {
                 this.selectionEndTime = Math.min(this.selectionStartTime + WebInspector.TimelineRuler.MinimumSelectionTimeRange, this.endTime);
                 this.selectionStartTime = this.selectionEndTime - WebInspector.TimelineRuler.MinimumSelectionTimeRange;
             } else {
                 this.selectionStartTime = Math.max(this.startTime, this.selectionEndTime - WebInspector.TimelineRuler.MinimumSelectionTimeRange);
-                this.selectionEndTime = this.selectionStartTime + WebInspector.TimelineRuler.MinimumSelectionTimeRange
+                this.selectionEndTime = this.selectionStartTime + WebInspector.TimelineRuler.MinimumSelectionTimeRange;
             }
         }
 
@@ -676,6 +712,9 @@ WebInspector.TimelineRuler.prototype = {
         delete this._mouseDownPosition;
         delete this._lastMousePosition;
         delete this._selectionIsMove;
+        delete this._rulerBoundingClientRect;
+        delete this._moveSelectionMaximumLeftOffset;
+        delete this._moveSelectionMaximumRightOffset;
 
         event.preventDefault();
         event.stopPropagation();
@@ -748,6 +787,6 @@ WebInspector.TimelineRuler.prototype = {
         event.preventDefault();
         event.stopPropagation();
     }
-}
+};
 
 WebInspector.TimelineRuler.prototype.__proto__ = WebInspector.Object.prototype;

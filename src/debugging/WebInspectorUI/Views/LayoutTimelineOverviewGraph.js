@@ -23,13 +23,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.LayoutTimelineOverviewGraph = function(recording)
+WebInspector.LayoutTimelineOverviewGraph = function(timeline)
 {
-    WebInspector.TimelineOverviewGraph.call(this, recording);
+    WebInspector.TimelineOverviewGraph.call(this, timeline);
 
     this.element.classList.add(WebInspector.LayoutTimelineOverviewGraph.StyleClassName);
 
-    this._layoutTimeline = recording.timelines.get(WebInspector.TimelineRecord.Type.Layout);
+    this._layoutTimeline = timeline;
     this._layoutTimeline.addEventListener(WebInspector.Timeline.Event.RecordAdded, this._layoutTimelineRecordAdded, this);
 
     this._timelineRecordBars = [];
@@ -58,8 +58,7 @@ WebInspector.LayoutTimelineOverviewGraph.prototype = {
     {
         WebInspector.TimelineOverviewGraph.prototype.updateLayout.call(this);
 
-        var visibleWidth = this.element.offsetWidth;
-        var secondsPerPixel = (this.endTime - this.startTime) / visibleWidth;
+        var secondsPerPixel = this.timelineOverview.secondsPerPixel;
 
         var recordBarIndex = 0;
 
@@ -67,9 +66,11 @@ WebInspector.LayoutTimelineOverviewGraph.prototype = {
         {
             var timelineRecordBar = this._timelineRecordBars[recordBarIndex];
             if (!timelineRecordBar)
-                timelineRecordBar = this._timelineRecordBars[recordBarIndex] = new WebInspector.TimelineRecordBar;
-            timelineRecordBar.renderMode = renderMode;
-            timelineRecordBar.records = records;
+                timelineRecordBar = this._timelineRecordBars[recordBarIndex] = new WebInspector.TimelineRecordBar(records, renderMode);
+            else {
+                timelineRecordBar.renderMode = renderMode;
+                timelineRecordBar.records = records;
+            }
             timelineRecordBar.refresh(this);
             if (!timelineRecordBar.element.parentNode)
                 this.element.appendChild(timelineRecordBar.element);

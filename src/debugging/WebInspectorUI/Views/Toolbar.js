@@ -23,7 +23,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.Toolbar = function(element, navigationItems) {
+WebInspector.Toolbar = function(element, navigationItems, dontAllowModeChanges) {
     WebInspector.NavigationBar.call(this, element, navigationItems, "toolbar");
 
     this.displayMode = WebInspector.Toolbar.DisplayMode.IconAndLabelVertical;
@@ -35,30 +35,39 @@ WebInspector.Toolbar = function(element, navigationItems) {
 
     this._leftSectionElement = document.createElement("div");
     this._leftSectionElement.className = WebInspector.Toolbar.ItemSectionStyleClassName + " " + WebInspector.Toolbar.LeftItemSectionStyleClassName;
-    this._leftSectionElement.setAttribute("role", "tablist");
     this._element.appendChild(this._leftSectionElement);
+
+    this._centerLeftSectionElement = document.createElement("div");
+    this._centerLeftSectionElement.className = WebInspector.Toolbar.ItemSectionStyleClassName + " " + WebInspector.Toolbar.CenterLeftItemSectionStyleClassName;
+    this._element.appendChild(this._centerLeftSectionElement);
 
     this._centerSectionElement = document.createElement("div");
     this._centerSectionElement.className = WebInspector.Toolbar.ItemSectionStyleClassName + " " + WebInspector.Toolbar.CenterItemSectionStyleClassName;
     this._element.appendChild(this._centerSectionElement);
 
+    this._centerRightSectionElement = document.createElement("div");
+    this._centerRightSectionElement.className = WebInspector.Toolbar.ItemSectionStyleClassName + " " + WebInspector.Toolbar.CenterRightItemSectionStyleClassName;
+    this._element.appendChild(this._centerRightSectionElement);
+
     this._rightSectionElement = document.createElement("div");
     this._rightSectionElement.className = WebInspector.Toolbar.ItemSectionStyleClassName + " " + WebInspector.Toolbar.RightItemSectionStyleClassName;
-    this._rightSectionElement.setAttribute("role", "tablist");
     this._element.appendChild(this._rightSectionElement);
 
-    this._element.addEventListener("contextmenu", this._handleContextMenuEvent.bind(this), false);
+    if (!dontAllowModeChanges)
+        this._element.addEventListener("contextmenu", this._handleContextMenuEvent.bind(this), false);
 };
 
-WebInspector.Object.addConstructorFunctions(WebInspector.Toolbar);
+// FIXME: Move to a WebInspector.Object subclass and we can remove this.
+WebInspector.Object.deprecatedAddConstructorFunctions(WebInspector.Toolbar);
 
 WebInspector.Toolbar.StyleClassName = "toolbar";
 WebInspector.Toolbar.ControlSectionStyleClassName = "control-section";
 WebInspector.Toolbar.ItemSectionStyleClassName = "item-section";
 WebInspector.Toolbar.LeftItemSectionStyleClassName = "left";
+WebInspector.Toolbar.CenterLeftItemSectionStyleClassName = "center-left";
 WebInspector.Toolbar.CenterItemSectionStyleClassName = "center";
+WebInspector.Toolbar.CenterRightItemSectionStyleClassName = "center-right";
 WebInspector.Toolbar.RightItemSectionStyleClassName = "right";
-WebInspector.Toolbar.TotalSectionMargins = 12 * 3;
 
 WebInspector.Toolbar.Event = {
     DisplayModeDidChange: "toolbar-display-mode-did-change",
@@ -68,7 +77,9 @@ WebInspector.Toolbar.Event = {
 WebInspector.Toolbar.Section = {
     Control: "control",
     Left: "left",
+    CenterLeft: "center-left",
     Center: "center",
+    CenterRight: "center-right",
     Right: "right"
 };
 
@@ -145,7 +156,7 @@ WebInspector.Toolbar.prototype = {
 
         // Force collapsed style for JavaScript debuggables.
         if (WebInspector.debuggableType === WebInspector.DebuggableType.JavaScript) {
-            this._element.classList.add(WebInspector.NavigationBar.CollapsedStyleClassName)
+            this._element.classList.add(WebInspector.NavigationBar.CollapsedStyleClassName);
             return;
         }
 
@@ -160,16 +171,15 @@ WebInspector.Toolbar.prototype = {
 
         function isOverflowingToolbar()
         {
-            var controlSectionWidth = this._controlSectionElement.offsetWidth;
-            var leftSectionWidth = this._leftSectionElement.offsetWidth;
-            var rightSectionWidth = this._rightSectionElement.offsetWidth;
-            var centerSectionWidth = this._centerSectionElement.offsetWidth;
+            var controlSectionWidth = this._controlSectionElement.realOffsetWidth;
+            var leftSectionWidth = this._leftSectionElement.realOffsetWidth;
+            var centerLeftSectionWidth = this._centerLeftSectionElement.realOffsetWidth;
+            var centerSectionWidth = this._centerSectionElement.realOffsetWidth;
+            var centerRightSectionWidth = this._centerRightSectionElement.realOffsetWidth;
+            var rightSectionWidth = this._rightSectionElement.realOffsetWidth;
 
-            // Add one to the actual toolbar width to allow some slop. This wasn't needed when sub-pixel layout was on,
-            // but that was disabled in: http://webkit.org/b/149209
-            var toolbarWidth = this.element.offsetWidth + 1;
-
-            return controlSectionWidth + leftSectionWidth + centerSectionWidth + rightSectionWidth + WebInspector.Toolbar.TotalSectionMargins > toolbarWidth;
+            var toolbarWidth = Math.round(this.element.realOffsetWidth);
+            return Math.round(controlSectionWidth + leftSectionWidth + centerLeftSectionWidth + centerSectionWidth + centerRightSectionWidth + rightSectionWidth) > toolbarWidth;
         }
 
         // Only the horizontal display mode supports collapsing labels.
@@ -198,9 +208,17 @@ WebInspector.Toolbar.prototype = {
             sectionElement = this._leftSectionElement;
             break;
 
+        case WebInspector.Toolbar.Section.CenterLeft:
+            sectionElement = this._centerLeftSectionElement;
+            break;
+
         default:
         case WebInspector.Toolbar.Section.Center:
             sectionElement = this._centerSectionElement;
+            break;
+
+        case WebInspector.Toolbar.Section.CenterRight:
+            sectionElement = this._centerRightSectionElement;
             break;
 
         case WebInspector.Toolbar.Section.Right:

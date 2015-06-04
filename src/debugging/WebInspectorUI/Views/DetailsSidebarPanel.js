@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,45 +23,39 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DetailsSidebarPanel = function(identifier, displayName, singularDisplayName, image, keyboardShortcutKey, element) {
-    if (keyboardShortcutKey)
-        this._keyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.Control | WebInspector.KeyboardShortcut.Modifier.Shift, keyboardShortcutKey, this.toggle.bind(this));
+WebInspector.DetailsSidebarPanel = class DetailsSidebarPanel extends WebInspector.SidebarPanel
+{
+    constructor(identifier, displayName, singularDisplayName, element)
+    {
+        super(identifier, displayName, element);
 
-    if (this._keyboardShortcut) {
-        var showToolTip = WebInspector.UIString("Show the %s details sidebar (%s)").format(singularDisplayName, this._keyboardShortcut.displayName);
-        var hideToolTip = WebInspector.UIString("Hide the %s details sidebar (%s)").format(singularDisplayName, this._keyboardShortcut.displayName);
-    } else {
-        var showToolTip = WebInspector.UIString("Show the %s details sidebar").format(singularDisplayName);
-        var hideToolTip = WebInspector.UIString("Hide the %s details sidebar").format(singularDisplayName);
+        this.element.classList.add("details");
+
+        this._navigationItem = new WebInspector.RadioButtonNavigationItem(identifier, displayName);
     }
-
-    WebInspector.SidebarPanel.call(this, identifier, displayName, showToolTip, hideToolTip, image, element);
-
-    this.element.classList.add(WebInspector.DetailsSidebarPanel.StyleClassName);
-};
-
-WebInspector.DetailsSidebarPanel.StyleClassName = "details";
-
-WebInspector.DetailsSidebarPanel.prototype = {
-    constructor: WebInspector.DetailsSidebarPanel,
 
     // Public
 
-    inspect: function(objects)
+    get navigationItem()
+    {
+        return this._navigationItem;
+    }
+
+    inspect(objects)
     {
         // Implemented by subclasses.
         return false;
-    },
+    }
 
-    shown: function()
+    shown()
     {
         if (this._needsRefresh) {
             delete this._needsRefresh;
             this.refresh();
         }
-    },
+    }
 
-    needsRefresh: function()
+    needsRefresh()
     {
         if (!this.selected) {
             this._needsRefresh = true;
@@ -69,12 +63,10 @@ WebInspector.DetailsSidebarPanel.prototype = {
         }
 
         this.refresh();
-    },
+    }
 
-    refresh: function()
+    refresh()
     {
         // Implemented by subclasses.
     }
 };
-
-WebInspector.DetailsSidebarPanel.prototype.__proto__ = WebInspector.SidebarPanel.prototype;

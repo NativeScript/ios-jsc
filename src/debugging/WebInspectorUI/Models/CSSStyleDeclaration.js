@@ -23,76 +23,71 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CSSStyleDeclaration = function(nodeStyles, ownerStyleSheet, id, type, node, inherited, text, properties, styleSheetTextRange)
+WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor(nodeStyles, ownerStyleSheet, id, type, node, inherited, text, properties, styleSheetTextRange)
+    {
+        super();
 
-    console.assert(nodeStyles);
-    this._nodeStyles = nodeStyles;
+        console.assert(nodeStyles);
+        this._nodeStyles = nodeStyles;
 
-    this._ownerRule = null;
+        this._ownerRule = null;
 
-    this._ownerStyleSheet = ownerStyleSheet || null;
-    this._id = id || null;
-    this._type = type || null;
-    this._node = node || null;
-    this._inherited = inherited || false;
+        this._ownerStyleSheet = ownerStyleSheet || null;
+        this._id = id || null;
+        this._type = type || null;
+        this._node = node || null;
+        this._inherited = inherited || false;
 
-    this._pendingProperties = [];
-    this._propertyNameMap = {};
+        this._pendingProperties = [];
+        this._propertyNameMap = {};
 
-    this.update(text, properties, styleSheetTextRange, true);
-};
-
-WebInspector.Object.addConstructorFunctions(WebInspector.CSSStyleDeclaration);
-
-WebInspector.CSSStyleDeclaration.Event = {
-    PropertiesChanged: "css-style-declaration-properties-changed"
-};
-
-WebInspector.CSSStyleDeclaration.Type = {
-    Rule: "css-style-declaration-type-rule",
-    Inline: "css-style-declaration-type-inline",
-    Attribute: "css-style-declaration-type-attribute",
-    Computed: "css-style-declaration-type-computed"
-};
-
-WebInspector.CSSStyleDeclaration.prototype = {
-    constructor: WebInspector.CSSStyleDeclaration,
+        this.update(text, properties, styleSheetTextRange, true);
+    }
 
     // Public
 
     get id()
     {
         return this._id;
-    },
+    }
 
     get ownerStyleSheet()
     {
         return this._ownerStyleSheet;
-    },
+    }
 
     get type()
     {
         return this._type;
-    },
+    }
 
     get inherited()
     {
         return this._inherited;
-    },
+    }
 
     get node()
     {
         return this._node;
-    },
+    }
 
     get editable()
     {
-        return !!this._id && ((this._type === WebInspector.CSSStyleDeclaration.Type.Rule && this._ownerRule && this._ownerRule.editable) || this._type === WebInspector.CSSStyleDeclaration.Type.Inline);
-    },
+        if (!this._id)
+            return false;
 
-    update: function(text, properties, styleSheetTextRange, dontFireEvents)
+        if (this._type === WebInspector.CSSStyleDeclaration.Type.Rule)
+            return this._ownerRule && this._ownerRule.editable;
+
+        if (this._type === WebInspector.CSSStyleDeclaration.Type.Inline)
+            return !this._node.isInShadowTree();
+
+        return false;
+    }
+
+    update(text, properties, styleSheetTextRange, dontFireEvents)
     {
         text = text || "";
         properties = properties || [];
@@ -129,7 +124,7 @@ WebInspector.CSSStyleDeclaration.prototype = {
         for (var i = 0; i < oldProperties.length; ++i) {
             var oldProperty = oldProperties[i];
 
-            if (!this._properties.contains(oldProperty)) {
+            if (!this._properties.includes(oldProperty)) {
                 // Clear the index, since it is no longer valid.
                 oldProperty.index = NaN;
 
@@ -147,7 +142,7 @@ WebInspector.CSSStyleDeclaration.prototype = {
 
         var addedProperties = [];
         for (var i = 0; i < this._properties.length; ++i) {
-            if (!oldProperties.contains(this._properties[i]))
+            if (!oldProperties.includes(this._properties[i]))
                 addedProperties.push(this._properties[i]);
         }
 
@@ -161,27 +156,27 @@ WebInspector.CSSStyleDeclaration.prototype = {
 
         function delayed()
         {
-            this.dispatchEventToListeners(WebInspector.CSSStyleDeclaration.Event.PropertiesChanged, {addedProperties: addedProperties, removedProperties: removedProperties});
+            this.dispatchEventToListeners(WebInspector.CSSStyleDeclaration.Event.PropertiesChanged, {addedProperties, removedProperties});
         }
 
         // Delay firing the PropertiesChanged event so DOMNodeStyles has a chance to mark overridden and associated properties.
         setTimeout(delayed.bind(this), 0);
-    },
+    }
 
     get ownerRule()
     {
         return this._ownerRule;
-    },
+    }
 
     set ownerRule(rule)
     {
         this._ownerRule = rule || null;
-    },
+    }
 
     get text()
     {
         return this._text;
-    },
+    }
 
     set text(text)
     {
@@ -189,12 +184,12 @@ WebInspector.CSSStyleDeclaration.prototype = {
             return;
 
         this._nodeStyles.changeStyleText(this, text);
-    },
+    }
 
     get properties()
     {
         return this._properties;
-    },
+    }
 
     get visibleProperties()
     {
@@ -206,19 +201,19 @@ WebInspector.CSSStyleDeclaration.prototype = {
         });
 
         return this._visibleProperties;
-    },
+    }
 
     get pendingProperties()
     {
         return this._pendingProperties;
-    },
+    }
 
     get styleSheetTextRange()
     {
         return this._styleSheetTextRange;
-    },
+    }
 
-    propertyForName: function(name, dontCreateIfMissing)
+    propertyForName(name, dontCreateIfMissing)
     {
         console.assert(name);
         if (!name)
@@ -263,41 +258,7 @@ WebInspector.CSSStyleDeclaration.prototype = {
         this._pendingProperties.push(newProperty);
 
         return newProperty;
-    },
-
-    addProperty: function(property)
-    {
-        console.assert(property);
-        if (!property)
-            return;
-
-        console.assert(property.ownerStyle === this);
-        if (property.ownerStyle !== this)
-            return;
-
-        console.assert(this.editable);
-        if (!this.editable)
-            return;
-
-        this._nodeStyles.addProperty(property);
-    },
-
-    removeProperty: function(property)
-    {
-        console.assert(property);
-        if (!property)
-            return;
-
-        console.assert(property.ownerStyle === this);
-        if (property.ownerStyle !== this)
-            return;
-
-        console.assert(this.editable);
-        if (!this.editable)
-            return;
-
-        this._nodeStyles.removeProperty(property);
-    },
+    }
 
     // Protected
 
@@ -307,4 +268,13 @@ WebInspector.CSSStyleDeclaration.prototype = {
     }
 };
 
-WebInspector.CSSStyleDeclaration.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.CSSStyleDeclaration.Event = {
+    PropertiesChanged: "css-style-declaration-properties-changed"
+};
+
+WebInspector.CSSStyleDeclaration.Type = {
+    Rule: "css-style-declaration-type-rule",
+    Inline: "css-style-declaration-type-inline",
+    Attribute: "css-style-declaration-type-attribute",
+    Computed: "css-style-declaration-type-computed"
+};

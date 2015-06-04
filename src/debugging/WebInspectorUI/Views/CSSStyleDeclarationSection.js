@@ -25,7 +25,8 @@
 
 WebInspector.CSSStyleDeclarationSection = function(style)
 {
-    WebInspector.Object.call(this);
+    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
+    // WebInspector.Object.call(this);
 
     console.assert(style);
     this._style = style || null;
@@ -168,12 +169,42 @@ WebInspector.CSSStyleDeclarationSection.prototype = {
 
         this._originElement.appendChild(document.createTextNode(" \u2014 "));
 
-        function appendSelector(selectorText, matched)
+        function appendSelector(selector, matched)
         {
+            console.assert(selector instanceof WebInspector.CSSSelector);
+
             var selectorElement = document.createElement("span");
+            selectorElement.textContent = selector.text;
+
             if (matched)
                 selectorElement.className = WebInspector.CSSStyleDeclarationSection.MatchedSelectorElementStyleClassName;
+
+            var specificity = selector.specificity;
+            if (specificity) {
+                var tooltip = WebInspector.UIString("Specificity: (%d, %d, %d)").format(specificity[0], specificity[1], specificity[2]);
+                if (selector.dynamic) {
+                    tooltip += "\n";
+                    if (this._style.inherited)
+                        tooltip += WebInspector.UIString("Dynamically calculated for the parent element");
+                    else
+                        tooltip += WebInspector.UIString("Dynamically calculated for the selected element");
+                }
+                selectorElement.title = tooltip;
+            } else if (selector.dynamic) {
+                var tooltip = WebInspector.UIString("Specificity: No value for selected element");
+                tooltip += "\n";
+                tooltip += WebInspector.UIString("Dynamically calculated for the selected element and did not match");
+                selectorElement.title = tooltip;
+            }
+
+            this._selectorElement.appendChild(selectorElement);
+        }
+
+        function appendSelectorTextKnownToMatch(selectorText)
+        {
+            var selectorElement = document.createElement("span");
             selectorElement.textContent = selectorText;
+            selectorElement.className = WebInspector.CSSStyleDeclarationSection.MatchedSelectorElementStyleClassName;
             this._selectorElement.appendChild(selectorElement);
         }
 
@@ -183,14 +214,15 @@ WebInspector.CSSStyleDeclarationSection.prototype = {
 
             var selectors = this._style.ownerRule.selectors;
             var matchedSelectorIndices = this._style.ownerRule.matchedSelectorIndices;
-            if (selectors.length && matchedSelectorIndices.length) {
+            var alwaysMatch = !matchedSelectorIndices.length;
+            if (selectors.length) {
                 for (var i = 0; i < selectors.length; ++i) {
-                    appendSelector.call(this, selectors[i], matchedSelectorIndices.contains(i));
+                    appendSelector.call(this, selectors[i], alwaysMatch || matchedSelectorIndices.includes(i));
                     if (i < selectors.length - 1)
                         this._selectorElement.appendChild(document.createTextNode(", "));
                 }
             } else
-                appendSelector.call(this, this._style.ownerRule.selectorText, true);
+                appendSelectorTextKnownToMatch.call(this, this._style.ownerRule.selectorText);
 
             if (this._style.ownerRule.sourceCodeLocation) {
                 var sourceCodeLink = WebInspector.createSourceCodeLocationLink(this._style.ownerRule.sourceCodeLocation, true);
@@ -223,12 +255,12 @@ WebInspector.CSSStyleDeclarationSection.prototype = {
             break;
 
         case WebInspector.CSSStyleDeclaration.Type.Inline:
-            appendSelector.call(this, WebInspector.displayNameForNode(this._style.node), true);
+            appendSelectorTextKnownToMatch.call(this, WebInspector.displayNameForNode(this._style.node));
             this._originElement.appendChild(document.createTextNode(WebInspector.UIString("Style Attribute")));
             break;
 
         case WebInspector.CSSStyleDeclaration.Type.Attribute:
-            appendSelector.call(this, WebInspector.displayNameForNode(this._style.node), true);
+            appendSelectorTextKnownToMatch.call(this, WebInspector.displayNameForNode(this._style.node));
             this._originElement.appendChild(document.createTextNode(WebInspector.UIString("HTML Attributes")));
             break;
         }

@@ -23,20 +23,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ApplicationCacheManifest = function(manifestURL)
+WebInspector.ApplicationCacheManifest = class ApplicationCacheManifest extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
-    
-    this._manifestURL = manifestURL;
-};
+    constructor(manifestURL)
+    {
+        super();
 
-WebInspector.ApplicationCacheManifest.prototype = {
-    constructor: WebInspector.ApplicationCacheManifest,
-    
+        this._manifestURL = manifestURL;
+    }
+
     get manifestURL()
     {
         return this._manifestURL;
-    }    
+    }
 };
-
-WebInspector.ApplicationCacheManifest.prototype.__proto__ = WebInspector.Object.prototype;

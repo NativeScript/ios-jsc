@@ -66,13 +66,15 @@ WebInspector.IndexedDatabaseObjectStoreContentView = function(objectStoreOrIndex
     }
 
     this._dataGrid = new WebInspector.DataGrid(columnInfo);
-    this.element.appendChild(this._dataGrid.element);
-
     this._dataGrid.scrollContainer.addEventListener("scroll", this._dataGridScrolled.bind(this));
+    this.element.appendChild(this._dataGrid.element);
 
     this._entries = [];
 
     this._fetchMoreData();
+
+    this._refreshButtonNavigationItem = new WebInspector.ButtonNavigationItem("indexed-database-object-store-refresh", WebInspector.UIString("Refresh"), "Images/ReloadFull.svg", 13, 13);
+    this._refreshButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._refreshButtonClicked, this);
 };
 
 WebInspector.IndexedDatabaseObjectStoreContentView.StyleClassName = "indexed-database-object-store";
@@ -82,6 +84,11 @@ WebInspector.IndexedDatabaseObjectStoreContentView.prototype = {
     __proto__: WebInspector.ContentView.prototype,
 
     // Public
+
+    get navigationItems()
+    {
+        return [this._refreshButtonNavigationItem];
+    },
 
     closed: function()
     {
@@ -148,5 +155,11 @@ WebInspector.IndexedDatabaseObjectStoreContentView.prototype = {
         this._fetchingMoreData = true;
 
         WebInspector.storageManager.requestIndexedDatabaseData(this._objectStore, this._objectStoreIndex, this._entries.length, 25, processEntries.bind(this));
+    },
+
+    _refreshButtonClicked: function()
+    {
+        this._reset();
+        this._fetchMoreData();
     }
 };
