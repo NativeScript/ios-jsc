@@ -26,9 +26,11 @@ iOS Runtime Changelog
 
 1.0.0
 ==
+[Milestone 1.0.0](https://github.com/NativeScript/ios-runtime/issues?q=milestone%3A1.0.0), [Release v1.0.0](https://github.com/NativeScript/ios-runtime/releases/tag/v1.0.0).
 * New metadata generator using Clang
-* Remove visibility warnings when linking
 * Fix some threading issues
+* C enumeration syntax changed
+* Remove visibility warnings when linking
 
 0.10.0 (2015, April 17)
 ==
