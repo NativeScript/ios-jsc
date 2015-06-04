@@ -168,8 +168,8 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
             return;
 
         // Add the record to the source code timelines.
-        var activeMainResource = WebInspector.frameResourceManager.mainFrame.provisionalMainResource || WebInspector.frameResourceManager.mainFrame.mainResource;
-        var sourceCode = record.sourceCodeLocation ? record.sourceCodeLocation.sourceCode : activeMainResource;
+        //var activeMainResource = WebInspector.frameResourceManager.mainFrame.provisionalMainResource || WebInspector.frameResourceManager.mainFrame.mainResource;
+        var sourceCode = record.sourceCodeLocation; //? record.sourceCodeLocation.sourceCode : activeMainResource;
 
         var sourceCodeTimelines = this._sourceCodeTimelinesMap.get(sourceCode);
         if (!sourceCodeTimelines) {

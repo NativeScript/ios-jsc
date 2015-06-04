@@ -103,7 +103,7 @@ if (!window.InspectorFrontendHost) {
 
         debuggableType: function()
         {
-            return "web";
+            return "js";
         },
 
         inspectedURLChanged: function(title)
