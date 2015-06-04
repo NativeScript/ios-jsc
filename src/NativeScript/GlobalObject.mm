@@ -15,6 +15,9 @@
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/JSGlobalObjectFunctions.h>
+#include <JavaScriptCore/runtime/JSConsole.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
+#include "InstrumentingAgents.h"
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCPrototype.h"
@@ -76,15 +79,48 @@ static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
     return JSValue::encode(jsUndefined());
 }
+    
+static EncodedJSValue JSC_HOST_CALL profile(ExecState* execState) {
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->instrumentingAgents()->inspectorTimelineAgent();
+    if(timelineAgent)
+    {
+        Inspector::ErrorString unused;
+        timelineAgent->start(unused, nullptr);
+    }
+    
+    return JSValue::encode(jsUndefined());
+}
+
+static EncodedJSValue JSC_HOST_CALL profileEnd(ExecState* execState) {
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->instrumentingAgents()->inspectorTimelineAgent();
+    if(timelineAgent)
+    {
+        Inspector::ErrorString unused;
+        timelineAgent->stop(unused);
+    }
+    
+    return JSValue::encode(jsUndefined());
+}
 
 void GlobalObject::finishCreation(VM& vm) {
     Base::finishCreation(vm);
 
     ExecState* globalExec = this->globalExec();
-
+    
+    std::unique_ptr<Inspector::InspectorTimelineAgent> timelineAgent = std::make_unique<Inspector::InspectorTimelineAgent>(this);
+    this->_instrumentingAgents = new Inspector::InstrumentingAgents();
+    this->_instrumentingAgents->setInspectorTimelineAgent(timelineAgent.get());
+    
     this->_inspectorController = std::make_unique<Inspector::JSGlobalObjectInspectorController>(*this);
+    this->_inspectorController->appendExtraAgent(WTF::move(timelineAgent));
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
+
+    JSC::JSConsole* console = jsCast<JSC::JSConsole*>(this->getDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("console"))));
+    console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profile")), 0, &profile, NoIntrinsic, Attribute::Function);
+    console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profileEnd")), 0, &profileEnd, NoIntrinsic, Attribute::Function);
 
     this->_objCMethodCallStructure.set(vm, this, ObjCMethodCall::createStructure(vm, this, this->functionPrototype()));
     this->_objCConstructorCallStructure.set(vm, this, ObjCConstructorCall::createStructure(vm, this, this->functionPrototype()));
