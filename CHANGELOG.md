@@ -20,6 +20,16 @@ iOS Runtime Changelog
 * NativeScript apps for iOS no longer ship with a WebSocket server for debugging, but rely on a plain TCP socket instead
 * Removed backwards compatibility for the pre-0.10 behavior when looking for *tns_modules*
 
+1.0.1
+==
+* Escape header and framework search paths in metadata generator
+
+1.0.0
+==
+* New metadata generator using Clang
+* Remove visibility warnings when linking
+* Fix some threading issues
+
 0.10.0 (2015, April 17)
 ==
 [Milestone 0.10.0](https://github.com/NativeScript/ios-runtime/issues?q=milestone%3A0.10.0), [Release v0.10.0](https://github.com/NativeScript/ios-runtime/releases/tag/v0.10.0).
