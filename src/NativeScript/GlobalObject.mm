@@ -66,9 +66,10 @@ GlobalObject* GlobalObject::create(VM& vm, Structure* structure) {
     return object;
 }
 
-extern "C" void JSSynchronousGarbageCollectForDebugging(ExecState*);
 static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
-    JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
+    execState->vm().heap.collectAllGarbage();
+    WTF::releaseFastMallocFreeMemory();
+    
     return JSValue::encode(jsUndefined());
 }
 
