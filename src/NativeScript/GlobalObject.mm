@@ -79,7 +79,7 @@ void GlobalObject::finishCreation(VM& vm) {
 
     this->_inspectorController = std::make_unique<Inspector::JSGlobalObjectInspectorController>(*this);
     this->setConsoleClient(this->_inspectorController->consoleClient());
-    this->putDirect(vm, vm.propertyNames->global, this, DontEnum | ReadOnly | DontDelete);
+    this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
 
     this->_objCMethodCallStructure.set(vm, this, ObjCMethodCall::createStructure(vm, this, this->functionPrototype()));
     this->_objCConstructorCallStructure.set(vm, this, ObjCConstructorCall::createStructure(vm, this, this->functionPrototype()));

@@ -279,6 +279,15 @@ describe(module.id, function () {
         }).toThrowError();
     });
 
+    it("globalPropertyOfGlobalObject", function () {
+        expect(global.toString()).toBe("[object NativeScriptGlobal]");
+    });
+
+    it("globalPropertyOfGlobalObjectIsEqulatToGlobalScopeThis", function () {
+        globalScopeThis = Function("return this")();
+        expect(global).toBe(globalScopeThis);
+    });
+
     it("Swizzle", function () {
         var object = TNSSwizzleKlass.alloc().init();
 
