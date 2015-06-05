@@ -284,7 +284,7 @@ describe(module.id, function () {
     });
 
     it("globalPropertyOfGlobalObjectIsEqulatToGlobalScopeThis", function () {
-        globalScopeThis = Function("return this")();
+        var globalScopeThis = Function("return this")();
         expect(global).toBe(globalScopeThis);
     });
 
