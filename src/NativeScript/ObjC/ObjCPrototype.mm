@@ -22,7 +22,7 @@ using namespace Metadata;
 
 const unsigned ObjCPrototype::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const ClassInfo ObjCPrototype::s_info = { "ObjCPrototype", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCPrototype) };
+const ClassInfo ObjCPrototype::s_info = { "ObjCPrototype", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCPrototype) };
 
 WTF::String ObjCPrototype::className(const JSObject* object) {
     const char* className = jsCast<const ObjCPrototype*>(object)->_metadata->name();
@@ -130,12 +130,12 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
 
         for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->instanceMethods->begin(); it != baseClassMeta->instanceMethods->end(); it++) {
             if ((*it)->isAvailable())
-                propertyNames.add(Identifier(execState, (*it)->jsName()));
+                propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
         }
 
         for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->props->begin(); it != baseClassMeta->props->end(); it++) {
             if ((*it)->isAvailable())
-                propertyNames.add(Identifier(execState, (*it)->jsName()));
+                propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
         }
 
         for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
@@ -166,7 +166,7 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
                 descriptor.setSetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), setter));
             }
 
-            Base::defineOwnProperty(this, globalObject->globalExec(), Identifier(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
+            Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
         }
     }
 }

@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FunctionReferenceTypeInstance::s_info = { "FunctionReferenceTypeInstance", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FunctionReferenceTypeInstance) };
+const ClassInfo FunctionReferenceTypeInstance::s_info = { "FunctionReferenceTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceTypeInstance) };
 
 JSValue FunctionReferenceTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());

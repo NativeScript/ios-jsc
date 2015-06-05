@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCSuperObject::s_info = { "ObjCSuperObject", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCSuperObject) };
+const ClassInfo ObjCSuperObject::s_info = { "ObjCSuperObject", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCSuperObject) };
 
 void ObjCSuperObject::finishCreation(VM& vm, ObjCWrapperObject* wrapper) {
     Base::finishCreation(vm);

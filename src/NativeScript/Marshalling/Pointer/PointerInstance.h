@@ -16,16 +16,15 @@ namespace NativeScript {
  */
 JSC::EncodedJSValue JSC_HOST_CALL readFromPointer(JSC::ExecState* execState);
 
-class PointerInstance : public JSC::JSNonFinalObject {
+class PointerInstance : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     DECLARE_INFO;
 
     static PointerInstance* create(JSC::VM& vm, JSC::Structure* structure, void* value = nullptr) {
         PointerInstance* object = new (NotNull, JSC::allocateCell<PointerInstance>(vm.heap)) PointerInstance(vm, structure);
         object->finishCreation(vm, value);
-        vm.heap.addFinalizer(object, destroy);
         return object;
     }
 
@@ -45,12 +44,12 @@ public:
         this->_isAdopted = value;
     }
 
-    ~PointerInstance();
-
 private:
     PointerInstance(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
+
+    ~PointerInstance();
 
     static void destroy(JSC::JSCell* cell) {
         JSC::jsCast<PointerInstance*>(cell)->~PointerInstance();

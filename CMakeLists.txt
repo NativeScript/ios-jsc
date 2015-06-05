@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(NativeScript)
 
-set(CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator")
+set(CMAKE_XCODE_ATTRIBUTE_SUPPORTED_PLATFORMS "macosx iphoneos iphonesimulator")
+set(CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator;-macosx")
+set(CMAKE_OSX_SYSROOT $(PLATFORM_NAME))
 
 # TODO: Versions, license, etc
 
@@ -26,11 +28,11 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG=1")
 
 # TODO: Clang Analyzer, Tidy ...
 
-if(${BUILD_SHARED_LIBS})
-    set(NATIVESCRIPT_LIBRARY_TYPE SHARED)
-else()
-    set(NATIVESCRIPT_LIBRARY_TYPE STATIC)
-endif()
+option(BUILD_SHARED_LIBS "Build NativeScript as a Cocoa Framework" OFF)
+option(EMBED_STATIC_DEPENDENCIES "Embed JavaScriptCore and libffi in the NativeScript static library" OFF)
+
+include(src/WebKit.cmake)
+include(src/MetadataGenerator.cmake)
 
 add_subdirectory(src/NativeScript)
 add_subdirectory(examples/Gameraww)
@@ -38,18 +40,3 @@ add_subdirectory(examples/BlankApp)
 add_subdirectory(examples/HelloWorldApp)
 add_subdirectory(tests/TestFixtures)
 add_subdirectory(tests/TestRunner)
-
-include(ExternalProject)
-ExternalProject_Add(MetadataGenerator
-    SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/metadata-generator"
-    CONFIGURE_COMMAND env -i "${CMAKE_COMMAND}"
-        -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/metadataGenerator
-        -DCMAKE_BUILD_TYPE=$<CONFIG>
-        "${CMAKE_SOURCE_DIR}/src/metadata-generator"
-    BUILD_COMMAND env -i "${CMAKE_COMMAND}"
-        --build .
-        --target install
-        --use-stderr
-    INSTALL_COMMAND "${CMAKE_COMMAND}"
-        -E copy "${CMAKE_SOURCE_DIR}/build/scripts/metadata-generation-build-step.sh" "${CMAKE_INSTALL_PREFIX}/metadataGenerator/bin"
-)

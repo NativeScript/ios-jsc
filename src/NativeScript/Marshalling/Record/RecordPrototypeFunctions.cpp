@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordProtoFieldSetter::s_info = { "RecordProtoFieldSetter", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(RecordProtoFieldSetter) };
+const ClassInfo RecordProtoFieldSetter::s_info = { "RecordProtoFieldSetter", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordProtoFieldSetter) };
 
 void RecordProtoFieldSetter::finishCreation(VM& vm, RecordField* field) {
     Base::finishCreation(vm, WTF::emptyString());
@@ -48,7 +48,7 @@ void RecordProtoFieldSetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&object->_recordField);
 }
 
-const ClassInfo RecordProtoFieldGetter::s_info = { "RecordProtoFieldGetter", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(RecordProtoFieldGetter) };
+const ClassInfo RecordProtoFieldGetter::s_info = { "RecordProtoFieldGetter", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordProtoFieldGetter) };
 
 void RecordProtoFieldGetter::finishCreation(VM& vm, RecordField* fieldMetadata) {
     Base::finishCreation(vm, WTF::emptyString());

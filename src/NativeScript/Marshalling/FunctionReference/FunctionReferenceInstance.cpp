@@ -11,7 +11,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FunctionReferenceInstance::s_info = { "FunctionReference", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FunctionReferenceInstance) };
+const ClassInfo FunctionReferenceInstance::s_info = { "FunctionReference", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceInstance) };
 
 void FunctionReferenceInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function) {
     JSObject* object = jsCast<JSObject*>(function);

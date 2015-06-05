@@ -21,7 +21,7 @@ using namespace Metadata;
 
 const unsigned ObjCConstructorNative::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const ClassInfo ObjCConstructorNative::s_info = { "Function", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCConstructorNative) };
+const ClassInfo ObjCConstructorNative::s_info = { "Function", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorNative) };
 
 void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Class klass, const InterfaceMeta* metadata) {
     Base::finishCreation(vm, globalObject, prototype, klass);
@@ -83,7 +83,7 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
         for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->staticMethods->begin(); it != baseClassMeta->staticMethods->end(); it++) {
             const MethodMeta* meta = (*it).valuePtr();
             if (meta->isAvailable())
-                propertyNames.add(Identifier(execState, meta->jsName()));
+                propertyNames.add(Identifier::fromString(execState, meta->jsName()));
         }
 
         for (Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {

@@ -11,5 +11,5 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo JSWeakRefInstance::s_info = { "WeakRef", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(JSWeakRefInstance) };
+const ClassInfo JSWeakRefInstance::s_info = { "WeakRef", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWeakRefInstance) };
 }

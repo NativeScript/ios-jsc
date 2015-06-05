@@ -15,7 +15,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo PointerConstructor::s_info = { "Pointer", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(PointerConstructor) };
+const ClassInfo PointerConstructor::s_info = { "Pointer", &Base::s_info, 0, CREATE_METHOD_TABLE(PointerConstructor) };
 
 void PointerConstructor::finishCreation(VM& vm, PointerPrototype* pointerPrototype) {
     Base::finishCreation(vm, this->classInfo()->className);

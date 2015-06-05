@@ -14,6 +14,7 @@
 #include <JavaScriptCore/Microtask.h>
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/JSGlobalObjectFunctions.h>
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCPrototype.h"
@@ -41,14 +42,18 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0, ExecState::globalObjectTable, CREATE_METHOD_TABLE(GlobalObject) };
+const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(GlobalObject) };
 
-const unsigned GlobalObject::StructureFlags = OverridesVisitChildren | OverridesGetOwnPropertySlot | Base::StructureFlags;
+const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &allowsAccessFrom, &supportsProfiling, &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptExperimentsEnabled, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout };
+const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &allowsAccessFrom, &supportsProfiling, &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
-    : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable) {
+    : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable)
+#if defined(__LP64__) && __LP64__
+    , _taggedPointers(vm)
+#endif
+{
 }
 
 GlobalObject::~GlobalObject() {
@@ -97,12 +102,12 @@ void GlobalObject::finishCreation(VM& vm) {
     this->_weakRefPrototypeStructure.set(vm, this, JSWeakRefPrototype::createStructure(vm, this, Base::objectPrototype()));
     JSWeakRefPrototype* weakRefPrototype = JSWeakRefPrototype::create(vm, this, this->weakRefPrototypeStructure());
     this->_weakRefInstanceStructure.set(vm, this, JSWeakRefInstance::createStructure(vm, this, weakRefPrototype));
-    this->putDirect(vm, Identifier(&vm, WTF::ASCIILiteral("WeakRef")), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
+    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("WeakRef")), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
 
-    this->_interopIdentifier = Identifier(&vm, Interop::info()->className);
+    this->_interopIdentifier = Identifier::fromString(&vm, Interop::info()->className);
     this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())));
 
-    this->putDirectNativeFunction(vm, this, Identifier(globalExec, WTF::ASCIILiteral("__collect")), 0, &collectGarbage, NoIntrinsic, DontEnum | Attribute::Function);
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__collect"), 0, &collectGarbage, NoIntrinsic, DontEnum | Attribute::Function);
 
 #ifdef DEBUG
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), WTF::ASCIILiteral("__extends.ts"));
@@ -110,10 +115,10 @@ void GlobalObject::finishCreation(VM& vm) {
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len));
 #endif
     this->_typeScriptOriginalExtendsFunction.set(vm, this, jsCast<JSFunction*>(evaluate(globalExec, sourceCode, globalExec->thisValue())));
-    this->putDirectNativeFunction(vm, this, Identifier(globalExec, WTF::ASCIILiteral("__extends")), 2, ObjCTypeScriptExtendFunction, NoIntrinsic, DontEnum | DontDelete | ReadOnly | Attribute::Function);
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__extends"), 2, ObjCTypeScriptExtendFunction, NoIntrinsic, DontEnum | DontDelete | ReadOnly | Attribute::Function);
 
     ObjCConstructorNative* NSObjectConstructor = this->typeFactory()->NSObjectConstructor(this);
-    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier(&vm, WTF::ASCIILiteral("extend")), 2, ObjCExtendFunction, NoIntrinsic, DontEnum | Attribute::Function);
+    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("extend")), 2, ObjCExtendFunction, NoIntrinsic, DontEnum | Attribute::Function);
 
     MarkedArgumentBuffer descriptionFunctionArgs;
     descriptionFunctionArgs.append(jsString(globalExec, WTF::ASCIILiteral("return this.description;")));
@@ -261,7 +266,7 @@ void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, P
     const GlobalTable* globalTable = MetaFile::instance()->globalTable();
     for (Metadata::GlobalTable::iterator it = globalTable->begin(); it != globalTable->end(); it++) {
         if ((*it)->isAvailable())
-            propertyNames.add(Identifier(execState, (*it)->jsName()));
+            propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
     }
 
     Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
@@ -293,7 +298,7 @@ ObjCConstructorBase* GlobalObject::constructorFor(Class klass, Class fallback) {
 
     ObjCConstructorNative* constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, meta->jsName());
     this->_objCConstructors.insert(std::pair<Class, Strong<ObjCConstructorBase>>(klass, Strong<ObjCConstructorBase>(this->vm(), constructor)));
-    this->putDirectWithoutTransition(this->vm(), Identifier(this->globalExec(), class_getName(klass)), constructor);
+    this->putDirect(this->vm(), Identifier::fromString(this->globalExec(), class_getName(klass)), constructor);
     return constructor;
 }
 
@@ -314,7 +319,7 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
 
     ObjCProtocolWrapper* protocolWrapper = ObjCProtocolWrapper::create(this->vm(), ObjCProtocolWrapper::createStructure(this->vm(), this, this->objectPrototype()), static_cast<const ProtocolMeta*>(meta), aProtocol);
     this->_objCProtocolWrappers.insert(std::pair<const Protocol*, Strong<ObjCProtocolWrapper>>(aProtocol, Strong<ObjCProtocolWrapper>(this->vm(), protocolWrapper)));
-    this->putDirectWithoutTransition(this->vm(), Identifier(this->globalExec(), protocolName.data()), protocolWrapper, DontDelete | ReadOnly);
+    this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), protocolName.data()), protocolWrapper, DontDelete | ReadOnly);
 
     return protocolWrapper;
 }

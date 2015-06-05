@@ -13,14 +13,13 @@
 #include <string>
 
 namespace NativeScript {
-class ReferenceTypeInstance : public JSC::JSNonFinalObject {
+class ReferenceTypeInstance : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     static ReferenceTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType) {
         ReferenceTypeInstance* cell = new (NotNull, JSC::allocateCell<ReferenceTypeInstance>(vm.heap)) ReferenceTypeInstance(vm, structure);
         cell->finishCreation(vm, innerType);
-        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 

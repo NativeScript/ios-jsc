@@ -11,7 +11,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordField::s_info = { "RecordField", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(RecordField) };
+const ClassInfo RecordField::s_info = { "RecordField", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordField) };
 
 void RecordField::finishCreation(VM& vm, const WTF::String& fieldName, JSCell* fieldType, ptrdiff_t offset) {
     Base::finishCreation(vm);

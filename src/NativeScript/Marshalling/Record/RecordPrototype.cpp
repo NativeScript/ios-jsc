@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordPrototype::s_info = { "record", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(RecordPrototype) };
+const ClassInfo RecordPrototype::s_info = { "record", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordPrototype) };
 
 static EncodedJSValue JSC_HOST_CALL recordProtoFuncToString(ExecState* execState) {
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
@@ -36,7 +36,7 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) 
     JSObject* result = constructEmptyObject(execState);
 
     for (RecordField* field : recordPrototype->fields()) {
-        const Identifier fieldName = Identifier(execState, field->fieldName());
+        const Identifier fieldName = Identifier::fromString(execState, field->fieldName());
         JSValue fieldValue = record->get(execState, fieldName);
         result->putDirect(execState->vm(), fieldName, fieldValue);
     }
@@ -71,7 +71,7 @@ void RecordPrototype::setFields(VM& vm, GlobalObject* globalObject, const WTF::V
         RecordProtoFieldSetter* setter = RecordProtoFieldSetter::create(vm, globalObject->recordFieldSetterStructure(), field);
         descriptor.setSetter(setter);
 
-        Base::defineOwnProperty(this, globalObject->globalExec(), Identifier(&vm, field->fieldName()), descriptor, false);
+        Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(&vm, field->fieldName()), descriptor, false);
     }
 }
 }

@@ -21,7 +21,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCConstructorBase::s_info = { "Function", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCConstructorBase) };
+const ClassInfo ObjCConstructorBase::s_info = { "Function", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorBase) };
 
 // TODO: Use the current class in finish creation
 JSValue ObjCConstructorBase::read(ExecState* execState, void const* buffer, JSCell* self) {

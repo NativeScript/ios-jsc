@@ -52,7 +52,8 @@ public:
 
 private:
     Interop(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
+        : Base(vm, structure)
+        , _pointerToInstance(vm) {
     }
 
     void finishCreation(JSC::VM&, GlobalObject*);

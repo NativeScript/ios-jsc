@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCBlockTypeConstructor::s_info = { "BlockType", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCBlockTypeConstructor) };
+const ClassInfo ObjCBlockTypeConstructor::s_info = { "BlockType", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockTypeConstructor) };
 
 void ObjCBlockTypeConstructor::finishCreation(VM& vm, JSObject* objCBlockTypePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);

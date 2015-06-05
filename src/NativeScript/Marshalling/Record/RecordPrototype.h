@@ -16,14 +16,13 @@ struct RecordMeta;
 namespace NativeScript {
 class RecordField;
 
-class RecordPrototype : public JSC::JSNonFinalObject {
+class RecordPrototype : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     static RecordPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
         RecordPrototype* cell = new (NotNull, JSC::allocateCell<RecordPrototype>(vm.heap)) RecordPrototype(vm, structure);
         cell->finishCreation(vm, globalObject);
-        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 

@@ -13,14 +13,13 @@
 
 namespace NativeScript {
 
-class RecordField : public JSC::JSNonFinalObject {
+class RecordField : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     static RecordField* create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& fieldName, JSCell* fieldType, ptrdiff_t offset) {
         RecordField* cell = new (NotNull, JSC::allocateCell<RecordField>(vm.heap)) RecordField(vm, structure);
         cell->finishCreation(vm, fieldName, fieldType, offset);
-        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 

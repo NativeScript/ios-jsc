@@ -48,7 +48,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
     __block Class blockKlass = newKlass;
     IMP allocWithZone = findNotOverridenMethod(metaClass, @selector(allocWithZone:));
-    IMP newAllocWithZone = imp_implementationWithBlock (^(id self, NSZone * nsZone) {
+    IMP newAllocWithZone = imp_implementationWithBlock(^(id self, NSZone* nsZone) {
         id instance = allocWithZone(self, @selector(allocWithZone:), nsZone);
         VM& vm = globalObject->vm();
         JSLockHolder lockHolder(vm);
@@ -67,7 +67,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
 
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
-    IMP newRetain = imp_implementationWithBlock (^(id self) {
+    IMP newRetain = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 1) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 JSLockHolder lockHolder(globalObject->vm());
@@ -80,7 +80,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(newKlass, @selector(retain), newRetain, "@@:");
 
     void (*release)(id, SEL) = (void (*)(id, SEL))findNotOverridenMethod(newKlass, @selector(release));
-    IMP newRelease = imp_implementationWithBlock (^(id self) {
+    IMP newRelease = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 2) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 JSLockHolder lockHolder(globalObject->vm());
@@ -135,7 +135,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     }
 
     JSObject* typeEncodingObj = asObject(typeEncoding);
-    PropertyName returnsProp = Identifier(execState, WTF::ASCIILiteral("returns"));
+    PropertyName returnsProp = Identifier::fromString(execState, "returns");
     if (!typeEncodingObj->hasOwnProperty(execState, returnsProp)) {
         WTF::String message = WTF::String::format("Method %s is missing its return type encoding", sel_getName(methodName));
         execState->vm().throwException(execState, createError(execState, message));
@@ -152,7 +152,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     compilerEncoding << getCompilerEncoding(returnTypeValue.asCell());
     compilerEncoding << "@:"; // id self, SEL _cmd
 
-    JSValue parameterTypesValue = typeEncodingObj->get(execState, Identifier(execState, WTF::ASCIILiteral("params")));
+    JSValue parameterTypesValue = typeEncodingObj->get(execState, Identifier::fromString(execState, "params"));
     if (execState->hadException()) {
         return;
     }
@@ -346,7 +346,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
 void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instanceMethods, JSValue exposedMethods) {
     PropertyNameArray prototypeKeys(execState);
-    instanceMethods->methodTable()->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, ExcludeDontEnumProperties);
+    instanceMethods->methodTable()->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, EnumerationMode());
 
     for (Identifier key : prototypeKeys) {
         PropertySlot propertySlot(instanceMethods);
@@ -385,7 +385,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
     if (exposedMethods.isObject()) {
         PropertyNameArray exposedMethodsKeys(execState);
         JSObject* exposedMethodsObject = exposedMethods.toObject(execState);
-        exposedMethodsObject->methodTable()->getOwnPropertyNames(exposedMethodsObject, execState, exposedMethodsKeys, ExcludeDontEnumProperties);
+        exposedMethodsObject->methodTable()->getOwnPropertyNames(exposedMethodsObject, execState, exposedMethodsKeys, EnumerationMode());
 
         for (Identifier key : exposedMethodsKeys) {
             if (!instanceMethods->hasOwnProperty(execState, key)) {
@@ -428,7 +428,7 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
 
 void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMethods) {
     PropertyNameArray keys(execState);
-    staticMethods->methodTable()->getOwnPropertyNames(staticMethods, execState, keys, ExcludeDontEnumProperties);
+    staticMethods->methodTable()->getOwnPropertyNames(staticMethods, execState, keys, EnumerationMode());
 
     for (Identifier key : keys) {
         PropertySlot propertySlot(staticMethods);

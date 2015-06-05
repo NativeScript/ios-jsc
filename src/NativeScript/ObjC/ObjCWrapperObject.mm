@@ -7,13 +7,12 @@
 //
 
 #include "ObjCWrapperObject.h"
-#include <JavaScriptCore/DelayedReleaseScope.h>
 #include "ObjCTypes.h"
 
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCWrapperObject::s_info = { "ObjCWrapperObject", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCWrapperObject) };
+const ClassInfo ObjCWrapperObject::s_info = { "ObjCWrapperObject", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCWrapperObject) };
 
 void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject) {
     Base::finishCreation(vm);

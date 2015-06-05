@@ -85,8 +85,8 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
         ExecState* globalExec = globalObject->globalExec();
 
         JSObject* instanceMethods = jsCast<JSObject*>(derivedConstructor->get(globalExec, globalExec->vm().propertyNames->prototype));
-        JSValue implementedProtocols = derivedConstructor->get(globalExec, Identifier(globalExec, WTF::ASCIILiteral("ObjCProtocols")));
-        JSValue exposedMethods = derivedConstructor->get(globalExec, Identifier(globalExec, WTF::ASCIILiteral("ObjCExposedMethods")));
+        JSValue implementedProtocols = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCProtocols"));
+        JSValue exposedMethods = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCExposedMethods"));
 
         classBuilder->implementProtocols(globalExec, implementedProtocols);
         if (globalExec->hadException()) {

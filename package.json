@@ -33,8 +33,5 @@
     "shelljs": "^0.3.0",
     "ws": "^0.7.1"
   },
-  "scripts": {
-    "test": "grunt test"
-  },
   "license": "Apache-2.0"
 }

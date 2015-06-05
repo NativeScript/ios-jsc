@@ -17,7 +17,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordConstructor::s_info = { "record", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(RecordConstructor) };
+const ClassInfo RecordConstructor::s_info = { "record", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordConstructor) };
 
 static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeCell) {
     if (RecordConstructor* recordConstructor = jsDynamicCast<RecordConstructor*>(typeCell)) {
@@ -42,7 +42,7 @@ static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeC
 
             RecordPrototype* recordPrototype = jsDynamicCast<RecordPrototype*>(recordConstructor->get(execState, execState->vm().propertyNames->prototype));
             for (RecordField* field : recordPrototype->fields()) {
-                Identifier fieldName = Identifier(execState, field->fieldName());
+                Identifier fieldName = Identifier::fromString(execState, field->fieldName());
 
                 JSValue fieldValue1 = v1.get(execState, fieldName);
                 if (execState->hadException()) {
@@ -112,7 +112,7 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
 
         const WTF::Vector<RecordField*> fields = jsCast<RecordPrototype*>(constructor->get(execState, execState->vm().propertyNames->prototype))->fields();
         for (RecordField* field : fields) {
-            Identifier propertyName(execState, field->fieldName());
+            Identifier propertyName = Identifier::fromString(execState, field->fieldName());
             if (object->hasProperty(execState, propertyName)) {
                 JSValue fieldValue = object->get(execState, propertyName);
                 if (execState->hadException()) {
@@ -170,7 +170,7 @@ void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, Rec
 
     this->putDirect(vm, vm.propertyNames->prototype, recordPrototype, DontEnum | DontDelete | ReadOnly);
     this->putDirect(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum | DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier(&vm, WTF::ASCIILiteral("equals")), 0, recordConstructorFuncEquals, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("equals")), 0, recordConstructorFuncEquals, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
 
     this->_instancesStructure.set(vm, this, RecordInstance::createStructure(globalObject, recordPrototype));
 }

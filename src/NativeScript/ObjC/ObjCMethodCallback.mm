@@ -28,14 +28,14 @@ ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue 
     return methodCallback;
 }
 
-const ClassInfo ObjCMethodCallback::s_info = { "ObjCMethodCallback", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCMethodCallback) };
+const ClassInfo ObjCMethodCallback::s_info = { "ObjCMethodCallback", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCMethodCallback) };
 
 void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, JSCell* returnType, WTF::Vector<JSCell*> parameterTypes) {
     Base::finishCreation(vm, globalObject, function, returnType, parameterTypes, 2);
 }
 
 void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
-    ObjCMethodCallback* methodCallback = jsCast<ObjCMethodCallback*>(userData);
+    ObjCMethodCallback* methodCallback = reinterpret_cast<ObjCMethodCallback*>(userData);
 
     id target = *static_cast<id*>(argValues[0]);
 #ifdef DEBUG_OBJC_INVOCATION

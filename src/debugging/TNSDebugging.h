@@ -17,19 +17,19 @@
 #include <string.h>
 #include <notify.h>
 
-TNSRuntime* runtime;
-static TNSRuntimeInspector* inspector = nil;
+TNSRuntime *runtime;
+static TNSRuntimeInspector *inspector = nil;
 static BOOL isWaitingForDebugger = NO;
 
-typedef void (^TNSInspectorProtocolHandler)(NSString* message, NSError* error);
+typedef void (^TNSInspectorProtocolHandler)(NSString *message, NSError *error);
 
-typedef void (^TNSInspectorSendMessageBlock)(NSString* message);
+typedef void (^TNSInspectorSendMessageBlock)(NSString *message);
 
 typedef TNSInspectorProtocolHandler (^TNSInspectorFrontendConnectedHandler)(
-    TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error);
+    TNSInspectorSendMessageBlock sendMessageToFrontend, NSError *error);
 
-#define CheckError(retval, handler)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       \
-    ({                                                                           \
+#define CheckError(retval, handler)                                            \
+  ({                                                                           \
     typeof(retval) errorCode = retval;                                         \
     BOOL success = NO;                                                         \
     if (errorCode == 0)                                                        \
@@ -40,34 +40,35 @@ typedef TNSInspectorProtocolHandler (^TNSInspectorFrontendConnectedHandler)(
       handler(nil, [NSError errorWithDomain:NSPOSIXErrorDomain                 \
                                        code:errorCode                          \
                                    userInfo:nil]);                             \
-    success; \
-    })
+    success;                                                                   \
+  })
 
-#define NOTIFICATION(name)                                                \
-    [[NSString stringWithFormat:@"%@:NativeScript.Debug.%s",              \
-                                [[NSBundle mainBundle] bundleIdentifier], \
-                                name] UTF8String]
+#define NOTIFICATION(name)                                                     \
+  [[NSString stringWithFormat:@"%@:NativeScript.Debug.%s",                     \
+                              [[NSBundle mainBundle] bundleIdentifier],        \
+                              name] UTF8String]
 
-static dispatch_source_t TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler) {
-    dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
+static dispatch_source_t TNSCreateInspectorServer(
+    TNSInspectorFrontendConnectedHandler connectedHandler) {
+  dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
 
-    dispatch_fd_t listenSocket = socket(PF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in addr = {
-        sizeof(addr), AF_INET, htons(18181), { INADDR_ANY }, { 0 }
-    };
-    if (!CheckError(
-            bind(listenSocket, (const struct sockaddr*)&addr, sizeof(addr)),
-            connectedHandler)) {
-        return nil;
-    }
+  dispatch_fd_t listenSocket = socket(PF_INET, SOCK_STREAM, 0);
+  struct sockaddr_in addr = {
+      sizeof(addr), AF_INET, htons(18181), {INADDR_ANY}, {0}};
+  if (!CheckError(
+          bind(listenSocket, (const struct sockaddr *)&addr, sizeof(addr)),
+          connectedHandler)) {
+    return nil;
+  }
 
-    if (!CheckError(listen(listenSocket, 0), connectedHandler)) {
-        return nil;
-    }
+  if (!CheckError(listen(listenSocket, 0), connectedHandler)) {
+    return nil;
+  }
 
-    dispatch_source_t listenSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
+  dispatch_source_t listenSource =
+      dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
 
-    dispatch_source_set_event_handler(listenSource, ^{
+  dispatch_source_set_event_handler(listenSource, ^{
       dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
 
       TNSInspectorSendMessageBlock sender = ^(NSString *message) {
@@ -115,9 +116,9 @@ static dispatch_source_t TNSCreateInspectorServer(TNSInspectorFrontendConnectedH
                 return;
               }
 
-              NSString *payload =
-                  [[NSString alloc] initWithData:(NSData *)data
-                                        encoding:NSUTF16LittleEndianStringEncoding];
+              NSString *payload = [[NSString alloc]
+                  initWithData:(NSData *)data
+                      encoding:NSUTF16LittleEndianStringEncoding];
               handler(payload, nil);
 
               dispatch_io_read(io, 0, 4, queue, ioHandler);
@@ -125,33 +126,38 @@ static dispatch_source_t TNSCreateInspectorServer(TNSInspectorFrontendConnectedH
       };
 
       dispatch_io_read(io, 0, 4, queue, ioHandler);
-    });
-    dispatch_source_set_cancel_handler(listenSource, ^{ close(listenSocket); });
-    dispatch_resume(listenSource);
+  });
+  dispatch_source_set_cancel_handler(listenSource, ^{ close(listenSocket); });
+  dispatch_resume(listenSource);
 
-    return listenSource;
+  return listenSource;
 }
 
-static void TNSObjectiveCUncaughtExceptionHandler(NSException* exception) {
-    JSStringRef exceptionMessage = JSStringCreateWithCFString((__bridge CFStringRef)(exception.description));
+static void TNSObjectiveCUncaughtExceptionHandler(NSException *exception) {
+  JSStringRef exceptionMessage =
+      JSStringCreateWithCFString((__bridge CFStringRef)(exception.description));
 
-    JSValueRef errorArguments[] = { JSValueMakeString(runtime.globalContext, exceptionMessage) };
-    JSObjectRef error = JSObjectMakeError(runtime.globalContext, 1, errorArguments, NULL);
+  JSValueRef errorArguments[] = {
+      JSValueMakeString(runtime.globalContext, exceptionMessage)};
+  JSObjectRef error =
+      JSObjectMakeError(runtime.globalContext, 1, errorArguments, NULL);
 
-    [inspector reportFatalError:error];
+  [inspector reportFatalError:error];
 }
 
-static void TNSEnableRemoteInspector(int argc, char** argv) {
-    __block dispatch_source_t listenSource = nil;
+static void TNSEnableRemoteInspector(int argc, char **argv) {
+  __block dispatch_source_t listenSource = nil;
 
-    dispatch_block_t clear = ^ {
-        dispatch_source_cancel(listenSource);
-        listenSource = nil;
-        inspector = nil;
-        NSSetUncaughtExceptionHandler(NULL);
-    };
+  dispatch_block_t clear = ^{
+      dispatch_source_cancel(listenSource);
+      listenSource = nil;
+      inspector = nil;
+      NSSetUncaughtExceptionHandler(NULL);
+  };
 
-    TNSInspectorFrontendConnectedHandler connectionHandler = ^TNSInspectorProtocolHandler(TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error) {
+  TNSInspectorFrontendConnectedHandler connectionHandler =
+      ^TNSInspectorProtocolHandler(
+          TNSInspectorSendMessageBlock sendMessageToFrontend, NSError *error) {
       if (error) {
         if (listenSource) {
           clear();
@@ -196,23 +202,23 @@ static void TNSEnableRemoteInspector(int argc, char** argv) {
             }
           }
       };
-    };
+  };
 
-    int waitForDebuggerSubscription;
-    notify_register_dispatch(NOTIFICATION("WaitForDebugger"),
-                             &waitForDebuggerSubscription,
-                             dispatch_get_main_queue(), ^(int token) {
+  int waitForDebuggerSubscription;
+  notify_register_dispatch(NOTIFICATION("WaitForDebugger"),
+                           &waitForDebuggerSubscription,
+                           dispatch_get_main_queue(), ^(int token) {
       isWaitingForDebugger = YES;
       NSLog(@"NativeScript waiting for debugger.");
       CFRunLoopPerformBlock(CFRunLoopGetCurrent(), kCFRunLoopDefaultMode, ^{
           CFRunLoopRunInMode(kCFRunLoopDefaultMode, 30, false);
       });
-    });
+  });
 
-    int attachRequestSubscription;
-    notify_register_dispatch(NOTIFICATION("AttachRequest"),
-                             &attachRequestSubscription,
-                             dispatch_get_main_queue(), ^(int token) {
+  int attachRequestSubscription;
+  notify_register_dispatch(NOTIFICATION("AttachRequest"),
+                           &attachRequestSubscription,
+                           dispatch_get_main_queue(), ^(int token) {
       if (listenSource) {
         return;
       }
@@ -228,12 +234,12 @@ static void TNSEnableRemoteInspector(int argc, char** argv) {
             listenSource = nil;
           }
       });
-    });
+  });
 
-    int attachAvailabilityQuerySubscription;
-    notify_register_dispatch(NOTIFICATION("AttachAvailabilityQuery"),
-                             &attachAvailabilityQuerySubscription,
-                             dispatch_get_main_queue(), ^(int token) {
+  int attachAvailabilityQuerySubscription;
+  notify_register_dispatch(NOTIFICATION("AttachAvailabilityQuery"),
+                           &attachAvailabilityQuerySubscription,
+                           dispatch_get_main_queue(), ^(int token) {
       if (inspector) {
         notify_post(NOTIFICATION("AlreadyConnected"));
       } else if (listenSource) {
@@ -241,30 +247,30 @@ static void TNSEnableRemoteInspector(int argc, char** argv) {
       } else {
         notify_post(NOTIFICATION("AttachAvailable"));
       }
-    });
+  });
 
-    notify_post(NOTIFICATION("AppLaunching"));
+  notify_post(NOTIFICATION("AppLaunching"));
 
-    for (int i = 1; i < argc; i++) {
-        BOOL startListening = NO;
-        BOOL shouldWaitForDebugger = NO;
+  for (int i = 1; i < argc; i++) {
+    BOOL startListening = NO;
+    BOOL shouldWaitForDebugger = NO;
 
-        if (strcmp(argv[i], "--nativescript-debug-brk") == 0) {
-            shouldWaitForDebugger = YES;
-        } else if (strcmp(argv[i], "--nativescript-debug-start") == 0) {
-            startListening = YES;
-        }
-
-        if (startListening || shouldWaitForDebugger) {
-            notify_post(NOTIFICATION("AttachRequest"));
-            if (shouldWaitForDebugger) {
-                notify_post(NOTIFICATION("WaitForDebugger"));
-            }
-
-            break;
-        }
+    if (strcmp(argv[i], "--nativescript-debug-brk") == 0) {
+      shouldWaitForDebugger = YES;
+    } else if (strcmp(argv[i], "--nativescript-debug-start") == 0) {
+      startListening = YES;
     }
 
-    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5, false);
-    notify_cancel(waitForDebuggerSubscription);
+    if (startListening || shouldWaitForDebugger) {
+      notify_post(NOTIFICATION("AttachRequest"));
+      if (shouldWaitForDebugger) {
+        notify_post(NOTIFICATION("WaitForDebugger"));
+      }
+
+      break;
+    }
+  }
+
+  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.5, false);
+  notify_cancel(waitForDebuggerSubscription);
 }

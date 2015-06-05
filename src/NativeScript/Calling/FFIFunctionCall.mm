@@ -12,7 +12,7 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo FFIFunctionCall::s_info = { "FFIFunctionCall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FFIFunctionCall) };
+const ClassInfo FFIFunctionCall::s_info = { "FFIFunctionCall", &Base::s_info, 0, CREATE_METHOD_TABLE(FFIFunctionCall) };
 
 void FFIFunctionCall::finishCreation(VM& vm, const void* functionPointer, const WTF::String& name, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects) {
     Base::finishCreation(vm, name);

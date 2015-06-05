@@ -29,14 +29,13 @@ class FunctionReferenceTypeInstance;
 class FFISimpleType;
 class PointerConstructor;
 
-class TypeFactory : public JSC::JSCell {
+class TypeFactory : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSCell Base;
+    typedef JSC::JSDestructibleObject Base;
 
     static TypeFactory* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure) {
         TypeFactory* object = new (NotNull, JSC::allocateCell<TypeFactory>(vm.heap)) TypeFactory(vm, structure);
         object->finishCreation(vm, globalObject);
-        vm.heap.addFinalizer(object, destroy);
         return object;
     }
 
@@ -127,7 +126,10 @@ public:
 private:
     TypeFactory(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure)
-        , _cacheReferenceTypeWeakHandleOwner(ReferenceTypesWeakHandleOwner(_cacheReferenceType)) {
+        , _cacheReferenceTypeWeakHandleOwner(ReferenceTypesWeakHandleOwner(_cacheReferenceType))
+        , _cacheArray(vm)
+        , _cacheStruct(vm)
+        , _cacheId(vm) {
     }
 
     static void destroy(JSC::JSCell* cell) {

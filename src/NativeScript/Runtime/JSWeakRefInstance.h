@@ -13,18 +13,15 @@
 #include <JavaScriptCore/WeakInlines.h>
 
 namespace NativeScript {
-class JSWeakRefInstance : public JSC::JSNonFinalObject {
+class JSWeakRefInstance : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     DECLARE_INFO;
 
-    static const bool needsDestruction = false;
-
-    static JSWeakRefInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* cell) {
+    static JSWeakRefInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSObject* weakObject) {
         JSWeakRefInstance* object = new (NotNull, JSC::allocateCell<JSWeakRefInstance>(vm.heap)) JSWeakRefInstance(vm, structure);
-        object->finishCreation(vm, cell);
-        vm.heap.addFinalizer(object, destroy);
+        object->finishCreation(vm, weakObject);
         return object;
     }
 
@@ -32,7 +29,7 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    JSCell* cell() const {
+    JSObject* cell() const {
         return this->_handle.get();
     }
 
@@ -48,16 +45,16 @@ private:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM& vm, JSC::JSCell* cell) {
+    void finishCreation(JSC::VM& vm, JSC::JSObject* object) {
         Base::finishCreation(vm);
-        this->_handle = cell;
+        this->_handle = object;
     }
 
     static void destroy(JSC::JSCell* cell) {
         JSC::jsCast<JSWeakRefInstance*>(cell)->~JSWeakRefInstance();
     }
 
-    JSC::Weak<JSCell> _handle;
+    JSC::Weak<JSObject> _handle;
 };
 }
 

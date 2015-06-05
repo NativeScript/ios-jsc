@@ -128,6 +128,12 @@ set(SOURCE_FILES
     TypeFactory.mm
 )
 
+set(NativeScript_PUBLIC_HEADERS
+    NativeScript.h
+    TNSRuntime.h
+    TNSRuntime+Inspector.h
+)
+
 set(JSFILES
     require.js
     __extends.js
@@ -135,22 +141,15 @@ set(JSFILES
 )
 
 add_definitions(
-    -DSTATICALLY_LINKED_WITH_JavaScriptCore
-    -DSTATICALLY_LINKED_WITH_WTF
-    -DENABLE_REMOTE_INSPECTOR=0
-    -DENABLE_YARR_JIT=0
-    -DENABLE_INSPECTOR=1
-    -DENABLE_LLINT_C_LOOP=0
-    -DJSC_OBJC_API_ENABLED=0
-    -DHAVE_HEADER_DETECTION_H
-    -DNDEBUG
     -DCURRENT_ARCH="$(CURRENT_ARCH)"
 )
-include(FeatureDefines.cmake)
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_DIR}/include" "${WEBKIT_DIR}/include")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_DIR}/include" "${WEBKIT_INCLUDE_DIRECTORIES}")
+link_directories("${LIBFFI_DIR}/lib" ${WEBKIT_LINK_DIRECTORIES})
 
 add_library(NativeScript ${SOURCE_FILES} ${HEADER_FILES} ${JSFILES})
+
+add_dependencies(NativeScript WebKit)
 
 set_target_properties(NativeScript PROPERTIES
     COMPILE_FLAGS "
@@ -161,31 +160,34 @@ set_target_properties(NativeScript PROPERTIES
     XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "7.0"
 )
 
-if(${NATIVESCRIPT_LIBRARY_TYPE} STREQUAL "STATIC")
-    set_target_properties(NativeScript PROPERTIES
-        STATIC_LIBRARY_FLAGS "
-            -lJavaScriptCore -L\"${WEBKIT_DIR}/lib\"
-            -lffi -L\"${LIBFFI_DIR}/lib\"
-        "
-        XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN YES
-    )
-elseif(${NATIVESCRIPT_LIBRARY_TYPE} STREQUAL "SHARED")
+if(${BUILD_SHARED_LIBS})
     set_target_properties(NativeScript PROPERTIES
         FRAMEWORK TRUE
         FRAMEWORK_VERSION "1.0" # TODO
-        PUBLIC_HEADER "NativeScript.h;TNSRuntime.h;TNSRuntime+Inspector.h" # TODO
+        PUBLIC_HEADER "${NativeScript_PUBLIC_HEADERS}"
         INSTALL_NAME_DIR "@executable_path/Frameworks"
         XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
         MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
     )
     target_link_libraries(NativeScript
-        -lJavaScriptCore -L"${WEBKIT_DIR}/lib"
-        -lffi -L"${LIBFFI_DIR}/lib"
-        "-framework UIKit"
+        ${WEBKIT_LIBRARIES}
+        ffi
         libicucore.dylib
         libz.dylib
         libc++.dylib
+        "-framework UIKit"
     )
+elseif(${EMBED_STATIC_DEPENDENCIES})
+    foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
+        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${_directory}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)")
+    endforeach()
+    foreach(_library ${WEBKIT_LIBRARIES})
+        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -l${_library}")
+    endforeach()
+    
+    set_target_properties(NativeScript PROPERTIES
+        STATIC_LIBRARY_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${LIBFFI_DIR}/lib -lffi"
+    )    
 endif()
 
 include(EmbedResourceInHeader)

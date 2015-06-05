@@ -36,8 +36,8 @@ EncodedJSValue JSC_HOST_CALL ObjCExtendFunction(ExecState* execState) {
         if (!classNameValue.isUndefined()) {
             className = classNameValue.toString(execState)->value(execState);
         }
-        exposedMethods = inheritInfo.get(execState, Identifier(execState, WTF::ASCIILiteral("exposedMethods")));
-        protocolsArray = inheritInfo.get(execState, Identifier(execState, WTF::ASCIILiteral("protocols")));
+        exposedMethods = inheritInfo.get(execState, Identifier::fromString(execState, "exposedMethods"));
+        protocolsArray = inheritInfo.get(execState, Identifier::fromString(execState, "protocols"));
     }
 
     ObjCClassBuilder classBuilder(execState, baseConstructor, instanceMethods, className);

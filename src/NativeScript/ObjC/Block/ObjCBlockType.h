@@ -12,14 +12,13 @@
 #include "FFIType.h"
 
 namespace NativeScript {
-class ObjCBlockType : public JSC::JSNonFinalObject {
+class ObjCBlockType : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     static ObjCBlockType* create(JSC::VM& vm, JSC::Structure* structure, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes) {
         ObjCBlockType* cell = new (NotNull, JSC::allocateCell<ObjCBlockType>(vm.heap)) ObjCBlockType(vm, structure);
         cell->finishCreation(vm, returnType, parameterTypes);
-        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 

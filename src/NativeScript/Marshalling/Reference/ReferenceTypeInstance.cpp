@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferenceTypeInstance::s_info = { "ReferenceTypeInstance", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ReferenceTypeInstance) };
+const ClassInfo ReferenceTypeInstance::s_info = { "ReferenceTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferenceTypeInstance) };
 
 JSValue ReferenceTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     const void* data = *reinterpret_cast<void* const*>(buffer);

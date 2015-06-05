@@ -17,6 +17,10 @@ class FFICallback : public JSC::JSCell {
 public:
     typedef JSC::JSCell Base;
 
+    static const bool needsDestruction = true;
+
+    static const unsigned StructureFlags = Base::StructureFlags | JSC::StructureIsImmortal;
+
     DECLARE_INFO;
 
     JSC::JSCell* function() const {

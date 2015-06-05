@@ -15,7 +15,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferenceTypeConstructor::s_info = { "ReferenceType", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ReferenceTypeConstructor) };
+const ClassInfo ReferenceTypeConstructor::s_info = { "ReferenceType", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferenceTypeConstructor) };
 
 void ReferenceTypeConstructor::finishCreation(VM& vm, JSObject* referenceTypePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);

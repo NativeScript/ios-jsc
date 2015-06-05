@@ -9,12 +9,12 @@
 #import <Foundation/Foundation.h>
 #import <NativeScript/NativeScript.h>
 
-static TNSRuntime* runtime;
+static TNSRuntime *runtime;
 
-__attribute__((constructor))
-static void initRuntime() {
-    runtime = [[TNSRuntime alloc] initWithApplicationPath:[NSBundle mainBundle].bundlePath];
-    TNSRuntimeInspector.logsToSystemConsole = YES;
+__attribute__((constructor)) static void initRuntime() {
+  runtime = [[TNSRuntime alloc]
+      initWithApplicationPath:[NSBundle mainBundle].bundlePath];
+  TNSRuntimeInspector.logsToSystemConsole = YES;
 
-    [runtime executeModule:@"./"];
+  [runtime executeModule:@"./"];
 }

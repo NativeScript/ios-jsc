@@ -12,9 +12,9 @@ int main(int argc, char *argv[]) {
         initWithApplicationPath:[NSBundle mainBundle].bundlePath];
     TNSRuntimeInspector.logsToSystemConsole = YES;
 
-    #ifndef NDEBUG
-      TNSEnableRemoteInspector(argc, argv);
-    #endif
+#ifndef NDEBUG
+    TNSEnableRemoteInspector(argc, argv);
+#endif
 
     [runtime executeModule:@"./"];
 

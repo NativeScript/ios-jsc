@@ -7,6 +7,6 @@
 [submodule "common-runtime-tests-modules"]
 	path = tests/TestRunner/app/tns_modules/shared
 	url = git@github.com:NativeScript/common-runtime-tests-modules.git
-[submodule "src/ios-runtime-jsc"]
-	path = src/jsc
-	url = git@github.com:NativeScript/ios-runtime-jsc.git
+[submodule "src/webkit"]
+	path = src/webkit
+	url = git@github.com:NativeScript/webkit.git

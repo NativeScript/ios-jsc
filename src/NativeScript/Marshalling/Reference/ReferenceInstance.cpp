@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferenceInstance::s_info = { "Reference", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ReferenceInstance) };
+const ClassInfo ReferenceInstance::s_info = { "Reference", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferenceInstance) };
 
 void ReferenceInstance::finishCreation(VM& vm, JSValue value) {
     Base::finishCreation(vm);

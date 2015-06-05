@@ -11,7 +11,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FFICall) };
+const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, 0, CREATE_METHOD_TABLE(FFICall) };
 
 void FFICall::initializeFFI(VM& vm, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
     ASSERT(this->methodTable()->destroy != FFICall::destroy);

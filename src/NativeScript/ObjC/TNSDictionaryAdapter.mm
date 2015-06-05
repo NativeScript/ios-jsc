@@ -9,8 +9,9 @@
 #import "TNSDictionaryAdapter.h"
 #include "ObjCTypes.h"
 #include <JavaScriptCore/JSMap.h>
-#include <JavaScriptCore/MapData.h>
+#include <JavaScriptCore/JSMapIterator.h>
 #include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/MapDataInlines.h>
 
 using namespace JSC;
 using namespace NativeScript;
@@ -20,16 +21,14 @@ using namespace NativeScript;
 @end
 
 @implementation TNSDictionaryAdapterMapKeysEnumerator {
-    Strong<MapData> _mapData;
+    Strong<JSMapIterator> _iterator;
     ExecState* _execState;
-    std::unique_ptr<MapData::const_iterator> _it;
 }
 
-- (instancetype)initWithMapData:(MapData*)mapData execState:(ExecState*)execState {
+- (instancetype)initWithMap:(JSMap*)map execState:(ExecState*)execState {
     if (self) {
-        self->_mapData = Strong<MapData>(execState->vm(), mapData);
+        _iterator.set(execState->vm(), JSMapIterator::create(execState->vm(), execState->lexicalGlobalObject()->mapIteratorStructure(), map, JSC::MapIterateKey));
         self->_execState = execState;
-        self->_it = std::make_unique<MapData::const_iterator>(mapData);
     }
 
     return self;
@@ -38,10 +37,9 @@ using namespace NativeScript;
 - (id)nextObject {
     JSLockHolder lock(self->_execState);
 
-    if (*self->_it != self->_mapData->end()) {
-        id object = toObject(self->_execState, self->_it->key());
-        self->_it->operator++();
-        return object;
+    JSValue key, value;
+    if (_iterator->nextKeyValue(key, value)) {
+        return toObject(_execState, key);
     }
 
     return nil;
@@ -108,11 +106,11 @@ using namespace NativeScript;
 
     JSObject* object = self->_object.get();
     if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
-        return map->mapData()->size(self->_execState);
+        return map->size(self->_execState);
     }
 
     PropertyNameArray properties(self->_execState);
-    object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, ExcludeDontEnumProperties);
+    object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return properties.size();
 }
 
@@ -122,9 +120,9 @@ using namespace NativeScript;
     JSObject* object = self->_object.get();
     if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
         JSValue key = toValue(self->_execState, aKey);
-        return toObject(self->_execState, map->mapData()->get(self->_execState, key));
+        return toObject(self->_execState, map->get(self->_execState, key));
     } else if ([aKey isKindOfClass:[NSString class]]) {
-        Identifier key(self->_execState, reinterpret_cast<CFStringRef>(aKey));
+        Identifier key{ Identifier::fromString(self->_execState, WTF::String(reinterpret_cast<CFStringRef>(aKey))) };
         return toObject(self->_execState, object->get(self->_execState, key));
     } else if ([aKey isKindOfClass:[NSNumber class]]) {
         NSUInteger key = [aKey unsignedIntegerValue];
@@ -137,11 +135,11 @@ using namespace NativeScript;
 - (NSEnumerator*)keyEnumerator {
     JSObject* object = self->_object.get();
     if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
-        return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMapData:map->mapData() execState:self->_execState] autorelease];
+        return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMap:map execState:self->_execState] autorelease];
     }
 
     PropertyNameArray properties(self->_execState);
-    object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, ExcludeDontEnumProperties);
+    object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return [[[TNSDictionaryAdapterObjectKeysEnumerator alloc] initWithProperties:properties.releaseData()] autorelease];
 }
 

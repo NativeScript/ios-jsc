@@ -55,12 +55,12 @@ static JSBlock* createBlock(ExecState* execState, JSCell* function, ObjCBlockTyp
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ObjCBlockCallback* blockCallback = ObjCBlockCallback::create(execState->vm(), globalObject, globalObject->objCBlockCallbackStructure(), function, blockType);
 
-    JSBlock* block = new JSBlock({ .isa = nullptr,
-                                   .flags = BLOCK_HAS_COPY_DISPOSE,
-                                   .reserved = 0,
-                                   .invoke = nullptr,
-                                   .descriptor = &kJSBlockDescriptor,
-                                   .callback = blockCallback });
+    JSBlock* block = new JSBlock({.isa = nullptr,
+                                  .flags = BLOCK_HAS_COPY_DISPOSE,
+                                  .reserved = 0,
+                                  .invoke = nullptr,
+                                  .descriptor = &kJSBlockDescriptor,
+                                  .callback = blockCallback });
     block->invoke = block->callback->functionPointer();
 
     object_setClass(reinterpret_cast<id>(block), objc_getClass("__NSMallocBlock__"));
@@ -68,7 +68,7 @@ static JSBlock* createBlock(ExecState* execState, JSCell* function, ObjCBlockTyp
     return block;
 }
 
-const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCBlockType) };
+const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockType) };
 
 JSValue ObjCBlockType::read(ExecState* execState, const void* buffer, JSCell* self) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());

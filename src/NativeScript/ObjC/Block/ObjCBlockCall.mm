@@ -7,7 +7,6 @@
 //
 
 #include "ObjCBlockCall.h"
-#include <JavaScriptCore/DelayedReleaseScope.h>
 #include "ObjCBlockType.h"
 
 namespace NativeScript {
@@ -20,7 +19,7 @@ struct BlockLiteral {
     void* invoke;
 };
 
-const ClassInfo ObjCBlockCall::s_info = { "ObjCBlockCall", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(ObjCBlockCall) };
+const ClassInfo ObjCBlockCall::s_info = { "ObjCBlockCall", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockCall) };
 
 void ObjCBlockCall::finishCreation(VM& vm, id block, ObjCBlockType* blockType) {
     Base::finishCreation(vm, WTF::emptyString());

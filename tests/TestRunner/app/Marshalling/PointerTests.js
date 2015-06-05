@@ -10,14 +10,14 @@ describe(module.id, function () {
     });
 
     it("PointerArithmetic", function () {
-        var pointer = new interop.Pointer(0xFFFFFFFF);
-        expect(pointer.toNumber()).toBe(0xFFFFFFFF);
+        var pointer = new interop.Pointer(0xFFFFFFFE);
+        expect(pointer.toNumber()).toBe(0xFFFFFFFE);
 
         pointer = pointer.subtract(4);
-        expect(pointer.toNumber()).toBe(0xFFFFFFFB);
+        expect(pointer.toNumber()).toBe(0xFFFFFFFA);
 
         pointer = pointer.add(4);
-        expect(pointer.toNumber()).toBe(0xFFFFFFFF);
+        expect(pointer.toNumber()).toBe(0xFFFFFFFE);
     });
 
     it("NullPointer", function () {

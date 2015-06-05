@@ -53,7 +53,6 @@ using namespace NativeScript;
 static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     JSString* moduleBody = jsString(execState, execState->argument(0).toWTFString(execState));
     WTF::String moduleUrl = execState->argument(1).toString(execState)->value(execState);
-    JSString* moduleName = execState->argument(2).toString(execState);
 
     MarkedArgumentBuffer requireArgs;
     requireArgs.append(jsString(execState, WTF::ASCIILiteral("require")));
@@ -63,10 +62,12 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     requireArgs.append(jsString(execState, WTF::ASCIILiteral("__filename")));
     requireArgs.append(moduleBody);
 
-    JSFunction* moduleFunction = jsCast<JSFunction*>(constructFunction(execState, execState->lexicalGlobalObject(), requireArgs, moduleName->toIdentifier(execState), moduleUrl, WTF::TextPosition()));
+    JSObject* constructedFunction = constructFunction(execState, execState->lexicalGlobalObject(), requireArgs, Identifier::fromString(execState, "anonymous"), moduleUrl, WTF::TextPosition());
     if (execState->hadException()) {
         return JSValue::encode(jsUndefined());
     }
+
+    JSFunction* moduleFunction = jsCast<JSFunction*>(constructedFunction);
     SourceProvider* sourceProvider = moduleFunction->sourceCode()->provider();
 
     TNSRuntime* runtime = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData);

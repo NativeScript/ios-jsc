@@ -15,16 +15,16 @@ using namespace JSC;
 
 static EncodedJSValue JSC_HOST_CALL construct(ExecState* execState) {
     JSValue argument = execState->argument(0);
-    if (!argument.isCell()) {
+    if (!argument.isObject()) {
         return JSValue::encode(execState->vm().throwException(execState, createTypeError(execState, WTF::ASCIILiteral("Argument must be an object."))));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSWeakRefInstance* weakRef = JSWeakRefInstance::create(execState->vm(), globalObject->weakRefInstanceStructure(), argument.asCell());
+    JSWeakRefInstance* weakRef = JSWeakRefInstance::create(execState->vm(), globalObject->weakRefInstanceStructure(), argument.toObject(execState));
     return JSValue::encode(weakRef);
 }
 
-const ClassInfo JSWeakRefConstructor::s_info = { "WeakRef", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(JSWeakRefConstructor) };
+const ClassInfo JSWeakRefConstructor::s_info = { "WeakRef", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWeakRefConstructor) };
 
 JSWeakRefConstructor::JSWeakRefConstructor(VM& vm, Structure* structure)
     : Base(vm, structure) {

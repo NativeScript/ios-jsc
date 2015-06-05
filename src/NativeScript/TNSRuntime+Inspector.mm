@@ -9,7 +9,7 @@
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
-#include <JavaScriptCore/JSConsoleClient.h>
+#include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
 #include <JavaScriptCore/Debugger.h>
@@ -23,7 +23,7 @@ using namespace NativeScript;
 
 NSString* const TNSInspectorRunLoopMode = @"com.apple.JavaScriptCore.remote-inspector-runloop-mode";
 
-class TNSRuntimeInspectorFrontendChannel : public Inspector::InspectorFrontendChannel {
+class TNSRuntimeInspectorFrontendChannel : public Inspector::FrontendChannel {
 public:
     TNSRuntimeInspectorFrontendChannel(TNSRuntimeInspectorMessageHandler handler, ExecState* execState)
         : _messageHandler(Block_copy(handler)) {
@@ -31,7 +31,7 @@ public:
 
     virtual bool sendMessageToFrontend(const WTF::String& message) override {
         WTF::RetainPtr<CFStringRef> cfMessage = message.createCFString();
-        this->_messageHandler([NSString stringWithString:(NSString *)cfMessage.get()]);
+        this->_messageHandler([NSString stringWithString:(NSString*)cfMessage.get()]);
         return true;
     }
 
@@ -54,8 +54,7 @@ private:
 
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
     return [[[TNSRuntimeInspector alloc] initWithRuntime:self
-                                          messageHandler:messageHandler]
-            autorelease];
+                                          messageHandler:messageHandler] autorelease];
 }
 
 - (void)flushSourceProviders {
@@ -75,22 +74,22 @@ private:
 }
 
 + (BOOL)logsToSystemConsole {
-    return Inspector::JSConsoleClient::logToSystemConsole();
+    return Inspector::JSGlobalObjectConsoleClient::logToSystemConsole();
 }
 
 + (void)setLogsToSystemConsole:(BOOL)shouldLog {
-    Inspector::JSConsoleClient::setLogToSystemConsole(shouldLog);
+    Inspector::JSGlobalObjectConsoleClient::setLogToSystemConsole(shouldLog);
 }
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
-                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler{
+                 messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
     if (self = [super init]) {
         JSC::JSLockHolder lock(runtime->_vm.get());
 
         self->_runtime = [runtime retain];
         self->_frontendChannel = std::make_unique<TNSRuntimeInspectorFrontendChannel>(messageHandler, self->_runtime->_globalObject->globalExec());
         self->_inspectorController = &self->_runtime->_globalObject->inspectorController();
-        self->_inspectorController->connectFrontend(self->_frontendChannel.get());
+        self->_inspectorController->connectFrontend(self->_frontendChannel.get(), false);
     }
 
     return self;
@@ -115,7 +114,7 @@ private:
 }
 
 - (void)dealloc {
-    self->_inspectorController->disconnectFrontend(Inspector::InspectorDisconnectReason::InspectorDestroyed);
+    self->_inspectorController->disconnectFrontend(Inspector::DisconnectReason::InspectorDestroyed);
     [self->_runtime release];
     [super dealloc];
 }

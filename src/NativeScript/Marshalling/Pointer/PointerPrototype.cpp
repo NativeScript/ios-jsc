@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo PointerPrototype::s_info = { "Pointer", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(PointerPrototype) };
+const ClassInfo PointerPrototype::s_info = { "Pointer", &Base::s_info, 0, CREATE_METHOD_TABLE(PointerPrototype) };
 
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncAdd(ExecState* execState) {
     void* value = jsCast<PointerInstance*>(execState->thisValue())->data();
@@ -53,8 +53,8 @@ void PointerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
     this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->add, 1, pointerProtoFuncAdd, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier(globalObject->globalExec(), "subtract"), 1, pointerProtoFuncSubtract, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "subtract"), 1, pointerProtoFuncSubtract, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
     this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, pointerProtoFuncToString, NoIntrinsic, DontEnum | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier(globalObject->globalExec(), "toNumber"), 0, pointerProtoFuncToNumber, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "toNumber"), 0, pointerProtoFuncToNumber, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
 }
 }

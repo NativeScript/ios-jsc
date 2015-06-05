@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordInstance::s_info = { "record", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(RecordInstance) };
+const ClassInfo RecordInstance::s_info = { "record", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordInstance) };
 
 void RecordInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, size_t size, PointerInstance* pointer) {
     Base::finishCreation(vm);

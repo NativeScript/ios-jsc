@@ -15,7 +15,7 @@
 namespace NativeScript {
 
 template <class DerivedCallback>
-const JSC::ClassInfo FFICallback<DerivedCallback>::s_info = { "FFICallback", 0, 0, 0, CREATE_METHOD_TABLE(FFICallback) };
+const JSC::ClassInfo FFICallback<DerivedCallback>::s_info = { "FFICallback", 0, 0, CREATE_METHOD_TABLE(FFICallback) };
 
 template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void* retValue, void** argValues, void* userData) {
@@ -99,8 +99,6 @@ inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlo
     ffi_prep_cif(this->_cif, FFI_DEFAULT_ABI, parametersCount + initialArgumentIndex, const_cast<ffi_type*>(this->_returnType.ffiType), const_cast<ffi_type**>(parameterTypesFFITypes));
     this->_closure = static_cast<ffi_closure*>(ffi_closure_alloc(sizeof(ffi_closure), &this->_functionPointer));
     ffi_prep_closure_loc(this->_closure, this->_cif, &ffiClosureCallback, this, this->_functionPointer);
-
-    vm.heap.addFinalizer(this, this->methodTable()->destroy);
 }
 
 template <class DerivedCallback>

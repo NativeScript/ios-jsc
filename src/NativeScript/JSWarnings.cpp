@@ -15,7 +15,6 @@ using namespace JSC;
 
 void warn(ExecState* execState, const WTF::String& message) {
     WTF::Vector<Deprecated::ScriptValue> arguments{ Deprecated::ScriptValue(execState->vm(), jsString(execState, message)) };
-    RefPtr<Inspector::ScriptArguments> scriptArguments = Inspector::ScriptArguments::create(execState, arguments);
-    execState->lexicalGlobalObject()->consoleClient()->logWithLevel(execState, scriptArguments, MessageLevel::Warning);
+    execState->lexicalGlobalObject()->consoleClient()->logWithLevel(execState, Inspector::ScriptArguments::create(execState, arguments), MessageLevel::Warning);
 }
 }

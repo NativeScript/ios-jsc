@@ -15,16 +15,15 @@
 namespace NativeScript {
 class ReferenceType;
 
-class ReferenceInstance : public JSC::JSObject {
+class ReferenceInstance : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     DECLARE_INFO;
 
     static ReferenceInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSValue value = JSC::jsUndefined()) {
         ReferenceInstance* cell = new (NotNull, JSC::allocateCell<ReferenceInstance>(vm.heap)) ReferenceInstance(vm, structure);
         cell->finishCreation(vm, value);
-        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 

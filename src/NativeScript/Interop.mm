@@ -132,7 +132,7 @@ std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, const Metadat
     return compilerEncoding.str();
 }
 
-const ClassInfo Interop::s_info = { "interop", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(Interop) };
+const ClassInfo Interop::s_info = { "interop", &Base::s_info, 0, CREATE_METHOD_TABLE(Interop) };
 
 static EncodedJSValue JSC_HOST_CALL interopFuncAlloc(ExecState* execState) {
     size_t size = static_cast<size_t>(execState->argument(0).toUInt32(execState));
@@ -208,82 +208,82 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
 
     PointerConstructor* pointerConstructor = globalObject->typeFactory()->pointerConstructor();
     this->_pointerInstanceStructure.set(vm, this, PointerInstance::createStructure(globalObject, pointerConstructor->get(globalObject->globalExec(), vm.propertyNames->prototype)));
-    this->putDirect(vm, Identifier(&vm, pointerConstructor->name(globalObject->globalExec())), pointerConstructor, ReadOnly | DontDelete);
+    this->putDirect(vm, Identifier::fromString(&vm, pointerConstructor->name(globalObject->globalExec())), pointerConstructor, ReadOnly | DontDelete);
 
     ReferencePrototype* referencePrototype = ReferencePrototype::create(vm, globalObject, ReferencePrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_referenceInstanceStructure.set(vm, this, ReferenceInstance::createStructure(vm, globalObject, referencePrototype));
 
     ReferenceConstructor* referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype);
-    this->putDirect(vm, Identifier(&vm, referenceConstructor->name(globalObject->globalExec())), referenceConstructor, ReadOnly | DontDelete);
+    this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name(globalObject->globalExec())), referenceConstructor, ReadOnly | DontDelete);
     referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor, DontEnum);
 
     JSObject* functionReferencePrototype = jsCast<JSObject*>(constructEmptyObject(globalObject->globalExec(), globalObject->functionPrototype()));
     this->_functionReferenceInstanceStructure.set(vm, this, FunctionReferenceInstance::createStructure(vm, globalObject, functionReferencePrototype));
 
     FunctionReferenceConstructor* functionReferenceConstructor = FunctionReferenceConstructor::create(vm, FunctionReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferencePrototype);
-    this->putDirect(vm, Identifier(&vm, functionReferenceConstructor->name(globalObject->globalExec())), functionReferenceConstructor, ReadOnly | DontDelete);
+    this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name(globalObject->globalExec())), functionReferenceConstructor, ReadOnly | DontDelete);
     functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, DontEnum);
 
-    this->putDirectNativeFunction(vm, globalObject, Identifier(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier(&vm, WTF::ASCIILiteral("adopt")), 0, &interopFuncAdopt, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier(&vm, WTF::ASCIILiteral("handleof")), 0, &interopFuncHandleof, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier(&vm, WTF::ASCIILiteral("sizeof")), 0, &interopFuncSizeof, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("adopt")), 0, &interopFuncAdopt, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("handleof")), 0, &interopFuncHandleof, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("sizeof")), 0, &interopFuncSizeof, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
 
     JSObject* types = constructEmptyObject(globalObject->globalExec());
-    this->putDirect(vm, Identifier(&vm, WTF::ASCIILiteral("types")), types, None);
+    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("types")), types, None);
 
     JSObject* voidType = globalObject->typeFactory()->voidType();
-    types->putDirect(vm, Identifier(&vm, voidType->methodTable()->className(voidType)), voidType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, voidType->methodTable()->className(voidType)), voidType, None);
     JSObject* boolType = globalObject->typeFactory()->boolType();
-    types->putDirect(vm, Identifier(&vm, boolType->methodTable()->className(boolType)), boolType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, boolType->methodTable()->className(boolType)), boolType, None);
     JSObject* utf8CStringType = globalObject->typeFactory()->utf8CStringType();
-    types->putDirect(vm, Identifier(&vm, utf8CStringType->methodTable()->className(utf8CStringType)), utf8CStringType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, utf8CStringType->methodTable()->className(utf8CStringType)), utf8CStringType, None);
     JSObject* unicharType = globalObject->typeFactory()->unicharType();
-    types->putDirect(vm, Identifier(&vm, unicharType->methodTable()->className(unicharType)), unicharType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, unicharType->methodTable()->className(unicharType)), unicharType, None);
     JSObject* int8Type = globalObject->typeFactory()->int8Type();
-    types->putDirect(vm, Identifier(&vm, int8Type->methodTable()->className(int8Type)), int8Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int8Type->methodTable()->className(int8Type)), int8Type, None);
     JSObject* uint8Type = globalObject->typeFactory()->uint8Type();
-    types->putDirect(vm, Identifier(&vm, uint8Type->methodTable()->className(uint8Type)), uint8Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint8Type->methodTable()->className(uint8Type)), uint8Type, None);
     JSObject* int16Type = globalObject->typeFactory()->int16Type();
-    types->putDirect(vm, Identifier(&vm, int16Type->methodTable()->className(int16Type)), int16Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int16Type->methodTable()->className(int16Type)), int16Type, None);
     JSObject* uint16Type = globalObject->typeFactory()->uint16Type();
-    types->putDirect(vm, Identifier(&vm, uint16Type->methodTable()->className(uint16Type)), uint16Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint16Type->methodTable()->className(uint16Type)), uint16Type, None);
     JSObject* int32Type = globalObject->typeFactory()->int32Type();
-    types->putDirect(vm, Identifier(&vm, int32Type->methodTable()->className(int32Type)), int32Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int32Type->methodTable()->className(int32Type)), int32Type, None);
     JSObject* uint32Type = globalObject->typeFactory()->uint32Type();
-    types->putDirect(vm, Identifier(&vm, uint32Type->methodTable()->className(uint32Type)), uint32Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint32Type->methodTable()->className(uint32Type)), uint32Type, None);
     JSObject* int64Type = globalObject->typeFactory()->int64Type();
-    types->putDirect(vm, Identifier(&vm, int64Type->methodTable()->className(int64Type)), int64Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int64Type->methodTable()->className(int64Type)), int64Type, None);
     JSObject* uint64Type = globalObject->typeFactory()->uint64Type();
-    types->putDirect(vm, Identifier(&vm, uint64Type->methodTable()->className(uint64Type)), uint64Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint64Type->methodTable()->className(uint64Type)), uint64Type, None);
     JSObject* floatType = globalObject->typeFactory()->floatType();
-    types->putDirect(vm, Identifier(&vm, floatType->methodTable()->className(floatType)), floatType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, floatType->methodTable()->className(floatType)), floatType, None);
     JSObject* doubleType = globalObject->typeFactory()->doubleType();
-    types->putDirect(vm, Identifier(&vm, doubleType->methodTable()->className(doubleType)), doubleType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, doubleType->methodTable()->className(doubleType)), doubleType, None);
 
     JSObject* objCIdType = globalObject->typeFactory()->NSObjectConstructor(globalObject);
-    types->putDirect(vm, Identifier(&vm, WTF::ASCIILiteral("id")), objCIdType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("id")), objCIdType, None);
     JSObject* objCProtocolType = globalObject->typeFactory()->objCProtocolType();
-    types->putDirect(vm, Identifier(&vm, objCProtocolType->methodTable()->className(objCProtocolType)), objCProtocolType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, objCProtocolType->methodTable()->className(objCProtocolType)), objCProtocolType, None);
     JSObject* objCClassType = globalObject->typeFactory()->objCClassType();
-    types->putDirect(vm, Identifier(&vm, objCClassType->methodTable()->className(objCClassType)), objCClassType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, objCClassType->methodTable()->className(objCClassType)), objCClassType, None);
     JSObject* objCSelectorType = globalObject->typeFactory()->objCSelectorType();
-    types->putDirect(vm, Identifier(&vm, objCSelectorType->methodTable()->className(objCSelectorType)), objCSelectorType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, objCSelectorType->methodTable()->className(objCSelectorType)), objCSelectorType, None);
 
     JSObject* referenceTypePrototype = constructEmptyObject(globalObject->globalExec());
     ReferenceTypeConstructor* referenceTypeConstructor = ReferenceTypeConstructor::create(vm, ReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referenceTypePrototype);
-    types->putDirect(vm, Identifier(&vm, referenceTypeConstructor->name(globalObject->globalExec())), referenceTypeConstructor, ReadOnly | DontDelete);
+    types->putDirect(vm, Identifier::fromString(&vm, referenceTypeConstructor->name(globalObject->globalExec())), referenceTypeConstructor, ReadOnly | DontDelete);
     referenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, referenceTypeConstructor, DontEnum);
 
     JSObject* functionReferenceTypePrototype = constructEmptyObject(globalObject->globalExec());
     FunctionReferenceTypeConstructor* functionReferenceTypeConstructor = FunctionReferenceTypeConstructor::create(vm, FunctionReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferenceTypePrototype);
-    types->putDirect(vm, Identifier(&vm, functionReferenceTypeConstructor->name(globalObject->globalExec())), functionReferenceTypeConstructor, ReadOnly | DontDelete);
+    types->putDirect(vm, Identifier::fromString(&vm, functionReferenceTypeConstructor->name(globalObject->globalExec())), functionReferenceTypeConstructor, ReadOnly | DontDelete);
     functionReferenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceTypeConstructor, DontEnum);
 
     JSObject* objCBlockTypePrototype = constructEmptyObject(globalObject->globalExec());
     ObjCBlockTypeConstructor* objCBlockTypeConstructor = ObjCBlockTypeConstructor::create(vm, ObjCBlockTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), objCBlockTypePrototype);
-    types->putDirect(vm, Identifier(&vm, objCBlockTypeConstructor->name(globalObject->globalExec())), objCBlockTypeConstructor, ReadOnly | DontDelete);
+    types->putDirect(vm, Identifier::fromString(&vm, objCBlockTypeConstructor->name(globalObject->globalExec())), objCBlockTypeConstructor, ReadOnly | DontDelete);
     objCBlockTypePrototype->putDirect(vm, vm.propertyNames->constructor, objCBlockTypeConstructor, DontEnum);
 }
 

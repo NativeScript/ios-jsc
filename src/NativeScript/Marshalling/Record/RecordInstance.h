@@ -13,14 +13,13 @@
 
 namespace NativeScript {
 
-class RecordInstance : public JSC::JSNonFinalObject {
+class RecordInstance : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     static RecordInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, size_t size, PointerInstance* pointer) {
         RecordInstance* cell = new (NotNull, JSC::allocateCell<RecordInstance>(vm.heap)) RecordInstance(vm, structure);
         cell->finishCreation(vm, globalObject, size, pointer);
-        vm.heap.addFinalizer(cell, destroy);
         return cell;
     }
 

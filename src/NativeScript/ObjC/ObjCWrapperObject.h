@@ -13,18 +13,15 @@
 #include <wtf/RetainPtr.h>
 
 namespace NativeScript {
-class ObjCWrapperObject : public JSC::JSNonFinalObject {
+class ObjCWrapperObject : public JSC::JSDestructibleObject {
 public:
-    typedef JSC::JSNonFinalObject Base;
+    typedef JSC::JSDestructibleObject Base;
 
     static ObjCWrapperObject* create(JSC::VM& vm, JSC::Structure* structure, id wrappedObject) {
         ObjCWrapperObject* object = new (NotNull, JSC::allocateCell<ObjCWrapperObject>(vm.heap)) ObjCWrapperObject(vm, structure);
         object->finishCreation(vm, wrappedObject);
-        vm.heap.addFinalizer(object, destroy);
         return object;
     }
-
-    static const bool needsDestruction = false;
 
     DECLARE_INFO;
 

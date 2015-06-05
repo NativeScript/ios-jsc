@@ -34,7 +34,7 @@ EncodedJSValue JSC_HOST_CALL readFromPointer(ExecState* execState) {
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-const ClassInfo PointerInstance::s_info = { "Pointer", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(PointerInstance) };
+const ClassInfo PointerInstance::s_info = { "Pointer", &Base::s_info, 0, CREATE_METHOD_TABLE(PointerInstance) };
 
 void PointerInstance::finishCreation(VM& vm, void* value) {
     Base::finishCreation(vm);

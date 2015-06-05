@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FunctionReferenceTypeConstructor::s_info = { "FunctionReferenceType", &Base::s_info, 0, 0, CREATE_METHOD_TABLE(FunctionReferenceTypeConstructor) };
+const ClassInfo FunctionReferenceTypeConstructor::s_info = { "FunctionReferenceType", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceTypeConstructor) };
 
 void FunctionReferenceTypeConstructor::finishCreation(VM& vm, JSObject* functionReferenceTypePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);

@@ -214,11 +214,11 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
         }
 
         ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object);
-        globalObject->taggedPointers().add(object, wrapper);
+        globalObject->taggedPointers().set(object, wrapper);
         return wrapper;
     } else {
 #endif
-        TNSValueWrapper* valueWrapper = static_cast<TNSValueWrapper*>(objc_getAssociatedObject(object, execState->scope()->vm()));
+        TNSValueWrapper* valueWrapper = static_cast<TNSValueWrapper*>(objc_getAssociatedObject(object, execState->lexicalGlobalObject()->JSCell::vm()));
         if (JSObject* wrapper = valueWrapper.value) {
             return wrapper;
         }

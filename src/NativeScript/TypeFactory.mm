@@ -31,7 +31,7 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo TypeFactory::s_info = { "TypeFactory", 0, 0, 0, CREATE_METHOD_TABLE(TypeFactory) };
+const ClassInfo TypeFactory::s_info = { "TypeFactory", &Base::s_info, 0, CREATE_METHOD_TABLE(TypeFactory) };
 
 ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
     const TypeEncoding* typeEncodingPtr = typeEncodings.first();
@@ -96,9 +96,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
         return constructor;
     }
 
-    ffi_type* ffiType = new ffi_type({ .size = 0,
-                                       .alignment = 0,
-                                       .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({.size = 0,
+                                      .alignment = 0,
+                                      .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -107,7 +107,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     RecordConstructor* constructor = RecordConstructor::create(vm, globalObject, _recordConstructorStructure.get(), recordPrototype, structName, ffiType, RecordType::Struct);
     recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor, DontEnum);
 
-    auto addResult = this->_cacheStruct.add(structName, constructor);
+    auto addResult = this->_cacheStruct.set(structName, constructor);
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }
@@ -133,7 +133,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
         return constructor;
     }
 
-    addResult = this->_cacheStruct.add(structName, constructor);
+    addResult = this->_cacheStruct.set(structName, constructor);
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }
@@ -141,9 +141,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
 }
 
 RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
-    ffi_type* ffiType = new ffi_type({ .size = 0,
-                                       .alignment = 0,
-                                       .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({.size = 0,
+                                      .alignment = 0,
+                                      .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -224,7 +224,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
             }
         }
 
-        delete[] ffiType->elements;
+        delete[] ffiType -> elements;
         ffiType->elements = new ffi_type* [flattenedFfiTypes.size() + 1];
         memcpy(ffiType->elements, flattenedFfiTypes.data(), flattenedFfiTypes.size() * sizeof(ffi_type*));
         ffiType->elements[flattenedFfiTypes.size()] = nullptr;
@@ -240,15 +240,13 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     }
 
     VM& vm = globalObject->vm();
-    const CString klassNameUTF8 = klassName.utf8();
-    const char* klassNameCharPtr = klassNameUTF8.data();
-    const InterfaceMeta* metadata = static_cast<const InterfaceMeta*>(MetaFile::instance()->globalTable()->findMeta(klassNameCharPtr));
+    const InterfaceMeta* metadata = static_cast<const InterfaceMeta*>(MetaFile::instance()->globalTable()->findMeta(klassName.impl()));
     if (!metadata) {
 #ifdef DEBUG
-        NSLog(@"** Can not create constructor for \"%s\". Casting it to \"NSObject\". **", klassNameCharPtr);
+        NSLog(@"** Can not create constructor for \"%@\". Casting it to \"NSObject\". **", klassName.createCFString().autorelease());
 #endif
         ObjCConstructorNative* nsobjectConstructor = this->NSObjectConstructor(globalObject);
-        this->_cacheId.add(klassName, nsobjectConstructor);
+        this->_cacheId.set(klassName, nsobjectConstructor);
         return nsobjectConstructor;
     }
 
@@ -273,17 +271,18 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
     ObjCPrototype* prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata);
 
-    Class klass = objc_getClass(klassNameCharPtr);
+    CString klassNameCString = klassName.utf8();
+    Class klass = objc_getClass(klassNameCString.data());
     if (!klass) {
         SymbolLoader::instance().ensureFramework(metadata->topLevelModule()->getName());
-        klass = objc_getClass(klassNameCharPtr);
+        klass = objc_getClass(klassNameCString.data());
     }
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
     ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, klass, metadata);
     prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor, DontEnum | DontDelete | ReadOnly);
 
-    auto addResult = this->_cacheId.add(klassName, constructor);
+    auto addResult = this->_cacheId.set(klassName, constructor);
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }
@@ -402,7 +401,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::PointerEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = (innerType == this->_voidType.get()) ? jsCast<JSCell*>(this->_pointerConstructor.get()) : jsCast<JSCell*>(this->getReferenceType(globalObject, innerType));
+        result = (innerType == this->_voidType.get()) ? reinterpret_cast<JSCell*>(this->_pointerConstructor.get()) : reinterpret_cast<JSCell*>(this->getReferenceType(globalObject, innerType));
         break;
     }
     case BinaryTypeEncodingType::VaListEncoding:
