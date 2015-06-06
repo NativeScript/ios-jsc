@@ -99,7 +99,7 @@ testrun.stdout.on('data', function(chunks) {
 
         if (line.indexOf(launched) >= 0) {
             clearTimeout(timeout);
-            timeout = setTimeout(function() { timeoutFunction("ERROR: Tests run timeout!"); }, testsTimeout);
+            // timeout = setTimeout(function() { timeoutFunction("ERROR: Tests run timeout!"); }, testsTimeout);
             console.log("Application deployed and launched! Deploy timeout reset. Start test run timeout.");
         }
 
