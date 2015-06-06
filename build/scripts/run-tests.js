@@ -45,8 +45,8 @@ var launched = 'Application Start!';
 var term = 'TKUnit: ';
 var end = '</testsuites>';
 
-var deployTimeout = 180000; // 3 minutes to deploy and launch.
-var testsTimeout = 120000; // 2 minutes to run all tests.
+var deployTimeout = 9999 * 60 * 1000; // To deploy and launch.
+var testsTimeout = 9999 * 60 * 1000; // To run all tests.
 
 // NOTE: If the "lldb" process is currently running the ios-deploy will fail to connect...
 
@@ -99,7 +99,7 @@ testrun.stdout.on('data', function(chunks) {
 
         if (line.indexOf(launched) >= 0) {
             clearTimeout(timeout);
-            timeout = setTimeout(function() { timeoutFunction("ERROR: Tests run timeout!"); }, testsTimeout);
+            // timeout = setTimeout(function() { timeoutFunction("ERROR: Tests run timeout!"); }, testsTimeout);
             console.log("Application deployed and launched! Deploy timeout reset. Start test run timeout.");
         }
 
