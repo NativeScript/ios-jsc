@@ -45,8 +45,8 @@ var launched = 'Application Start!';
 var term = 'TKUnit: ';
 var end = '</testsuites>';
 
-var deployTimeout = 180000; // 3 minutes to deploy and launch.
-var testsTimeout = 120000; // 2 minutes to run all tests.
+var deployTimeout = 3 * 60 * 1000; // To deploy and launch.
+var testsTimeout = 6 * 60 * 1000; // To run all tests.
 
 // NOTE: If the "lldb" process is currently running the ios-deploy will fail to connect...
 
