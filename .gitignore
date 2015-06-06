@@ -1,5 +1,4 @@
 # Xcode
-#
 build/
 !/build/
 *.pbxuser
@@ -34,17 +33,15 @@ Podfile.lock
 node_modules/
 
 # Build
+/cmake-build
+/build.log
 /dist/
 /lib/
-junit-result.xml
-gamera-startup-result.xml
-build-stats.csv
+/junit-result.xml
+/build-stats.csv
 
 # CLion
 .idea
 
 # Package Base Project
 /build/project-template/__PROJECT_NAME__.xcodeproj/project.xcworkspace
-
-/cmake-build
-/build.log
