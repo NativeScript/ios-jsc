@@ -23,54 +23,44 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CodeMirrorTokenTrackingController = function(codeMirror, delegate)
+WebInspector.CodeMirrorTokenTrackingController = class CodeMirrorTokenTrackingController extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor(codeMirror, delegate)
+    {
+        super();
 
-    console.assert(codeMirror);
+        console.assert(codeMirror);
 
-    this._codeMirror = codeMirror;
-    this._delegate = delegate || null;
-    this._mode = WebInspector.CodeMirrorTokenTrackingController.Mode.None;
+        this._codeMirror = codeMirror;
+        this._delegate = delegate || null;
+        this._mode = WebInspector.CodeMirrorTokenTrackingController.Mode.None;
 
-    this._mouseOverDelayDuration = 0;
-    this._mouseOutReleaseDelayDuration = 0;
-    this._classNameForHighlightedRange = null;
+        this._mouseOverDelayDuration = 0;
+        this._mouseOutReleaseDelayDuration = 0;
+        this._classNameForHighlightedRange = null;
 
-    this._enabled = false;
-    this._tracking = false;
-    this._hoveredTokenInfo = null;
-    this._hoveredMarker = null;
-};
-
-WebInspector.CodeMirrorTokenTrackingController.JumpToSymbolHighlightStyleClassName = "jump-to-symbol-highlight";
-
-WebInspector.CodeMirrorTokenTrackingController.Mode = {
-    None: "none",
-    NonSymbolTokens: "non-symbol-tokens",
-    JavaScriptExpression: "javascript-expression",
-    MarkedTokens: "marked-tokens"
-}
-
-WebInspector.CodeMirrorTokenTrackingController.prototype = {
-    constructor: WebInspector.CodeMirrorTokenTrackingController,
+        this._enabled = false;
+        this._tracking = false;
+        this._hoveredTokenInfo = null;
+        this._hoveredMarker = null;
+    }
 
     // Public
 
     get delegate()
     {
         return this._delegate;
-    },
+    }
 
     set delegate(x)
     {
         this._delegate = x;
-    },
+    }
 
     get enabled()
     {
         return this._enabled;
-    },
+    }
 
     set enabled(enabled)
     {
@@ -90,12 +80,12 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
             wrapper.removeEventListener("mouseleave", this);
             this._stopTracking();
         }
-    },
+    }
 
     get mode()
     {
         return this._mode;
-    },
+    }
 
     set mode(mode)
     {
@@ -105,62 +95,62 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
 
         if (oldMode !== this._mode && this._tracking && this._hoveredTokenInfo)
             this._processNewHoveredToken();
-    },
+    }
 
     get mouseOverDelayDuration()
     {
         return this._mouseOverDelayDuration;
-    },
+    }
 
     set mouseOverDelayDuration(x)
     {
         console.assert(x >= 0);
         this._mouseOverDelayDuration = Math.max(x, 0);
-    },
+    }
 
     get mouseOutReleaseDelayDuration()
     {
         return this._mouseOutReleaseDelayDuration;
-    },
+    }
 
     set mouseOutReleaseDelayDuration(x)
     {
         console.assert(x >= 0);
         this._mouseOutReleaseDelayDuration = Math.max(x, 0);
-    },
+    }
 
     get classNameForHighlightedRange()
     {
         return this._classNameForHighlightedRange;
-    },
+    }
 
     set classNameForHighlightedRange(x)
     {
         this._classNameForHighlightedRange = x || null;
-    },
+    }
 
     get candidate()
     {
         return this._candidate;
-    },
+    }
 
     get hoveredMarker()
     {
         return this._hoveredMarker;
-    },
-    
+    }
+
     set hoveredMarker(hoveredMarker)
     {
         this._hoveredMarker = hoveredMarker;
-    },
+    }
 
-    highlightLastHoveredRange: function()
+    highlightLastHoveredRange()
     {
         if (this._candidate)
             this.highlightRange(this._candidate.hoveredTokenRange);
-    },
+    }
 
-    highlightRange: function(range)
+    highlightRange(range)
     {
         // Nothing to do if we're trying to highlight the same range.
         if (this._codeMirrorMarkedText && this._codeMirrorMarkedText.className === this._classNameForHighlightedRange) {
@@ -173,12 +163,12 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         this.removeHighlightedRange();
 
         var className = this._classNameForHighlightedRange || "";
-        this._codeMirrorMarkedText = this._codeMirror.markText(range.start, range.end, {className: className});
+        this._codeMirrorMarkedText = this._codeMirror.markText(range.start, range.end, {className});
 
         window.addEventListener("mousemove", this, true);
-    },
+    }
 
-    removeHighlightedRange: function()
+    removeHighlightedRange()
     {
         if (!this._codeMirrorMarkedText)
             return;
@@ -187,11 +177,11 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         delete this._codeMirrorMarkedText;
 
         window.removeEventListener("mousemove", this, true);
-    },
+    }
 
     // Private
 
-    _startTracking: function()
+    _startTracking()
     {
         console.assert(!this._tracking);
         if (this._tracking)
@@ -205,9 +195,9 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         wrapper.addEventListener("mousedown", this, false);
         wrapper.addEventListener("mouseup", this, false);
         window.addEventListener("blur", this, true);
-    },
+    }
 
-    _stopTracking: function()
+    _stopTracking()
     {
         console.assert(this._tracking);
         if (!this._tracking)
@@ -225,9 +215,9 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         window.removeEventListener("mousemove", this, true);
 
         this._resetTrackingStates();
-    },
+    }
 
-    handleEvent: function(event)
+    handleEvent(event)
     {
         switch (event.type) {
         case "mouseenter":
@@ -257,19 +247,20 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
             this._windowLostFocus(event);
             break;
         }
-    },
+    }
 
-    _mouseEntered: function(event)
+    _mouseEntered(event)
     {
-        this._startTracking();
-    },
+        if (!this._tracking)
+            this._startTracking();
+    }
 
-    _mouseLeft: function(event)
+    _mouseLeft(event)
     {
         this._stopTracking();
-    },
+    }
 
-    _mouseMovedWithMarkedText: function(event)
+    _mouseMovedWithMarkedText(event)
     {
         var shouldRelease = !event.target.classList.contains(this._classNameForHighlightedRange);
         if (shouldRelease && this._delegate && typeof this._delegate.tokenTrackingControllerCanReleaseHighlightedRange === "function")
@@ -283,21 +274,21 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
 
         clearTimeout(this._markedTextMouseoutTimer);
         delete this._markedTextMouseoutTimer;
-    },
+    }
 
-    _markedTextIsNoLongerHovered: function()
+    _markedTextIsNoLongerHovered()
     {
         if (this._delegate && typeof this._delegate.tokenTrackingControllerHighlightedRangeReleased === "function")
             this._delegate.tokenTrackingControllerHighlightedRangeReleased(this);
         delete this._markedTextMouseoutTimer;
-    },
+    }
 
-    _mouseMovedOverEditor: function(event)
+    _mouseMovedOverEditor(event)
     {
         this._updateHoveredTokenInfo({left: event.pageX, top: event.pageY});
-    },
+    }
 
-    _updateHoveredTokenInfo: function(mouseCoords)
+    _updateHoveredTokenInfo(mouseCoords)
     {
         // Get the position in the text and the token at that position.
         var position = this._codeMirror.coordsChar(mouseCoords);
@@ -305,7 +296,7 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
 
         if (!token || !token.type || !token.string) {
             if (this._hoveredMarker && this._delegate && typeof this._delegate.tokenTrackingControllerMouseOutOfHoveredMarker === "function") {
-                if (!this._codeMirror.findMarksAt(position).contains(this._hoveredMarker.codeMirrorTextMarker))
+                if (!this._codeMirror.findMarksAt(position).includes(this._hoveredMarker.codeMirrorTextMarker))
                     this._delegate.tokenTrackingControllerMouseOutOfHoveredMarker(this, this._hoveredMarker);
             }
 
@@ -324,9 +315,9 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         var innerMode = CodeMirror.innerMode(this._codeMirror.getMode(), token.state);
         var codeMirrorModeName = innerMode.mode.alternateName || innerMode.mode.name;
         this._hoveredTokenInfo = {
-            token: token,
-            position: position,
-            innerMode: innerMode,
+            token,
+            position,
+            innerMode,
             modeName: codeMirrorModeName
         };
 
@@ -336,21 +327,21 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
             this._processNewHoveredToken();
         else
             this._tokenHoverTimer = setTimeout(this._processNewHoveredToken.bind(this), this._mouseOverDelayDuration);
-    },
+    }
 
-    _mouseMovedOutOfEditor: function(event)
+    _mouseMovedOutOfEditor(event)
     {
         clearTimeout(this._tokenHoverTimer);
         delete this._hoveredTokenInfo;
         delete this._selectionMayBeInProgress;
-    },
+    }
 
-    _mouseButtonWasPressedOverEditor: function(event)
+    _mouseButtonWasPressedOverEditor(event)
     {
         this._selectionMayBeInProgress = true;
-    },
+    }
 
-    _mouseButtonWasReleasedOverEditor: function(event)
+    _mouseButtonWasReleasedOverEditor(event)
     {
         delete this._selectionMayBeInProgress;
         this._mouseMovedOverEditor(event);
@@ -368,14 +359,14 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
                 }
             }
         }
-    },
+    }
 
-    _windowLostFocus: function(event)
+    _windowLostFocus(event)
     {
         this._resetTrackingStates();
-    },
+    }
 
-    _processNewHoveredToken: function()
+    _processNewHoveredToken()
     {
         console.assert(this._hoveredTokenInfo);
 
@@ -389,6 +380,7 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
             this._candidate = this._processNonSymbolToken();
             break;
         case WebInspector.CodeMirrorTokenTrackingController.Mode.JavaScriptExpression:
+        case WebInspector.CodeMirrorTokenTrackingController.Mode.JavaScriptTypeInformation:
             this._candidate = this._processJavaScriptExpression();
             break;
         case WebInspector.CodeMirrorTokenTrackingController.Mode.MarkedTokens:
@@ -404,9 +396,9 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
 
         if (this._delegate && typeof this._delegate.tokenTrackingControllerNewHighlightCandidate === "function")
             this._delegate.tokenTrackingControllerNewHighlightCandidate(this, this._candidate);
-    },
+    }
 
-    _processNonSymbolToken: function()
+    _processNonSymbolToken()
     {
         // Ignore any symbol tokens.
         var type = this._hoveredTokenInfo.token.type;
@@ -420,9 +412,9 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
             hoveredToken: this._hoveredTokenInfo.token,
             hoveredTokenRange: {start: startPosition, end: endPosition},
         };
-    },
+    }
 
-    _processJavaScriptExpression: function()
+    _processJavaScriptExpression()
     {
         // Only valid within JavaScript.
         if (this._hoveredTokenInfo.modeName !== "javascript")
@@ -431,19 +423,19 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         var startPosition = {line: this._hoveredTokenInfo.position.line, ch: this._hoveredTokenInfo.token.start};
         var endPosition = {line: this._hoveredTokenInfo.position.line, ch: this._hoveredTokenInfo.token.end};
 
+        function tokenIsInRange(token, range)
+        {
+            return token.line >= range.start.line && token.ch >= range.start.ch &&
+                   token.line <= range.end.line && token.ch <= range.end.ch;
+        }
+
         // If the hovered token is within a selection, use the selection as our expression.
         if (this._codeMirror.somethingSelected()) {
             var selectionRange = {
                 start: this._codeMirror.getCursor("start"),
                 end: this._codeMirror.getCursor("end")
             };
-        
-            function tokenIsInRange(token, range)
-            {
-                return token.line >= range.start.line && token.ch >= range.start.ch &&
-                       token.line <= range.end.line && token.ch <= range.end.ch;
-            }
-        
+
             if (tokenIsInRange(startPosition, selectionRange) || tokenIsInRange(endPosition, selectionRange)) {
                 return {
                     hoveredToken: this._hoveredTokenInfo.token,
@@ -452,7 +444,7 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
                     expressionRange: selectionRange,
                 };
             }
-        } 
+        }
 
         // We only handle vars, definitions, properties, and the keyword 'this'.
         var type = this._hoveredTokenInfo.token.type;
@@ -474,11 +466,20 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         var expression = this._hoveredTokenInfo.token.string;
         var expressionStartPosition = {line: this._hoveredTokenInfo.position.line, ch: this._hoveredTokenInfo.token.start};
         while (true) {
-            var token = this._codeMirror.getTokenAt(expressionStartPosition);
-            var isDot = token && !token.type && token.string === ".";
-            var isExpression = token && token.type && token.type.indexOf("m-javascript") !== -1;
+            var token = this._codeMirror.getTokenAt(expressionStartPosition);            
+            if (!token)
+                break;
+
+            var isDot = !token.type && token.string === ".";
+            var isExpression = token.type && token.type.includes("m-javascript");
             if (!isDot && !isExpression)
                 break;
+
+            // Disallow operators. We want the hovered expression to be just a single operand.
+            // Also, some operators can modify values, such as pre-increment and assignment operators.
+            if (isExpression && token.type.includes("operator"))
+                break;
+
             expression = token.string + expression;
             expressionStartPosition.ch = token.start;
         }
@@ -487,17 +488,17 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
         return {
             hoveredToken: this._hoveredTokenInfo.token,
             hoveredTokenRange: {start: startPosition, end: endPosition},
-            expression: expression,
+            expression,
             expressionRange: {start: expressionStartPosition, end: endPosition},
         };
-    },
+    }
 
-    _processMarkedToken: function()
+    _processMarkedToken()
     {
         return this._processNonSymbolToken();
-    },
+    }
 
-    _resetTrackingStates: function()
+    _resetTrackingStates()
     {
         clearTimeout(this._tokenHoverTimer);
         delete this._selectionMayBeInProgress;
@@ -506,4 +507,12 @@ WebInspector.CodeMirrorTokenTrackingController.prototype = {
     }
 };
 
-WebInspector.CodeMirrorCompletionController.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.CodeMirrorTokenTrackingController.JumpToSymbolHighlightStyleClassName = "jump-to-symbol-highlight";
+
+WebInspector.CodeMirrorTokenTrackingController.Mode = {
+    None: "none",
+    NonSymbolTokens: "non-symbol-tokens",
+    JavaScriptExpression: "javascript-expression",
+    JavaScriptTypeInformation: "javascript-type-information",
+    MarkedTokens: "marked-tokens"
+};

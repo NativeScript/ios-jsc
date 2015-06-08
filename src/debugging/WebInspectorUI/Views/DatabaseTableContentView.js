@@ -29,6 +29,9 @@ WebInspector.DatabaseTableContentView = function(representedObject)
 
     this.element.classList.add(WebInspector.DatabaseTableContentView.StyleClassName);
 
+    this._refreshButtonNavigationItem = new WebInspector.ButtonNavigationItem("database-table-refresh", WebInspector.UIString("Refresh"), "Images/ReloadFull.svg", 13, 13);
+    this._refreshButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._refreshButtonClicked, this);
+
     this.update();
 };
 
@@ -36,8 +39,14 @@ WebInspector.DatabaseTableContentView.StyleClassName = "database-table";
 
 WebInspector.DatabaseTableContentView.prototype = {
     constructor: WebInspector.DatabaseTableContentView,
+    __proto__: WebInspector.ContentView.prototype,
 
     // Public
+
+    get navigationItems()
+    {
+        return [this._refreshButtonNavigationItem];
+    },
 
     update: function()
     {
@@ -81,6 +90,8 @@ WebInspector.DatabaseTableContentView.prototype = {
 
         this._dataGrid = new WebInspector.DataGrid.createSortableDataGrid(columnNames, values);
         if (!this._dataGrid || !this._dataGrid.element) {
+            this._dataGrid = undefined;
+
             // If the DataGrid is empty, then we were returned a table with no columns. This can happen when a table has
             // no data, the SELECT query only returns column names when there is data.
             this.element.removeChildren();
@@ -96,7 +107,10 @@ WebInspector.DatabaseTableContentView.prototype = {
     {
         this.element.removeChildren();
         this.element.appendChild(WebInspector.createMessageTextView(WebInspector.UIString("An error occured trying to\nread the “%s” table.").format(this.representedObject.name), true));
+    },
+
+    _refreshButtonClicked: function()
+    {
+        this.update();
     }
 };
-
-WebInspector.DatabaseTableContentView.prototype.__proto__ = WebInspector.ContentView.prototype;

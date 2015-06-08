@@ -27,63 +27,67 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ConsoleGroup = function(parentGroup, isNewSession)
+WebInspector.ConsoleGroup = class ConsoleGroup extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor(parentGroup)
+    {
+        super();
 
-    this.parentGroup = parentGroup;
-
-    var element = document.createElement("div");
-    element.className = "console-group";
-    element.group = this;
-    this.element = element;
-
-    if (isNewSession)
-        element.classList.add("new-session");
-
-    var messagesElement = document.createElement("div");
-    messagesElement.className = "console-group-messages";
-    element.appendChild(messagesElement);
-    this.messagesElement = messagesElement;
-};
-
-WebInspector.ConsoleGroup.prototype = {
-    constructor: WebInspector.ConsoleGroup,
+        this._parentGroup = parentGroup;
+    }
 
     // Public
 
-    addMessage: function(msg)
+    get parentGroup()
     {
-        var element = msg.toMessageElement();
+        return this._parentGroup;
+    }
 
-        var wrapper = document.createElement("div");
-        wrapper.className = WebInspector.LogContentView.ItemWrapperStyleClassName;
-        wrapper.messageElement = wrapper.appendChild(element);
-
-        if (msg.type === WebInspector.ConsoleMessage.MessageType.StartGroup || msg.type === WebInspector.ConsoleMessage.MessageType.StartGroupCollapsed) {
-            this.messagesElement.parentNode.insertBefore(wrapper, this.messagesElement);
-            element.addEventListener("click", this._titleClicked.bind(this));
-            element.addEventListener("mousedown", this._titleMouseDown.bind(this));
-            var groupElement = element.enclosingNodeOrSelfWithClass("console-group");
-            if (groupElement && msg.type === WebInspector.ConsoleMessage.MessageType.StartGroupCollapsed)
-                groupElement.classList.add("collapsed");
-        } else
-            this.messagesElement.appendChild(wrapper);
-    },
-
-    hasMessages: function()
+    render(messageView)
     {
-        return !!this.messagesElement.childNodes.length;
-    },
+        var groupElement = document.createElement("div");
+        groupElement.className = "console-group";
+        groupElement.group = this;
+        this.element = groupElement;
+
+        var titleElement = messageView.element;
+        titleElement.classList.add(WebInspector.LogContentView.ItemWrapperStyleClassName);
+        titleElement.addEventListener("click", this._titleClicked.bind(this));
+        titleElement.addEventListener("mousedown", this._titleMouseDown.bind(this));
+
+        if (groupElement && messageView.message.type === WebInspector.ConsoleMessage.MessageType.StartGroupCollapsed)
+            groupElement.classList.add("collapsed");
+
+        groupElement.appendChild(titleElement);
+
+        var messagesElement = document.createElement("div");
+        this._messagesElement = messagesElement;
+        messagesElement.className = "console-group-messages";
+        groupElement.appendChild(messagesElement);
+
+        return groupElement;
+    }
+
+    addMessageView(messageView)
+    {
+        var element = messageView.element;
+        element.classList.add(WebInspector.LogContentView.ItemWrapperStyleClassName);
+        this.append(element);
+    }
+
+    append(messageOrGroupElement)
+    {
+        this._messagesElement.appendChild(messageOrGroupElement);
+    }
 
     // Private
 
-    _titleMouseDown: function(event)
+    _titleMouseDown(event)
     {
         event.preventDefault();
-    },
+    }
 
-    _titleClicked: function(event)
+    _titleClicked(event)
     {
         var groupTitleElement = event.target.enclosingNodeOrSelfWithClass("console-group-title");
         if (groupTitleElement) {
@@ -97,5 +101,3 @@ WebInspector.ConsoleGroup.prototype = {
         }
     }
 };
-
-WebInspector.ConsoleGroup.prototype.__proto__ = WebInspector.Object.prototype;

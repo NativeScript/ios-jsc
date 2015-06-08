@@ -60,7 +60,7 @@ WebInspector.ApplicationCacheFrameContentView.prototype = {
 
     closed: function()
     {
-        WebInspector.applicationCacheManager.removeEventListener(WebInspector.ApplicationCacheManager.Event.FrameManifestStatusChanged, this._updateStatus, this);
+        WebInspector.applicationCacheManager.removeEventListener(null, null, this);
     },
 
     updateLayout: function()
@@ -185,7 +185,6 @@ WebInspector.ApplicationCacheFrameContentView.prototype = {
     {
         function numberCompare(columnIdentifier, nodeA, nodeB)
         {
-            console.log(columnIdentifier, nodeA, nodeB);
             return nodeA.data[columnIdentifier] - nodeB.data[columnIdentifier];
         }
         function localeCompare(columnIdentifier, nodeA, nodeB)
@@ -215,7 +214,6 @@ WebInspector.ApplicationCacheFrameContentView.prototype = {
                 size: Number.bytesToString(resource.size)
             };
             var node = new WebInspector.DataGridNode(data);
-            node.selectable = true;
             this._dataGrid.appendChild(node);
         }
     },

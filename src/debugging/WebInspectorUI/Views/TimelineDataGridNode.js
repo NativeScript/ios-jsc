@@ -27,6 +27,8 @@ WebInspector.TimelineDataGridNode = function(graphOnly, graphDataSource, hasChil
 {
     WebInspector.DataGridNode.call(this, {}, hasChildren);
 
+    this.copyable = false;
+
     this._graphOnly = graphOnly || false;
     this._graphDataSource = graphDataSource || null;
 
@@ -36,7 +38,8 @@ WebInspector.TimelineDataGridNode = function(graphOnly, graphDataSource, hasChil
     }
 };
 
-WebInspector.Object.addConstructorFunctions(WebInspector.TimelineDataGridNode);
+// FIXME: Move to a WebInspector.Object subclass and we can remove this.
+WebInspector.Object.deprecatedAddConstructorFunctions(WebInspector.TimelineDataGridNode);
 
 WebInspector.TimelineDataGridNode.prototype = {
     constructor: WebInspector.TimelineDataGridNode,
@@ -147,7 +150,7 @@ WebInspector.TimelineDataGridNode.prototype = {
                 isAnonymousFunction = true;
             }
 
-            cell.classList.add(WebInspector.CallFrameTreeElement.FunctionIconStyleClassName);
+            cell.classList.add(WebInspector.CallFrameView.FunctionIconStyleClassName);
 
             var fragment = document.createDocumentFragment();
 
@@ -182,7 +185,7 @@ WebInspector.TimelineDataGridNode.prototype = {
                     fragment.appendChild(titleElement);
                 } else {
                     // Show the function name and icon.
-                    cell.classList.add(WebInspector.CallFrameTreeElement.FunctionIconStyleClassName);
+                    cell.classList.add(WebInspector.CallFrameView.FunctionIconStyleClassName);
 
                     fragment.appendChild(document.createTextNode(functionName));
 
@@ -234,21 +237,20 @@ WebInspector.TimelineDataGridNode.prototype = {
         if (!this.revealed)
             return;
 
-        var startTime = this._graphDataSource.startTime;
-        var currentTime = this._graphDataSource.currentTime;
-        var endTime = this._graphDataSource.endTime;
-        var duration = endTime - startTime;
-        var visibleWidth = this._graphContainerElement.offsetWidth;
-        var secondsPerPixel = duration / visibleWidth;
+        var secondsPerPixel = this._graphDataSource.secondsPerPixel;
+        console.assert(isFinite(secondsPerPixel) && secondsPerPixel > 0);
+
         var recordBarIndex = 0;
 
         function createBar(records, renderMode)
         {
             var timelineRecordBar = this._timelineRecordBars[recordBarIndex];
             if (!timelineRecordBar)
-                timelineRecordBar = this._timelineRecordBars[recordBarIndex] = new WebInspector.TimelineRecordBar;
-            timelineRecordBar.renderMode = renderMode;
-            timelineRecordBar.records = records;
+                timelineRecordBar = this._timelineRecordBars[recordBarIndex] = new WebInspector.TimelineRecordBar(records, renderMode);
+            else {
+                timelineRecordBar.renderMode = renderMode;
+                timelineRecordBar.records = records;
+            }
             timelineRecordBar.refresh(this._graphDataSource);
             if (!timelineRecordBar.element.parentNode)
                 this._graphContainerElement.appendChild(timelineRecordBar.element);

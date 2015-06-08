@@ -105,7 +105,7 @@
 
                 state._linkQuoteCharacter = quote === "'" || quote === "\"" ? quote : null;
 
-                // Rewind the steam to the start of this token.
+                // Rewind the stream to the start of this token.
                 stream.pos = startPosition;
 
                 // Eat the open quote of the string so the string style
@@ -139,7 +139,7 @@
 
         // Parse characters until the end of the stream/line or a proper end quote character.
         while ((ch = stream.next()) != null) {
-            if (ch == quote && !escaped) {
+            if (ch === quote && !escaped) {
                 reachedEndOfURL = true;
                 break;
             }
@@ -182,7 +182,7 @@
 
     function extendedCSSToken(stream, state)
     {
-        const hexColorRegex = /#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g;
+        var hexColorRegex = /#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g;
 
         if (state._urlTokenize) {
             // Call the link tokenizer instead.
@@ -199,10 +199,12 @@
                 if (stream.current() === "url") {
                     // If the current text is "url" then we should expect the next string token to be a link.
                     state._expectLink = true;
-                } else if (state._expectLink) {
-                    // We expected a string and got it. This is a link. Parse it the way we want it.
-                    delete state._expectLink;
+                } else if (hexColorRegex.test(stream.current()))
+                    style = style + " hex-color";
+            } else if (state._expectLink) {
+                delete state._expectLink;
 
+                if (style === "string") {
                     // This is a link, so setup the state to process it next.
                     state._urlTokenize = tokenizeCSSURLString;
                     state._urlBaseStyle = style;
@@ -212,18 +214,14 @@
                     state._urlQuoteCharacter = quote === "'" || quote === "\"" ? quote : ")";
                     state._unquotedURLString = state._urlQuoteCharacter === ")";
 
-                    // Rewind the steam to the start of this token.
+                    // Rewind the stream to the start of this token.
                     stream.pos = startPosition;
 
                     // Eat the open quote of the string so the string style
                     // will be used for the quote character.
                     if (!state._unquotedURLString)
                         stream.eat(state._urlQuoteCharacter);
-                } else if (hexColorRegex.test(stream.current()))
-                    style = style + " hex-color";
-            } else if (state._expectLink) {
-                // We expected a string and didn't get one. Cleanup.
-                delete state._expectLink;
+                }
             }
         }
 
@@ -252,6 +250,31 @@
         return state;
     }
 
+    function scrollCursorIntoView(codeMirror, event)
+    {
+        // We don't want to use the default implementation since it can cause massive jumping
+        // when the editor is contained inside overflow elements.
+        event.preventDefault();
+
+        function delayedWork()
+        {
+            // Don't try to scroll unless the editor is focused.
+            if (!codeMirror.getWrapperElement().classList.contains("CodeMirror-focused"))
+                return;
+
+            // The cursor element can contain multiple cursors. The first one is the blinky cursor,
+            // which is the one we want to scroll into view. It can be missing, so check first.
+            var cursorElement = codeMirror.getScrollerElement().getElementsByClassName("CodeMirror-cursor")[0];
+            if (cursorElement)
+                cursorElement.scrollIntoViewIfNeeded(false);
+        }
+
+        // We need to delay this because CodeMirror can fire scrollCursorIntoView as a view is being blurred
+        // and another is being focused. The blurred editor still has the focused state when this event fires.
+        // We don't want to scroll the blurred editor into view, only the focused editor.
+        setTimeout(delayedWork, 0);
+    }
+
     CodeMirror.extendMode("css", {token: extendedCSSToken});
     CodeMirror.extendMode("xml", {token: extendedXMLToken});
     CodeMirror.extendMode("javascript", {token: extendedToken});
@@ -259,9 +282,13 @@
     CodeMirror.defineMode("css-rule", CodeMirror.modes.css);
     CodeMirror.extendMode("css-rule", {token: extendedCSSToken, startState: extendedCSSRuleStartState, alternateName: "css"});
 
+    CodeMirror.defineInitHook(function(codeMirror) {
+        codeMirror.on("scrollCursorIntoView", scrollCursorIntoView);
+    });
+
     CodeMirror.defineExtension("hasLineClass", function(line, where, className) {
         // This matches the arguments to addLineClass and removeLineClass.
-        var classProperty = (where === "text" ? "textClass" : (where == "background" ? "bgClass" : "wrapClass"));
+        var classProperty = (where === "text" ? "textClass" : (where === "background" ? "bgClass" : "wrapClass"));
         var lineInfo = this.lineInfo(line);
         if (!lineInfo)
             return false;
@@ -386,7 +413,7 @@
             var newLength = alteredNumberString.length;
 
             // Fix up the selection so it follows the increase or decrease in the replacement length.
-            if (previousLength != newLength) {
+            if (previousLength !== newLength) {
                 if (selectionStart.line === from.line && selectionStart.ch > from.ch)
                     selectionStart.ch += newLength - previousLength;
 
@@ -438,21 +465,21 @@
 
             var startChar = line === range.start.line ? range.start.ch : (lineContent.length - lineContent.trimLeft().length);
             var endChar = line === range.end.line ? range.end.ch : lineContent.length;
-            var firstCharCoords = this.cursorCoords({ch: startChar, line: line});
-            var endCharCoords = this.cursorCoords({ch: endChar, line: line});
+            var firstCharCoords = this.cursorCoords({ch: startChar, line});
+            var endCharCoords = this.cursorCoords({ch: endChar, line});
 
             // Handle line wrapping.
             if (firstCharCoords.bottom !== endCharCoords.bottom) {
                 var maxY = -Number.MAX_VALUE;
                 for (var ch = startChar; ch <= endChar; ++ch) {
-                    var coords = this.cursorCoords({ch: ch, line: line});
+                    var coords = this.cursorCoords({ch, line});
                     if (coords.bottom > maxY) {
                         if (ch > startChar) {
-                            var maxX = Math.ceil(this.cursorCoords({ch: ch - 1, line: line}).right);
+                            var maxX = Math.ceil(this.cursorCoords({ch: ch - 1, line}).right);
                             lineRects.push(new WebInspector.Rect(minX, minY, maxX - minX, maxY - minY));
                         }
                         var minX = Math.floor(coords.left);
-                        var minY = Math.floor(coords.top)
+                        var minY = Math.floor(coords.top);
                         maxY = Math.ceil(coords.bottom);
                     }
                 }
@@ -476,7 +503,7 @@
         var end = range instanceof WebInspector.TextRange ? range.endLine + 1 : this.lineCount();
 
         // Matches rgba(0, 0, 0, 0.5), rgb(0, 0, 0), hsl(), hsla(), #fff, #ffffff, white
-        const colorRegex = /((?:rgb|hsl)a?\([^)]+\)|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|\b\w+\b(?![-.]))/g;
+        var colorRegex = /((?:rgb|hsl)a?\([^)]+\)|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|\b\w+\b(?![-.]))/g;
 
         for (var lineNumber = start; lineNumber < end; ++lineNumber) {
             var lineContent = this.getLine(lineNumber);
@@ -541,7 +568,7 @@
         var start = range instanceof WebInspector.TextRange ? range.startLine : 0;
         var end = range instanceof WebInspector.TextRange ? range.endLine + 1 : this.lineCount();
 
-        const gradientRegex = /(repeating-)?(linear|radial)-gradient\s*\(\s*/g;
+        var gradientRegex = /(repeating-)?(linear|radial)-gradient\s*\(\s*/g;
 
         for (var lineNumber = start; lineNumber < end; ++lineNumber) {
             var lineContent = this.getLine(lineNumber);
@@ -552,6 +579,7 @@
                 var endChar = match.index + match[0].length;
 
                 var openParentheses = 0;
+                var c = null;
                 while (c = lineContent[endChar]) {
                     if (c === "(")
                         openParentheses++;
@@ -625,23 +653,23 @@
 
     // Register some extra MIME-types for CodeMirror. These are in addition to the
     // ones CodeMirror already registers, like text/html, text/javascript, etc.
-    const extraXMLTypes = ["text/xml", "text/xsl"];
+    var extraXMLTypes = ["text/xml", "text/xsl"];
     extraXMLTypes.forEach(function(type) {
         CodeMirror.defineMIME(type, "xml");
     });
 
-    const extraHTMLTypes = ["application/xhtml+xml", "image/svg+xml"];
+    var extraHTMLTypes = ["application/xhtml+xml", "image/svg+xml"];
     extraHTMLTypes.forEach(function(type) {
         CodeMirror.defineMIME(type, "htmlmixed");
     });
 
-    const extraJavaScriptTypes = ["text/ecmascript", "application/javascript", "application/ecmascript", "application/x-javascript",
+    var extraJavaScriptTypes = ["text/ecmascript", "application/javascript", "application/ecmascript", "application/x-javascript",
         "text/x-javascript", "text/javascript1.1", "text/javascript1.2", "text/javascript1.3", "text/jscript", "text/livescript"];
     extraJavaScriptTypes.forEach(function(type) {
         CodeMirror.defineMIME(type, "javascript");
     });
 
-    const extraJSONTypes = ["application/x-json", "text/x-json"];
+    var extraJSONTypes = ["application/x-json", "text/x-json"];
     extraJSONTypes.forEach(function(type) {
         CodeMirror.defineMIME(type, {name: "javascript", json: true});
     });

@@ -15,6 +15,7 @@
 
 namespace Inspector {
 class JSGlobalObjectInspectorController;
+class InstrumentingAgents;
 }
 
 namespace NativeScript {
@@ -115,6 +116,10 @@ public:
         return *this->_inspectorController.get();
     }
 
+    Inspector::InstrumentingAgents& instrumentingAgents() const {
+        return *this->_instrumentingAgents.get();
+    }
+
     TypeFactory* typeFactory() const {
         return _typeFactory.get();
     }
@@ -137,6 +142,7 @@ private:
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
 
     std::unique_ptr<Inspector::JSGlobalObjectInspectorController> _inspectorController;
+    std::unique_ptr<Inspector::InstrumentingAgents> _instrumentingAgents;
 
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;

@@ -23,27 +23,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.SourceCode = function()
+WebInspector.SourceCode = class SourceCode extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor()
+    {
+        super();
 
-    this._pendingContentRequestCallbacks = [];
+        this._originalRevision = new WebInspector.SourceCodeRevision(this, null, false);
+        this._currentRevision = this._originalRevision;
 
-    this._originalRevision = new WebInspector.SourceCodeRevision(this, null, false);
-    this._currentRevision = this._originalRevision;
-
-    this._sourceMaps = null;
-    this._formatterSourceMap = null;
-};
-
-WebInspector.SourceCode.Event = {
-    ContentDidChange: "source-code-content-did-change",
-    SourceMapAdded: "source-code-source-map-added",
-    FormatterDidChange: "source-code-formatter-did-change"
-};
-
-WebInspector.SourceCode.prototype = {
-    constructor: WebInspector.SourceCode,
+        this._sourceMaps = null;
+        this._formatterSourceMap = null;
+        this._requestContentPromise = null;
+    }
 
     // Public
 
@@ -52,17 +44,17 @@ WebInspector.SourceCode.prototype = {
         // Implemented by subclasses.
         console.error("Needs to be implemented by a subclass.");
         return "";
-    },
+    }
 
     get originalRevision()
     {
         return this._originalRevision;
-    },
+    }
 
     get currentRevision()
     {
         return this._currentRevision;
-    },
+    }
 
     set currentRevision(revision)
     {
@@ -77,24 +69,19 @@ WebInspector.SourceCode.prototype = {
         this._currentRevision = revision;
 
         this.dispatchEventToListeners(WebInspector.SourceCode.Event.ContentDidChange);
-    },
+    }
 
     get content()
     {
         return this._currentRevision.content;
-    },
-
-    get contentIsBase64Encoded()
-    {
-        return this._currentRevision.contentIsBase64Encoded;
-    },
+    }
 
     get sourceMaps()
     {
         return this._sourceMaps || [];
-    },
+    }
 
-    addSourceMap: function(sourceMap)
+    addSourceMap(sourceMap)
     {
         console.assert(sourceMap instanceof WebInspector.SourceMap);
 
@@ -104,12 +91,12 @@ WebInspector.SourceCode.prototype = {
         this._sourceMaps.push(sourceMap);
 
         this.dispatchEventToListeners(WebInspector.SourceCode.Event.SourceMapAdded);
-    },
+    }
 
     get formatterSourceMap()
     {
         return this._formatterSourceMap;
-    },
+    }
 
     set formatterSourceMap(formatterSourceMap)
     {
@@ -119,37 +106,33 @@ WebInspector.SourceCode.prototype = {
         this._formatterSourceMap = formatterSourceMap;
 
         this.dispatchEventToListeners(WebInspector.SourceCode.Event.FormatterDidChange);
-    },
+    }
 
-    requestContent: function(callback)
+    requestContent()
     {
-        console.assert(typeof callback === "function");
-        if (typeof callback !== "function")
-            return;
+        this._requestContentPromise = this._requestContentPromise || this.requestContentFromBackend().then(this._processContent.bind(this));
 
-        this._pendingContentRequestCallbacks.push(callback);
+        return this._requestContentPromise;
+    }
 
-        if (this._contentReceived) {
-            // Call _servicePendingContentRequests on a timeout to force callbacks to be asynchronous.
-            if (!this._servicePendingContentRequestsTimeoutIdentifier)
-                this._servicePendingContentRequestsTimeoutIdentifier = setTimeout(this.servicePendingContentRequests.bind(this), 0);
-        } else if (this.canRequestContentFromBackend())
-            this.requestContentFromBackendIfNeeded();
-    },
-
-    createSourceCodeLocation: function(lineNumber, columnNumber)
+    createSourceCodeLocation(lineNumber, columnNumber)
     {
         return new WebInspector.SourceCodeLocation(this, lineNumber, columnNumber);
-    },
+    }
 
-    createSourceCodeTextRange: function(textRange)
+    createLazySourceCodeLocation(lineNumber, columnNumber)
+    {
+        return new WebInspector.LazySourceCodeLocation(this, lineNumber, columnNumber);
+    }
+
+    createSourceCodeTextRange(textRange)
     {
         return new WebInspector.SourceCodeTextRange(this, textRange);
-    },
+    }
 
     // Protected
 
-    revisionContentDidChange: function(revision)
+    revisionContentDidChange(revision)
     {
         if (this._ignoreRevisionContentDidChangeEvent)
             return;
@@ -160,103 +143,66 @@ WebInspector.SourceCode.prototype = {
         this.handleCurrentRevisionContentChange();
 
         this.dispatchEventToListeners(WebInspector.SourceCode.Event.ContentDidChange);
-    },
+    }
 
-    handleCurrentRevisionContentChange: function()
+    handleCurrentRevisionContentChange()
     {
         // Implemented by subclasses if needed.
-    },
+    }
 
     get revisionForRequestedContent()
     {
         // Implemented by subclasses if needed.
         return this._originalRevision;
-    },
+    }
 
-    markContentAsStale: function()
+    markContentAsStale()
     {
+        this._requestContentPromise = null;
         this._contentReceived = false;
-    },
+    }
 
-    canRequestContentFromBackend: function()
+    requestContentFromBackend()
     {
         // Implemented by subclasses.
         console.error("Needs to be implemented by a subclass.");
-        return false;
-    },
+        return Promise.reject(new Error("Needs to be implemented by a subclass."));
+    }
 
-    requestContentFromBackend: function(callback)
+    get mimeType()
     {
         // Implemented by subclasses.
         console.error("Needs to be implemented by a subclass.");
-    },
-
-    requestContentFromBackendIfNeeded: function()
-    {
-        console.assert(this.canRequestContentFromBackend());
-        if (!this.canRequestContentFromBackend())
-            return;
-
-        if (!this._pendingContentRequestCallbacks.length)
-            return;
-
-        if (this._contentRequestResponsePending)
-            return;
-
-        this._contentRequestResponsePending = true;
-
-        if (this.requestContentFromBackend(this._processContent.bind(this)))
-            return;
-
-        // Since requestContentFromBackend returned false, just call _processContent,
-        // which will cause the pending callbacks to get null content.
-        this._processContent();
-    },
-
-    servicePendingContentRequests: function(force)
-    {
-        if (this._servicePendingContentRequestsTimeoutIdentifier) {
-            clearTimeout(this._servicePendingContentRequestsTimeoutIdentifier);
-            delete this._servicePendingContentRequestsTimeoutIdentifier;
-        }
-
-        // Force the content requests to be sent. To do this correctly we also force
-        // _contentReceived to be true so future calls to requestContent go through.
-        if (force)
-            this._contentReceived = true;
-
-        console.assert(this._contentReceived);
-        if (!this._contentReceived)
-            return;
-
-        // Move the callbacks into a local and clear _pendingContentRequestCallbacks so
-        // callbacks that might call requestContent again will not modify the array.
-        var callbacks = this._pendingContentRequestCallbacks;
-        this._pendingContentRequestCallbacks = [];
-
-        for (var i = 0; i < callbacks.length; ++i)
-            callbacks[i](this, this.content, this.contentIsBase64Encoded);
-    },
+    }
 
     // Private
 
-    _processContent: function(error, content, base64Encoded)
+    _processContent(parameters)
     {
-        if (error)
-            console.error(error);
-
-        this._contentRequestResponsePending = false;
-        this._contentReceived = true;
+        // Different backend APIs return one of `content, `body`, `text`, or `scriptSource`.
+        var content = parameters.content || parameters.body || parameters.text || parameters.scriptSource;
+        var error = parameters.error;
+        if (parameters.base64Encoded)
+            content = decodeBase64ToBlob(content, this.mimeType);
 
         var revision = this.revisionForRequestedContent;
 
         this._ignoreRevisionContentDidChangeEvent = true;
         revision.content = content || null;
-        revision.contentIsBase64Encoded = base64Encoded || false;
         delete this._ignoreRevisionContentDidChangeEvent;
 
-        this.servicePendingContentRequests();
+        return Promise.resolve({
+            error,
+            sourceCode: this,
+            content,
+        });
     }
 };
 
-WebInspector.SourceCode.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.SourceCode.Event = {
+    ContentDidChange: "source-code-content-did-change",
+    SourceMapAdded: "source-code-source-map-added",
+    FormatterDidChange: "source-code-formatter-did-change",
+    LoadingDidFinish: "source-code-loading-did-finish",
+    LoadingDidFail: "source-code-loading-did-fail"
+};

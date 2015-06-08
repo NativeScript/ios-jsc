@@ -23,12 +23,103 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DOMStorageObject = function(id, host, isLocalStorage)
+WebInspector.DOMStorageObject = class DOMStorageObject extends WebInspector.Object
 {
-    this._id = id;
-    this._host = host;
-    this._isLocalStorage = isLocalStorage;
-    this._entries = new Map;
+    constructor(id, host, isLocalStorage)
+    {
+        super();
+
+        this._id = id;
+        this._host = host;
+        this._isLocalStorage = isLocalStorage;
+        this._entries = new Map;
+    }
+
+    // Public
+
+    get id()
+    {
+        return this._id;
+    }
+
+    get host()
+    {
+        return this._host;
+    }
+
+    get entries()
+    {
+        return this._entries;
+    }
+
+    saveIdentityToCookie(cookie)
+    {
+        cookie[WebInspector.DOMStorageObject.HostCookieKey] = this.host;
+        cookie[WebInspector.DOMStorageObject.LocalStorageCookieKey] = this.isLocalStorage();
+    }
+
+    isLocalStorage()
+    {
+        return this._isLocalStorage;
+    }
+
+    getEntries(callback)
+    {
+        function innerCallback(error, entries)
+        {
+            if (error)
+                return;
+
+            for (var entry of entries) {
+                if (!entry[0] || !entry[1])
+                    continue;
+                this._entries.set(entry[0], entry[1]);
+            }
+
+            callback(error, entries);
+        }
+
+        // COMPATIBILITY (iOS 6): The getDOMStorageItems function was later renamed to getDOMStorageItems.
+        if (DOMStorageAgent.getDOMStorageEntries)
+            DOMStorageAgent.getDOMStorageEntries(this._id, innerCallback.bind(this));
+        else
+            DOMStorageAgent.getDOMStorageItems(this._id, innerCallback.bind(this));
+    }
+
+    removeItem(key)
+    {
+        DOMStorageAgent.removeDOMStorageItem(this._id, key);
+    }
+
+    setItem(key, value)
+    {
+        DOMStorageAgent.setDOMStorageItem(this._id, key, value);
+    }
+
+    itemsCleared()
+    {
+        this._entries.clear();
+        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemsCleared);
+    }
+
+    itemRemoved(key)
+    {
+        this._entries.delete(key);
+        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemRemoved, {key});
+    }
+
+    itemAdded(key, value)
+    {
+        this._entries.set(key, value);
+        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemAdded, {key, value});
+    }
+
+    itemUpdated(key, oldValue, value)
+    {
+        this._entries.set(key, value);
+        var data = {key, oldValue, value};
+        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemUpdated, data);
+    }
 };
 
 WebInspector.DOMStorageObject.TypeIdentifier = "dom-storage";
@@ -40,79 +131,4 @@ WebInspector.DOMStorageObject.Event = {
     ItemAdded: "dom-storage-object-item-added",
     ItemRemoved: "dom-storage-object-item-removed",
     ItemUpdated: "dom-storage-object-updated",
-};
-
-WebInspector.DOMStorageObject.prototype = {
-    constructor: WebInspector.DOMStorageObject,
-    __proto__: WebInspector.Object.prototype,
-
-    get id()
-    {
-        return this._id;
-    },
-
-    get host()
-    {
-        return this._host;
-    },
-
-    get entries()
-    {
-        return this._entries;
-    },
-
-    saveIdentityToCookie: function(cookie)
-    {
-        cookie[WebInspector.DOMStorageObject.HostCookieKey] = this.host;
-        cookie[WebInspector.DOMStorageObject.LocalStorageCookieKey] = this.isLocalStorage();
-    },
-
-    isLocalStorage: function()
-    {
-        return this._isLocalStorage;
-    },
-
-    getEntries: function(callback)
-    {
-        // COMPATIBILITY (iOS 6): The getDOMStorageItems function was later renamed to getDOMStorageItems.
-        if (DOMStorageAgent.getDOMStorageEntries)
-            DOMStorageAgent.getDOMStorageEntries(this._id, callback);
-        else
-            DOMStorageAgent.getDOMStorageItems(this._id, callback);
-    },
-
-    removeItem: function(key)
-    {
-        DOMStorageAgent.removeDOMStorageItem(this._id, key);
-    },
-
-    setItem: function(key, value)
-    {
-        DOMStorageAgent.setDOMStorageItem(this._id, key, value);
-    },
-
-    itemsCleared: function()
-    {
-        this._entries.clear();
-        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemsCleared);
-    },
-
-    itemRemoved: function(key)
-    {
-        this._entries.delete(key);
-        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemRemoved, {key: key});
-    },
-
-    itemAdded: function(key, value)
-    {
-        this._entries.set(key, value);
-        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemAdded, {key: key, value: value});
-    },
-
-    itemUpdated: function(key, oldValue, value)
-    {
-        this._entries.set(key, value);
-        var data = {key: key, oldValue: oldValue, value: value};
-        this.dispatchEventToListeners(WebInspector.DOMStorageObject.Event.ItemUpdated, data);
-    }
 };

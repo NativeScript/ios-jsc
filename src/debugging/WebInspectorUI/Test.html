@@ -27,7 +27,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <!--
-    These resouces should match the order and groups used in Main.html.
+    These resources should match the order and groups used in Main.html.
     -->
     <script src="Base/WebInspector.js"></script>
     <script src="Base/Object.js"></script>
@@ -35,8 +35,12 @@
     <script src="Base/Test.js"></script>
 
     <script src="Base/DOMUtilities.js"></script>
+    <script src="Base/EventListener.js"></script>
+    <script src="Base/EventListenerSet.js"></script>
     <script src="Base/URLUtilities.js"></script>
     <script src="Base/Utilities.js"></script>
+
+    <script src="External/Esprima/esprima.js"></script>
 
     <script src="Protocol/InspectorBackend.js"></script>
     <script src="Protocol/InspectorFrontendAPI.js"></script>
@@ -46,6 +50,7 @@
 
     <script src="Protocol/InspectorObserver.js"></script>
     <script src="Protocol/CSSObserver.js"></script>
+    <script src="Protocol/ConsoleObserver.js"></script>
     <script src="Protocol/DOMObserver.js"></script>
     <script src="Protocol/DOMStorageObserver.js"></script>
     <script src="Protocol/DebuggerObserver.js"></script>
@@ -57,17 +62,30 @@
     <script src="Protocol/TimelineObserver.js"></script>
 
     <script src="Models/BreakpointAction.js"></script>
+    <script src="Models/ConsoleMessage.js"></script>
     <script src="Models/SourceCode.js"></script>
+    <script src="Models/SourceCodeLocation.js"></script>
     <script src="Models/Timeline.js"></script>
     <script src="Models/TimelineRecord.js"></script>
 
     <script src="Models/Breakpoint.js"></script>
+    <script src="Models/CSSCompletions.js"></script>
+    <script src="Models/CSSKeywordCompletions.js"></script>
+    <script src="Models/CSSProperty.js"></script>
+    <script src="Models/CSSRule.js"></script>
+    <script src="Models/CSSSelector.js"></script>
+    <script src="Models/CSSStyleDeclaration.js"></script>
+    <script src="Models/CSSStyleSheet.js"></script>
     <script src="Models/CallFrame.js"></script>
+    <script src="Models/CollectionEntry.js"></script>
     <script src="Models/Color.js"></script>
+    <script src="Models/ConsoleCommandResultMessage.js"></script>
     <script src="Models/ContentFlow.js"></script>
     <script src="Models/DOMNode.js"></script>
+    <script src="Models/DOMNodeStyles.js"></script>
     <script src="Models/DOMStorageObject.js"></script>
     <script src="Models/DOMTree.js"></script>
+    <script src="Models/CollectionEntryPreview.js"></script>
     <script src="Models/ExecutionContext.js"></script>
     <script src="Models/ExecutionContextList.js"></script>
     <script src="Models/Frame.js"></script>
@@ -75,8 +93,11 @@
     <script src="Models/IndexedDatabase.js"></script>
     <script src="Models/IndexedDatabaseObjectStore.js"></script>
     <script src="Models/IndexedDatabaseObjectStoreIndex.js"></script>
+    <script src="Models/IssueMessage.js"></script>
     <script src="Models/LayoutTimelineRecord.js"></script>
+    <script src="Models/LazySourceCodeLocation.js"></script>
     <script src="Models/NetworkTimeline.js"></script>
+    <script src="Models/ObjectPreview.js"></script>
     <script src="Models/Probe.js"></script>
     <script src="Models/ProbeSet.js"></script>
     <script src="Models/ProbeSetDataFrame.js"></script>
@@ -84,19 +105,25 @@
     <script src="Models/Profile.js"></script>
     <script src="Models/ProfileNode.js"></script>
     <script src="Models/ProfileNodeCall.js"></script>
+    <script src="Models/PropertyDescriptor.js"></script>
+    <script src="Models/PropertyPreview.js"></script>
+    <script src="Models/RenderingFrameTimelineRecord.js"></script>
     <script src="Models/ReplaySession.js"></script>
     <script src="Models/ReplaySessionSegment.js"></script>
     <script src="Models/Resource.js"></script>
     <script src="Models/ResourceCollection.js"></script>
     <script src="Models/ResourceTimelineRecord.js"></script>
     <script src="Models/Revision.js"></script>
+    <script src="Models/ScopeChainNode.js"></script>
     <script src="Models/Script.js"></script>
+    <script src="Models/ScriptSyntaxTree.js"></script>
     <script src="Models/ScriptTimelineRecord.js"></script>
     <script src="Models/Setting.js"></script>
     <script src="Models/SourceCodeLocation.js"></script>
     <script src="Models/SourceCodeRevision.js"></script>
     <script src="Models/SourceCodeTimeline.js"></script>
     <script src="Models/SourceMapResource.js"></script>
+    <script src="Models/StackTrace.js"></script>
     <script src="Models/TextRange.js"></script>
     <script src="Models/TimelineMarker.js"></script>
     <script src="Models/TimelineRecording.js"></script>
@@ -105,6 +132,8 @@
     <script src="Controllers/DOMTreeManager.js"></script>
     <script src="Controllers/DebuggerManager.js"></script>
     <script src="Controllers/FrameResourceManager.js"></script>
+    <script src="Controllers/IssueManager.js"></script>
+    <script src="Controllers/LogManager.js"></script>
     <script src="Controllers/ProbeManager.js"></script>
     <script src="Controllers/ReplayManager.js"></script>
     <script src="Controllers/RuntimeManager.js"></script>

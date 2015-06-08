@@ -23,36 +23,35 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.BranchManager = function()
+WebInspector.BranchManager = class BranchManager extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor()
+    {
+        super();
 
-    WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
+        WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
 
-    this.initialize();
-}
-
-WebInspector.BranchManager.prototype = {
-    constructor: WebInspector.BranchManager,
+        this.initialize();
+    }
 
     // Public
 
-    initialize: function()
+    initialize()
     {
         this._originalBranch = new WebInspector.Branch(WebInspector.UIString("Original"), null, true);
         this._currentBranch = this._originalBranch.fork(WebInspector.UIString("Working Copy"));
         this._branches = [this._originalBranch, this._currentBranch];
-    },
+    }
 
     get branches()
     {
         return this._branches;
-    },
+    }
 
     get currentBranch()
     {
         return this._currentBranch;
-    },
+    }
 
     set currentBranch(branch)
     {
@@ -65,23 +64,23 @@ WebInspector.BranchManager.prototype = {
         this._currentBranch = branch;
 
         this._currentBranch.apply();
-    },
+    }
 
-    createBranch: function(displayName, fromBranch)
+    createBranch(displayName, fromBranch)
     {
         if (!fromBranch)
             fromBranch = this._originalBranch;
 
         console.assert(fromBranch instanceof WebInspector.Branch);
         if (!(fromBranch instanceof WebInspector.Branch))
-            return;
+            return null;
 
         var newBranch = fromBranch.fork(displayName);
         this._branches.push(newBranch);
         return newBranch;
-    },
+    }
 
-    deleteBranch: function(branch)
+    deleteBranch(branch)
     {
         console.assert(branch instanceof WebInspector.Branch);
         if (!(branch instanceof WebInspector.Branch))
@@ -95,11 +94,11 @@ WebInspector.BranchManager.prototype = {
 
         if (branch === this._currentBranch)
             this._currentBranch = this._originalBranch;
-    },
+    }
 
     // Private
 
-    _mainResourceDidChange: function(event)
+    _mainResourceDidChange(event)
     {
         console.assert(event.target instanceof WebInspector.Frame);
 
@@ -109,5 +108,3 @@ WebInspector.BranchManager.prototype = {
         this.initialize();
     }
 };
-
-WebInspector.BranchManager.prototype.__proto__ = WebInspector.Object.prototype;

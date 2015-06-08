@@ -23,61 +23,58 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DatabaseObject = function(id, host, name, version)
+WebInspector.DatabaseObject = class DatabaseObject extends WebInspector.Object
 {
-    this._id = id;
-    this._host = host ? host : WebInspector.UIString("Local File");
-    this._name = name;
-    this._version = version;
-};
+    constructor(id, host, name, version)
+    {
+        super();
 
-WebInspector.DatabaseObject.TypeIdentifier = "database";
-WebInspector.DatabaseObject.HostCookieKey = "database-object-host";
-WebInspector.DatabaseObject.NameCookieKey = "database-object-name";
+        this._id = id;
+        this._host = host ? host : WebInspector.UIString("Local File");
+        this._name = name;
+        this._version = version;
+    }
 
-WebInspector.DatabaseObject.prototype = {
-    constructor: WebInspector.DatabaseObject,
-    
     // Public
 
     get id()
     {
         return this._id;
-    },
+    }
 
     get host()
     {
         return this._host;
-    },
+    }
 
     get name()
     {
         return this._name;
-    },
-    
+    }
+
     get version()
     {
         return this._version;
-    },
-    
-    saveIdentityToCookie: function(cookie)
+    }
+
+    saveIdentityToCookie(cookie)
     {
         cookie[WebInspector.DatabaseObject.HostCookieKey] = this.host;
         cookie[WebInspector.DatabaseObject.NameCookieKey] = this.name;
-    },
+    }
 
-    getTableNames: function(callback)
+    getTableNames(callback)
     {
         function sortingCallback(error, names)
         {
             if (!error)
                 callback(names.sort());
         }
-        
-        DatabaseAgent.getDatabaseTableNames(this._id, sortingCallback);
-    },
 
-    executeSQL: function(query, successCallback, errorCallback)
+        DatabaseAgent.getDatabaseTableNames(this._id, sortingCallback);
+    }
+
+    executeSQL(query, successCallback, errorCallback)
     {
         function queryCallback(columnNames, values, sqlError)
         {
@@ -133,3 +130,7 @@ WebInspector.DatabaseObject.prototype = {
         DatabaseAgent.executeSQL(this._id, query, callback);
     }
 };
+
+WebInspector.DatabaseObject.TypeIdentifier = "database";
+WebInspector.DatabaseObject.HostCookieKey = "database-object-host";
+WebInspector.DatabaseObject.NameCookieKey = "database-object-name";

@@ -1,0 +1,71 @@
+/*
+ * Copyright (C) 2015 Apple Inc. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. AND ITS CONTRIBUTORS ``AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL APPLE INC. OR ITS CONTRIBUTORS
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+.timeline-record-frame {
+    position: absolute;
+    height: 108px;
+    min-width: 4px;
+    width: 4px;
+
+    overflow: hidden;
+
+    -webkit-mask-image: -webkit-linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 10%);
+}
+
+.timeline-record-frame > .frame {
+    position: absolute;
+    z-index: 1;
+    bottom: 1px;
+    min-width: 4px;
+    width: 100%;
+
+    padding-left: 1px;
+
+    box-sizing: border-box;
+}
+
+.timeline-record-frame > .frame > .duration {
+    box-sizing: border-box;
+
+    background-color: rgb(221, 221, 221);
+
+    border-bottom: solid 1px rgb(245, 245, 245);
+}
+
+.timeline-record-frame > .frame > .duration:last-child {
+    border-bottom-style: none;
+}
+
+.timeline-record-frame > .frame > .duration.timeline-record-type-network {
+    background-color: rgb(61, 147, 200);
+}
+
+.timeline-record-frame > .frame > .duration.timeline-record-type-layout {
+    background-color: rgb(212, 108, 108);
+}
+
+.timeline-record-frame > .frame > .duration.timeline-record-type-script {
+    background-color: rgb(153, 113, 185);
+}

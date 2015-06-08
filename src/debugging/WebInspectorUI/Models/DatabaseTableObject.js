@@ -23,34 +23,35 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DatabaseTableObject = function(name, database)
+WebInspector.DatabaseTableObject = class DatabaseTableObject extends WebInspector.Object
 {
-    console.assert(database instanceof WebInspector.DatabaseObject);
-    
-    this._name = name;
-    this._database = database;
+    constructor(name, database)
+    {
+        super();
+
+        console.assert(database instanceof WebInspector.DatabaseObject);
+
+        this._name = name;
+        this._database = database;
+    }
+
+    // Public
+
+    get name()
+    {
+        return this._name;
+    }
+
+    get database()
+    {
+        return this._database;
+    }
+
+    saveIdentityToCookie(cookie)
+    {
+        cookie[WebInspector.DatabaseTableObject.NameCookieKey] = this.name;
+    }
 };
 
 WebInspector.DatabaseTableObject.TypeIdentifier = "database-table";
 WebInspector.DatabaseTableObject.NameCookieKey = "database-table-object-name";
-
-WebInspector.DatabaseTableObject.prototype = {
-    constructor: WebInspector.DatabaseTableObject,
-    
-    get name()
-    {
-        return this._name;
-    },
-    
-    get database()
-    {
-        return this._database;
-    },
-
-    saveIdentityToCookie: function(cookie)
-    {
-        cookie[WebInspector.DatabaseTableObject.NameCookieKey] = this.name;
-    },
-};
-
-WebInspector.DatabaseTableObject.prototype.__proto__ = WebInspector.Object.prototype;

@@ -23,13 +23,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// FIXME: Convert to class?
 WebInspector.Gradient = {
-    Types : {
+    Types: {
         Linear: "linear-gradient",
         Radial: "radial-gradient"
     },
-    
-    fromString: function(cssString)
+
+    fromString(cssString)
     {
         var type;
         var openingParenthesisIndex = cssString.indexOf("(");
@@ -48,6 +49,7 @@ WebInspector.Gradient = {
         var currentParam = "";
         var openParentheses = 0;
         var ch = openingParenthesisIndex + 1;
+        var c = null;
         while (c = cssString[ch]) {
             if (c === "(")
                 openParentheses++;
@@ -87,14 +89,14 @@ WebInspector.Gradient = {
             gradient = WebInspector.LinearGradient.linearGradientWithComponents(components);
         else
             gradient = WebInspector.RadialGradient.radialGradientWithComponents(components);
-    
+
         if (gradient)
-            gradient.repeats = typeString.indexOf("repeating") === 0;
-    
+            gradient.repeats = typeString.startsWith("repeating");
+
         return gradient;
     },
-    
-    stopsWithComponents: function(components)
+
+    stopsWithComponents(components)
     {
         // FIXME: handle lengths.
         var stops = components.map(function(component) {
@@ -103,7 +105,7 @@ WebInspector.Gradient = {
                 if (!color)
                     continue;
 
-                var stop = {color: color};
+                var stop = {color};
                 if (component.length && component[0].substr(-1) === "%")
                     stop.offset = parseFloat(component.shift()) / 100;
                 return stop;
@@ -129,8 +131,8 @@ WebInspector.Gradient = {
 
         return stops;
     },
-    
-    stringFromStops: function(stops)
+
+    stringFromStops(stops)
     {
         var count = stops.length - 1;
         return stops.map(function(stop, index) {
@@ -142,74 +144,77 @@ WebInspector.Gradient = {
     }
 };
 
-WebInspector.LinearGradient = function(angle, stops)
+WebInspector.LinearGradient = class LinearGradient
 {
-    this.type = WebInspector.Gradient.Types.Linear;
-    this.angle = angle;
-    this.stops = stops;
-}
-
-WebInspector.LinearGradient.linearGradientWithComponents = function(components)
-{
-    var angle = 180;
-
-    if (components[0].length === 1 && components[0][0].substr(-3) === "deg") {
-        angle = (parseFloat(components[0][0]) % 360 + 360) % 360;
-        components.shift();
-    } else if (components[0][0] === "to") {
-        components[0].shift();
-        switch (components[0].sort().join(" ")) {
-        case "top":
-            angle = 0;
-            break;
-        case "right top":
-            angle = 45;
-            break;
-        case "right":
-            angle = 90;
-            break;
-        case "bottom right":
-            angle = 135;
-            break;
-        case "bottom":
-            angle = 180;
-            break;
-        case "bottom left":
-            angle = 225;
-            break;
-        case "left":
-            angle = 270;
-            break;
-        case "left top":
-            angle = 315;
-            break;
-        default:
-            console.error("Couldn't parse angle \"to " + components[0].join(" ") + "\"");
-            return null;
-        }
-        components.shift();
-    } else if (components[0].length !== 1 && !WebInspector.Color.fromString(components[0][0])) {
-        // If the first component is not a color, then we're dealing with a
-        // legacy linear gradient format that we don't support.
-        return null;
+    constructor(angle, stops)
+    {
+        this.type = WebInspector.Gradient.Types.Linear;
+        this.angle = angle;
+        this.stops = stops;
     }
 
-    var stops = WebInspector.Gradient.stopsWithComponents(components);
-    if (!stops)
-        return null;
+    // Static
 
-    return new WebInspector.LinearGradient(angle, stops);
-}
+    static linearGradientWithComponents(components)
+    {
+        var angle = 180;
 
-WebInspector.LinearGradient.prototype = {
-    constructor: WebInspector.LinearGradient,
+        if (components[0].length === 1 && components[0][0].substr(-3) === "deg") {
+            angle = (parseFloat(components[0][0]) % 360 + 360) % 360;
+            components.shift();
+        } else if (components[0][0] === "to") {
+            components[0].shift();
+            switch (components[0].sort().join(" ")) {
+            case "top":
+                angle = 0;
+                break;
+            case "right top":
+                angle = 45;
+                break;
+            case "right":
+                angle = 90;
+                break;
+            case "bottom right":
+                angle = 135;
+                break;
+            case "bottom":
+                angle = 180;
+                break;
+            case "bottom left":
+                angle = 225;
+                break;
+            case "left":
+                angle = 270;
+                break;
+            case "left top":
+                angle = 315;
+                break;
+            default:
+                console.error("Couldn't parse angle \"to " + components[0].join(" ") + "\"");
+                return null;
+            }
+            components.shift();
+        } else if (components[0].length !== 1 && !WebInspector.Color.fromString(components[0][0])) {
+            // If the first component is not a color, then we're dealing with a
+            // legacy linear gradient format that we don't support.
+            return null;
+        }
 
-    copy: function()
+        var stops = WebInspector.Gradient.stopsWithComponents(components);
+        if (!stops)
+            return null;
+
+        return new WebInspector.LinearGradient(angle, stops);
+    }
+
+    // Public
+
+    copy()
     {
         return new WebInspector.LinearGradient(this.angle, this.stops.concat());
-    },
+    }
 
-    toString: function()
+    toString()
     {
         var str = "";
 
@@ -237,35 +242,38 @@ WebInspector.LinearGradient.prototype = {
 
         return (this.repeats ? "repeating-" : "") + this.type + "(" + str + ")";
     }
-}
+};
 
-WebInspector.RadialGradient = function(sizing, stops)
+WebInspector.RadialGradient = class RadialGradient
 {
-    this.type = WebInspector.Gradient.Types.Radial;
-    this.sizing = sizing;
-    this.stops = stops;
-}
+    constructor(sizing, stops)
+    {
+        this.type = WebInspector.Gradient.Types.Radial;
+        this.sizing = sizing;
+        this.stops = stops;
+    }
 
-WebInspector.RadialGradient.radialGradientWithComponents = function(components)
-{
-    var sizing = !WebInspector.Color.fromString(components[0].join(" ")) ? components.shift().join(" ") : "";
+    // Static
 
-    var stops = WebInspector.Gradient.stopsWithComponents(components);
-    if (!stops)
-        return null;
+    static radialGradientWithComponents(components)
+    {
+        var sizing = !WebInspector.Color.fromString(components[0].join(" ")) ? components.shift().join(" ") : "";
 
-    return new WebInspector.RadialGradient(sizing, stops);
-}
+        var stops = WebInspector.Gradient.stopsWithComponents(components);
+        if (!stops)
+            return null;
 
-WebInspector.RadialGradient.prototype = {
-    constructor: WebInspector.RadialGradient,
+        return new WebInspector.RadialGradient(sizing, stops);
+    }
 
-    copy: function()
+    // Public
+
+    copy()
     {
         return new WebInspector.RadialGradient(this.sizing, this.stops.concat());
-    },
+    }
 
-    toString: function()
+    toString()
     {
         var str = this.sizing;
 
@@ -273,7 +281,7 @@ WebInspector.RadialGradient.prototype = {
             str += ", ";
 
         str += WebInspector.Gradient.stringFromStops(this.stops);
-        
+
         return (this.repeats ? "repeating-" : "") + this.type + "(" + str + ")";
     }
-}
+};

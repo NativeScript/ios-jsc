@@ -35,7 +35,18 @@ WebInspector.DOMStorageContentView = function(representedObject)
     representedObject.addEventListener(WebInspector.DOMStorageObject.Event.ItemRemoved, this.itemRemoved, this);
     representedObject.addEventListener(WebInspector.DOMStorageObject.Event.ItemUpdated, this.itemUpdated, this);
 
-    this.reset();
+    var columns = {};
+    columns.key = {title: WebInspector.UIString("Key"), sortable: true};
+    columns.value = {title: WebInspector.UIString("Value"), sortable: true};
+
+    this._dataGrid = new WebInspector.DataGrid(columns, this._editingCallback.bind(this), this._deleteCallback.bind(this));
+    this._dataGrid.sortOrder = WebInspector.DataGrid.SortOrder.Ascending;
+    this._dataGrid.sortColumnIdentifier = "key";
+    this._dataGrid.addEventListener(WebInspector.DataGrid.Event.SortChanged, this._sortDataGrid, this);
+
+    this.element.appendChild(this._dataGrid.element);
+
+    this._populate();
 };
 
 WebInspector.DOMStorageContentView.StyleClassName = "dom-storage";
@@ -49,41 +60,6 @@ WebInspector.DOMStorageContentView.prototype = {
     __proto__: WebInspector.ContentView.prototype,
 
     // Public
-
-    reset: function()
-    {
-        this.representedObject.getEntries(function(error, entries) {
-            if (error)
-                return;
-
-            if (!this._dataGrid) {
-                var columns = {};
-                columns.key = {title: WebInspector.UIString("Key"), sortable: true};
-                columns.value = {title: WebInspector.UIString("Value"), sortable: true};
-
-                this._dataGrid = new WebInspector.DataGrid(columns, this._editingCallback.bind(this), this._deleteCallback.bind(this));
-                this._dataGrid.addEventListener(WebInspector.DataGrid.Event.SortChanged, this._sortDataGrid, this);
-
-                this.element.appendChild(this._dataGrid.element);
-            }
-
-            console.assert(this._dataGrid);
-
-            var nodes = [];
-            for (var entry of entries) {
-                if (!entry[0] || !entry[1])
-                    continue;
-                var data = {key: entry[0], value: entry[1]};
-                var node = new WebInspector.DataGridNode(data, false);
-                node.selectable = true;
-                this._dataGrid.appendChild(node);
-            }
-
-            this._sortDataGrid();
-            this._dataGrid.addPlaceholderNode();
-            this._dataGrid.updateLayout();
-        }.bind(this));
-    },
 
     saveToCookie: function(cookie)
     {
@@ -117,7 +93,7 @@ WebInspector.DOMStorageContentView.prototype = {
                 return;
         }
 
-        var data = {key: key, value: value};
+        var data = {key, value};
         this._dataGrid.appendChild(new WebInspector.DataGridNode(data, false));
         this._sortDataGrid();
     },
@@ -159,19 +135,37 @@ WebInspector.DOMStorageContentView.prototype = {
 
     // Private
 
+    _populate: function()
+    {
+        this.representedObject.getEntries(function(error, entries) {
+            if (error)
+                return;
+
+            var nodes = [];
+            for (var entry of entries) {
+                if (!entry[0] || !entry[1])
+                    continue;
+                var data = {key: entry[0], value: entry[1]};
+                var node = new WebInspector.DataGridNode(data, false);
+                this._dataGrid.appendChild(node);
+            }
+
+            this._sortDataGrid();
+            this._dataGrid.addPlaceholderNode();
+            this._dataGrid.updateLayout();
+        }.bind(this));
+    },
+
     _sortDataGrid: function()
     {
-        if (!this._dataGrid.sortOrder)
-            return;
-
         var sortColumnIdentifier = this._dataGrid.sortColumnIdentifier || "key";
 
         function comparator(a, b)
         {
-            return b.data[sortColumnIdentifier].localeCompare(a.data[sortColumnIdentifier]);
+            return a.data[sortColumnIdentifier].localeCompare(b.data[sortColumnIdentifier]);
         }
 
-        this._dataGrid.sortNodes(comparator, this._dataGrid.sortOrder);
+        this._dataGrid.sortNodesImmediately(comparator);
     },
 
     _deleteCallback: function(node)
@@ -185,58 +179,95 @@ WebInspector.DOMStorageContentView.prototype = {
 
     _editingCallback: function(editingNode, columnIdentifier, oldText, newText, moveDirection)
     {
-        var key = editingNode.data["key"].trim();
-        var value = editingNode.data["value"].trim();
-        var previousValue = oldText.trim();
-        var enteredValue = newText.trim();
-        var columnIndex = this._dataGrid.orderedColumns.indexOf(columnIdentifier);
-        var mayMoveToNextRow = moveDirection === "forward" && columnIndex == this._dataGrid.orderedColumns.length - 1;
-        var mayMoveToPreviousRow = moveDirection === "backward" && columnIndex == 0;
-        var willMoveRow = mayMoveToNextRow || mayMoveToPreviousRow;
-        var shouldCommitRow = willMoveRow && key.length && value.length;
-
-        // Remove the row if its values are newly cleared, and it's not a placeholder.
-        if (!key.length && !value.length && willMoveRow) {
-            if (previousValue.length && !editingNode.isPlaceholderNode)
-                this._dataGrid.removeChild(editingNode);
-            return;
-        }
-
-        // If the key field was deleted, restore it when committing the row.
-        if (key === enteredValue && !key.length) {
-            if (willMoveRow && !editingNode.isPlaceholderNode) {
-                editingNode.data.key = previousValue;
-                editingNode.refresh();
-            } else
-                editingNode.element.classList.add(WebInspector.DOMStorageContentView.MissingKeyStyleClassName);
-        } else if (key.length) {
-            editingNode.element.classList.remove(WebInspector.DOMStorageContentView.MissingKeyStyleClassName);
-            editingNode.__previousKeyValue = previousValue;
-        }
-
-        if (value === enteredValue && !value.length)
-            editingNode.element.classList.add(WebInspector.DOMStorageContentView.MissingValueStyleClassName);
-        else
-            editingNode.element.classList.remove(WebInspector.DOMStorageContentView.MissingValueStyleClassName);
-
-        if (editingNode.isPlaceholderNode && previousValue !== enteredValue)
-            this._dataGrid.addPlaceholderNode();
-
-        if (!shouldCommitRow)
-            return; // One of the inputs is missing, or we aren't moving between rows.
-
+        var key = editingNode.data["key"].trim().removeWordBreakCharacters();
+        var value = editingNode.data["value"].trim().removeWordBreakCharacters();
+        var previousValue = oldText.trim().removeWordBreakCharacters();
+        var enteredValue = newText.trim().removeWordBreakCharacters();
+        var hasUncommittedEdits = editingNode.__hasUncommittedEdits;
+        var hasChange = previousValue !== enteredValue;
+        var isEditingKey = columnIdentifier === "key";
+        var isEditingValue = !isEditingKey;
         var domStorage = this.representedObject;
-        if (domStorage.entries.has(key)) {
-            editingNode.element.classList.add(WebInspector.DOMStorageContentView.DuplicateKeyStyleClassName);
+
+        // Nothing changed, just bail.
+        if (!hasChange && !hasUncommittedEdits)
             return;
+
+        // Something changed, save the original key/value and enter uncommitted state.
+        if (hasChange && !editingNode.__hasUncommittedEdits) {
+            editingNode.__hasUncommittedEdits = true;
+            editingNode.__originalKey = isEditingKey ? previousValue : key;
+            editingNode.__originalValue = isEditingValue ? previousValue : value;
         }
 
-        editingNode.element.classList.remove(WebInspector.DOMStorageContentView.DuplicateKeySyleClassName);
+        function cleanup()
+        {
+            editingNode.element.classList.remove(WebInspector.DOMStorageContentView.MissingKeyStyleClassName);
+            editingNode.element.classList.remove(WebInspector.DOMStorageContentView.MissingValueStyleClassName);
+            editingNode.element.classList.remove(WebInspector.DOMStorageContentView.DuplicateKeyStyleClassName);
+            editingNode.__hasUncommittedEdits = undefined;
+            editingNode.__originalKey = undefined;
+            editingNode.__originalValue = undefined;
+        }
 
-        if (editingNode.__previousKeyValue != key)
-            domStorage.removeItem(editingNode.__previousKeyValue);
+        function restoreOriginalValues()
+        {
+            editingNode.data.key = editingNode.__originalKey;
+            editingNode.data.value = editingNode.__originalValue;
+            editingNode.refresh();
+            cleanup();
+        }
 
+        // If the key/value field was cleared, add "missing" style.
+        if (isEditingKey) {
+            if (key.length)
+                editingNode.element.classList.remove(WebInspector.DOMStorageContentView.MissingKeyStyleClassName);
+            else
+                editingNode.element.classList.add(WebInspector.DOMStorageContentView.MissingKeyStyleClassName);
+        } else if (isEditingValue) {
+            if (value.length)
+                editingNode.element.classList.remove(WebInspector.DOMStorageContentView.MissingValueStyleClassName);
+            else
+                editingNode.element.classList.add(WebInspector.DOMStorageContentView.MissingValueStyleClassName);
+        }
+
+        // Check for key duplicates. If this is a new row, or an existing row that changed key.
+        var keyChanged = key !== editingNode.__originalKey;
+        if (keyChanged) {
+            if (domStorage.entries.has(key))
+                editingNode.element.classList.add(WebInspector.DOMStorageContentView.DuplicateKeyStyleClassName);
+            else
+                editingNode.element.classList.remove(WebInspector.DOMStorageContentView.DuplicateKeyStyleClassName);
+        }
+
+        // See if we are done editing this row or not.
+        var columnIndex = this._dataGrid.orderedColumns.indexOf(columnIdentifier);
+        var mayMoveToNextRow = moveDirection === "forward" && columnIndex === this._dataGrid.orderedColumns.length - 1;
+        var mayMoveToPreviousRow = moveDirection === "backward" && columnIndex === 0;
+        var doneEditing = mayMoveToNextRow || mayMoveToPreviousRow || !moveDirection;
+
+        // Expecting more edits on this row.
+        if (!doneEditing)
+            return;
+
+        // Key and value were cleared, remove the row.
+        if (!key.length && !value.length && !editingNode.isPlaceholderNode) {
+            this._dataGrid.removeChild(editingNode);
+            domStorage.removeItem(editingNode.__originalKey);
+            return;                
+        }
+
+        // Done editing but leaving the row in an invalid state. Leave in uncommitted state.
+        var isDuplicate = editingNode.element.classList.contains(WebInspector.DOMStorageContentView.DuplicateKeyStyleClassName);
+        if (!key.length || !value.length || isDuplicate)
+            return;
+
+        // Commit.
+        if (keyChanged && !editingNode.isPlaceholderNode)
+            domStorage.removeItem(editingNode.__originalKey);
+        if (editingNode.isPlaceholderNode)
+            this._dataGrid.addPlaceholderNode();
+        cleanup();
         domStorage.setItem(key, value);
-        // The table will be re-sorted when the backend fires the itemUpdated event.
     }
 };

@@ -25,7 +25,8 @@
 
 WebInspector.ContentBrowser = function(element, delegate, disableBackForward)
 {
-    WebInspector.Object.call(this);
+    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
+    // WebInspector.Object.call(this);
 
     this._element = element || document.createElement("div");
     this._element.classList.add(WebInspector.ContentBrowser.StyleClassName);
@@ -38,32 +39,30 @@ WebInspector.ContentBrowser = function(element, delegate, disableBackForward)
     this._element.appendChild(this._contentViewContainer.element);
 
     this._findBanner = new WebInspector.FindBanner(this);
-    this._findKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "F", this._showFindBanner.bind(this));
     this._findBanner.addEventListener(WebInspector.FindBanner.Event.DidShow, this._findBannerDidShow, this);
     this._findBanner.addEventListener(WebInspector.FindBanner.Event.DidHide, this._findBannerDidHide, this);
 
+    this._findKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "F", this._showFindBanner.bind(this));
     this._saveKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "S", this._save.bind(this));
     this._saveAsKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.Shift | WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "S", this._saveAs.bind(this));
+
+    this._findKeyboardShortcut.disabled = true;
+    this._saveKeyboardShortcut.disabled = true;
+    this._saveAsKeyboardShortcut.disabled = true;
 
     if (!disableBackForward) {
         this._backKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl | WebInspector.KeyboardShortcut.Modifier.Control, WebInspector.KeyboardShortcut.Key.Left, this._backButtonClicked.bind(this));
         this._forwardKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl | WebInspector.KeyboardShortcut.Modifier.Control, WebInspector.KeyboardShortcut.Key.Right, this._forwardButtonClicked.bind(this));
 
-        var forwardArrow, backArrow;
-        if (WebInspector.Platform.name === "mac" && WebInspector.Platform.version.release < 10) {
-            forwardArrow = {src: "Images/ForwardArrowLegacy.svg", width: 9, height: 9};
-            backArrow = {src: "Images/BackArrowLegacy.svg", width: 9, height: 9};
-        } else {
-            forwardArrow = {src: "Images/ForwardArrow.svg", width: 8, height: 13};
-            backArrow = {src: "Images/BackArrow.svg", width: 8, height: 13};
-        }
+        this._backKeyboardShortcut.disabled = true;
+        this._forwardKeyboardShortcut.disabled = true;
 
-        this._backButtonNavigationItem = new WebInspector.ButtonNavigationItem("back", WebInspector.UIString("Back (%s)").format(this._backKeyboardShortcut.displayName), backArrow.src, backArrow.width, backArrow.height);
+        this._backButtonNavigationItem = new WebInspector.ButtonNavigationItem("back", WebInspector.UIString("Back (%s)").format(this._backKeyboardShortcut.displayName), "Images/BackArrow.svg", 8, 13);
         this._backButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._backButtonClicked, this);
         this._backButtonNavigationItem.enabled = false;
         this._navigationBar.addNavigationItem(this._backButtonNavigationItem);
 
-        this._forwardButtonNavigationItem = new WebInspector.ButtonNavigationItem("forward", WebInspector.UIString("Forward (%s)").format(this._forwardKeyboardShortcut.displayName), forwardArrow.src, forwardArrow.width, forwardArrow.height);
+        this._forwardButtonNavigationItem = new WebInspector.ButtonNavigationItem("forward", WebInspector.UIString("Forward (%s)").format(this._forwardKeyboardShortcut.displayName), "Images/ForwardArrow.svg", 8, 13);
         this._forwardButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._forwardButtonClicked, this);
         this._forwardButtonNavigationItem.enabled = false;
         this._navigationBar.addNavigationItem(this._forwardButtonNavigationItem);
@@ -77,7 +76,8 @@ WebInspector.ContentBrowser = function(element, delegate, disableBackForward)
 
     this._contentViewSelectionPathNavigationItem = new WebInspector.HierarchicalPathNavigationItem;
 
-    this._navigationBar.addNavigationItem(new WebInspector.FlexibleSpaceNavigationItem);
+    this._dividingFlexibleSpaceNavigationItem = new WebInspector.FlexibleSpaceNavigationItem;
+    this._navigationBar.addNavigationItem(this._dividingFlexibleSpaceNavigationItem);
 
     WebInspector.ContentView.addEventListener(WebInspector.ContentView.Event.SelectionPathComponentsDidChange, this._contentViewSelectionPathComponentDidChange, this);
     WebInspector.ContentView.addEventListener(WebInspector.ContentView.Event.SupplementalRepresentedObjectsDidChange, this._contentViewSupplementalRepresentedObjectsDidChange, this);
@@ -89,7 +89,8 @@ WebInspector.ContentBrowser = function(element, delegate, disableBackForward)
     this._currentContentViewNavigationItems = [];
 };
 
-WebInspector.Object.addConstructorFunctions(WebInspector.ContentBrowser);
+// FIXME: Move to a WebInspector.Object subclass and we can remove this.
+WebInspector.Object.deprecatedAddConstructorFunctions(WebInspector.ContentBrowser);
 
 WebInspector.ContentBrowser.StyleClassName = "content-browser";
 
@@ -161,9 +162,9 @@ WebInspector.ContentBrowser.prototype = {
         this._contentViewContainer.updateLayout();
     },
 
-    showContentViewForRepresentedObject: function(representedObject, cookie)
+    showContentViewForRepresentedObject: function(representedObject, cookie, extraArguments)
     {
-        var contentView = this.contentViewForRepresentedObject(representedObject);
+        var contentView = this.contentViewForRepresentedObject(representedObject, false, extraArguments);
         return this._contentViewContainer.showContentView(contentView, cookie);
     },
 
@@ -172,9 +173,15 @@ WebInspector.ContentBrowser.prototype = {
         return this._contentViewContainer.showContentView(contentView, cookie);
     },
 
-    contentViewForRepresentedObject: function(representedObject, onlyExisting)
+    contentViewForRepresentedObject: function(representedObject, onlyExisting, extraArguments)
     {
-        return this._contentViewContainer.contentViewForRepresentedObject(representedObject, onlyExisting);
+        return this._contentViewContainer.contentViewForRepresentedObject(representedObject, onlyExisting, extraArguments);
+    },
+
+    updateHierarchicalPathForCurrentContentView: function()
+    {
+        var currentContentView = this.currentContentView;
+        this._updateHierarchicalPathNavigationItem(currentContentView ? currentContentView.representedObject : null);
     },
 
     canGoBack: function()
@@ -266,6 +273,38 @@ WebInspector.ContentBrowser.prototype = {
             return;
 
         currentContentView.revealNextSearchResult(!findBanner.showing);
+    },
+
+    shown: function()
+    {
+        this._contentViewContainer.shown();
+
+        if (this._backKeyboardShortcut)
+            this._backKeyboardShortcut.disabled = false;
+        if (this._forwardKeyboardShortcut)
+            this._forwardKeyboardShortcut.disabled = false;
+
+        this._findKeyboardShortcut.disabled = false;
+        this._saveKeyboardShortcut.disabled = false;
+        this._saveAsKeyboardShortcut.disabled = false;
+
+        this._findBanner.enableKeyboardShortcuts();
+    },
+
+    hidden: function()
+    {
+        this._contentViewContainer.hidden();
+
+        if (this._backKeyboardShortcut)
+            this._backKeyboardShortcut.disabled = false;
+        if (this._forwardKeyboardShortcut)
+            this._forwardKeyboardShortcut.disabled = true;
+
+        this._findKeyboardShortcut.disabled = true;
+        this._saveKeyboardShortcut.disabled = true;
+        this._saveAsKeyboardShortcut.disabled = true;
+
+        this._findBanner.disableKeyboardShortcuts();
     },
 
     // Private
@@ -381,7 +420,7 @@ WebInspector.ContentBrowser.prototype = {
         }
 
         // Insert the _contentViewSelectionPathNavigationItem after the _hierarchicalPathNavigationItem, if needed.
-        if (!this._navigationBar.navigationItems.contains(this._contentViewSelectionPathNavigationItem)) {
+        if (!this._navigationBar.navigationItems.includes(this._contentViewSelectionPathNavigationItem)) {
             var hierarchicalPathItemIndex = this._navigationBar.navigationItems.indexOf(this._hierarchicalPathNavigationItem);
             console.assert(hierarchicalPathItemIndex !== -1);
             this._navigationBar.insertNavigationItem(this._contentViewSelectionPathNavigationItem, hierarchicalPathItemIndex + 1);
@@ -413,7 +452,7 @@ WebInspector.ContentBrowser.prototype = {
             return;
         }
 
-        var insertionIndex = navigationBar.navigationItems.length;
+        var insertionIndex = navigationBar.navigationItems.indexOf(this._dividingFlexibleSpaceNavigationItem) + 1;
         console.assert(insertionIndex >= 0);
 
         // Keep track of items we'll be adding to the navigation bar.
@@ -534,7 +573,7 @@ WebInspector.ContentBrowser.prototype = {
         if (!treeElement)
             return;
 
-        this.showContentViewForRepresentedObject(treeElement.representedObject);
+        treeElement.revealAndSelect();
     }
 };
 

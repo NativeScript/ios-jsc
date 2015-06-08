@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2015 Tobias Reiss <tobi+webkit@basecode.de>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,70 +24,69 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-function FormatterContentBuilder(mapping, originalLineEndings, formattedLineEndings, originalOffset, formattedOffset, indentString)
+class FormatterContentBuilder
 {
-    this._originalContent = null;
-    this._formattedContent = [];
-    this._formattedContentLength = 0;
+    constructor(mapping, originalLineEndings, formattedLineEndings, originalOffset, formattedOffset, indentString)
+    {
+        this._originalContent = null;
+        this._formattedContent = [];
+        this._formattedContentLength = 0;
 
-    this._startOfLine = true;
-    this.lastTokenWasNewline = false;
-    this.lastTokenWasWhitespace = false;
-    this.lastNewlineAppendWasMultiple = false;
+        this._startOfLine = true;
+        this.lastTokenWasNewline = false;
+        this.lastTokenWasWhitespace = false;
+        this.lastNewlineAppendWasMultiple = false;
 
-    this._indent = 0;
-    this._indentString = indentString;
-    this._indentCache = ["", this._indentString];
+        this._indent = 0;
+        this._indentString = indentString;
+        this._indentCache = ["", this._indentString];
 
-    this._mapping = mapping;
-    this._originalLineEndings = originalLineEndings || [];
-    this._formattedLineEndings = formattedLineEndings || [];
-    this._originalOffset = originalOffset || 0;
-    this._formattedOffset = formattedOffset || 0;
+        this._mapping = mapping;
+        this._originalLineEndings = originalLineEndings || [];
+        this._formattedLineEndings = formattedLineEndings || [];
+        this._originalOffset = originalOffset || 0;
+        this._formattedOffset = formattedOffset || 0;
 
-    this._lastOriginalPosition = 0;
-    this._lastFormattedPosition = 0;
-}
-
-FormatterContentBuilder.prototype = {
-    constructor: FormatterContentBuilder,
+        this._lastOriginalPosition = 0;
+        this._lastFormattedPosition = 0;
+    }
 
     // Public
 
     get originalContent()
     {
         return this._originalContent;
-    },
+    }
 
     get formattedContent()
     {
         var formatted = this._formattedContent.join("");
         console.assert(formatted.length === this._formattedContentLength);
         return formatted;
-    },
+    }
 
     get mapping()
     {
         return this._mapping;
-    },
+    }
 
     get originalLineEndings()
     {
         return this._originalLineEndings;
-    },
+    }
 
     get formattedLineEndings()
     {
         return this._formattedLineEndings;
-    },
+    }
 
-    setOriginalContent: function(originalContent)
+    setOriginalContent(originalContent)
     {
         console.assert(!this._originalContent);
         this._originalContent = originalContent;
-    },
+    }
 
-    appendToken: function(string, originalPosition)
+    appendToken(string, originalPosition)
     {
         if (this._startOfLine)
             this._appendIndent();
@@ -97,18 +97,18 @@ FormatterContentBuilder.prototype = {
         this._startOfLine = false;
         this.lastTokenWasNewline = false;
         this.lastTokenWasWhitespace = false;
-    },
+    }
 
-    appendSpace: function()
+    appendSpace()
     {
         if (!this._startOfLine) {
             this._append(" ");
             this.lastTokenWasNewline = false;
             this.lastTokenWasWhitespace = true;
         }
-    },
+    }
 
-    appendNewline: function(force)
+    appendNewline(force)
     {
         if ((!this.lastTokenWasNewline && !this._startOfLine) || force) {
             this._append("\n");
@@ -118,9 +118,9 @@ FormatterContentBuilder.prototype = {
             this.lastTokenWasWhitespace = false;
             this.lastNewlineAppendWasMultiple = false;
         }
-    },
+    }
 
-    appendMultipleNewlines: function(newlines)
+    appendMultipleNewlines(newlines)
     {
         console.assert(newlines > 0);
 
@@ -131,60 +131,73 @@ FormatterContentBuilder.prototype = {
 
         if (wasMultiple)
             this.lastNewlineAppendWasMultiple = true;
-    },
+    }
 
-    removeLastNewline: function()
+    removeLastNewline()
     {
         console.assert(this.lastTokenWasNewline);
         console.assert(this._formattedContent.lastValue === "\n");
         if (this.lastTokenWasNewline) {
-            this._popNewLine();
+            this._popFormattedContent();
+            this._formattedLineEndings.pop();
             this._startOfLine = false;
             this.lastTokenWasNewline = false;
             this.lastTokenWasWhitespace = false;
         }
-    },
+    }
 
-    indent: function()
+    removeLastWhitespace()
+    {
+        console.assert(this.lastTokenWasWhitespace);
+        console.assert(this._formattedContent.lastValue === " ");
+        if (this.lastTokenWasWhitespace) {
+            this._popFormattedContent();
+            // No need to worry about `_startOfLine` and `lastTokenWasNewline`
+            // because `appendSpace` takes care of not adding whitespace
+            // to the beginning of a line.
+            this.lastTokenWasWhitespace = false;
+        }
+    }
+
+    indent()
     {
         ++this._indent;
-    },
+    }
 
-    dedent: function()
+    dedent()
     {
         --this._indent;
 
         console.assert(this._indent >= 0);
         if (this._indent < 0)
             this._indent = 0;
-    },
+    }
 
-    addOriginalLineEnding: function(originalPosition)
+    addOriginalLineEnding(originalPosition)
     {
         this._originalLineEndings.push(originalPosition);
-    },
+    }
 
-    finish: function()
+    finish()
     {
         this.appendNewline();
-    },
+    }
 
     // Private
 
-    _popNewLine: function()
+    _popFormattedContent()
     {
         var removed = this._formattedContent.pop();
         this._formattedContentLength -= removed.length;
-        this._formattedLineEndings.pop();
-    },
+    }
 
-    _append: function(str)
+    _append(str)
     {
         this._formattedContent.push(str);
         this._formattedContentLength += str.length;
-    },
+    }
 
-    _appendIndent: function()
+    _appendIndent()
     {
         // Indent is already in the cache.
         if (this._indent < this._indentCache.length) {
@@ -193,10 +206,10 @@ FormatterContentBuilder.prototype = {
         }
 
         // Indent was not in the cache, fill up the cache up with what was needed.
-        const maxCacheIndent = 20;
+        var maxCacheIndent = 20;
         var max = Math.min(this._indent, maxCacheIndent);
         for (var i = this._indentCache.length; i <= max; ++i)
-            this._indentCache[i] = this._indentCache[i-1] + this._indentString;
+            this._indentCache[i] = this._indentCache[i - 1] + this._indentString;
 
         // Append indents as needed.
         var indent = this._indent;
@@ -207,9 +220,9 @@ FormatterContentBuilder.prototype = {
                 this._append(this._indentCache[indent]);
             indent -= maxCacheIndent;
         } while (indent > 0);
-    },
+    }
 
-    _addMappingIfNeeded: function(originalPosition)
+    _addMappingIfNeeded(originalPosition)
     {
         if (originalPosition - this._lastOriginalPosition === this._formattedContentLength - this._lastFormattedPosition)
             return;
@@ -219,11 +232,11 @@ FormatterContentBuilder.prototype = {
 
         this._lastOriginalPosition = originalPosition;
         this._lastFormattedPosition = this._formattedContentLength;
-    },
+    }
 
-    _addFormattedLineEnding: function()
+    _addFormattedLineEnding()
     {
         console.assert(this._formattedContent.lastValue === "\n");
         this._formattedLineEndings.push(this._formattedContentLength - 1);
     }
-}
+};

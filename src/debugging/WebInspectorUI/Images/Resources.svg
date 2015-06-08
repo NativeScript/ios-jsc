@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright © 2013 Apple Inc. All rights reserved. -->
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-    <path d="M 9.518 2 H 3 v 12 h 10 V 5 L 9.518 2 z M 11.002 12 H 5 V 4 h 3.517 l 2.485 2.455 V 12 z M 8 7 h 2 L 8 5 C 8 5 7.999 7 8 7"/>
+<!-- Copyright © 2015 Apple Inc. All rights reserved. -->
+<svg viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M 2.5 1.5 L 2.5 14.5 L 13.5 14.5 L 13.5 5.5 L 9.5 1.5 L 2.5 1.5 Z" class="stroked" fill="none" stroke="black"/>
+    <path d="M 9.0 3.0 L 9.0 6.0 L 12.0 6.0 Z" class="filled" fill="black"/>
 </svg>

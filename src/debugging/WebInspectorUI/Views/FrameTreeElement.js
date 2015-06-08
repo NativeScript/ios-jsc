@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,73 +23,99 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.FrameTreeElement = function(frame, representedObject)
+WebInspector.FrameTreeElement = class FrameTreeElement extends WebInspector.ResourceTreeElement
 {
-    console.assert(frame instanceof WebInspector.Frame);
+    constructor(frame, representedObject)
+    {
+        console.assert(frame instanceof WebInspector.Frame);
 
-    WebInspector.ResourceTreeElement.call(this, frame.mainResource, representedObject || frame);
+        super(frame.mainResource, representedObject || frame);
 
-    this._frame = frame;
-    this._newChildQueue = [];
+        this._frame = frame;
 
-    this._updateExpandedSetting();
+        this._updateExpandedSetting();
 
-    frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
-    frame.addEventListener(WebInspector.Frame.Event.ResourceWasAdded, this._resourceWasAdded, this);
-    frame.addEventListener(WebInspector.Frame.Event.ResourceWasRemoved, this._resourceWasRemoved, this);
-    frame.addEventListener(WebInspector.Frame.Event.ChildFrameWasAdded, this._childFrameWasAdded, this);
-    frame.addEventListener(WebInspector.Frame.Event.ChildFrameWasRemoved, this._childFrameWasRemoved, this);
+        frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
+        frame.addEventListener(WebInspector.Frame.Event.ResourceWasAdded, this._resourceWasAdded, this);
+        frame.addEventListener(WebInspector.Frame.Event.ResourceWasRemoved, this._resourceWasRemoved, this);
+        frame.addEventListener(WebInspector.Frame.Event.ChildFrameWasAdded, this._childFrameWasAdded, this);
+        frame.addEventListener(WebInspector.Frame.Event.ChildFrameWasRemoved, this._childFrameWasRemoved, this);
 
-    frame.domTree.addEventListener(WebInspector.DOMTree.Event.ContentFlowWasAdded, this._childContentFlowWasAdded, this);
-    frame.domTree.addEventListener(WebInspector.DOMTree.Event.ContentFlowWasRemoved, this._childContentFlowWasRemoved, this);
-    frame.domTree.addEventListener(WebInspector.DOMTree.Event.RootDOMNodeInvalidated, this._rootDOMNodeInvalidated, this);
+        frame.domTree.addEventListener(WebInspector.DOMTree.Event.ContentFlowWasAdded, this._childContentFlowWasAdded, this);
+        frame.domTree.addEventListener(WebInspector.DOMTree.Event.ContentFlowWasRemoved, this._childContentFlowWasRemoved, this);
+        frame.domTree.addEventListener(WebInspector.DOMTree.Event.RootDOMNodeInvalidated, this._rootDOMNodeInvalidated, this);
 
-    if (this._frame.isMainFrame()) {
-        this._downloadingPage = false;
-        WebInspector.notifications.addEventListener(WebInspector.Notification.PageArchiveStarted, this._pageArchiveStarted, this);
-        WebInspector.notifications.addEventListener(WebInspector.Notification.PageArchiveEnded, this._pageArchiveEnded, this);
+        if (this._frame.isMainFrame())
+            this._downloadingPage = false;
+
+        this.shouldRefreshChildren = true;
+        this.folderSettingsKey = this._frame.url.hash;
+
+        this.registerFolderizeSettings("frames", WebInspector.UIString("Frames"),
+            function(representedObject) { return representedObject instanceof WebInspector.Frame; },
+            function() { return this.frame.childFrames.length; }.bind(this),
+            WebInspector.FrameTreeElement
+        );
+
+        this.registerFolderizeSettings("flows", WebInspector.UIString("Flows"),
+            function(representedObject) { return representedObject instanceof WebInspector.ContentFlow; },
+            function() { return this.frame.domTree.flowsCount; }.bind(this),
+            WebInspector.ContentFlowTreeElement
+        );
+
+        function makeValidateCallback(resourceType) {
+            return function(representedObject) {
+                return representedObject instanceof WebInspector.Resource && representedObject.type === resourceType;
+            };
+        }
+
+        function makeChildCountCallback(frame, resourceType) {
+            return function() {
+                return frame.resourcesWithType(resourceType).length;
+            };
+        }
+
+        for (var key in WebInspector.Resource.Type) {
+            var value = WebInspector.Resource.Type[key];
+            var folderName = WebInspector.Resource.displayNameForType(value, true);
+            this.registerFolderizeSettings(key, folderName,
+                makeValidateCallback(value),
+                makeChildCountCallback(this.frame, value),
+                WebInspector.ResourceTreeElement
+            );
+        }
+
+        this.updateParentStatus();
     }
-
-    this._updateParentStatus();
-    this.shouldRefreshChildren = true;
-};
-
-WebInspector.FrameTreeElement.MediumChildCountThreshold = 5;
-WebInspector.FrameTreeElement.LargeChildCountThreshold = 15;
-WebInspector.FrameTreeElement.NumberOfMediumCategoriesThreshold = 2;
-WebInspector.FrameTreeElement.NewChildQueueUpdateInterval = 500;
-
-WebInspector.FrameTreeElement.prototype = {
-    constructor: WebInspector.FrameTreeElement,
 
     // Public
 
     get frame()
     {
         return this._frame;
-    },
+    }
 
-    descendantResourceTreeElementTypeDidChange: function(resourceTreeElement, oldType)
+    descendantResourceTreeElementTypeDidChange(resourceTreeElement, oldType)
     {
         // Called by descendant ResourceTreeElements.
 
         // Add the tree element again, which will move it to the new location
         // based on sorting and possible folder changes.
         this._addTreeElement(resourceTreeElement);
-    },
+    }
 
-    descendantResourceTreeElementMainTitleDidChange: function(resourceTreeElement, oldMainTitle)
+    descendantResourceTreeElementMainTitleDidChange(resourceTreeElement, oldMainTitle)
     {
         // Called by descendant ResourceTreeElements.
 
         // Add the tree element again, which will move it to the new location
         // based on sorting and possible folder changes.
         this._addTreeElement(resourceTreeElement);
-    },
+    }
 
     // Overrides from SourceCodeTreeElement.
 
-    updateSourceMapResources: function()
+    updateSourceMapResources()
     {
         // Frames handle their own SourceMapResources.
 
@@ -99,326 +125,21 @@ WebInspector.FrameTreeElement.prototype = {
         if (!this._frame)
             return;
 
-        this._updateParentStatus();
+        this.updateParentStatus();
 
         if (this.resource && this.resource.sourceMaps.length)
             this.shouldRefreshChildren = true;
-    },
+    }
 
-    onattach: function()
+    onattach()
     {
-        // Frames handle their own SourceMapResources.
-
+        // Immediate superclasses are skipped, since Frames handle their own SourceMapResources.
         WebInspector.GeneralTreeElement.prototype.onattach.call(this);
-    },
+    }
 
-    // Called from ResourceTreeElement.
+    // Overrides from FolderizedTreeElement (Protected).
 
-    updateStatusForMainFrame: function()
-    {
-        function loadedImages()
-        {
-            if (!this._reloadButton || !this._downloadButton)
-                return;
-
-            var fragment = document.createDocumentFragment("div");
-            fragment.appendChild(this._downloadButton.element);
-            fragment.appendChild(this._reloadButton.element);
-            this.status = fragment;
-
-            delete this._loadingMainFrameButtons;
-        }
-
-        if (this._reloadButton && this._downloadButton) {
-            loadedImages.call(this);
-            return;
-        }
-
-        if (!this._loadingMainFrameButtons) {
-            this._loadingMainFrameButtons = true;
-
-            var tooltip = WebInspector.UIString("Reload page (%s)\nReload ignoring cache (%s)").format(WebInspector._reloadPageKeyboardShortcut.displayName, WebInspector._reloadPageIgnoringCacheKeyboardShortcut.displayName);
-            wrappedSVGDocument("Images/Reload.svg", null, tooltip, function(element) {
-                this._reloadButton = new WebInspector.TreeElementStatusButton(element);
-                this._reloadButton.addEventListener(WebInspector.TreeElementStatusButton.Event.Clicked, this._reloadPageClicked, this);
-                loadedImages.call(this);
-            }.bind(this));
-
-            wrappedSVGDocument("Images/DownloadArrow.svg", null, WebInspector.UIString("Download Web Archive"), function(element) {
-                this._downloadButton = new WebInspector.TreeElementStatusButton(element);
-                this._downloadButton.addEventListener(WebInspector.TreeElementStatusButton.Event.Clicked, this._downloadButtonClicked, this);
-                this._updateDownloadButton();
-                loadedImages.call(this);
-            }.bind(this));
-        }
-    },
-
-    // Overrides from TreeElement (Private).
-
-    onpopulate: function()
-    {
-        if (this.children.length && !this.shouldRefreshChildren)
-            return;
-
-        this.shouldRefreshChildren = false;
-
-        this.removeChildren();
-        this._clearNewChildQueue();
-
-        if (this._shouldGroupIntoFolders() && !this._groupedIntoFolders)
-            this._groupedIntoFolders = true;
-
-        for (var i = 0; i < this._frame.childFrames.length; ++i)
-            this._addTreeElementForRepresentedObject(this._frame.childFrames[i]);
-
-        for (var i = 0; i < this._frame.resources.length; ++i)
-            this._addTreeElementForRepresentedObject(this._frame.resources[i]);
-
-        var sourceMaps = this.resource && this.resource.sourceMaps;
-        for (var i = 0; i < sourceMaps.length; ++i) {
-            var sourceMap = sourceMaps[i];
-            for (var j = 0; j < sourceMap.resources.length; ++j)
-            this._addTreeElementForRepresentedObject(sourceMap.resources[j]);
-        }
-
-        var flowMap = this._frame.domTree.flowMap;
-        for (var flowKey in flowMap)
-            this._addTreeElementForRepresentedObject(flowMap[flowKey]);
-    },
-
-    onexpand: function()
-    {
-        this._expandedSetting.value = true;
-        this._frame.domTree.requestContentFlowList();
-    },
-
-    oncollapse: function()
-    {
-        // Only store the setting if we have children, since setting hasChildren to false will cause a collapse,
-        // and we only care about user triggered collapses.
-        if (this.hasChildren)
-            this._expandedSetting.value = false;
-    },
-
-    removeChildren: function()
-    {
-        TreeElement.prototype.removeChildren.call(this);
-
-        if (this._framesFolderTreeElement)
-            this._framesFolderTreeElement.removeChildren();
-
-        for (var type in this._resourceFoldersTypeMap)
-            this._resourceFoldersTypeMap[type].removeChildren();
-
-        delete this._resourceFoldersTypeMap;
-        delete this._framesFolderTreeElement;
-    },
-
-    // Private
-
-    _updateExpandedSetting: function()
-    {
-        this._expandedSetting = new WebInspector.Setting("frame-expanded-" + this._frame.url.hash, this._frame.isMainFrame() ? true : false);
-        if (this._expandedSetting.value)
-            this.expand();
-        else
-            this.collapse();
-    },
-
-    _updateParentStatus: function()
-    {
-        this.hasChildren = (this._frame.resources.length || this._frame.childFrames.length || (this.resource && this.resource.sourceMaps.length));
-        if (!this.hasChildren)
-            this.removeChildren();
-    },
-
-    _mainResourceDidChange: function(event)
-    {
-        this._updateResource(this._frame.mainResource);
-        this._updateParentStatus();
-
-        this._groupedIntoFolders = false;
-
-        this._clearNewChildQueue();
-
-        this.removeChildren();
-
-        // Change the expanded setting since the frame URL has changed. Do this before setting shouldRefreshChildren, since
-        // shouldRefreshChildren will call onpopulate if expanded is true.
-        this._updateExpandedSetting();
-
-        if (this._frame.isMainFrame())
-            this._updateDownloadButton();
-
-        this.shouldRefreshChildren = true;
-    },
-
-    _resourceWasAdded: function(event)
-    {
-        this._addRepresentedObjectToNewChildQueue(event.data.resource);
-    },
-
-    _resourceWasRemoved: function(event)
-    {
-        this._removeChildForRepresentedObject(event.data.resource);
-    },
-
-    _childFrameWasAdded: function(event)
-    {
-        this._addRepresentedObjectToNewChildQueue(event.data.childFrame);
-    },
-
-    _childFrameWasRemoved: function(event)
-    {
-        this._removeChildForRepresentedObject(event.data.childFrame);
-    },
-
-    _childContentFlowWasAdded: function(event)
-    {
-        this._addRepresentedObjectToNewChildQueue(event.data.flow);
-    },
-
-    _childContentFlowWasRemoved: function(event)
-    {
-        this._removeChildForRepresentedObject(event.data.flow);
-    },
-
-    _rootDOMNodeInvalidated: function() {
-        if (this.expanded)
-            this._frame.domTree.requestContentFlowList();
-    },
-
-    _addRepresentedObjectToNewChildQueue: function(representedObject)
-    {
-        // This queue reduces flashing as resources load and change folders when their type becomes known.
-
-        this._newChildQueue.push(representedObject);
-        if (!this._newChildQueueTimeoutIdentifier)
-            this._newChildQueueTimeoutIdentifier = setTimeout(this._populateFromNewChildQueue.bind(this), WebInspector.FrameTreeElement.NewChildQueueUpdateInterval);
-    },
-
-    _removeRepresentedObjectFromNewChildQueue: function(representedObject)
-    {
-        this._newChildQueue.remove(representedObject);
-    },
-
-    _populateFromNewChildQueue: function()
-    {
-        for (var i = 0; i < this._newChildQueue.length; ++i)
-            this._addChildForRepresentedObject(this._newChildQueue[i]);
-
-        this._newChildQueue = [];
-        this._newChildQueueTimeoutIdentifier = null;
-    },
-
-    _clearNewChildQueue: function()
-    {
-        this._newChildQueue = [];
-        if (this._newChildQueueTimeoutIdentifier) {
-            clearTimeout(this._newChildQueueTimeoutIdentifier);
-            this._newChildQueueTimeoutIdentifier = null;
-        }
-    },
-
-    _addChildForRepresentedObject: function(representedObject)
-    {
-        console.assert(representedObject instanceof WebInspector.Resource || representedObject instanceof WebInspector.Frame || representedObject instanceof WebInspector.ContentFlow);
-        if (!(representedObject instanceof WebInspector.Resource || representedObject instanceof WebInspector.Frame || representedObject instanceof WebInspector.ContentFlow))
-            return;
-
-        this._updateParentStatus();
-
-        if (!this.treeOutline) {
-            // Just mark as needing to update to avoid doing work that might not be needed.
-            this.shouldRefreshChildren = true;
-            return;
-        }
-
-        if (this._shouldGroupIntoFolders() && !this._groupedIntoFolders) {
-            // Mark as needing a refresh to rebuild the tree into folders.
-            this._groupedIntoFolders = true;
-            this.shouldRefreshChildren = true;
-            return;
-        }
-
-        this._addTreeElementForRepresentedObject(representedObject);
-    },
-
-    _removeChildForRepresentedObject: function(representedObject)
-    {
-        console.assert(representedObject instanceof WebInspector.Resource || representedObject instanceof WebInspector.Frame || representedObject instanceof WebInspector.ContentFlow);
-        if (!(representedObject instanceof WebInspector.Resource || representedObject instanceof WebInspector.Frame || representedObject instanceof WebInspector.ContentFlow))
-            return;
-
-        this._removeRepresentedObjectFromNewChildQueue(representedObject);
-
-        this._updateParentStatus();
-
-        if (!this.treeOutline) {
-            // Just mark as needing to update to avoid doing work that might not be needed.
-            this.shouldRefreshChildren = true;
-            return;
-        }
-
-        // Find the tree element for the frame by using getCachedTreeElement
-        // to only get the item if it has been created already.
-        var childTreeElement = this.treeOutline.getCachedTreeElement(representedObject);
-        if (!childTreeElement || !childTreeElement.parent)
-            return;
-
-        this._removeTreeElement(childTreeElement);
-    },
-
-    _addTreeElementForRepresentedObject: function(representedObject)
-    {
-        var childTreeElement = this.treeOutline.getCachedTreeElement(representedObject);
-        if (!childTreeElement) {
-            if (representedObject instanceof WebInspector.SourceMapResource)
-                childTreeElement = new WebInspector.SourceMapResourceTreeElement(representedObject);
-            else if (representedObject instanceof WebInspector.Resource)
-                childTreeElement = new WebInspector.ResourceTreeElement(representedObject);
-            else if (representedObject instanceof WebInspector.Frame)
-                childTreeElement = new WebInspector.FrameTreeElement(representedObject);
-            else if (representedObject instanceof WebInspector.ContentFlow)
-                childTreeElement = new WebInspector.ContentFlowTreeElement(representedObject);
-        }
-
-        this._addTreeElement(childTreeElement);
-    },
-
-    _addTreeElement: function(childTreeElement)
-    {
-        console.assert(childTreeElement);
-        if (!childTreeElement)
-            return;
-
-        var wasSelected = childTreeElement.selected;
-
-        this._removeTreeElement(childTreeElement, true, true);
-
-        var parentTreeElement = this._parentTreeElementForRepresentedObject(childTreeElement.representedObject);
-        if (parentTreeElement !== this && !parentTreeElement.parent)
-            this._insertFolderTreeElement(parentTreeElement);
-
-        this._insertResourceTreeElement(parentTreeElement, childTreeElement);
-
-        if (wasSelected)
-            childTreeElement.revealAndSelect(true, false, true, true);
-    },
-
-    _compareTreeElementsByMainTitle: function(a, b)
-    {
-        return a.mainTitle.localeCompare(b.mainTitle);
-    },
-
-    _insertFolderTreeElement: function(folderTreeElement)
-    {
-        console.assert(this._groupedIntoFolders);
-        console.assert(!folderTreeElement.parent);
-        this.insertChild(folderTreeElement, insertionIndexForObjectInListSortedByFunction(folderTreeElement, this.children, this._compareTreeElementsByMainTitle));
-    },
-
-    _compareResourceTreeElements: function(a, b)
+    compareChildTreeElements(a, b)
     {
         if (a === b)
             return 0;
@@ -430,202 +151,118 @@ WebInspector.FrameTreeElement.prototype = {
             return WebInspector.ResourceTreeElement.compareResourceTreeElements(a, b);
 
         if (!aIsResource && !bIsResource) {
-            // When both components are not resources then just compare the titles.
-            return a.mainTitle.localeCompare(b.mainTitle);
+            // When both components are not resources then default to base class comparison.
+            return super.compareChildTreeElements(a, b);
         }
 
         // Non-resources should appear before the resources.
         // FIXME: There should be a better way to group the elements by their type.
         return aIsResource ? 1 : -1;
-    },
+    }
 
-    _insertResourceTreeElement: function(parentTreeElement, childTreeElement)
-    {
-        console.assert(!childTreeElement.parent);
-        parentTreeElement.insertChild(childTreeElement, insertionIndexForObjectInListSortedByFunction(childTreeElement, parentTreeElement.children, this._compareResourceTreeElements));
-    },
+    // Overrides from TreeElement (Private).
 
-    _removeTreeElement: function(childTreeElement, suppressOnDeselect, suppressSelectSibling)
+    onpopulate()
     {
-        var oldParent = childTreeElement.parent;
-        if (!oldParent)
+        if (this.children.length && !this.shouldRefreshChildren)
             return;
+        this.shouldRefreshChildren = false;
 
-        oldParent.removeChild(childTreeElement, suppressOnDeselect, suppressSelectSibling);
+        this.removeChildren();
+        this.updateParentStatus();
+        this.prepareToPopulate();
 
-        if (oldParent === this)
-            return;
+        for (var i = 0; i < this._frame.childFrames.length; ++i)
+            this.addChildForRepresentedObject(this._frame.childFrames[i]);
 
-        console.assert(oldParent instanceof WebInspector.FolderTreeElement);
-        if (!(oldParent instanceof WebInspector.FolderTreeElement))
-            return;
+        for (var i = 0; i < this._frame.resources.length; ++i)
+            this.addChildForRepresentedObject(this._frame.resources[i]);
 
-        // Remove the old parent folder if it is now empty.
-        if (!oldParent.children.length)
-            oldParent.parent.removeChild(oldParent);
-    },
-
-    _folderNameForResourceType: function(type)
-    {
-        return WebInspector.Resource.Type.displayName(type, true);
-    },
-
-    _parentTreeElementForRepresentedObject: function(representedObject)
-    {
-        if (!this._groupedIntoFolders)
-            return this;
-
-        function createFolderTreeElement(type, displayName)
-        {
-            var folderTreeElement = new WebInspector.FolderTreeElement(displayName);
-            folderTreeElement._expandedSetting = new WebInspector.Setting(type + "-folder-expanded-" + this._frame.url.hash, false);
-            if (folderTreeElement._expandedSetting.value)
-                folderTreeElement.expand();
-            folderTreeElement.onexpand = this._folderTreeElementExpandedStateChange.bind(this);
-            folderTreeElement.oncollapse = this._folderTreeElementExpandedStateChange.bind(this);
-            return folderTreeElement;
+        var sourceMaps = this.resource && this.resource.sourceMaps;
+        for (var i = 0; i < sourceMaps.length; ++i) {
+            var sourceMap = sourceMaps[i];
+            for (var j = 0; j < sourceMap.resources.length; ++j)
+                this.addChildForRepresentedObject(sourceMap.resources[j]);
         }
 
-        if (representedObject instanceof WebInspector.Frame) {
-            if (!this._framesFolderTreeElement)
-                this._framesFolderTreeElement = createFolderTreeElement.call(this, "frames", WebInspector.UIString("Frames"));
-            return this._framesFolderTreeElement;
-        }
+        var flowMap = this._frame.domTree.flowMap;
+        for (var flowKey in flowMap)
+            this.addChildForRepresentedObject(flowMap[flowKey]);
 
-        if (representedObject instanceof WebInspector.ContentFlow) {
-            if (!this._flowsFolderTreeElement)
-                this._flowsFolderTreeElement = createFolderTreeElement.call(this, "flows", WebInspector.UIString("Flows"));
-            return this._flowsFolderTreeElement;
-        }
+    }
 
-        if (representedObject instanceof WebInspector.Resource) {
-            var folderName = this._folderNameForResourceType(representedObject.type);
-            if (!folderName)
-                return this;
-
-            if (!this._resourceFoldersTypeMap)
-                this._resourceFoldersTypeMap = {};
-            if (!this._resourceFoldersTypeMap[representedObject.type])
-                this._resourceFoldersTypeMap[representedObject.type] = createFolderTreeElement.call(this, representedObject.type, folderName);
-            return this._resourceFoldersTypeMap[representedObject.type];
-        }
-
-        console.error("Unknown representedObject: ", representedObject);
-        return this;
-    },
-
-    _folderTreeElementExpandedStateChange: function(folderTreeElement)
+    onexpand()
     {
-        console.assert(folderTreeElement._expandedSetting);
-        folderTreeElement._expandedSetting.value = folderTreeElement.expanded;
-    },
+        this._expandedSetting.value = true;
+        this._frame.domTree.requestContentFlowList();
+    }
 
-    _shouldGroupIntoFolders: function()
+    oncollapse()
     {
-        // Already grouped into folders, keep it that way.
-        if (this._groupedIntoFolders)
-            return true;
+        // Only store the setting if we have children, since setting hasChildren to false will cause a collapse,
+        // and we only care about user triggered collapses.
+        if (this.hasChildren)
+            this._expandedSetting.value = false;
+    }
 
-        // Resources and Frames are grouped into folders if one of two thresholds are met:
-        // 1) Once the number of medium categories passes NumberOfMediumCategoriesThreshold.
-        // 2) When there is a category that passes LargeChildCountThreshold and there are
-        //    any resources in another category.
+    // Private
 
-        // Folders are avoided when there is only one category or most categories are small.
-
-        var numberOfSmallCategories = 0;
-        var numberOfMediumCategories = 0;
-        var foundLargeCategory = false;
-        var frame = this._frame;
-
-        function pushResourceType(type) {
-            // There are some other properties on WebInspector.Resource.Type that we need to skip, like private data and functions
-            if (type.charAt(0) === "_")
-                return false;
-
-            // Only care about the values that are strings, not functions, etc.
-            var typeValue = WebInspector.Resource.Type[type];
-            if (typeof typeValue !== "string")
-                return false;
-
-            return pushCategory(frame.resourcesWithType(typeValue).length);
-        }
-
-        function pushCategory(resourceCount)
-        {
-            if (!resourceCount)
-                return false;
-
-            // If this type has any resources and there is a known large category, make folders.
-            if (foundLargeCategory)
-                return true;
-
-            // If there are lots of this resource type, then count it as a large category.
-            if (resourceCount >= WebInspector.FrameTreeElement.LargeChildCountThreshold) {
-                // If we already have other resources in other small or medium categories, make folders.
-                if (numberOfSmallCategories || numberOfMediumCategories)
-                    return true;
-
-                foundLargeCategory = true;
-                return false;
-            }
-
-            // Check if this is a medium category.
-            if (resourceCount >= WebInspector.FrameTreeElement.MediumChildCountThreshold) {
-                // If this is the medium category that puts us over the maximum allowed, make folders.
-                return ++numberOfMediumCategories >= WebInspector.FrameTreeElement.NumberOfMediumCategoriesThreshold;
-            }
-
-            // This is a small category.
-            ++numberOfSmallCategories;
-            return false;
-        }
-
-        // Iterate over all the available resource types.
-        return pushCategory(frame.childFrames.length) || pushCategory(frame.domTree.flowsCount) || Object.keys(WebInspector.Resource.Type).some(pushResourceType);
-    },
-
-    _reloadPageClicked: function(event)
+    _updateExpandedSetting()
     {
-        // Ignore cache when the shift key is pressed.
-        PageAgent.reload(event.data.shiftKey);
-    },
+        this._expandedSetting = new WebInspector.Setting("frame-expanded-" + this._frame.url.hash, this._frame.isMainFrame() ? true : false);
+        if (this._expandedSetting.value)
+            this.expand();
+        else
+            this.collapse();
+    }
 
-    _downloadButtonClicked: function(event)
+    _mainResourceDidChange(event)
     {
-        WebInspector.archiveMainFrame();
-    },
+        this._updateResource(this._frame.mainResource);
 
-    _updateDownloadButton: function()
+        this.updateParentStatus();
+        this.removeChildren();
+
+        // Change the expanded setting since the frame URL has changed. Do this before setting shouldRefreshChildren, since
+        // shouldRefreshChildren will call onpopulate if expanded is true.
+        this._updateExpandedSetting();
+
+        this.shouldRefreshChildren = true;
+    }
+
+    _resourceWasAdded(event)
     {
-        console.assert(this._frame.isMainFrame());
-        if (!this._downloadButton)
-            return;
+        this.addRepresentedObjectToNewChildQueue(event.data.resource);
+    }
 
-        if (!PageAgent.archive) {
-            this._downloadButton.hidden = true;
-            return;
-        }
-
-        if (this._downloadingPage) {
-            this._downloadButton.enabled = false;
-            return;
-        }
-
-        this._downloadButton.enabled = WebInspector.canArchiveMainFrame();
-    },
-
-    _pageArchiveStarted: function(event)
+    _resourceWasRemoved(event)
     {
-        this._downloadingPage = true;
-        this._updateDownloadButton();
-    },
+        this.removeChildForRepresentedObject(event.data.resource);
+    }
 
-    _pageArchiveEnded: function(event)
+    _childFrameWasAdded(event)
     {
-        this._downloadingPage = false;
-        this._updateDownloadButton();
+        this.addRepresentedObjectToNewChildQueue(event.data.childFrame);
+    }
+
+    _childFrameWasRemoved(event)
+    {
+        this.removeChildForRepresentedObject(event.data.childFrame);
+    }
+
+    _childContentFlowWasAdded(event)
+    {
+        this.addRepresentedObjectToNewChildQueue(event.data.flow);
+    }
+
+    _childContentFlowWasRemoved(event)
+    {
+        this.removeChildForRepresentedObject(event.data.flow);
+    }
+
+    _rootDOMNodeInvalidated()
+    {
+        if (this.expanded)
+            this._frame.domTree.requestContentFlowList();
     }
 };
-
-WebInspector.FrameTreeElement.prototype.__proto__ = WebInspector.ResourceTreeElement.prototype;

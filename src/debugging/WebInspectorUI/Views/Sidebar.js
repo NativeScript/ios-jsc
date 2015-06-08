@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,82 +23,73 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.Sidebar = function(element, side, sidebarPanels, role, label) {
-    WebInspector.Object.call(this);
+WebInspector.Sidebar = class Sidebar extends WebInspector.Object
+{
+    constructor(element, side, sidebarPanels, role, label, hasNavigationBar)
+    {
+        super();
 
-    console.assert(!side || side === WebInspector.Sidebar.Sides.Left || side === WebInspector.Sidebar.Sides.Right);
-    this._side = side || WebInspector.Sidebar.Sides.Left;
+        console.assert(!side || side === WebInspector.Sidebar.Sides.Left || side === WebInspector.Sidebar.Sides.Right);
+        this._side = side || WebInspector.Sidebar.Sides.Left;
 
-    this._element = element || document.createElement("div");
-    this._element.classList.add(WebInspector.Sidebar.StyleClassName);
-    this._element.classList.add(WebInspector.Sidebar.CollapsedStyleClassName);
-    this._element.classList.add(this._side);
+        this._element = element || document.createElement("div");
+        this._element.classList.add("sidebar", this._side, WebInspector.Sidebar.CollapsedStyleClassName);
 
-    this._element.setAttribute("role", role || "group");
-    if (label)
-        this._element.setAttribute("aria-label", label);
+        this._element.setAttribute("role", role || "group");
+        if (label)
+            this._element.setAttribute("aria-label", label);
 
-    this._resizeElement = document.createElement("div");
-    this._resizeElement.classList.add(WebInspector.Sidebar.ResizeElementStyleClassName);
-    this._resizeElement.addEventListener("mousedown", this._resizerMouseDown.bind(this), false);
-    this._resizeElement.addEventListener("dblclick", this._resizerDoubleClicked.bind(this), false);
-    this._element.insertBefore(this._resizeElement, this._element.firstChild);
+        if (hasNavigationBar) {
+            this._element.classList.add("has-navigation-bar");
 
-    this._sidebarPanels = [];
+            this._navigationBar = new WebInspector.NavigationBar(null, null, "tablist");
+            this._navigationBar.addEventListener(WebInspector.NavigationBar.Event.NavigationItemSelected, this._navigationItemSelected, this);
+            this._element.appendChild(this._navigationBar.element);
+        }
 
-    if (sidebarPanels) {
-        for (var i = 0; i < sidebarPanels.length; ++i)
-            this.addSidebarPanel(sidebarPanels[i]);
+        this._resizer = new WebInspector.Resizer(WebInspector.Resizer.RuleOrientation.Vertical, this);
+        this._element.insertBefore(this._resizer.element, this._element.firstChild);
+
+        this._sidebarPanels = [];
+
+        if (sidebarPanels) {
+            for (var i = 0; i < sidebarPanels.length; ++i)
+                this.addSidebarPanel(sidebarPanels[i]);
+        }
     }
-};
-
-WebInspector.Object.addConstructorFunctions(WebInspector.Sidebar);
-
-WebInspector.Sidebar.StyleClassName = "sidebar";
-WebInspector.Sidebar.CollapsedStyleClassName = "collapsed";
-WebInspector.Sidebar.ResizeElementStyleClassName = "resizer";
-WebInspector.Sidebar.AbsoluteMinimumWidth = 200;
-
-WebInspector.Sidebar.Sides = {};
-WebInspector.Sidebar.Sides.Right = "right";
-WebInspector.Sidebar.Sides.Left = "left";
-
-WebInspector.Sidebar.Event = {
-    SidebarPanelSelected: "sidebar-sidebar-panel-selected",
-    CollapsedStateDidChange: "sidebar-sidebar-collapsed-state-did-change",
-    WidthDidChange: "sidebar-width-did-change",
-};
-
-WebInspector.Sidebar.prototype = {
-    constructor: WebInspector.Sidebar,
 
     // Public
 
-    addSidebarPanel: function(sidebarPanel)
+    addSidebarPanel(sidebarPanel)
     {
         console.assert(sidebarPanel instanceof WebInspector.SidebarPanel);
         if (!(sidebarPanel instanceof WebInspector.SidebarPanel))
-            return;
+            return null;
 
         console.assert(!sidebarPanel.parentSidebar);
         if (sidebarPanel.parentSidebar)
-            return;
+            return null;
 
         sidebarPanel._parentSidebar = this;
 
         this._sidebarPanels.push(sidebarPanel);
         this._element.appendChild(sidebarPanel.element);
 
+        if (this._navigationBar) {
+            console.assert(sidebarPanel.navigationItem);
+            this._navigationBar.addNavigationItem(sidebarPanel.navigationItem);
+        }
+
         sidebarPanel.added();
 
         return sidebarPanel;
-    },
+    }
 
-    removeSidebarPanel: function(sidebarPanelOrIdentifierOrIndex, index)
+    removeSidebarPanel(sidebarPanelOrIdentifierOrIndex)
     {
         var sidebarPanel = this.findSidebarPanel(sidebarPanelOrIdentifierOrIndex);
         if (!sidebarPanel)
-            return;
+            return null;
 
         sidebarPanel.willRemove();
 
@@ -106,21 +97,26 @@ WebInspector.Sidebar.prototype = {
 
         if (this._selectedSidebarPanel === sidebarPanel) {
             var index = this._sidebarPanels.indexOf(sidebarPanel);
-            this.selectedSidebarPanel = this._sidebarPanels[index - 1] || this._sidebarPanels[index + 1];
+            this.selectedSidebarPanel = this._sidebarPanels[index - 1] || this._sidebarPanels[index + 1] || null;
         }
 
         this._sidebarPanels.remove(sidebarPanel);
         this._element.removeChild(sidebarPanel.element);
 
+        if (this._navigationBar) {
+            console.assert(sidebarPanel.navigationItem);
+            this._navigationBar.removeNavigationItem(sidebarPanel.navigationItem);
+        }
+
         sidebarPanel.removed();
 
         return sidebarPanel;
-    },
+    }
 
     get selectedSidebarPanel()
     {
         return this._selectedSidebarPanel || null;
-    },
+    }
 
     set selectedSidebarPanel(sidebarPanelOrIdentifierOrIndex)
     {
@@ -141,6 +137,9 @@ WebInspector.Sidebar.prototype = {
 
         this._selectedSidebarPanel = sidebarPanel || null;
 
+        if (this._navigationBar)
+            this._navigationBar.selectedNavigationItem = sidebarPanel ? sidebarPanel.navigationItem : null;
+
         if (this._selectedSidebarPanel) {
             this._selectedSidebarPanel.selected = true;
 
@@ -151,24 +150,26 @@ WebInspector.Sidebar.prototype = {
         }
 
         this.dispatchEventToListeners(WebInspector.Sidebar.Event.SidebarPanelSelected);
-    },
+    }
 
     get minimumWidth()
     {
+        if (this._navigationBar)
+            return Math.max(WebInspector.Sidebar.AbsoluteMinimumWidth, this._navigationBar.minimumWidth);
         return WebInspector.Sidebar.AbsoluteMinimumWidth;
-    },
+    }
 
     get maximumWidth()
     {
         // FIXME: This is kind of arbitrary and ideally would be a more complex calculation based on the
         // available space for the sibling elements.
         return Math.round(window.innerWidth / 3);
-    },
+    }
 
     get width()
     {
         return this._element.offsetWidth;
-    },
+    }
 
     set width(newWidth)
     {
@@ -179,16 +180,19 @@ WebInspector.Sidebar.prototype = {
 
         this._element.style.width = newWidth + "px";
 
+        if (!this.collapsed && this._navigationBar)
+            this._navigationBar.updateLayout();
+
         if (!this.collapsed && this._selectedSidebarPanel)
             this._selectedSidebarPanel.widthDidChange();
 
         this.dispatchEventToListeners(WebInspector.Sidebar.Event.WidthDidChange);
-    },
+    }
 
     get collapsed()
     {
         return this._element.classList.contains(WebInspector.Sidebar.CollapsedStyleClassName);
-    },
+    }
 
     set collapsed(flag)
     {
@@ -197,8 +201,12 @@ WebInspector.Sidebar.prototype = {
 
         if (flag)
             this._element.classList.add(WebInspector.Sidebar.CollapsedStyleClassName);
-        else
+        else {
             this._element.classList.remove(WebInspector.Sidebar.CollapsedStyleClassName);
+
+            if (this._navigationBar)
+                this._navigationBar.updateLayout();
+        }
 
         if (this._selectedSidebarPanel) {
             if (this._selectedSidebarPanel.visible)
@@ -213,29 +221,29 @@ WebInspector.Sidebar.prototype = {
 
         this.dispatchEventToListeners(WebInspector.Sidebar.Event.CollapsedStateDidChange);
         this.dispatchEventToListeners(WebInspector.Sidebar.Event.WidthDidChange);
-    },
+    }
 
     get sidebarPanels()
     {
         return this._sidebarPanels;
-    },
+    }
 
     get element()
     {
         return this._element;
-    },
+    }
 
     get side()
     {
         return this._side;
-    },
+    }
 
-    findSidebarPanel: function(sidebarPanelOrIdentifierOrIndex)
+    findSidebarPanel(sidebarPanelOrIdentifierOrIndex)
     {
         var sidebarPanel = null;
 
         if (sidebarPanelOrIdentifierOrIndex instanceof WebInspector.SidebarPanel) {
-            if (this._sidebarPanels.contains(sidebarPanelOrIdentifierOrIndex))
+            if (this._sidebarPanels.includes(sidebarPanelOrIdentifierOrIndex))
                 sidebarPanel = sidebarPanelOrIdentifierOrIndex;
         } else if (typeof sidebarPanelOrIdentifierOrIndex === "number") {
             sidebarPanel = this._sidebarPanels[sidebarPanelOrIdentifierOrIndex];
@@ -249,71 +257,48 @@ WebInspector.Sidebar.prototype = {
         }
 
         return sidebarPanel;
-    },
+    }
+
+    // Protected
+
+    resizerDragStarted(resizer)
+    {
+        this._widthBeforeResize = this.width;
+    }
+
+    resizerDragging(resizer, positionDelta)
+    {
+        if (this._side === WebInspector.Sidebar.Sides.Left)
+            positionDelta *= -1;
+
+        var newWidth = positionDelta + this._widthBeforeResize;
+        this.width = newWidth;
+        this.collapsed = (newWidth < (this.minimumWidth / 2));
+    }
+
+    resizerDragEnded(resizer)
+    {
+        delete this._widthBeforeResize;
+    }
 
     // Private
 
-    _navigationItemSelected: function(event)
+    _navigationItemSelected(event)
     {
         this.selectedSidebarPanel = event.target.selectedNavigationItem ? event.target.selectedNavigationItem.identifier : null;
-    },
-
-    _resizerDoubleClicked: function(event)
-    {
-        this.collapsed = !this.collapsed;
-
-        event.preventDefault();
-        event.stopPropagation();
-    },
-
-    _resizerMouseDown: function(event)
-    {
-        if (event.button !== 0 || event.ctrlKey)
-            return;
-
-        document.body.style.cursor = "col-resize";
-
-        this._resizerMouseMovedEventListener = this._resizerMouseMoved.bind(this);
-        this._resizerMouseUpEventListener = this._resizerMouseUp.bind(this);
-
-        // Register these listeners on the document so we can track the mouse if it leaves the resizer.
-        document.addEventListener("mousemove", this._resizerMouseMovedEventListener, false);
-        document.addEventListener("mouseup", this._resizerMouseUpEventListener, false);
-
-        event.preventDefault();
-        event.stopPropagation();
-    },
-
-    _resizerMouseMoved: function(event)
-    {
-        if (this._side === WebInspector.Sidebar.Sides.Left)
-            var newWidth = event.pageX - this._element.totalOffsetLeft;
-        else
-            var newWidth = this._element.totalOffsetLeft + this._element.offsetWidth - event.pageX;
-
-        this.width = newWidth;
-        this.collapsed = (newWidth < (this.minimumWidth / 2));
-
-        event.preventDefault();
-        event.stopPropagation();
-    },
-
-    _resizerMouseUp: function(event)
-    {
-        if (event.button !== 0 || event.ctrlKey)
-            return;
-
-        document.body.style.removeProperty("cursor");
-
-        document.removeEventListener("mousemove", this._resizerMouseMovedEventListener, false);
-        document.removeEventListener("mouseup", this._resizerMouseUpEventListener, false);
-
-        delete this._resizerMouseMovedEventListener;
-        delete this._resizerMouseUpEventListener;
-
-        event.preventDefault();
-        event.stopPropagation();
     }
 };
 
-WebInspector.Sidebar.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.Sidebar.CollapsedStyleClassName = "collapsed";
+WebInspector.Sidebar.AbsoluteMinimumWidth = 200;
+
+WebInspector.Sidebar.Sides = {
+    Right: "right",
+    Left: "left"
+};
+
+WebInspector.Sidebar.Event = {
+    SidebarPanelSelected: "sidebar-panel-selected",
+    CollapsedStateDidChange: "sidebar-collapsed-state-did-change",
+    WidthDidChange: "sidebar-width-did-change",
+};

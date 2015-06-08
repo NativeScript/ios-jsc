@@ -1,6 +1,6 @@
 /*
+ * Copyright (C) 2014-2015 Apple Inc. All rights reserved.
  * Copyright (C) 2013 University of Washington. All rights reserved.
- * Copyright (C) 2014 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,64 +24,76 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ProbeDetailsSidebarPanel = function()
+WebInspector.ProbeDetailsSidebarPanel = class ProbeDetailsSidebarPanel extends WebInspector.DetailsSidebarPanel
 {
-    WebInspector.DetailsSidebarPanel.call(this, "probe", WebInspector.UIString("Probes"), WebInspector.UIString("Probes"), "Images/NavigationItemProbes.pdf", "6");
+    constructor()
+    {
+        super("probe", WebInspector.UIString("Probes"), WebInspector.UIString("Probes"));
 
-    WebInspector.probeManager.addEventListener(WebInspector.ProbeManager.Event.ProbeSetAdded, this._probeSetAdded, this);
-    WebInspector.probeManager.addEventListener(WebInspector.ProbeManager.Event.ProbeSetRemoved, this._probeSetRemoved, this);
+        WebInspector.probeManager.addEventListener(WebInspector.ProbeManager.Event.ProbeSetAdded, this._probeSetAdded, this);
+        WebInspector.probeManager.addEventListener(WebInspector.ProbeManager.Event.ProbeSetRemoved, this._probeSetRemoved, this);
 
-    this._probeSetSections = new Map;
-    this._inspectedProbeSets = [];
+        this._probeSetSections = new Map;
+        this._inspectedProbeSets = [];
 
-    // Initialize sidebar sections for probe sets that already exist.
-    for (var probeSet of WebInspector.probeManager.probeSets)
-        this._probeSetAdded(probeSet);
-};
-
-WebInspector.ProbeDetailsSidebarPanel.OffsetSectionsStyleClassName  = "offset-sections";
-
-WebInspector.ProbeDetailsSidebarPanel.prototype = {
-    constructor: WebInspector.ProbeDetailsSidebarPanel,
-    __proto__: WebInspector.DetailsSidebarPanel.prototype,
+        // Initialize sidebar sections for probe sets that already exist.
+        for (var probeSet of WebInspector.probeManager.probeSets)
+            this._probeSetAdded(probeSet);
+    }
 
     // Public
 
     get inspectedProbeSets()
     {
         return this._inspectedProbeSets.slice();
-    },
+    }
 
     set inspectedProbeSets(newProbeSets)
     {
         for (var probeSet of this._inspectedProbeSets) {
             var removedSection = this._probeSetSections.get(probeSet);
-            this.element.removeChild(removedSection.element);
+            this.contentElement.removeChild(removedSection.element);
         }
 
         this._inspectedProbeSets = newProbeSets;
 
         for (var probeSet of newProbeSets) {
             var shownSection = this._probeSetSections.get(probeSet);
-            this.element.appendChild(shownSection.element);
+            this.contentElement.appendChild(shownSection.element);
         }
-    },
+    }
 
-    inspect: function(objects)
+    inspect(objects)
     {
         if (!(objects instanceof Array))
             objects = [objects];
 
-        this.inspectedProbeSets = objects.filter(function(object) {
+        var inspectedProbeSets = objects.filter(function(object) {
             return object instanceof WebInspector.ProbeSet;
         });
 
+        inspectedProbeSets.sort(function sortBySourceLocation(aProbeSet, bProbeSet) {
+            var aLocation = aProbeSet.breakpoint.sourceCodeLocation;
+            var bLocation = bProbeSet.breakpoint.sourceCodeLocation;
+            var comparisonResult = aLocation.sourceCode.displayName.localeCompare(bLocation.sourceCode.displayName);
+            if (comparisonResult !== 0)
+                return comparisonResult;
+
+            comparisonResult = aLocation.displayLineNumber - bLocation.displayLineNumber;
+            if (comparisonResult !== 0)
+                return comparisonResult;
+
+            return aLocation.displayColumnNumber - bLocation.displayColumnNumber;
+        });
+
+        this.inspectedProbeSets = inspectedProbeSets;
+
         return !!this._inspectedProbeSets.length;
-    },
+    }
 
     // Private
 
-    _probeSetAdded: function(probeSetOrEvent)
+    _probeSetAdded(probeSetOrEvent)
     {
         var probeSet;
         if (probeSetOrEvent instanceof WebInspector.ProbeSet)
@@ -92,10 +104,10 @@ WebInspector.ProbeDetailsSidebarPanel.prototype = {
 
         var newSection = new WebInspector.ProbeSetDetailsSection(probeSet);
         this._probeSetSections.set(probeSet, newSection);
-    },
+    }
 
 
-    _probeSetRemoved: function(event)
+    _probeSetRemoved(event)
     {
         var probeSet = event.data.probeSet;
         console.assert(this._probeSetSections.has(probeSet), "Removed probe group ", probeSet, " doesn't have a sidebar.");

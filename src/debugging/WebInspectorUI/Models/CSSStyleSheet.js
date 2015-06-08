@@ -23,56 +23,54 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CSSStyleSheet = function(id, url, parentFrame)
+WebInspector.CSSStyleSheet = class CSSStyleSheet extends WebInspector.SourceCode
 {
-    WebInspector.SourceCode.call(this);
+    constructor(id)
+    {
+        super();
 
-    console.assert(id);
+        console.assert(id);
 
-    this._id = id || null;
+        this._id = id || null;
+        this._url = null;
+        this._parentFrame = null;
+    }
 
-    this.updateInfo(url, parentFrame);
-};
+    // Static
 
-WebInspector.Object.addConstructorFunctions(WebInspector.CSSStyleSheet);
-
-WebInspector.CSSStyleSheet.resetUniqueDisplayNameNumbers = function()
-{
-    WebInspector.CSSStyleSheet._nextUniqueDisplayNameNumber = 1;
-}
-
-WebInspector.CSSStyleSheet._nextUniqueDisplayNameNumber = 1;
-
-WebInspector.CSSStyleSheet.Event = {
-    ContentDidChange: "stylesheet-content-did-change"
-};
-
-WebInspector.CSSStyleSheet.prototype = {
-    constructor: WebInspector.CSSStyleSheet,
+    static resetUniqueDisplayNameNumbers()
+    {
+        WebInspector.CSSStyleSheet._nextUniqueDisplayNameNumber = 1;
+    }
 
     // Public
 
     get id()
     {
         return this._id;
-    },
+    }
 
     get parentFrame()
     {
         return this._parentFrame;
-    },
+    }
 
     get url()
     {
         return this._url;
-    },
+    }
 
     get urlComponents()
     {
         if (!this._urlComponents)
             this._urlComponents = parseURL(this._url);
         return this._urlComponents;
-    },
+    }
+
+    get mimeType()
+    {
+        return "text/css";
+    }
 
     get displayName()
     {
@@ -84,24 +82,34 @@ WebInspector.CSSStyleSheet.prototype = {
             this._uniqueDisplayNameNumber = this.constructor._nextUniqueDisplayNameNumber++;
 
         return WebInspector.UIString("Anonymous StyleSheet %d").format(this._uniqueDisplayNameNumber);
-    },
+    }
+
+    isInlineStyle()
+    {
+        return !!this._inlineStyle;
+    }
+
+    markAsInlineStyle()
+    {
+        this._inlineStyle = true;
+    }
 
     // Protected
 
-    updateInfo: function(url, parentFrame)
+    updateInfo(url, parentFrame)
     {
         this._url = url || null;
         delete this._urlComponents;
 
         this._parentFrame = parentFrame || null;
-    },
+    }
 
     get revisionForRequestedContent()
     {
         return this.currentRevision;
-    },
+    }
 
-    handleCurrentRevisionContentChange: function()
+    handleCurrentRevisionContentChange()
     {
         if (!this._id)
             return;
@@ -119,27 +127,20 @@ WebInspector.CSSStyleSheet.prototype = {
         this._ignoreNextContentDidChangeNotification = true;
 
         CSSAgent.setStyleSheetText(this._id, this.currentRevision.content, contentDidChange.bind(this));
-    },
+    }
 
-    canRequestContentFromBackend: function()
-    {
-        // We can request content if we have an id.
-        return !!this._id;
-    },
-
-    requestContentFromBackend: function(callback)
+    requestContentFromBackend()
     {
         if (!this._id) {
-            // There is no identifier to request content with. Return false to cause the
+            // There is no identifier to request content with. Reject the promise to cause the
             // pending callbacks to get null content.
-            return false;
+            return Promise.reject(new Error("There is no identifier to request content with."));
         }
 
-        CSSAgent.getStyleSheetText(this._id, callback);
-        return true;
-    },
+        return CSSAgent.getStyleSheetText(this._id);
+    }
 
-    noteContentDidChange: function()
+    noteContentDidChange()
     {
         if (this._ignoreNextContentDidChangeNotification) {
             delete this._ignoreNextContentDidChangeNotification;
@@ -152,4 +153,8 @@ WebInspector.CSSStyleSheet.prototype = {
     }
 };
 
-WebInspector.CSSStyleSheet.prototype.__proto__ = WebInspector.SourceCode.prototype;
+WebInspector.CSSStyleSheet._nextUniqueDisplayNameNumber = 1;
+
+WebInspector.CSSStyleSheet.Event = {
+    ContentDidChange: "stylesheet-content-did-change"
+};

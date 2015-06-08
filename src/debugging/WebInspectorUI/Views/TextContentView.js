@@ -41,9 +41,14 @@ WebInspector.TextContentView = function(string, mimeType)
 
     var toolTip = WebInspector.UIString("Pretty print");
     var activatedToolTip = WebInspector.UIString("Original formatting");
-    this._prettyPrintButtonNavigationItem = new WebInspector.ActivateButtonNavigationItem("pretty-print", toolTip, activatedToolTip, "Images/NavigationItemCurleyBraces.svg", 16, 16);
+    this._prettyPrintButtonNavigationItem = new WebInspector.ActivateButtonNavigationItem("pretty-print", toolTip, activatedToolTip, "Images/NavigationItemCurleyBraces.svg", 13, 13);
     this._prettyPrintButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._togglePrettyPrint, this);
     this._prettyPrintButtonNavigationItem.enabled = this._textEditor.canBeFormatted();
+
+    var toolTipTypes = WebInspector.UIString("Show type information");
+    var activatedToolTipTypes = WebInspector.UIString("Hide type information");
+    this._showTypesButtonNavigationItem = new WebInspector.ActivateButtonNavigationItem("show-types", toolTipTypes, activatedToolTipTypes, "Images/NavigationItemTypes.svg", 13, 14);
+    this._showTypesButtonNavigationItem.enabled = false;
 };
 
 WebInspector.TextContentView.StyleClassName = "text";
@@ -60,7 +65,7 @@ WebInspector.TextContentView.prototype = {
 
     get navigationItems()
     {
-        return [this._prettyPrintButtonNavigationItem];
+        return [this._prettyPrintButtonNavigationItem, this._showTypesButtonNavigationItem];
     },
 
     revealPosition: function(position, textRangeToSelect, forceUnformatted)
@@ -77,7 +82,7 @@ WebInspector.TextContentView.prototype = {
 
     hidden: function()
     {
-        WebInspector.ResourceContentView.prototype.hidden.call(this);
+        WebInspector.ContentView.prototype.hidden.call(this);
 
         this._textEditor.hidden();
     },
@@ -97,7 +102,7 @@ WebInspector.TextContentView.prototype = {
     get saveData()
     {
         var url = "web-inspector:///" + encodeURI(WebInspector.UIString("Untitled")) + ".txt";
-        return {url: url, content: this._textEditor.string, forceSaveAs: true};
+        return {url, content: this._textEditor.string, forceSaveAs: true};
     },
 
     get supportsSearch()

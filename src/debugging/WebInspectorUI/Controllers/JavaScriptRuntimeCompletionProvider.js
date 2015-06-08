@@ -23,15 +23,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.JavaScriptRuntimeCompletionProvider = function()
-{
-    WebInspector.Object.call(this);
-
-    console.assert(!WebInspector.JavaScriptRuntimeCompletionProvider._instance);
-
-    WebInspector.debuggerManager.addEventListener(WebInspector.DebuggerManager.Event.ActiveCallFrameDidChange, this._clearLastProperties, this);
-};
-
 Object.defineProperty(WebInspector, "javaScriptRuntimeCompletionProvider",
 {
     get: function()
@@ -42,12 +33,20 @@ Object.defineProperty(WebInspector, "javaScriptRuntimeCompletionProvider",
     }
 });
 
-WebInspector.JavaScriptRuntimeCompletionProvider.prototype = {
-    constructor: WebInspector.JavaScriptRuntimeCompletionProvider,
+WebInspector.JavaScriptRuntimeCompletionProvider = class JavaScriptRuntimeCompletionProvider extends WebInspector.Object
+{
+    constructor()
+    {
+        super();
+
+        console.assert(!WebInspector.JavaScriptRuntimeCompletionProvider._instance);
+
+        WebInspector.debuggerManager.addEventListener(WebInspector.DebuggerManager.Event.ActiveCallFrameDidChange, this._clearLastProperties, this);
+    }
 
     // Protected
 
-    completionControllerCompletionsNeeded: function(completionController, defaultCompletions, base, prefix, suffix, forced)
+    completionControllerCompletionsNeeded(completionController, defaultCompletions, base, prefix, suffix, forced)
     {
         // Don't allow non-forced empty prefix completions unless the base is that start of property access.
         if (!forced && !prefix && !/[.[]$/.test(base)) {
@@ -104,7 +103,7 @@ WebInspector.JavaScriptRuntimeCompletionProvider.prototype = {
         if (!base && activeCallFrame && !this._alwaysEvaluateInWindowContext)
             activeCallFrame.collectScopeChainVariableNames(receivedPropertyNames.bind(this));
         else
-            WebInspector.runtimeManager.evaluateInInspectedWindow(base, "completion", true, true, false, evaluated.bind(this));
+            WebInspector.runtimeManager.evaluateInInspectedWindow(base, "completion", true, true, false, false, false, evaluated.bind(this));
 
         function updateLastPropertyNames(propertyNames)
         {
@@ -155,7 +154,7 @@ WebInspector.JavaScriptRuntimeCompletionProvider.prototype = {
             if (result.type === "object" || result.type === "function")
                 result.callFunctionJSON(getCompletions, undefined, receivedPropertyNames.bind(this));
             else if (result.type === "string" || result.type === "number" || result.type === "boolean")
-                WebInspector.runtimeManager.evaluateInInspectedWindow("(" + getCompletions + ")(\"" + result.type + "\")", "completion", false, true, true, receivedPropertyNamesFromEvaluate.bind(this));
+                WebInspector.runtimeManager.evaluateInInspectedWindow("(" + getCompletions + ")(\"" + result.type + "\")", "completion", false, true, true, false, false, receivedPropertyNamesFromEvaluate.bind(this));
             else
                 console.error("Unknown result type: " + result.type);
         }
@@ -174,9 +173,15 @@ WebInspector.JavaScriptRuntimeCompletionProvider.prototype = {
             RuntimeAgent.releaseObjectGroup("completion");
 
             if (!base) {
-                const commandLineAPI = ["$", "$$", "$x", "dir", "dirxml", "keys", "values", "profile", "profileEnd", "monitorEvents", "unmonitorEvents", "inspect", "copy", "clear", "getEventListeners", "$0", "$1", "$2", "$3", "$4", "$_"];
+                var commandLineAPI = ["$", "$$", "$x", "dir", "dirxml", "keys", "values", "profile", "profileEnd", "monitorEvents", "unmonitorEvents", "inspect", "copy", "clear", "getEventListeners", "$0", "$_"];
+                if (WebInspector.debuggerManager.paused && WebInspector.debuggerManager.pauseReason === WebInspector.DebuggerManager.PauseReason.Exception)
+                    commandLineAPI.push("$exception");
                 for (var i = 0; i < commandLineAPI.length; ++i)
                     propertyNames[commandLineAPI[i]] = true;
+
+                // FIXME: Due to caching, sometimes old $n values show up as completion results even though they are not available. We should clear that proactively.
+                for (var i = 1; i <= WebInspector.ConsoleCommandResultMessage.maximumSavedResultIndex; ++i)
+                    propertyNames["$" + i] = true;
             }
 
             propertyNames = Object.keys(propertyNames);
@@ -224,11 +229,11 @@ WebInspector.JavaScriptRuntimeCompletionProvider.prototype = {
 
             completionController.updateCompletions(completions, implicitSuffix);
         }
-    },
+    }
 
     // Private
 
-    _clearLastProperties: function()
+    _clearLastProperties()
     {
         if (this._clearLastPropertiesTimeout) {
             clearTimeout(this._clearLastPropertiesTimeout);
@@ -240,5 +245,3 @@ WebInspector.JavaScriptRuntimeCompletionProvider.prototype = {
         this._lastPropertyNames = null;
     }
 };
-
-WebInspector.JavaScriptRuntimeCompletionProvider.prototype.__proto__ = WebInspector.Object.prototype;

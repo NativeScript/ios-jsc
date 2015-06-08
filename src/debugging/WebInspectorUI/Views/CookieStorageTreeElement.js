@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,29 +23,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CookieStorageTreeElement = function(representedObject)
+WebInspector.CookieStorageTreeElement = class CookieStorageTreeElement extends WebInspector.StorageTreeElement
 {
-    console.assert(representedObject instanceof WebInspector.CookieStorageObject);
-    
-    WebInspector.StorageTreeElement.call(this, WebInspector.CookieStorageTreeElement.CookieIconStyleClassName, WebInspector.displayNameForHost(representedObject.host), representedObject);
-};
+    constructor(representedObject)
+    {
+        console.assert(representedObject instanceof WebInspector.CookieStorageObject);
 
-WebInspector.CookieStorageTreeElement.CookieIconStyleClassName = "cookie-icon";
+        super(WebInspector.CookieStorageTreeElement.CookieIconStyleClassName, WebInspector.displayNameForHost(representedObject.host), representedObject);
+    }
 
-WebInspector.CookieStorageTreeElement.prototype = {
-    constructor: WebInspector.CookieStorageTreeElement,
-    
     // Public
-    
+
     get name()
     {
         return this.representedObject.host;
-    },
-    
+    }
+
     get categoryName()
     {
         return WebInspector.UIString("Cookies");
     }
 };
 
-WebInspector.CookieStorageTreeElement.prototype.__proto__ = WebInspector.StorageTreeElement.prototype;
+WebInspector.CookieStorageTreeElement.CookieIconStyleClassName = "cookie-icon";

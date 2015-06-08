@@ -35,7 +35,7 @@ function relativePath(path, basePath)
 {
     console.assert(path.charAt(0) === "/");
     console.assert(basePath.charAt(0) === "/");
-    
+
     var pathComponents = path.split("/");
     var baseComponents = basePath.replace(/\/$/, "").split("/");
     var finalComponents = [];
@@ -67,7 +67,7 @@ function parseSecurityOrigin(securityOrigin)
     var host = match[2].toLowerCase();
     var port = Number(match[3]) || null;
 
-    return {scheme: scheme, host: host, port: port};
+    return {scheme, host, port};
 }
 
 function parseURL(url)
@@ -106,7 +106,7 @@ function parseURL(url)
             lastPathComponent = path.substring(lastSlashIndex + 1, path.length - endOffset);
     }
 
-    return {scheme: scheme, host: host, port: port, path: path, queryString: queryString, fragment: fragment, lastPathComponent: lastPathComponent};
+    return {scheme, host, port, path, queryString, fragment, lastPathComponent};
 }
 
 function absoluteURL(partialURL, baseURL)
@@ -202,10 +202,10 @@ WebInspector.displayNameForURL = function(url, urlComponents)
     }
 
     return displayName || WebInspector.displayNameForHost(urlComponents.host) || url;
-}
+};
 
 WebInspector.displayNameForHost = function(host)
 {
     // FIXME <rdar://problem/11237413>: This should decode punycode hostnames.
     return host;
-}
+};

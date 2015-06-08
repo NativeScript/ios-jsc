@@ -28,11 +28,13 @@
 }
 
 body {
-    display: -webkit-flex;
-    -webkit-flex-direction: column;
+    display: flex;
+    flex-direction: column;
 
     font-family: -webkit-system-font, sans-serif;
     font-size: 11px;
+
+    background-color: white;
 
     position: absolute;
     top: 0;
@@ -55,16 +57,20 @@ body {
     tab-size: 4; /* FIXME: This should be controlled by a setting. <rdar://problem/10593948> */
 }
 
-body.docked {
-    background-color: white;
-}
-
 body.docked.bottom {
-    border-top: 1px solid rgb(85, 85, 85);
+    border-top: 1px solid rgb(200, 200, 200);
 }
 
 body.docked.right {
-    border-left: 1px solid rgb(85, 85, 85);
+    border-left: 1px solid rgb(179, 179, 179);
+}
+
+body.window-inactive.docked.bottom {
+    border-top-color: rgb(219, 219, 219);
+}
+
+body.window-inactive.docked.right {
+    border-left-color: rgb(219, 219, 219);
 }
 
 #docked-resizer {
@@ -106,8 +112,8 @@ body.docked.bottom #toolbar .item:not(.flexible-space) {
 }
 
 #main {
-    display: -webkit-flex;
-    -webkit-flex: 1;
+    display: flex;
+    flex: 1;
 
     background-color: white;
 
@@ -125,27 +131,45 @@ body.docked.right #navigation-sidebar.collapsed > .resizer {
 }
 
 #content {
-    display: -webkit-flex;
-    -webkit-flex-direction: column;
-    -webkit-flex: 1;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
-#content-browser {
-    -webkit-flex: 1;
+#tab-browser {
+    flex: 1;
 }
 
 #split-content-browser {
-    border-top: 1px solid rgb(153, 153, 153);
+    border-top: 1px solid rgb(179, 179, 179);
+}
+
+body.window-inactive #split-content-browser {
+    border-top-color: rgb(219, 219, 219);
 }
 
 #split-content-browser > .navigation-bar {
     cursor: row-resize;
 
-    background-image: linear-gradient(to bottom, rgb(248, 248, 248), rgb(226, 226, 226));
+    background-color: rgb(242, 242, 242);
 }
 
 #split-content-browser > .navigation-bar .item:not(.flexible-space) {
     cursor: default;
+}
+
+#split-content-browser .hierarchical-path-component.log-icon .icon {
+    margin-left: 6px;
+    margin-right: 6px;
+    opacity: 0.7;
+}
+
+#split-content-browser .hierarchical-path-component.log-icon .title {
+    color: rgba(0, 0, 0, 0.75);
+}
+
+#split-content-browser .hierarchical-path-component.log-icon select {
+    display: none;
 }
 
 #details-sidebar {
@@ -153,7 +177,7 @@ body.docked.right #navigation-sidebar.collapsed > .resizer {
 }
 
 .message-text-view {
-    display: -webkit-flex;
+    display: flex;
     z-index: 1000;
 
     position: absolute;
@@ -165,8 +189,8 @@ body.docked.right #navigation-sidebar.collapsed > .resizer {
     padding-left: 20%;
     padding-right: 20%;
 
-    -webkit-justify-content: center;
-    -webkit-align-items: center;
+    justify-content: center;
+    align-items: center;
 
     line-height: 20px;
     white-space: pre-wrap;
@@ -197,8 +221,8 @@ body.docked.right #navigation-sidebar.collapsed > .resizer {
 }
 
 .go-to-link {
-    color: rgb(85, 85, 85) !important;
-    text-decoration: underline !important;
+    color: rgb(85, 85, 85);
+    text-decoration: underline;
     cursor: pointer;
 }
 
@@ -245,10 +269,6 @@ body.docked.right #navigation-sidebar.collapsed > .resizer {
     background-image: -webkit-canvas(go-to-arrow-selected-active);
 }
 
-.display-location {
-    font-style: italic !important;
-}
-
 .hidden {
     display: none !important;
 }
@@ -275,4 +295,51 @@ body.docked.right #navigation-sidebar.collapsed > .resizer {
 
 .value-with-clarification .clarification {
     color: #666;
+}
+
+.bouncy-highlight {
+    position: absolute;
+    z-index: 100;
+
+    box-shadow: inset rgb(250, 232, 140) 0 -1px 0, rgba(211, 197, 96, 1) 0 1px 1px, rgba(0, 0, 0, 0.33) 0 1px 2px 1px;
+    text-shadow: white 0 0 2px;
+
+    background: linear-gradient(to bottom, rgb(250, 237, 108), rgb(242, 220, 100));
+    border-radius: 7px;
+
+    padding: 2px 4px;
+    margin-top: -2px;
+    margin-left: -4px;
+
+    -webkit-user-select: none;
+    pointer-events: none;
+
+    -webkit-animation-name: bouncy-highlight-animation;
+    -webkit-animation-duration: 750ms;
+    -webkit-animation-timing-function: ease-in-out;
+
+    opacity: 0;
+}
+
+@-webkit-keyframes bouncy-highlight-animation {
+    0% {
+        -webkit-transform: scale(1);
+        opacity: 1;
+    }
+
+    12.5% {
+        -webkit-transform: scale(1.25);
+    }
+
+    25% {
+        -webkit-transform: scale(1);
+    }
+
+    62.5% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }

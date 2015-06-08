@@ -23,60 +23,52 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.DOMNodeStyles = function(node)
+WebInspector.DOMNodeStyles = class DOMNodeStyles extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor(node)
+    {
+        super();
 
-    console.assert(node);
-    this._node = node || null;
+        console.assert(node);
+        this._node = node || null;
 
-    this._rulesMap = {};
-    this._styleDeclarationsMap = {};
+        this._rulesMap = {};
+        this._styleDeclarationsMap = {};
 
-    this._matchedRules = [];
-    this._inheritedRules = [];
-    this._pseudoElements = {};
-    this._inlineStyle = null;
-    this._attributesStyle = null;
-    this._computedStyle = null;
-    this._orderedStyles = [];
-    this._stylesNeedingTextCommited = [];
+        this._matchedRules = [];
+        this._inheritedRules = [];
+        this._pseudoElements = {};
+        this._inlineStyle = null;
+        this._attributesStyle = null;
+        this._computedStyle = null;
+        this._orderedStyles = [];
+        this._stylesNeedingTextCommited = [];
 
-    this._propertyNameToEffectivePropertyMap = {};
+        this._propertyNameToEffectivePropertyMap = {};
 
-    this.refresh();
-};
-
-WebInspector.Object.addConstructorFunctions(WebInspector.DOMNodeStyles);
-
-WebInspector.DOMNodeStyles.Event = {
-    NeedsRefresh: "dom-node-styles-needs-refresh",
-    Refreshed: "dom-node-styles-refreshed"
-};
-
-WebInspector.DOMNodeStyles.prototype = {
-    constructor: WebInspector.DOMNodeStyles,
+        this.refresh();
+    }
 
     // Public
 
     get node()
     {
         return this._node;
-    },
+    }
 
     get needsRefresh()
     {
         return this._refreshPending || this._needsRefresh;
-    },
+    }
 
-    refreshIfNeeded: function()
+    refreshIfNeeded()
     {
         if (!this._needsRefresh)
             return;
         this.refresh();
-    },
+    }
 
-    refresh: function()
+    refresh()
     {
         if (this._refreshPending)
             return;
@@ -240,15 +232,15 @@ WebInspector.DOMNodeStyles.prototype = {
             // Delete the previous saved significant change flag so we rescan for a significant change next time.
             delete this._previousSignificantChange;
 
-            this.dispatchEventToListeners(WebInspector.DOMNodeStyles.Event.Refreshed, {significantChange: significantChange});
+            this.dispatchEventToListeners(WebInspector.DOMNodeStyles.Event.Refreshed, {significantChange});
         }
 
         CSSAgent.getMatchedStylesForNode.invoke({nodeId: this._node.id, includePseudo: true, includeInherited: true}, fetchedMatchedStyles.bind(this));
         CSSAgent.getInlineStylesForNode.invoke({nodeId: this._node.id}, fetchedInlineStyles.bind(this));
         CSSAgent.getComputedStyleForNode.invoke({nodeId: this._node.id}, fetchedComputedStyle.bind(this));
-    },
+    }
 
-    addRule: function(selector)
+    addEmptyRule()
     {
         function addedRule(error, rulePayload)
         {
@@ -260,66 +252,66 @@ WebInspector.DOMNodeStyles.prototype = {
             this.refresh();
         }
 
-        selector = selector || this._node.appropriateSelectorFor(true);
+        var selector = this._node.appropriateSelectorFor(true);
 
-        CSSAgent.addRule.invoke({contextNodeId: this._node.id, selector: selector}, addedRule.bind(this));
-    },
+        CSSAgent.addRule.invoke({contextNodeId: this._node.id, selector}, addedRule.bind(this));
+    }
 
     get matchedRules()
     {
         return this._matchedRules;
-    },
+    }
 
     get inheritedRules()
     {
         return this._inheritedRules;
-    },
+    }
 
     get inlineStyle()
     {
         return this._inlineStyle;
-    },
+    }
 
     get attributesStyle()
     {
         return this._attributesStyle;
-    },
+    }
 
     get pseudoElements()
     {
         return this._pseudoElements;
-    },
+    }
 
     get computedStyle()
     {
         return this._computedStyle;
-    },
+    }
 
     get orderedStyles()
     {
         return this._orderedStyles;
-    },
+    }
 
-    effectivePropertyForName: function(name)
+    effectivePropertyForName(name)
     {
         var canonicalName = WebInspector.cssStyleManager.canonicalNameForPropertyName(name);
         return this._propertyNameToEffectivePropertyMap[canonicalName] || null;
-    },
+    }
 
     // Protected
 
-    mediaQueryResultDidChange: function()
+    mediaQueryResultDidChange()
     {
         this._markAsNeedsRefresh();
-    },
+    }
 
-    pseudoClassesDidChange: function(node)
+    pseudoClassesDidChange(node)
     {
         this._includeUserAgentRulesOnNextRefresh = true;
         this._markAsNeedsRefresh();
-    },
+    }
 
-    attributeDidChange: function(node, attributeName)
+    attributeDidChange(node, attributeName)
     {
         // Ignore the attribute we know we just changed and handled above.
         if (this._ignoreNextStyleAttributeDidChangeEvent && node === this._node && attributeName === "style") {
@@ -328,9 +320,9 @@ WebInspector.DOMNodeStyles.prototype = {
         }
 
         this._markAsNeedsRefresh();
-    },
+    }
 
-    changeRuleSelector: function(rule, selector)
+    changeRuleSelector(rule, selector)
     {
         selector = selector || "";
 
@@ -347,40 +339,40 @@ WebInspector.DOMNodeStyles.prototype = {
         this._ignoreNextContentDidChangeForStyleSheet = rule.ownerStyleSheet;
 
         CSSAgent.setRuleSelector(rule.id, selector, ruleSelectorChanged.bind(this));
-    },
+    }
 
-    changeStyleText: function(style, text)
+    changeStyleText(style, text)
     {
         if (!style.ownerStyleSheet || !style.styleSheetTextRange)
             return;
 
         text = text || "";
 
-        if (CSSAgent.setStyleText) {
-            function styleChanged(error, stylePayload)
-            {
-                if (error)
-                    return;
-                this.refresh();
-            }
+        function styleChanged(error, stylePayload)
+        {
+            if (error)
+                return;
+            this.refresh();
+        }
 
+        if (CSSAgent.setStyleText) {
             CSSAgent.setStyleText(style.id, text, styleChanged.bind(this));
             return;
         }
 
         // COMPATIBILITY (iOS 6): CSSAgent.setStyleText was not available in iOS 6.
 
+        function attributeChanged(error)
+        {
+            if (error)
+                return;
+            this.refresh();
+        }
+
         // Setting the text on CSSStyleSheet for inline styles causes a crash. https://webkit.org/b/110359
         // So we just set the style attribute to get the same affect. This also avoids SourceCodeRevisions.
         if (style.type === WebInspector.CSSStyleDeclaration.Type.Inline) {
             text = text.trim();
-
-            function attributeChanged(error)
-            {
-                if (error)
-                    return;
-                this.refresh();
-            }
 
             this._ignoreNextStyleAttributeDidChangeEvent = true;
 
@@ -399,14 +391,16 @@ WebInspector.DOMNodeStyles.prototype = {
 
             style.__pendingText = text;
 
-            if (!this._stylesNeedingTextCommited.contains(style))
+            if (!this._stylesNeedingTextCommited.includes(style))
                 this._stylesNeedingTextCommited.push(style);
 
             return;
         }
 
-        function fetchedStyleSheetContent(styleSheet, content)
+        function fetchedStyleSheetContent(parameters)
         {
+            var content = parameters.content;
+
             console.assert(style.styleSheetTextRange);
             if (!style.styleSheetTextRange)
                 return;
@@ -446,87 +440,12 @@ WebInspector.DOMNodeStyles.prototype = {
         this._needsRefresh = true;
         this._ignoreNextContentDidChangeForStyleSheet = style.ownerStyleSheet;
 
-        style.ownerStyleSheet.requestContent(fetchedStyleSheetContent.bind(this));
-    },
-
-    changeProperty: function(property, name, value, priority)
-    {
-        var text = name ? name + ": " + value + (priority ? " !" + priority : "") + ";" : "";
-        this.changePropertyText(property, text);
-    },
-
-    changePropertyText: function(property, text)
-    {
-        text = text || "";
-
-        var index = property.index;
-        var newProperty = isNaN(index);
-        var overwrite = true;
-
-        // If this is a new property, then give it an index at the end of the current properties.
-        // Also don't overwrite, which will cause the property to be added at that index.
-        if (newProperty) {
-            index = property.ownerStyle.properties.length;
-            overwrite = false;
-        }
-
-        if (text && text.charAt(text.length - 1) !== ";")
-            text += ";";
-
-        this._needsRefresh = true;
-        this._ignoreNextContentDidChangeForStyleSheet = property.ownerStyle.ownerStyleSheet;
-
-        CSSAgent.setPropertyText(property.ownerStyle.id, index, text, overwrite, this._handlePropertyChange.bind(this, property));
-    },
-
-    changePropertyEnabledState: function(property, enabled)
-    {
-        enabled = !!enabled;
-
-        // Can't change a pending property with a NaN index.
-        if (isNaN(property.index))
-            return;
-
-        this._ignoreNextContentDidChangeForStyleSheet = property.ownerStyle.ownerStyleSheet;
-
-        CSSAgent.toggleProperty(property.ownerStyle.id, property.index, !enabled, this._handlePropertyChange.bind(this, property));
-    },
-
-    addProperty: function(property)
-    {
-        // Can't add a property unless it has a NaN index.
-        if (!isNaN(property.index))
-            return;
-
-        // Adding is done by setting the text.
-        this.changePropertyText(property, property.text);
-    },
-
-    removeProperty: function(property)
-    {
-        // Can't remove a pending property with a NaN index.
-        if (isNaN(property.index))
-            return;
-
-        // Removing is done by setting text to an empty string.
-        this.changePropertyText(property, "");
-    },
+        style.ownerStyleSheet.requestContent().then(fetchedStyleSheetContent.bind(this));
+    }
 
     // Private
 
-    _handlePropertyChange: function(property, error, stylePayload)
-    {
-        if (error)
-            return;
-
-        DOMAgent.markUndoableState();
-
-        // Do a refresh instead of handling stylePayload so computed style is updated and we get valid
-        // styleSheetTextRange values for all the rules after this change.
-        this.refresh();
-    },
-
-    _createSourceCodeLocation: function(sourceURL, sourceLine, sourceColumn)
+    _createSourceCodeLocation(sourceURL, sourceLine, sourceColumn)
     {
         if (!sourceURL)
             return null;
@@ -550,9 +469,9 @@ WebInspector.DOMNodeStyles.prototype = {
             return null;
 
         return sourceCode.createSourceCodeLocation(sourceLine || 0, sourceColumn || 0);
-    },
+    }
 
-    _parseSourceRangePayload: function(payload, text)
+    _parseSourceRangePayload(payload, text)
     {
         if (!payload)
             return null;
@@ -567,9 +486,9 @@ WebInspector.DOMNodeStyles.prototype = {
         }
 
         return new WebInspector.TextRange(payload.startLine, payload.startColumn, payload.endLine, payload.endColumn);
-    },
+    }
 
-    _parseStylePropertyPayload: function(payload, index, styleDeclaration, styleText)
+    _parseStylePropertyPayload(payload, index, styleDeclaration, styleText)
     {
         var text = payload.text || "";
         var name = payload.name;
@@ -594,6 +513,7 @@ WebInspector.DOMNodeStyles.prototype = {
             enabled = false;
             break;
         case "style":
+            // FIXME: Is this still needed? This includes UserAgent styles and HTML attribute styles.
             anonymous = true;
             break;
         }
@@ -636,9 +556,9 @@ WebInspector.DOMNodeStyles.prototype = {
         }
 
         return new WebInspector.CSSProperty(index, text, name, value, priority, enabled, overridden, implicit, anonymous, valid, styleSheetTextRange, styleDeclarationTextRange);
-    },
+    }
 
-    _parseStyleDeclarationPayload: function(payload, node, inherited, type, rule, updateAllStyles)
+    _parseStyleDeclarationPayload(payload, node, inherited, type, rule, updateAllStyles)
     {
         if (!payload)
             return null;
@@ -648,6 +568,9 @@ WebInspector.DOMNodeStyles.prototype = {
 
         var id = payload.styleId;
         var mapKey = id ? id.styleSheetId + ":" + id.ordinal : null;
+
+        if (type === WebInspector.CSSStyleDeclaration.Type.Attribute)
+            mapKey = node.id + ":attribute";
 
         var styleDeclaration = rule ? rule.style : null;
         var styleDeclarations = [];
@@ -665,7 +588,7 @@ WebInspector.DOMNodeStyles.prototype = {
                     this._parseStyleDeclarationPayload(payload, styleDeclaration.node, styleDeclaration.inherited, styleDeclaration.type, styleDeclaration.ownerRule);
                 }
 
-                return;
+                return null;
             }
 
             if (!styleDeclaration) {
@@ -692,9 +615,9 @@ WebInspector.DOMNodeStyles.prototype = {
 
         if (previousStyleDeclarationsMap !== this._styleDeclarationsMap) {
             // If the previous and current maps differ then make sure the found styleDeclaration is added to the current map.
-            styleDeclarations = mapKey && mapKey in this._styleDeclarationsMap ? this._styleDeclarationsMap[mapKey] : [] ;
+            styleDeclarations = mapKey && mapKey in this._styleDeclarationsMap ? this._styleDeclarationsMap[mapKey] : [];
 
-            if (styleDeclaration && !styleDeclarations.contains(styleDeclaration)) {
+            if (styleDeclaration && !styleDeclarations.includes(styleDeclaration)) {
                 styleDeclarations.push(styleDeclaration);
                 this._styleDeclarationsMap[mapKey] = styleDeclarations;
             }
@@ -732,8 +655,11 @@ WebInspector.DOMNodeStyles.prototype = {
         }
 
         var styleSheet = id ? WebInspector.cssStyleManager.styleSheetForIdentifier(id.styleSheetId) : null;
-        if (styleSheet)
+        if (styleSheet) {
+            if (type === WebInspector.CSSStyleDeclaration.Type.Inline)
+                styleSheet.markAsInlineStyle();
             styleSheet.addEventListener(WebInspector.CSSStyleSheet.Event.ContentDidChange, this._styleSheetContentDidChange, this);
+        }
 
         styleDeclaration = new WebInspector.CSSStyleDeclaration(this, styleSheet, id, type, node, inherited, text, properties, styleSheetTextRange);
 
@@ -743,9 +669,32 @@ WebInspector.DOMNodeStyles.prototype = {
         }
 
         return styleDeclaration;
-    },
+    }
 
-    _parseRulePayload: function(payload, matchedSelectorIndices, node, inherited, ruleOccurrences)
+    _parseSelectorListPayload(selectorList)
+    {
+        // COMPATIBILITY (iOS 6): The payload did not have 'selectorList'.
+        if (!selectorList)
+            return [];
+
+        var selectors = selectorList.selectors;
+        if (!selectors.length)
+            return [];
+
+        // COMPATIBILITY (iOS 8): The selectorList payload was an array of selector text strings.
+        // Now they are CSSSelector objects with multiple properties.
+        if (typeof selectors[0] === "string") {
+            return selectors.map(function(selectorText) {
+                return new WebInspector.CSSSelector(selectorText);
+            });
+        }
+
+        return selectors.map(function(selectorPayload) {
+            return new WebInspector.CSSSelector(selectorPayload.text, selectorPayload.specificity, selectorPayload.dynamic);
+        });
+    }
+
+    _parseRulePayload(payload, matchedSelectorIndices, node, inherited, ruleOccurrences)
     {
         if (!payload)
             return null;
@@ -766,10 +715,10 @@ WebInspector.DOMNodeStyles.prototype = {
                 occurrence = ++ruleOccurrences[mapKey];
             else
                 ruleOccurrences[mapKey] = occurrence;
-        }
 
-        // Append the occurrence number to the map key for lookup in the rules map.
-        mapKey += ":" + occurrence;
+            // Append the occurrence number to the map key for lookup in the rules map.
+            mapKey += ":" + occurrence;
+        }
 
         var rule = null;
 
@@ -791,7 +740,7 @@ WebInspector.DOMNodeStyles.prototype = {
         // COMPATIBILITY (iOS 6): The payload had 'selectorText' as a property,
         // now it has 'selectorList' with a 'text' property. Support both here.
         var selectorText = payload.selectorList ? payload.selectorList.text : payload.selectorText;
-        var selectors = payload.selectorList ? payload.selectorList.selectors : [];
+        var selectors = this._parseSelectorListPayload(payload.selectorList);
 
         // COMPATIBILITY (iOS 6): The payload did not have 'selectorList'.
         // Fallback to using 'sourceLine' without column information.
@@ -858,15 +807,15 @@ WebInspector.DOMNodeStyles.prototype = {
             this._rulesMap[mapKey] = rule;
 
         return rule;
-    },
+    }
 
-    _markAsNeedsRefresh: function()
+    _markAsNeedsRefresh()
     {
         this._needsRefresh = true;
         this.dispatchEventToListeners(WebInspector.DOMNodeStyles.Event.NeedsRefresh);
-    },
+    }
 
-    _styleSheetContentDidChange: function(event)
+    _styleSheetContentDidChange(event)
     {
         var styleSheet = event.target;
         console.assert(styleSheet);
@@ -880,9 +829,9 @@ WebInspector.DOMNodeStyles.prototype = {
         }
 
         this._markAsNeedsRefresh();
-    },
+    }
 
-    _updateStyleCascade: function()
+    _updateStyleCascade()
     {
         var cascadeOrderedStyleDeclarations = this._collectStylesInCascadeOrder(this._matchedRules, this._inlineStyle, this._attributesStyle);
 
@@ -905,9 +854,9 @@ WebInspector.DOMNodeStyles.prototype = {
             this._markOverriddenProperties(pseudoElementInfo.orderedStyles);
             this._associateRelatedProperties(pseudoElementInfo.orderedStyles);
         }
-    },
+    }
 
-    _collectStylesInCascadeOrder: function(matchedRules, inlineStyle, attributesStyle)
+    _collectStylesInCascadeOrder(matchedRules, inlineStyle, attributesStyle)
     {
         var result = [];
 
@@ -943,9 +892,9 @@ WebInspector.DOMNodeStyles.prototype = {
         result = result.concat(userAndUserAgentStyles);
 
         return result;
-    },
+    }
 
-    _markOverriddenProperties: function(styles, propertyNameToEffectiveProperty)
+    _markOverriddenProperties(styles, propertyNameToEffectiveProperty)
     {
         propertyNameToEffectiveProperty = propertyNameToEffectiveProperty || {};
 
@@ -955,7 +904,7 @@ WebInspector.DOMNodeStyles.prototype = {
 
             for (var j = 0; j < properties.length; ++j) {
                 var property = properties[j];
-                if (!property.enabled || property.anonymous || !property.valid) {
+                if (!property.enabled || !property.valid) {
                     property.overridden = false;
                     continue;
                 }
@@ -987,9 +936,9 @@ WebInspector.DOMNodeStyles.prototype = {
                 propertyNameToEffectiveProperty[canonicalName] = property;
             }
         }
-    },
+    }
 
-    _associateRelatedProperties: function(styles, propertyNameToEffectiveProperty)
+    _associateRelatedProperties(styles, propertyNameToEffectiveProperty)
     {
         for (var i = 0; i < styles.length; ++i) {
             var properties = styles[i].properties;
@@ -1047,4 +996,7 @@ WebInspector.DOMNodeStyles.prototype = {
     }
 };
 
-WebInspector.DOMNodeStyles.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.DOMNodeStyles.Event = {
+    NeedsRefresh: "dom-node-styles-needs-refresh",
+    Refreshed: "dom-node-styles-refreshed"
+};

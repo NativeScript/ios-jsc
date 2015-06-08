@@ -29,30 +29,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.Setting = function(name, defaultValue)
+WebInspector.Setting = class Setting extends WebInspector.Object
 {
-    this._name = name;
-    this._localStorageKey = WebInspector.Setting.LocalStorageKeyPrefix + name;
-    this._defaultValue = defaultValue;
-}
+    constructor(name, defaultValue)
+    {
+        super();
 
-WebInspector.Object.addConstructorFunctions(WebInspector.Setting);
-
-WebInspector.Setting.Event = {
-    Changed: "setting-changed"
-};
-
-WebInspector.Setting.LocalStorageKeyPrefix = "com.apple.WebInspector.";
-
-WebInspector.Setting.prototype = {
-    constructor: WebInspector.Setting,
+        this._name = name;
+        this._localStorageKey = WebInspector.Setting.LocalStorageKeyPrefix + name;
+        this._defaultValue = defaultValue;
+    }
 
     // Public
 
     get name()
     {
         return this._name;
-    },
+    }
 
     get value()
     {
@@ -62,7 +55,7 @@ WebInspector.Setting.prototype = {
         // Make a copy of the default value so changes to object values don't modify the default value.
         this._value = JSON.parse(JSON.stringify(this._defaultValue));
 
-        if (window.localStorage && this._localStorageKey in window.localStorage) {
+        if (!window.InspectorTest && window.localStorage && this._localStorageKey in window.localStorage) {
             try {
                 this._value = JSON.parse(window.localStorage[this._localStorageKey]);
             } catch(e) {
@@ -71,13 +64,13 @@ WebInspector.Setting.prototype = {
         }
 
         return this._value;
-    },
+    }
 
     set value(value)
     {
         this._value = value;
 
-        if (window.localStorage) {
+        if (!window.InspectorTest && window.localStorage) {
             try {
                 // Use Object.shallowEqual to properly compare objects.
                 if (Object.shallowEqual(this._value, this._defaultValue))
@@ -91,6 +84,10 @@ WebInspector.Setting.prototype = {
 
         this.dispatchEventToListeners(WebInspector.Setting.Event.Changed, this._value, {name: this._name});
     }
-}
+};
 
-WebInspector.Setting.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.Setting.LocalStorageKeyPrefix = "com.apple.WebInspector.";
+
+WebInspector.Setting.Event = {
+    Changed: "setting-changed"
+};

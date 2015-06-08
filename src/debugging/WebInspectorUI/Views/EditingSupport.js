@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@ WebInspector.isBeingEdited = function(element)
     }
 
     return false;
-}
+};
 
 WebInspector.markBeingEdited = function(element, value)
 {
@@ -48,16 +48,16 @@ WebInspector.markBeingEdited = function(element, value)
         --WebInspector.__editingCount;
     }
     return true;
-}
+};
 
 WebInspector.isEditingAnyField = function()
 {
     return !!WebInspector.__editingCount;
-}
+};
 
 WebInspector.isEventTargetAnEditableField = function(event)
 {
-    const textInputTypes = {"text": true, "search": true, "tel": true, "url": true, "email": true, "password": true};
+    var textInputTypes = {"text": true, "search": true, "tel": true, "url": true, "email": true, "password": true};
     if (event.target instanceof HTMLInputElement)
         return event.target.type in textInputTypes;
 
@@ -72,40 +72,38 @@ WebInspector.isEventTargetAnEditableField = function(event)
         return true;
 
     return false;
-}
+};
 
-WebInspector.EditingConfig = function(commitHandler, cancelHandler, context)
+WebInspector.EditingConfig = class EditingConfig
 {
-    this.commitHandler = commitHandler;
-    this.cancelHandler = cancelHandler;
-    this.context = context;
-    this.pasteHandler;
-    this.multiline;
-    this.customFinishHandler;
-    this.spellcheck = false;
-}
+    constructor(commitHandler, cancelHandler, context)
+    {
+        this.commitHandler = commitHandler;
+        this.cancelHandler = cancelHandler;
+        this.context = context;
+        this.spellcheck = false;
+    }
 
-WebInspector.EditingConfig.prototype = {
-    setPasteHandler: function(pasteHandler)
+    setPasteHandler(pasteHandler)
     {
         this.pasteHandler = pasteHandler;
-    },
+    }
 
-    setMultiline: function(multiline)
+    setMultiline(multiline)
     {
         this.multiline = multiline;
-    },
+    }
 
-    setCustomFinishHandler: function(customFinishHandler)
+    setCustomFinishHandler(customFinishHandler)
     {
         this.customFinishHandler = customFinishHandler;
     }
-}
+};
 
 WebInspector.startEditing = function(element, config)
 {
     if (!WebInspector.markBeingEdited(element, true))
-        return;
+        return null;
 
     config = config || new WebInspector.EditingConfig(function() {}, function() {});
     var committedCallback = config.commitHandler;
@@ -235,4 +233,4 @@ WebInspector.startEditing = function(element, config)
         cancel: editingCancelled.bind(element),
         commit: editingCommitted.bind(element)
     };
-}
+};

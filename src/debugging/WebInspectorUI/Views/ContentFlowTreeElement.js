@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2015 Apple Inc. All rights reserved.
  * Copyright (C) 2013 Adobe Systems Incorporated. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +13,7 @@
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials
  *    provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -27,18 +28,16 @@
  * SUCH DAMAGE.
  */
 
-WebInspector.ContentFlowTreeElement = function(representedObject)
+WebInspector.ContentFlowTreeElement = class ContentFlowTreeElement extends WebInspector.GeneralTreeElement
 {
-    console.assert(representedObject instanceof WebInspector.ContentFlow);
-    WebInspector.GeneralTreeElement.call(this, [WebInspector.ContentFlowTreeElement.StyleClassName, WebInspector.ContentFlowTreeElement.ContentFlowIconStyleClassName], representedObject.name, null, representedObject, false);
+    constructor(representedObject)
+    {
+        console.assert(representedObject instanceof WebInspector.ContentFlow);
 
-    this.small = true;
+        super([WebInspector.ContentFlowTreeElement.StyleClassName, WebInspector.ContentFlowTreeElement.ContentFlowIconStyleClassName], representedObject.name, null, representedObject, false);
+
+        this.small = true;
+    }
 };
 
 WebInspector.ContentFlowTreeElement.ContentFlowIconStyleClassName = "content-flow-icon";
-
-WebInspector.ContentFlowTreeElement.prototype = {
-    constructor: WebInspector.ContentFlowTreeElement
-};
-
-WebInspector.ContentFlowTreeElement.prototype.__proto__ = WebInspector.GeneralTreeElement.prototype;

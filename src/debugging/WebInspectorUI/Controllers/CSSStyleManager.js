@@ -23,47 +23,44 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CSSStyleManager = function()
+WebInspector.CSSStyleManager = class CSSStyleManager extends WebInspector.Object
 {
-    WebInspector.Object.call(this);
+    constructor()
+    {
+        super();
 
-    if (window.CSSAgent)
-        CSSAgent.enable();
+        if (window.CSSAgent)
+            CSSAgent.enable();
 
-    WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
-    WebInspector.Frame.addEventListener(WebInspector.Frame.Event.ResourceWasAdded, this._resourceAdded, this);
-    WebInspector.Resource.addEventListener(WebInspector.SourceCode.Event.ContentDidChange, this._resourceContentDidChange, this);
-    WebInspector.Resource.addEventListener(WebInspector.Resource.Event.TypeDidChange, this._resourceTypeDidChange, this);
+        WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
+        WebInspector.Frame.addEventListener(WebInspector.Frame.Event.ResourceWasAdded, this._resourceAdded, this);
+        WebInspector.Resource.addEventListener(WebInspector.SourceCode.Event.ContentDidChange, this._resourceContentDidChange, this);
+        WebInspector.Resource.addEventListener(WebInspector.Resource.Event.TypeDidChange, this._resourceTypeDidChange, this);
 
-    WebInspector.DOMNode.addEventListener(WebInspector.DOMNode.Event.AttributeModified, this._nodeAttributesDidChange, this);
-    WebInspector.DOMNode.addEventListener(WebInspector.DOMNode.Event.AttributeRemoved, this._nodeAttributesDidChange, this);
-    WebInspector.DOMNode.addEventListener(WebInspector.DOMNode.Event.EnabledPseudoClassesChanged, this._nodePseudoClassesDidChange, this);
+        WebInspector.DOMNode.addEventListener(WebInspector.DOMNode.Event.AttributeModified, this._nodeAttributesDidChange, this);
+        WebInspector.DOMNode.addEventListener(WebInspector.DOMNode.Event.AttributeRemoved, this._nodeAttributesDidChange, this);
+        WebInspector.DOMNode.addEventListener(WebInspector.DOMNode.Event.EnabledPseudoClassesChanged, this._nodePseudoClassesDidChange, this);
 
-    this._colorFormatSetting = new WebInspector.Setting("default-color-format", WebInspector.Color.Format.Original);
+        this._colorFormatSetting = new WebInspector.Setting("default-color-format", WebInspector.Color.Format.Original);
 
-    this._styleSheetIdentifierMap = {};
-    this._styleSheetFrameURLMap = {};
-    this._nodeStylesMap = {};
-}
-
-WebInspector.CSSStyleManager.ForceablePseudoClasses = ["active", "focus", "hover", "visited"];
-
-WebInspector.CSSStyleManager.prototype = {
-    constructor: WebInspector.CSSStyleManager,
+        this._styleSheetIdentifierMap = {};
+        this._styleSheetFrameURLMap = {};
+        this._nodeStylesMap = {};
+    }
 
     // Public
 
     get preferredColorFormat()
     {
         return this._colorFormatSetting.value;
-    },
+    }
 
-    canForcePseudoClasses: function()
+    canForcePseudoClasses()
     {
         return window.CSSAgent && !!CSSAgent.forcePseudoState;
-    },
+    }
 
-    propertyNameHasOtherVendorPrefix: function(name)
+    propertyNameHasOtherVendorPrefix(name)
     {
         if (!name || name.length < 4 || name.charAt(0) !== "-")
             return false;
@@ -73,18 +70,18 @@ WebInspector.CSSStyleManager.prototype = {
             return false;
 
         return true;
-    },
+    }
 
-    propertyValueHasOtherVendorKeyword: function(value)
+    propertyValueHasOtherVendorKeyword(value)
     {
         var match = value.match(/(?:-moz-|-ms-|-o-|-epub-)[-\w]+/);
         if (!match)
             return false;
 
         return true;
-    },
+    }
 
-    canonicalNameForPropertyName: function(name)
+    canonicalNameForPropertyName(name)
     {
         if (!name || name.length < 8 || name.charAt(0) !== "-")
             return name;
@@ -94,9 +91,9 @@ WebInspector.CSSStyleManager.prototype = {
             return name;
 
         return match[1];
-    },
+    }
 
-    styleSheetForIdentifier: function(id)
+    styleSheetForIdentifier(id)
     {
         if (id in this._styleSheetIdentifierMap)
             return this._styleSheetIdentifierMap[id];
@@ -104,9 +101,9 @@ WebInspector.CSSStyleManager.prototype = {
         var styleSheet = new WebInspector.CSSStyleSheet(id);
         this._styleSheetIdentifierMap[id] = styleSheet;
         return styleSheet;
-    },
+    }
 
-    stylesForNode: function(node)
+    stylesForNode(node)
     {
         if (node.id in this._nodeStylesMap)
             return this._nodeStylesMap[node.id];
@@ -114,33 +111,35 @@ WebInspector.CSSStyleManager.prototype = {
         var styles = new WebInspector.DOMNodeStyles(node);
         this._nodeStylesMap[node.id] = styles;
         return styles;
-    },
+    }
 
     // Protected
 
-    mediaQueryResultChanged: function()
+    mediaQueryResultChanged()
     {
         // Called from WebInspector.CSSObserver.
 
         for (var key in this._nodeStylesMap)
             this._nodeStylesMap[key].mediaQueryResultDidChange();
-    },
+    }
 
-    styleSheetChanged: function(styleSheetIdentifier)
+    styleSheetChanged(styleSheetIdentifier)
     {
         // Called from WebInspector.CSSObserver.
-
         var styleSheet = this.styleSheetForIdentifier(styleSheetIdentifier);
         console.assert(styleSheet);
 
-        styleSheet.noteContentDidChange();
+        // Do not observe inline styles
+        if (styleSheet.isInlineStyle())
+            return;
 
+        styleSheet.noteContentDidChange();
         this._updateResourceContent(styleSheet);
-    },
+    }
 
     // Private
 
-    _nodePseudoClassesDidChange: function(event)
+    _nodePseudoClassesDidChange(event)
     {
         var node = event.target;
 
@@ -150,9 +149,9 @@ WebInspector.CSSStyleManager.prototype = {
                 continue;
             nodeStyles.pseudoClassesDidChange(node);
         }
-    },
+    }
 
-    _nodeAttributesDidChange: function(event)
+    _nodeAttributesDidChange(event)
     {
         var node = event.target;
 
@@ -162,9 +161,9 @@ WebInspector.CSSStyleManager.prototype = {
                 continue;
             nodeStyles.attributeDidChange(node, event.data.name);
         }
-    },
+    }
 
-    _mainResourceDidChange: function(event)
+    _mainResourceDidChange(event)
     {
         console.assert(event.target instanceof WebInspector.Frame);
 
@@ -176,9 +175,9 @@ WebInspector.CSSStyleManager.prototype = {
         this._styleSheetIdentifierMap = {};
         this._styleSheetFrameURLMap = {};
         this._nodeStylesMap = {};
-    },
+    }
 
-    _resourceAdded: function(event)
+    _resourceAdded(event)
     {
         console.assert(event.target instanceof WebInspector.Frame);
 
@@ -189,9 +188,9 @@ WebInspector.CSSStyleManager.prototype = {
             return;
 
         this._clearStyleSheetsForResource(resource);
-    },
+    }
 
-    _resourceTypeDidChange: function(event)
+    _resourceTypeDidChange(event)
     {
         console.assert(event.target instanceof WebInspector.Resource);
 
@@ -200,28 +199,28 @@ WebInspector.CSSStyleManager.prototype = {
             return;
 
         this._clearStyleSheetsForResource(resource);
-    },
+    }
 
-    _clearStyleSheetsForResource: function(resource)
+    _clearStyleSheetsForResource(resource)
     {
         // Clear known stylesheets for this URL and frame. This will cause the stylesheets to
         // be updated next time _fetchInfoForAllStyleSheets is called.
         // COMPATIBILITY (iOS 6): The frame's id was not available for the key, so delete just the url too.
         delete this._styleSheetFrameURLMap[this._frameURLMapKey(resource.parentFrame, resource.url)];
         delete this._styleSheetFrameURLMap[resource.url];
-    },
+    }
 
-    _frameURLMapKey: function(frame, url)
+    _frameURLMapKey(frame, url)
     {
         return (frame ? frame.id + ":" : "") + url;
-    },
+    }
 
-    _lookupStyleSheetForResource: function(resource, callback)
+    _lookupStyleSheetForResource(resource, callback)
     {
         this._lookupStyleSheet(resource.parentFrame, resource.url, callback);
-    },
+    }
 
-    _lookupStyleSheet: function(frame, url, callback)
+    _lookupStyleSheet(frame, url, callback)
     {
         console.assert(frame instanceof WebInspector.Frame);
 
@@ -237,9 +236,9 @@ WebInspector.CSSStyleManager.prototype = {
             callback(this._styleSheetFrameURLMap[key] || this._styleSheetFrameURLMap[url] || null);
         else
             this._fetchInfoForAllStyleSheets(syleSheetsFetched.bind(this));
-    },
+    }
 
-    _fetchInfoForAllStyleSheets: function(callback)
+    _fetchInfoForAllStyleSheets(callback)
     {
         console.assert(typeof callback === "function");
 
@@ -252,9 +251,7 @@ WebInspector.CSSStyleManager.prototype = {
                 return;
             }
 
-            for (var i = 0; i < styleSheets.length; ++i) {
-                var styleSheetInfo = styleSheets[i];
-
+            for (var styleSheetInfo of styleSheets) {
                 // COMPATIBILITY (iOS 6): The info did not have 'frameId', so make parentFrame null in that case.
                 var parentFrame = "frameId" in styleSheetInfo ? WebInspector.frameResourceManager.frameForIdentifier(styleSheetInfo.frameId) : null;
 
@@ -269,9 +266,9 @@ WebInspector.CSSStyleManager.prototype = {
         }
 
         CSSAgent.getAllStyleSheets(processStyleSheets.bind(this));
-    },
+    }
 
-    _resourceContentDidChange: function(event)
+    _resourceContentDidChange(event)
     {
         var resource = event.target;
         if (resource === this._ignoreResourceContentDidChangeEventForResource)
@@ -304,14 +301,17 @@ WebInspector.CSSStyleManager.prototype = {
         if (resource.__pendingChangeTimeout)
             clearTimeout(resource.__pendingChangeTimeout);
         resource.__pendingChangeTimeout = setTimeout(applyStyleSheetChanges.bind(this), 500);
-    },
+    }
 
-    _updateResourceContent: function(styleSheet)
+    _updateResourceContent(styleSheet)
     {
         console.assert(styleSheet);
 
-        function fetchedStyleSheetContent(styleSheet, content)
+        function fetchedStyleSheetContent(parameters)
         {
+            var styleSheet = parameters.sourceCode;
+            var content = parameters.content;
+
             delete styleSheet.__pendingChangeTimeout;
 
             console.assert(styleSheet.url);
@@ -347,7 +347,7 @@ WebInspector.CSSStyleManager.prototype = {
 
         function styleSheetReady()
         {
-            styleSheet.requestContent(fetchedStyleSheetContent.bind(this));
+            styleSheet.requestContent().then(fetchedStyleSheetContent.bind(this));
         }
 
         function applyStyleSheetChanges()
@@ -362,6 +362,6 @@ WebInspector.CSSStyleManager.prototype = {
             clearTimeout(styleSheet.__pendingChangeTimeout);
         styleSheet.__pendingChangeTimeout = setTimeout(applyStyleSheetChanges.bind(this), 500);
     }
-}
+};
 
-WebInspector.CSSStyleManager.prototype.__proto__ = WebInspector.Object.prototype;
+WebInspector.CSSStyleManager.ForceablePseudoClasses = ["active", "focus", "hover", "visited"];

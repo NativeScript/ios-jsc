@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2011 Google Inc. All rights reserved.
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  * Copyright (C) 2014 University of Washington.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-function InspectorBackendClass()
+InspectorBackendClass = class InspectorBackendClass
 {
-    this._lastSequenceId = 1;
-    this._pendingResponsesCount = 0;
-    this._callbackData = new Map;
-    this._agents = {};
-    this._deferredScripts = [];
+    constructor()
+    {
+        this._lastSequenceId = 1;
+        this._pendingResponsesCount = 0;
+        this._callbackData = new Map;
+        this._agents = {};
+        this._deferredScripts = [];
 
-    this.dumpInspectorTimeStats = false;
-    this.dumpInspectorProtocolMessages = false;
-}
-
-InspectorBackendClass.prototype = {
+        this.dumpInspectorTimeStats = false;
+        this.dumpInspectorProtocolMessages = false;
+        this.warnForLongMessageHandling = false;
+        this.longMessageHandlingThreshold = 10; // milliseconds.
+    }
 
     // Public
 
-    registerCommand: function(qualifiedName, callSignature, replySignature)
+    registerCommand(qualifiedName, callSignature, replySignature)
     {
         var [domainName, commandName] = qualifiedName.split(".");
         var agent = this._agentForDomain(domainName);
         agent.addCommand(InspectorBackend.Command.create(this, qualifiedName, callSignature, replySignature));
-    },
+    }
 
-    registerEnum: function(qualifiedName, enumValues)
+    registerEnum(qualifiedName, enumValues)
     {
         var [domainName, enumName] = qualifiedName.split(".");
         var agent = this._agentForDomain(domainName);
         agent.addEnum(enumName, enumValues);
-    },
+    }
 
-    registerEvent: function(qualifiedName, signature)
+    registerEvent(qualifiedName, signature)
     {
         var [domainName, eventName] = qualifiedName.split(".");
         var agent = this._agentForDomain(domainName);
         agent.addEvent(new InspectorBackend.Event(eventName, signature));
-    },
+    }
 
-    registerDomainDispatcher: function(domainName, dispatcher)
+    registerDomainDispatcher(domainName, dispatcher)
     {
         var agent = this._agentForDomain(domainName);
         agent.dispatcher = dispatcher;
-    },
+    }
 
-    dispatch: function(message)
+    dispatch(message)
     {
         if (this.dumpInspectorProtocolMessages)
             console.log("backend: " + ((typeof message === "string") ? message : JSON.stringify(message)));
@@ -84,9 +86,9 @@ InspectorBackendClass.prototype = {
             this._dispatchCallback(messageObject);
         else
             this._dispatchEvent(messageObject);
-    },
+    }
 
-    runAfterPendingDispatches: function(script)
+    runAfterPendingDispatches(script)
     {
         console.assert(script);
         console.assert(typeof script === "function");
@@ -95,22 +97,32 @@ InspectorBackendClass.prototype = {
             script.call(this);
         else
             this._deferredScripts.push(script);
-    },
+    }
+
+    activateDomain(domainName, activationDebuggableType)
+    {
+        if (!activationDebuggableType || InspectorFrontendHost.debuggableType() === activationDebuggableType) {
+            var agent = this._agents[domainName];
+            agent.activate();
+            return agent;
+        }
+
+        return null;
+    }
 
     // Private
 
-    _agentForDomain: function(domainName)
+    _agentForDomain(domainName)
     {
         if (this._agents[domainName])
             return this._agents[domainName];
 
         var agent = new InspectorBackend.Agent(domainName);
         this._agents[domainName] = agent;
-        window[domainName + "Agent"] = agent;
         return agent;
-    },
+    }
 
-    _willSendMessageToBackend: function(command, callback)
+    _willSendMessageToBackend(command, callback)
     {
         ++this._pendingResponsesCount;
         var sequenceId = this._lastSequenceId++;
@@ -128,9 +140,9 @@ InspectorBackendClass.prototype = {
         }
 
         return sequenceId;
-    },
+    }
 
-    _dispatchCallback: function(messageObject)
+    _dispatchCallback(messageObject)
     {
         --this._pendingResponsesCount;
         console.assert(this._pendingResponsesCount >= 0);
@@ -168,20 +180,24 @@ InspectorBackendClass.prototype = {
             try {
                 callback.apply(null, callbackArguments);
             } catch (e) {
-                console.error("Uncaught exception in inspector page while dispatching callback for command " + command.qualifiedName + ": ", e);
+                console.error("Uncaught exception in inspector page while dispatching callback for command " + command.qualifiedName + ": ", e, e.stack);
             }
 
+            var processingDuration = Date.now() - processingStartTime;
+            if (this.warnForLongMessageHandling && processingDuration > this.longMessageHandlingThreshold)
+                console.warn("InspectorBackend: took " + processingDuration + "ms to handle response for command: " + command.qualifiedName);
+
             if (this.dumpInspectorTimeStats)
-                console.log("time-stats: " + command.qualifiedName + " = " + (processingStartTime - callbackData.sendRequestTime) + " + " + (Date.now() - processingStartTime));
+                console.log("time-stats: Handling: " + processingDuration + "ms; RTT: " + (processingStartTime - callbackData.sendRequestTime) + "ms; (command " + command.qualifiedName + ")");
 
             this._callbackData.delete(messageObject["id"]);
         }
 
         if (this._deferredScripts.length && !this._pendingResponsesCount)
             this._flushPendingScripts();
-    },
+    }
 
-    _dispatchEvent: function(messageObject)
+    _dispatchEvent(messageObject)
     {
         var qualifiedName = messageObject["method"];
         var [domainName, eventName] = qualifiedName.split(".");
@@ -191,6 +207,11 @@ InspectorBackendClass.prototype = {
         }
 
         var agent = this._agentForDomain(domainName);
+        if (!agent.active) {
+            console.error("Protocol Error: Attempted to dispatch method for domain '" + domainName + "' which exists but is not active.");
+            return;
+        }
+
         var event = agent.getEvent(eventName);
         if (!event) {
             console.error("Protocol Error: Attempted to dispatch an unspecified method '" + qualifiedName + "'");
@@ -211,14 +232,18 @@ InspectorBackendClass.prototype = {
         try {
             agent.dispatchEvent(eventName, eventArguments);
         } catch (e) {
-            console.error("Uncaught exception in inspector page while handling event " + qualifiedName + ": ", e);
+            console.error("Uncaught exception in inspector page while handling event " + qualifiedName + ": ", e, e.stack);
         }
 
-        if (this.dumpInspectorTimeStats)
-            console.log("time-stats: " + messageObject["method"] + " = " + (Date.now() - processingStartTime));
-    },
+        var processingDuration = Date.now() - processingStartTime;
+        if (this.warnForLongMessageHandling && processingDuration > this.longMessageHandlingThreshold)
+            console.warn("InspectorBackend: took " + processingDuration + "ms to handle event: " + messageObject["method"]);
 
-    _invokeCommand: function(command, parameters, callback)
+        if (this.dumpInspectorTimeStats)
+            console.log("time-stats: Handling: " + processingDuration + "ms (event " + messageObject["method"] + ")");
+    }
+
+    _invokeCommand(command, parameters, callback)
     {
         var messageObject = {};
         messageObject["method"] = command.qualifiedName;
@@ -235,14 +260,14 @@ InspectorBackendClass.prototype = {
             console.log("frontend: " + stringifiedMessage);
 
         InspectorFrontendHost.sendMessageToBackend(stringifiedMessage);
-    },
+    }
 
-    _reportProtocolError: function(messageObject)
+    _reportProtocolError(messageObject)
     {
         console.error("Request with id = " + messageObject["id"] + " failed. " + JSON.stringify(messageObject["error"]));
-    },
+    }
 
-    _flushPendingScripts: function()
+    _flushPendingScripts()
     {
         console.assert(!this._pendingResponsesCount);
 
@@ -251,52 +276,74 @@ InspectorBackendClass.prototype = {
         for (var script of scriptsToRun)
             script.call(this);
     }
-}
+};
 
-InspectorBackend = new InspectorBackendClass();
+InspectorBackend = new InspectorBackendClass;
 
-InspectorBackend.Agent = function(domainName)
+InspectorBackend.Agent = class InspectorBackendAgent
 {
-    this._domainName = domainName;
+    constructor(domainName)
+    {
+        this._domainName = domainName;
 
-    // Commands are stored directly on the Agent instance using their unqualified
-    // method name as the property. Thus, callers can write: FooAgent.methodName().
-    // Enums are stored similarly based on the unqualified type name.
-    this._events = {};
-}
+        // Agents are always created, but are only useable after they are activated.
+        this._active = false;
 
-InspectorBackend.Agent.prototype = {
+        // Commands are stored directly on the Agent instance using their unqualified
+        // method name as the property. Thus, callers can write: FooAgent.methodName().
+        // Enums are stored similarly based on the unqualified type name.
+        this._events = {};
+    }
+
+    // Public
+
     get domainName()
     {
         return this._domainName;
-    },
+    }
+
+    get active()
+    {
+        return this._active;
+    }
 
     set dispatcher(value)
     {
         this._dispatcher = value;
-    },
+    }
 
-    addEnum: function(enumName, enumValues)
+    addEnum(enumName, enumValues)
     {
         this[enumName] = enumValues;
-    },
+    }
 
-    addCommand: function(command)
+    addCommand(command)
     {
         this[command.commandName] = command;
-    },
+    }
 
-    addEvent: function(event)
+    addEvent(event)
     {
         this._events[event.eventName] = event;
-    },
+    }
 
-    getEvent: function(eventName)
+    getEvent(eventName)
     {
         return this._events[eventName];
-    },
+    }
 
-    dispatchEvent: function(eventName, eventArguments)
+    hasEvent(eventName)
+    {
+        return eventName in this._events;
+    }
+
+    activate()
+    {
+        this._active = true;
+        window[this._domainName + "Agent"] = this;
+    }
+
+    dispatchEvent(eventName, eventArguments)
     {
         if (!(eventName in this._dispatcher)) {
             console.error("Protocol Error: Attempted to dispatch an unimplemented method '" + this._domainName + "." + eventName + "'");
@@ -306,10 +353,14 @@ InspectorBackend.Agent.prototype = {
         this._dispatcher[eventName].apply(this._dispatcher, eventArguments);
         return true;
     }
-}
+};
 
+// InspectorBackend.Command can't use ES6 classes because of its trampoline nature.
+// But we can use strict mode to get stricter handling of the code inside its functions.
 InspectorBackend.Command = function(backend, qualifiedName, callSignature, replySignature)
 {
+    'use strict';
+
     this._backend = backend;
     this._instance = this;
 
@@ -318,19 +369,26 @@ InspectorBackend.Command = function(backend, qualifiedName, callSignature, reply
     this._commandName = commandName;
     this._callSignature = callSignature || [];
     this._replySignature = replySignature || [];
-}
+};
 
 InspectorBackend.Command.create = function(backend, commandName, callSignature, replySignature)
 {
+    'use strict';
+
     var instance = new InspectorBackend.Command(backend, commandName, callSignature, replySignature);
 
     function callable() {
-        instance._invokeWithArguments.apply(instance, arguments);
+        // If the last argument to the command is not a function, return a result promise.
+        if (!arguments.length || typeof arguments[arguments.length - 1] !== "function")
+            return instance.promise.apply(instance, arguments);
+        return instance._invokeWithArguments.apply(instance, arguments);
     }
+
     callable._instance = instance;
     callable.__proto__ = InspectorBackend.Command.prototype;
+
     return callable;
-}
+};
 
 // As part of the workaround to make commands callable, these functions use |this._instance|.
 // |this| could refer to the callable trampoline, or the InspectorBackend.Command instance.
@@ -361,18 +419,27 @@ InspectorBackend.Command.prototype = {
 
     invoke: function(commandArguments, callback)
     {
+        'use strict';
+
         var instance = this._instance;
         instance._backend._invokeCommand(instance, commandArguments, callback);
     },
 
     promise: function()
     {
+        'use strict';
+
         var instance = this._instance;
-        var promiseArguments = Array.prototype.slice.call(arguments);
+        var promiseArguments = Array.from(arguments);
         return new Promise(function(resolve, reject) {
             function convertToPromiseCallback(error, payload) {
-                return error ? reject(error) : resolve(payload);
+                return error ? reject(new Error(error)) : resolve(payload);
             }
+
+            // FIXME: this should be indicated by invoking the command differently, rather
+            // than by setting a magical property on the callback. <webkit.org/b/132386>
+            convertToPromiseCallback.expectsResultObject = true;
+
             promiseArguments.push(convertToPromiseCallback);
             instance._invokeWithArguments.apply(instance, promiseArguments);
         });
@@ -380,6 +447,8 @@ InspectorBackend.Command.prototype = {
 
     supports: function(parameterName)
     {
+        'use strict';
+
         var instance = this._instance;
         return instance.callSignature.some(function(parameter) {
             return parameter["name"] === parameterName;
@@ -390,8 +459,10 @@ InspectorBackend.Command.prototype = {
 
     _invokeWithArguments: function()
     {
+        'use strict';
+
         var instance = this._instance;
-        var commandArguments = Array.prototype.slice.call(arguments);
+        var commandArguments = Array.from(arguments);
         var callback = typeof commandArguments.lastValue === "function" ? commandArguments.pop() : null;
 
         var parameters = {};
@@ -402,12 +473,12 @@ InspectorBackend.Command.prototype = {
             var optionalFlag = parameter["optional"];
 
             if (!commandArguments.length && !optionalFlag) {
-                console.error("Protocol Error: Invalid number of arguments for method '" + instance.qualifiedName + "' call. It must have the following arguments '" + JSON.stringify(signature) + "'.");
+                console.error("Protocol Error: Invalid number of arguments for method '" + instance.qualifiedName + "' call. It must have the following arguments '" + JSON.stringify(instance.callSignature) + "'.");
                 return;
             }
 
             var value = commandArguments.shift();
-            if (optionalFlag && typeof value === "undefined")
+            if (optionalFlag && value === undefined)
                 continue;
 
             if (typeof value !== typeName) {
@@ -419,18 +490,21 @@ InspectorBackend.Command.prototype = {
         }
 
         if (commandArguments.length === 1 && !callback) {
-            if (typeof commandArguments[0] !== "undefined") {
+            if (commandArguments[0] !== undefined) {
                 console.error("Protocol Error: Optional callback argument for method '" + instance.qualifiedName + "' call must be a function but its type is '" + typeof args[0] + "'.");
                 return;
             }
         }
 
         instance._backend._invokeCommand(instance, Object.keys(parameters).length ? parameters : null, callback);
-    },
-}
+    }
+};
 
-InspectorBackend.Event = function(eventName, parameterNames)
+InspectorBackend.Event = class Event
 {
-    this.eventName = eventName;
-    this.parameterNames = parameterNames;
-}
+    constructor(eventName, parameterNames)
+    {
+        this.eventName = eventName;
+        this.parameterNames = parameterNames;
+    }
+};

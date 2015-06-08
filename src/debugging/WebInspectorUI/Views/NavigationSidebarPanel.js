@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,106 +23,87 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.NavigationSidebarPanel = function(identifier, displayName, image, keyboardShortcutKey, autoPruneOldTopLevelResourceTreeElements, autoHideToolbarItemWhenEmpty, wantsTopOverflowShadow, element, role, label) {
-    if (keyboardShortcutKey)
-        this._keyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.Control, keyboardShortcutKey, this.toggle.bind(this));
+WebInspector.NavigationSidebarPanel = class NavigationSidebarPanel extends WebInspector.SidebarPanel
+{
+    constructor(identifier, displayName, shouldAutoPruneStaleTopLevelResourceTreeElements, wantsTopOverflowShadow, element, role, label)
+    {
+        super(identifier, displayName, element, role, label || displayName);
 
-    if (this._keyboardShortcut) {
-        var showToolTip = WebInspector.UIString("Show the %s navigation sidebar (%s)").format(displayName, this._keyboardShortcut.displayName);
-        var hideToolTip = WebInspector.UIString("Hide the %s navigation sidebar (%s)").format(displayName, this._keyboardShortcut.displayName);
-    } else {
-        var showToolTip = WebInspector.UIString("Show the %s navigation sidebar").format(displayName);
-        var hideToolTip = WebInspector.UIString("Hide the %s navigation sidebar").format(displayName);
+        this.element.classList.add("navigation");
+
+        this._visibleContentTreeOutlines = new Set;
+
+        this.contentElement.addEventListener("scroll", this._updateContentOverflowShadowVisibility.bind(this));
+
+        this._contentTreeOutline = this.createContentTreeOutline(true);
+
+        this._filterBar = new WebInspector.FilterBar();
+        this._filterBar.addEventListener(WebInspector.FilterBar.Event.FilterDidChange, this._filterDidChange, this);
+        this.element.appendChild(this._filterBar.element);
+
+        this._bottomOverflowShadowElement = document.createElement("div");
+        this._bottomOverflowShadowElement.className = WebInspector.NavigationSidebarPanel.OverflowShadowElementStyleClassName;
+        this.element.appendChild(this._bottomOverflowShadowElement);
+
+        if (wantsTopOverflowShadow) {
+            this._topOverflowShadowElement = document.createElement("div");
+            this._topOverflowShadowElement.classList.add(WebInspector.NavigationSidebarPanel.OverflowShadowElementStyleClassName);
+            this._topOverflowShadowElement.classList.add(WebInspector.NavigationSidebarPanel.TopOverflowShadowElementStyleClassName);
+            this.element.appendChild(this._topOverflowShadowElement);
+        }
+
+        this._boundUpdateContentOverflowShadowVisibility = this._updateContentOverflowShadowVisibility.bind(this);
+        window.addEventListener("resize", this._boundUpdateContentOverflowShadowVisibility);
+
+        this._filtersSetting = new WebInspector.Setting(identifier + "-navigation-sidebar-filters", {});
+        this._filterBar.filters = this._filtersSetting.value;
+
+        this._emptyContentPlaceholderElement = document.createElement("div");
+        this._emptyContentPlaceholderElement.className = WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderElementStyleClassName;
+
+        this._emptyContentPlaceholderMessageElement = document.createElement("div");
+        this._emptyContentPlaceholderMessageElement.className = WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderMessageElementStyleClassName;
+        this._emptyContentPlaceholderElement.appendChild(this._emptyContentPlaceholderMessageElement);
+
+        this._generateStyleRulesIfNeeded();
+        this._generateDisclosureTrianglesIfNeeded();
+
+        this._shouldAutoPruneStaleTopLevelResourceTreeElements = shouldAutoPruneStaleTopLevelResourceTreeElements || false;
+
+        if (this._shouldAutoPruneStaleTopLevelResourceTreeElements) {
+            WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._checkForStaleResources, this);
+            WebInspector.Frame.addEventListener(WebInspector.Frame.Event.ChildFrameWasRemoved, this._checkForStaleResources, this);
+            WebInspector.Frame.addEventListener(WebInspector.Frame.Event.ResourceWasRemoved, this._checkForStaleResources, this);
+        }
     }
-
-    WebInspector.SidebarPanel.call(this, identifier, displayName, showToolTip, hideToolTip, image, element, role, label || displayName);
-
-    this.element.classList.add(WebInspector.NavigationSidebarPanel.StyleClassName);
-
-    this._autoHideToolbarItemWhenEmpty = autoHideToolbarItemWhenEmpty || false;
-
-    if (autoHideToolbarItemWhenEmpty)
-        this.toolbarItem.hidden = true;
-
-    this._visibleContentTreeOutlines = new Set;
-
-    this._contentElement = document.createElement("div");
-    this._contentElement.className = WebInspector.NavigationSidebarPanel.ContentElementStyleClassName;
-    this._contentElement.addEventListener("scroll", this._updateContentOverflowShadowVisibility.bind(this));
-    this.element.appendChild(this._contentElement);
-
-    this._contentTreeOutline = this.createContentTreeOutline(true);
-
-    this._filterBar = new WebInspector.FilterBar();
-    this._filterBar.addEventListener(WebInspector.FilterBar.Event.TextFilterDidChange, this._textFilterDidChange, this);
-    this.element.appendChild(this._filterBar.element);
-
-    this._bottomOverflowShadowElement = document.createElement("div");
-    this._bottomOverflowShadowElement.className = WebInspector.NavigationSidebarPanel.OverflowShadowElementStyleClassName;
-    this.element.appendChild(this._bottomOverflowShadowElement);
-
-    if (wantsTopOverflowShadow) {
-        this._topOverflowShadowElement = document.createElement("div");
-        this._topOverflowShadowElement.classList.add(WebInspector.NavigationSidebarPanel.OverflowShadowElementStyleClassName);
-        this._topOverflowShadowElement.classList.add(WebInspector.NavigationSidebarPanel.TopOverflowShadowElementStyleClassName);
-        this.element.appendChild(this._topOverflowShadowElement);
-    }
-
-    window.addEventListener("resize", this._updateContentOverflowShadowVisibility.bind(this));
-
-    this._filtersSetting = new WebInspector.Setting(identifier + "-navigation-sidebar-filters", {});
-    this._filterBar.filters = this._filtersSetting.value;
-
-    this._emptyContentPlaceholderElement = document.createElement("div");
-    this._emptyContentPlaceholderElement.className = WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderElementStyleClassName;
-
-    this._emptyContentPlaceholderMessageElement = document.createElement("div");
-    this._emptyContentPlaceholderMessageElement.className = WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderMessageElementStyleClassName;
-    this._emptyContentPlaceholderElement.appendChild(this._emptyContentPlaceholderMessageElement);
-
-    this._generateStyleRulesIfNeeded();
-    this._generateDisclosureTrianglesIfNeeded();
-
-    if (autoPruneOldTopLevelResourceTreeElements) {
-        WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._checkForOldResources, this);
-        WebInspector.Frame.addEventListener(WebInspector.Frame.Event.ChildFrameWasRemoved, this._checkForOldResources, this);
-        WebInspector.Frame.addEventListener(WebInspector.Frame.Event.ResourceWasRemoved, this._checkForOldResources, this);
-    }
-};
-
-WebInspector.NavigationSidebarPanel.StyleClassName = "navigation";
-WebInspector.NavigationSidebarPanel.OverflowShadowElementStyleClassName = "overflow-shadow";
-WebInspector.NavigationSidebarPanel.TopOverflowShadowElementStyleClassName = "top";
-WebInspector.NavigationSidebarPanel.ContentElementStyleClassName = "content";
-WebInspector.NavigationSidebarPanel.ContentTreeOutlineElementHiddenStyleClassName = "hidden";
-WebInspector.NavigationSidebarPanel.ContentTreeOutlineElementStyleClassName = "navigation-sidebar-panel-content-tree-outline";
-WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName = "hide-disclosure-buttons";
-WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderElementStyleClassName = "empty-content-placeholder";
-WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderMessageElementStyleClassName = "message";
-WebInspector.NavigationSidebarPanel.DisclosureTriangleOpenCanvasIdentifier = "navigation-sidebar-panel-disclosure-triangle-open";
-WebInspector.NavigationSidebarPanel.DisclosureTriangleClosedCanvasIdentifier = "navigation-sidebar-panel-disclosure-triangle-closed";
-WebInspector.NavigationSidebarPanel.DisclosureTriangleNormalCanvasIdentifierSuffix = "-normal";
-WebInspector.NavigationSidebarPanel.DisclosureTriangleSelectedCanvasIdentifierSuffix = "-selected";
-
-WebInspector.NavigationSidebarPanel.prototype = {
-    constructor: WebInspector.NavigationSidebarPanel,
 
     // Public
 
-    get contentElement()
+    closed()
     {
-        return this._contentElement;
-    },
+        window.removeEventListener("resize", this._boundUpdateContentOverflowShadowVisibility);
+        WebInspector.Frame.removeEventListener(null, null, this);
+    }
+
+    get contentBrowser()
+    {
+        return this._contentBrowser;
+    }
+
+    set contentBrowser(contentBrowser)
+    {
+        this._contentBrowser = contentBrowser || null;
+    }
 
     get contentTreeOutlineElement()
     {
         return this._contentTreeOutline.element;
-    },
+    }
 
     get contentTreeOutline()
     {
         return this._contentTreeOutline;
-    },
+    }
 
     set contentTreeOutline(newTreeOutline)
     {
@@ -140,37 +121,46 @@ WebInspector.NavigationSidebarPanel.prototype = {
         this._visibleContentTreeOutlines.add(newTreeOutline);
 
         this._updateFilter();
-    },
+    }
 
-    get contentTreeOutlineToAutoPrune()
+    get visibleContentTreeOutlines()
     {
-        return this._contentTreeOutline;
-    },
+        return this._visibleContentTreeOutlines;
+    }
 
     get hasSelectedElement()
     {
         return !!this._contentTreeOutline.selectedTreeElement;
-    },
+    }
 
     get filterBar()
     {
         return this._filterBar;
-    },
+    }
 
     get restoringState()
     {
         return this._restoringState;
-    },
+    }
 
-    createContentTreeOutline: function(dontHideByDefault, suppressFiltering)
+    cancelRestoringState()
+    {
+        if (!this._finalAttemptToRestoreViewStateTimeout)
+            return;
+
+        clearTimeout(this._finalAttemptToRestoreViewStateTimeout);
+        this._finalAttemptToRestoreViewStateTimeout = undefined;
+    }
+
+    createContentTreeOutline(dontHideByDefault, suppressFiltering)
     {
         var contentTreeOutlineElement = document.createElement("ol");
         contentTreeOutlineElement.className = WebInspector.NavigationSidebarPanel.ContentTreeOutlineElementStyleClassName;
         if (!dontHideByDefault)
             contentTreeOutlineElement.classList.add(WebInspector.NavigationSidebarPanel.ContentTreeOutlineElementHiddenStyleClassName);
-        this._contentElement.appendChild(contentTreeOutlineElement);
+        this.contentElement.appendChild(contentTreeOutlineElement);
 
-        var contentTreeOutline = new TreeOutline(contentTreeOutlineElement);
+        var contentTreeOutline = new WebInspector.TreeOutline(contentTreeOutlineElement);
         contentTreeOutline.allowsRepeatSelection = true;
 
         if (!suppressFiltering) {
@@ -184,27 +174,30 @@ WebInspector.NavigationSidebarPanel.prototype = {
             this._visibleContentTreeOutlines.add(contentTreeOutline);
 
         return contentTreeOutline;
-    },
+    }
 
-    treeElementForRepresentedObject: function(representedObject)
+    treeElementForRepresentedObject(representedObject)
     {
         return this._contentTreeOutline.getCachedTreeElement(representedObject);
-    },
+    }
 
-    showDefaultContentView: function()
+    showDefaultContentView()
     {
-        // Implemneted by subclasses if needed to show a content view when no existing tree element is selected.
-    },
+        // Implemented by subclasses if needed to show a content view when no existing tree element is selected.
+    }
 
-    showContentViewForCurrentSelection: function()
+    showDefaultContentViewForTreeElement(treeElement)
     {
-        // Reselect the selected tree element to cause the content view to be shown as well. <rdar://problem/10854727>
-        var selectedTreeElement = this._contentTreeOutline.selectedTreeElement;
-        if (selectedTreeElement)
-            selectedTreeElement.select();
-    },
+        console.assert(treeElement);
+        console.assert(treeElement.representedObject);
+        if (!treeElement || !treeElement.representedObject)
+            return;
 
-    saveStateToCookie: function(cookie)
+        this.contentBrowser.showContentViewForRepresentedObject(treeElement.representedObject);
+        treeElement.revealAndSelect(true, false, true, true);
+    }
+
+    saveStateToCookie(cookie)
     {
         console.assert(cookie);
 
@@ -227,11 +220,11 @@ WebInspector.NavigationSidebarPanel.prototype = {
         if (representedObject.saveIdentityToCookie)
             representedObject.saveIdentityToCookie(cookie);
         else
-            console.error("Error: TreeElement.representedObject is missing a saveIdentityToCookie implementation. TreeElement.constructor: %s", selectedTreeElement.constructor);
-    },
+            console.error("Error: TreeElement.representedObject is missing a saveIdentityToCookie implementation. TreeElement.constructor: ", selectedTreeElement.constructor);
+    }
 
     // This can be supplemented by subclasses that admit a simpler strategy for static tree elements.
-    restoreStateFromCookie: function(cookie, relaxedMatchDelay)
+    restoreStateFromCookie(cookie, relaxedMatchDelay)
     {
         this._pendingViewStateCookie = cookie;
         this._restoringState = true;
@@ -241,6 +234,9 @@ WebInspector.NavigationSidebarPanel.prototype = {
 
         if (this._finalAttemptToRestoreViewStateTimeout)
             clearTimeout(this._finalAttemptToRestoreViewStateTimeout);
+
+        if (relaxedMatchDelay === 0)
+            return;
 
         function finalAttemptToRestoreViewStateFromCookie()
         {
@@ -255,39 +251,33 @@ WebInspector.NavigationSidebarPanel.prototype = {
         // If the specific tree element wasn't found, we may need to wait for the resources
         // to be registered. We try one last time (match type only) after an arbitrary amount of timeout.
         this._finalAttemptToRestoreViewStateTimeout = setTimeout(finalAttemptToRestoreViewStateFromCookie.bind(this), relaxedMatchDelay);
-    },
+    }
 
-    showEmptyContentPlaceholder: function(message, hideToolbarItem)
+    showEmptyContentPlaceholder(message)
     {
         console.assert(message);
 
-        if (this._emptyContentPlaceholderMessageElement.parentNode && this._emptyContentPlaceholderMessageElement.textContent === message)
+        if (this._emptyContentPlaceholderElement.parentNode && this._emptyContentPlaceholderMessageElement.textContent === message)
             return;
 
         this._emptyContentPlaceholderMessageElement.textContent = message;
         this.element.appendChild(this._emptyContentPlaceholderElement);
 
-        this._hideToolbarItemWhenEmpty = hideToolbarItem || false;
-        this._updateToolbarItemVisibility();
         this._updateContentOverflowShadowVisibility();
-    },
+    }
 
-    hideEmptyContentPlaceholder: function()
+    hideEmptyContentPlaceholder()
     {
         if (!this._emptyContentPlaceholderElement.parentNode)
             return;
 
         this._emptyContentPlaceholderElement.parentNode.removeChild(this._emptyContentPlaceholderElement);
 
-        this._hideToolbarItemWhenEmpty = false;
-        this._updateToolbarItemVisibility();
         this._updateContentOverflowShadowVisibility();
-    },
+    }
 
-    updateEmptyContentPlaceholder: function(message)
+    updateEmptyContentPlaceholder(message)
     {
-        this._updateToolbarItemVisibility();
-
         if (!this._contentTreeOutline.children.length) {
             // No tree elements, so no results.
             this.showEmptyContentPlaceholder(message);
@@ -295,31 +285,38 @@ WebInspector.NavigationSidebarPanel.prototype = {
             // There are tree elements, and not all of them are hidden by the filter.
             this.hideEmptyContentPlaceholder();
         }
-    },
+    }
 
-    updateCustomContentOverflow: function()
-    {
-        // Implemented by subclasses if needed.
-    },
-
-    updateFilter: function()
+    updateFilter()
     {
         this._updateFilter();
-    },
+    }
 
-    hasCustomFilters: function()
+    hasCustomFilters()
     {
         // Implemented by subclasses if needed.
         return false;
-    },
+    }
 
-    matchTreeElementAgainstCustomFilters: function(treeElement)
+    matchTreeElementAgainstCustomFilters(treeElement)
     {
         // Implemented by subclasses if needed.
         return true;
-    },
+    }
 
-    applyFiltersToTreeElement: function(treeElement)
+    matchTreeElementAgainstFilterFunctions(treeElement)
+    {
+        if (!this._filterFunctions.length)
+            return true;
+
+        for (var filterFunction of this._filterFunctions) {
+            if (filterFunction(treeElement))
+                return true;
+        }
+        return false;
+    }
+
+    applyFiltersToTreeElement(treeElement)
     {
         if (!this._filterBar.hasActiveFilters() && !this.hasCustomFilters()) {
             // No filters, so make everything visible.
@@ -382,7 +379,7 @@ WebInspector.NavigationSidebarPanel.prototype = {
             }
         }
 
-        if (matchTextFilter(filterableData.text) && this.matchTreeElementAgainstCustomFilters(treeElement)) {
+        if (matchTextFilter(filterableData.text) && this.matchTreeElementAgainstFilterFunctions(treeElement) && this.matchTreeElementAgainstCustomFilters(treeElement)) {
             // Make this element visible since it matches.
             makeVisible();
 
@@ -397,54 +394,71 @@ WebInspector.NavigationSidebarPanel.prototype = {
 
         // Make this element invisible since it does not match.
         treeElement.hidden = true;
-    },
+    }
 
-    show: function()
+    treeElementAddedOrChanged(treeElement)
+    {
+        // Implemented by subclasses if needed.
+    }
+
+    show()
     {
         if (!this.parentSidebar)
             return;
 
-        WebInspector.SidebarPanel.prototype.show.call(this);
+        super.show();
 
         this.contentTreeOutlineElement.focus();
-    },
+    }
 
-    shown: function()
+    shown()
     {
-        WebInspector.SidebarPanel.prototype.shown.call(this);
+        super.shown();
 
         this._updateContentOverflowShadowVisibility();
+    }
 
-        // Force the navigation item to be visible. This makes sure it is
-        // always visible when the panel is shown.
-        this.toolbarItem.hidden = false;
-    },
+    // Protected
 
-    hidden: function()
+    pruneStaleResourceTreeElements()
     {
-        WebInspector.SidebarPanel.prototype.hidden.call(this);
+        if (this._checkForStaleResourcesTimeoutIdentifier) {
+            clearTimeout(this._checkForStaleResourcesTimeoutIdentifier);
+            this._checkForStaleResourcesTimeoutIdentifier = undefined;
+        }
 
-        this._updateToolbarItemVisibility();
-    },
+        for (var contentTreeOutline of this._visibleContentTreeOutlines) {
+            // Check all the ResourceTreeElements at the top level to make sure their Resource still has a parentFrame in the frame hierarchy.
+            // If the parentFrame is no longer in the frame hierarchy we know it was removed due to a navigation or some other page change and
+            // we should remove the issues for that resource.
+            for (var i = contentTreeOutline.children.length - 1; i >= 0; --i) {
+                var treeElement = contentTreeOutline.children[i];
+                if (!(treeElement instanceof WebInspector.ResourceTreeElement))
+                    continue;
+
+                var resource = treeElement.resource;
+                if (!resource.parentFrame || resource.parentFrame.isDetached())
+                    contentTreeOutline.removeChildAtIndex(i, true, true);
+            }
+        }
+    }
 
     // Private
     
-    _updateContentOverflowShadowVisibilitySoon: function()
+    _updateContentOverflowShadowVisibilitySoon()
     {
         if (this._updateContentOverflowShadowVisibilityIdentifier)
             return;
 
         this._updateContentOverflowShadowVisibilityIdentifier = setTimeout(this._updateContentOverflowShadowVisibility.bind(this), 0);
-    },
+    }
 
-    _updateContentOverflowShadowVisibility: function()
+    _updateContentOverflowShadowVisibility()
     {
         delete this._updateContentOverflowShadowVisibilityIdentifier;
 
-        this.updateCustomContentOverflow();
-
-        var scrollHeight = this._contentElement.scrollHeight;
-        var offsetHeight = this._contentElement.offsetHeight;
+        var scrollHeight = this.contentElement.scrollHeight;
+        var offsetHeight = this.contentElement.offsetHeight;
 
         if (scrollHeight < offsetHeight) {
             if (this._topOverflowShadowElement)
@@ -453,8 +467,8 @@ WebInspector.NavigationSidebarPanel.prototype = {
             return;
         }
 
-        const edgeThreshold = 10;
-        var scrollTop = this._contentElement.scrollTop;
+        var edgeThreshold = 1;
+        var scrollTop = this.contentElement.scrollTop;
 
         var topCoverage = Math.min(scrollTop, edgeThreshold);
         var bottomCoverage = Math.max(0, (offsetHeight + scrollTop) - (scrollHeight - edgeThreshold));
@@ -462,16 +476,9 @@ WebInspector.NavigationSidebarPanel.prototype = {
         if (this._topOverflowShadowElement)
             this._topOverflowShadowElement.style.opacity = (topCoverage / edgeThreshold).toFixed(1);
         this._bottomOverflowShadowElement.style.opacity = (1 - (bottomCoverage / edgeThreshold)).toFixed(1);
-    },
+    }
 
-    _updateToolbarItemVisibility: function()
-    {
-        // Hide the navigation item if requested or auto-hiding and we are not visible and we are empty.
-        var shouldHide = ((this._hideToolbarItemWhenEmpty || this._autoHideToolbarItemWhenEmpty) && !this.selected && !this._contentTreeOutline.children.length);
-        this.toolbarItem.hidden = shouldHide;
-    },
-
-    _checkForEmptyFilterResults: function()
+    _checkForEmptyFilterResults()
     {
         // No tree elements, so don't touch the empty content placeholder.
         if (!this._contentTreeOutline.children.length)
@@ -493,18 +500,22 @@ WebInspector.NavigationSidebarPanel.prototype = {
         // All top level tree elements are hidden, so filtering hid everything. Show a message.
         this.showEmptyContentPlaceholder(WebInspector.UIString("No Filter Results"));
         this._emptyFilterResults = true;
-    },
+    }
 
-    _textFilterDidChange: function()
+    _filterDidChange()
     {
         this._updateFilter();
-    },
+    }
 
-    _updateFilter: function()
+    _updateFilter()
     {
+        var selectedTreeElement = this._contentTreeOutline.selectedTreeElement;
+        var selectionWasHidden = selectedTreeElement && selectedTreeElement.hidden;
+
         var filters = this._filterBar.filters;
         this._textFilterRegex = simpleGlobStringToRegExp(filters.text, "i");
         this._filtersSetting.value = filters;
+        this._filterFunctions = filters.functions;
 
         // Don't populate if we don't have any active filters.
         // We only need to populate when a filter needs to reveal.
@@ -519,9 +530,17 @@ WebInspector.NavigationSidebarPanel.prototype = {
 
         this._checkForEmptyFilterResults();
         this._updateContentOverflowShadowVisibility();
-    },
 
-    _treeElementAddedOrChanged: function(treeElement)
+        // Filter may have hidden the selected resource in the timeline view, which should now notify its listeners.
+        // FIXME: This is a layering violation. This should at least be in TimelineSidebarPanel.
+        if (selectedTreeElement && selectedTreeElement.hidden !== selectionWasHidden) {
+            var currentContentView = this.contentBrowser.currentContentView;
+            if (currentContentView instanceof WebInspector.TimelineRecordingContentView && typeof currentContentView.currentTimelineView.filterUpdated === "function")
+                currentContentView.currentTimelineView.filterUpdated();
+        }
+    }
+
+    _treeElementAddedOrChanged(treeElement)
     {
         // Don't populate if we don't have any active filters.
         // We only need to populate when a filter needs to reveal.
@@ -536,24 +555,28 @@ WebInspector.NavigationSidebarPanel.prototype = {
 
         this._checkForEmptyFilterResults();
         this._updateContentOverflowShadowVisibilitySoon();
-        this._checkElementsForPendingViewStateCookie(treeElement);
-    },
 
-    _treeElementExpandedOrCollapsed: function(treeElement)
+        if (this.selected)
+            this._checkElementsForPendingViewStateCookie([treeElement]);
+
+        this.treeElementAddedOrChanged(treeElement);
+    }
+
+    _treeElementExpandedOrCollapsed(treeElement)
     {
         this._updateContentOverflowShadowVisibility();
-    },
+    }
 
-    _generateStyleRulesIfNeeded: function()
+    _generateStyleRulesIfNeeded()
     {
         if (WebInspector.NavigationSidebarPanel._styleElement)
             return;
 
         WebInspector.NavigationSidebarPanel._styleElement = document.createElement("style");
 
-        const maximumSidebarTreeDepth = 32;
-        const baseLeftPadding = 5; // Matches the padding in NavigationSidebarPanel.css for the item class. Keep in sync.
-        const depthPadding = 10;
+        var maximumSidebarTreeDepth = 32;
+        var baseLeftPadding = 5; // Matches the padding in NavigationSidebarPanel.css for the item class. Keep in sync.
+        var depthPadding = 10;
 
         var styleText = "";
         var childrenSubstring = "";
@@ -567,9 +590,9 @@ WebInspector.NavigationSidebarPanel.prototype = {
         WebInspector.NavigationSidebarPanel._styleElement.textContent = styleText;
 
         document.head.appendChild(WebInspector.NavigationSidebarPanel._styleElement);
-    },
+    }
 
-    _generateDisclosureTrianglesIfNeeded: function()
+    _generateDisclosureTrianglesIfNeeded()
     {
         if (WebInspector.NavigationSidebarPanel._generatedDisclosureTriangles)
             return;
@@ -580,69 +603,49 @@ WebInspector.NavigationSidebarPanel.prototype = {
 
         var specifications = {};
         specifications[WebInspector.NavigationSidebarPanel.DisclosureTriangleNormalCanvasIdentifierSuffix] = {
-            fillColor: [112, 126, 139],
-            shadowColor: [255, 255, 255, 0.8],
-            shadowOffsetX: 0,
-            shadowOffsetY: 1,
-            shadowBlur: 0
+            fillColor: [140, 140, 140]
         };
 
         specifications[WebInspector.NavigationSidebarPanel.DisclosureTriangleSelectedCanvasIdentifierSuffix] = {
-            fillColor: [255, 255, 255],
-            shadowColor: [61, 91, 110, 0.8],
-            shadowOffsetX: 0,
-            shadowOffsetY: 1,
-            shadowBlur: 2
+            fillColor: [255, 255, 255]
         };
 
         generateColoredImagesForCSS("Images/DisclosureTriangleSmallOpen.svg", specifications, 13, 13, WebInspector.NavigationSidebarPanel.DisclosureTriangleOpenCanvasIdentifier);
         generateColoredImagesForCSS("Images/DisclosureTriangleSmallClosed.svg", specifications, 13, 13, WebInspector.NavigationSidebarPanel.DisclosureTriangleClosedCanvasIdentifier);
-    },
+    }
 
-    _checkForOldResources: function(event)
+    _checkForStaleResourcesIfNeeded()
     {
-        if (this._checkForOldResourcesTimeoutIdentifier)
+        if (!this._checkForStaleResourcesTimeoutIdentifier || !this._shouldAutoPruneStaleTopLevelResourceTreeElements)
+            return;
+        this.pruneStaleResourceTreeElements();
+    }
+
+    _checkForStaleResources(event)
+    {
+        console.assert(this._shouldAutoPruneStaleTopLevelResourceTreeElements);
+
+        if (this._checkForStaleResourcesTimeoutIdentifier)
             return;
 
-        function delayedWork()
-        {
-            delete this._checkForOldResourcesTimeoutIdentifier;
+        // Check on a delay to coalesce multiple calls to _checkForStaleResources.
+        this._checkForStaleResourcesTimeoutIdentifier = setTimeout(this.pruneStaleResourceTreeElements.bind(this));
+    }
 
-            var contentTreeOutline = this.contentTreeOutlineToAutoPrune;
-
-            // Check all the ResourceTreeElements at the top level to make sure their Resource still has a parentFrame in the frame hierarchy.
-            // If the parentFrame is no longer in the frame hierarchy we know it was removed due to a navigation or some other page change and
-            // we should remove the issues for that resource.
-            for (var i = contentTreeOutline.children.length - 1; i >= 0; --i) {
-                var treeElement = contentTreeOutline.children[i];
-                if (!(treeElement instanceof WebInspector.ResourceTreeElement))
-                    continue;
-
-                var resource = treeElement.resource;
-                if (!resource.parentFrame || resource.parentFrame.isDetached())
-                    contentTreeOutline.removeChildAtIndex(i, true, true);
-            }
-
-            if (typeof this._updateEmptyContentPlaceholder === "function")
-                this._updateEmptyContentPlaceholder();
-        }
-
-        // Check on a delay to coalesce multiple calls to _checkForOldResources.
-        this._checkForOldResourcesTimeoutIdentifier = setTimeout(delayedWork.bind(this), 0);
-    },
-
-    _isTreeElementWithoutRepresentedObject: function(treeElement)
+    _isTreeElementWithoutRepresentedObject(treeElement)
     {
         return treeElement instanceof WebInspector.FolderTreeElement
             || treeElement instanceof WebInspector.DatabaseHostTreeElement
             || typeof treeElement.representedObject === "string"
             || treeElement.representedObject instanceof String;
-    },
+    }
 
-    _checkOutlinesForPendingViewStateCookie: function(matchTypeOnly)
+    _checkOutlinesForPendingViewStateCookie(matchTypeOnly)
     {
         if (!this._pendingViewStateCookie)
             return;
+
+        this._checkForStaleResourcesIfNeeded();
 
         var visibleTreeElements = [];
         this._visibleContentTreeOutlines.forEach(function(outline) {
@@ -654,9 +657,9 @@ WebInspector.NavigationSidebarPanel.prototype = {
         });
 
         return this._checkElementsForPendingViewStateCookie(visibleTreeElements, matchTypeOnly);
-    },
+    }
 
-    _checkElementsForPendingViewStateCookie: function(treeElements, matchTypeOnly)
+    _checkElementsForPendingViewStateCookie(treeElements, matchTypeOnly)
     {
         if (!this._pendingViewStateCookie)
             return;
@@ -683,13 +686,11 @@ WebInspector.NavigationSidebarPanel.prototype = {
             if (representedObject.saveIdentityToCookie)
                 representedObject.saveIdentityToCookie(candidateObjectCookie);
 
-            return Object.keys(candidateObjectCookie).every(function valuesMatchForKey(key) {
+            var candidateCookieKeys = Object.keys(candidateObjectCookie);
+            return candidateCookieKeys.length && candidateCookieKeys.every(function valuesMatchForKey(key) {
                 return candidateObjectCookie[key] === cookie[key];
             });
         }
-
-        if (!(treeElements instanceof Array))
-            treeElements = [treeElements];
 
         var matchedElement = null;
         treeElements.some(function(element) {
@@ -700,7 +701,7 @@ WebInspector.NavigationSidebarPanel.prototype = {
         }, this);
 
         if (matchedElement) {
-            matchedElement.revealAndSelect(true, false);
+            this.showDefaultContentViewForTreeElement(matchedElement);
 
             delete this._pendingViewStateCookie;
 
@@ -718,4 +719,14 @@ WebInspector.NavigationSidebarPanel.prototype = {
     }
 };
 
-WebInspector.NavigationSidebarPanel.prototype.__proto__ = WebInspector.SidebarPanel.prototype;
+WebInspector.NavigationSidebarPanel.OverflowShadowElementStyleClassName = "overflow-shadow";
+WebInspector.NavigationSidebarPanel.TopOverflowShadowElementStyleClassName = "top";
+WebInspector.NavigationSidebarPanel.ContentTreeOutlineElementHiddenStyleClassName = "hidden";
+WebInspector.NavigationSidebarPanel.ContentTreeOutlineElementStyleClassName = "navigation-sidebar-panel-content-tree-outline";
+WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName = "hide-disclosure-buttons";
+WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderElementStyleClassName = "empty-content-placeholder";
+WebInspector.NavigationSidebarPanel.EmptyContentPlaceholderMessageElementStyleClassName = "message";
+WebInspector.NavigationSidebarPanel.DisclosureTriangleOpenCanvasIdentifier = "navigation-sidebar-panel-disclosure-triangle-open";
+WebInspector.NavigationSidebarPanel.DisclosureTriangleClosedCanvasIdentifier = "navigation-sidebar-panel-disclosure-triangle-closed";
+WebInspector.NavigationSidebarPanel.DisclosureTriangleNormalCanvasIdentifierSuffix = "-normal";
+WebInspector.NavigationSidebarPanel.DisclosureTriangleSelectedCanvasIdentifierSuffix = "-selected";

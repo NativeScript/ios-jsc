@@ -24,7 +24,7 @@
  */
 
 .find-banner {
-    border-bottom: 1px solid rgb(153, 153, 153);
+    border-bottom: 1px solid rgb(179, 179, 179);
 
     position: absolute;
     top: -22px;
@@ -44,13 +44,16 @@
     z-index: 500;
 }
 
+body.window-inactive .find-banner {
+    border-bottom-color: rgb(219, 219, 219);
+}
+
 .find-banner.showing {
     top: 0;
     transition-timing-function: ease-out;
 }
 
-.find-banner.no-find-banner-transition,
-.supports-find-banner.no-find-banner-transition {
+.no-find-banner-transition:matches(.find-banner, .supports-find-banner) {
     transition-duration: 0 !important;
 }
 
@@ -88,7 +91,6 @@
     border: 1px solid rgb(146, 146, 146);
     border-radius: 4px;
     background-color: white;
-    box-shadow: inset rgba(0, 0, 0, 0.1) 0 1px 0;
 }
 
 .find-banner > button {
@@ -123,10 +125,6 @@
     height: 11px;
 }
 
-body.mac-platform.legacy .find-banner > button > .glyph {
-    height: 7px;
-}
-
 .find-banner > button:disabled > .glyph {
     opacity: 0.65;
 }
@@ -158,10 +156,6 @@ body.mac-platform.legacy .find-banner > button > .glyph {
     background-repeat: no-repeat;
 }
 
-body.mac-platform.legacy .find-banner > button.segmented.left > .glyph {
-    background-size: 7px 7px;
-}
-
 .find-banner > button.segmented.left:active:not(:disabled) > .glyph {
     background-image: -webkit-canvas(find-banner-previous-arrow-normal-active);
 }
@@ -182,10 +176,6 @@ body.mac-platform.legacy .find-banner > button.segmented.left > .glyph {
     background-repeat: no-repeat;
 }
 
-body.mac-platform.legacy .find-banner > button.segmented.right > .glyph {
-    background-size: 7px 7px;
-}
-
 .find-banner > button.segmented.right:active:not(:disabled) > .glyph {
     background-image: -webkit-canvas(find-banner-next-arrow-normal-active);
 }
@@ -194,11 +184,6 @@ body.mac-platform.legacy .find-banner > button.segmented.right > .glyph {
     min-width: 22px;
     padding-top: 3px;
     padding-bottom: 2px;
-}
-
-body.mac-platform.legacy .find-banner > button.segmented {
-    padding-top: 2px;
-    padding-bottom: 3px;
 }
 
 .find-banner > button.segmented:active {

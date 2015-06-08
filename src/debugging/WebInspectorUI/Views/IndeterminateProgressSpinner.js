@@ -25,11 +25,12 @@
 
 WebInspector.IndeterminateProgressSpinner = function()
 {
-    WebInspector.Object.call(this);
+    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
+    // WebInspector.Object.call(this);
 
     this._element = document.createElement("div");
     this._element.className = WebInspector.IndeterminateProgressSpinner.StyleClassName;
-}
+};
 
 WebInspector.IndeterminateProgressSpinner.StyleClassName = "indeterminate-progress-spinner";
 
@@ -42,6 +43,6 @@ WebInspector.IndeterminateProgressSpinner.prototype = {
     {
         return this._element;
     }
-}
+};
 
 WebInspector.IndeterminateProgressSpinner.prototype.__proto__ = WebInspector.Object.prototype;

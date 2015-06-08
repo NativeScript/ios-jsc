@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2015 Tobias Reiss <tobi+webkit@basecode.de>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,6 +107,11 @@ CodeMirror.extendMode("javascript", {
         return 0;
     },
 
+    removeLastWhitespace: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return false;
+    },
+
     removeLastNewline: function(lastToken, lastContent, token, state, content, isComment, firstTokenOnLine)
     {
         if (!token) {
@@ -137,7 +143,13 @@ CodeMirror.extendMode("javascript", {
 
     indentAfterToken: function(lastToken, lastContent, token, state, content, isComment)
     {
-        return content === "{" || content === "case" || content === "default";
+        if (content === "{")
+            return true;
+
+        if (content === "case" || content === "default")
+            return state.lexical.type === "}" && state.lexical.prev && state.lexical.prev.type === "form"; // Switch case/default.
+
+        return false;
     },
 
     newlineBeforeToken: function(lastToken, lastContent, token, state, content, isComment)
@@ -205,7 +217,7 @@ CodeMirror.extendMode("javascript", {
         if (!isComment && state.lexical.prev && state.lexical.prev.type === "form" && !state.lexical.prev._jsPrettyPrintMarker && (lastContent === ")" || lastContent === "else" || lastContent === "do") && (state.lexical.type !== ")")) {
             if (content === "{") {
                 // Save the state at the opening brace so we can return to it when we see "}".
-                var savedState = {indentCount:state._jsPrettyPrint.indentCount, openBraceTrackingCount:state._jsPrettyPrint.openBraceTrackingCount};
+                var savedState = {indentCount: state._jsPrettyPrint.indentCount, openBraceTrackingCount: state._jsPrettyPrint.openBraceTrackingCount};
                 state._jsPrettyPrint.openBraceStartMarkers.push(savedState);
                 state._jsPrettyPrint.openBraceTrackingCount = 1;
             } else if (state.lexical.type !== "}") {
@@ -300,7 +312,7 @@ CodeMirror.extendMode("css", {
         if (!token) {
             if (content === "{")
                 return true;
-            return false;
+            return ">+~-*/".indexOf(content) >= 0; // calc() expression or child/sibling selectors
         }
 
         if (isComment)
@@ -322,11 +334,23 @@ CodeMirror.extendMode("css", {
                 return true;
             if (lastContent === ":") // Space in "prop: value" but not in a selectors "a:link" or "div::after" or media queries "(max-device-width:480px)".
                 return state.state === "prop";
-            return false;
+            if (lastContent === ")" && (content !== ")" && content !== ",")) {
+                if (/\bnumber\b/.test(token)) // linear-gradient(rgb(...)0%,rgb(...)100%)
+                    return true;
+                if (state.state === "prop") // -webkit-transform:rotate(...)translate(...);
+                    return true;
+                if (state.state === "media" || state.state === "media_parens") // Space in "not(foo)and" but not at the end of "not(not(foo))"
+                    return true;
+                return false; // color: rgb(...);
+            }
+            return ">+~-*/".indexOf(lastContent) >= 0; // calc() expression or child/sibling selectors
         }
 
         if (/\bcomment\b/.test(lastToken))
             return true;
+
+        if (/\bkeyword\b/.test(lastToken)) // media-query keywords
+            return state.state === "media" || state.state === "media_parens";
 
         return false;
     },
@@ -354,6 +378,11 @@ CodeMirror.extendMode("css", {
             return 1;
 
         return 0;
+    },
+
+    removeLastWhitespace: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return false;
     },
 
     removeLastNewline: function(lastToken, lastContent, token, state, content, isComment, firstTokenOnLine)
@@ -395,9 +424,89 @@ CodeMirror.extendMode("css", {
         // In order insert newlines in selector lists we need keep track of the length of the current line.
         // This isn't exact line length, only the builder knows that, but it is good enough to get an idea.
         // If we are at a top level, keep track of the current line length, otherwise we reset to 0.
-        if (state.state === "top" || state.state === "media")
+        if (!isComment && (state.state === "top" || state.state === "media" || state.state === "pseudo"))
             state._cssPrettyPrint.lineLength += content.length;
         else
             state._cssPrettyPrint.lineLength = 0;
+    }
+});
+
+CodeMirror.extendMode("css-rule", {
+    shouldHaveSpaceBeforeToken: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return lastContent === ":" && !lastToken;
+    },
+
+    shouldHaveSpaceAfterLastToken: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return lastContent === "," && !lastToken;
+    },
+
+    newlinesAfterToken: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return 0;
+    },
+
+    removeLastWhitespace: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        // Remove whitespace before a comment which moves the comment to the beginning of the line.
+        if (isComment)
+            return true;
+
+        // A semicolon indicates the end of line. So remove whitespace before next line.
+        if (!lastToken)
+            return lastContent === ";";
+
+        // Remove whitespace before semicolon. Like `prop: value ;`.
+        // Remove whitespace before colon. Like `prop : value;`.
+        if (!token)
+            return content === ";" || content === ":";
+
+        // A comment is supposed to be in its own line. So remove whitespace before next line.
+        if (/\bcomment\b/.test(lastToken))
+            return true;
+
+        return false;
+    },
+
+    removeLastNewline: function(lastToken, lastContent, token, state, content, isComment, firstTokenOnLine)
+    {
+        return false;
+    },
+
+    indentAfterToken: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return false;
+    },
+
+    newlineBeforeToken: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        // Add new line before comments.
+        if (isComment)
+            return true;
+
+        // Add new line before a prefixed property like `-webkit-animation`.
+        if (state.state === "block")
+            return /\bmeta\b/.test(token);
+
+        // Add new line after comment
+        if (/\bcomment\b/.test(lastToken))
+            return true;
+
+        // Add new line before a regular property like `display`.
+        if (/\bproperty\b/.test(token))
+            return !(/\bmeta\b/.test(lastToken));
+
+        return false;
+    },
+
+    indentBeforeToken: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return false;
+    },
+
+    dedentsBeforeToken: function(lastToken, lastContent, token, state, content, isComment)
+    {
+        return 0;
     }
 });

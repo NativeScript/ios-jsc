@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,34 +23,30 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ScriptTreeElement = function(script)
+WebInspector.ScriptTreeElement = class ScriptTreeElement extends WebInspector.SourceCodeTreeElement
 {
-    console.assert(script instanceof WebInspector.Script);
-    
-    WebInspector.SourceCodeTreeElement.call(this, script, WebInspector.ScriptTreeElement.StyleClassName, null, null, script, false);
+    constructor(script)
+    {
+        console.assert(script instanceof WebInspector.Script);
 
-    this.mainTitle = script.displayName;
+        super(script, "script", null, null, script, false);
 
-    if (script.url) {
-        // Show the host as the subtitle if it is different from the main title.
-        var subtitle = WebInspector.displayNameForHost(script.urlComponents.host);
-        this.subtitle = this.mainTitle !== subtitle ? subtitle : null;
+        this.mainTitle = script.displayName;
 
-        this.tooltip = script.url;
+        if (script.url) {
+            // Show the host as the subtitle if it is different from the main title.
+            var subtitle = WebInspector.displayNameForHost(script.urlComponents.host);
+            this.subtitle = this.mainTitle !== subtitle ? subtitle : null;
 
-        this.addClassName(WebInspector.ResourceTreeElement.ResourceIconStyleClassName);
-        this.addClassName(WebInspector.Resource.Type.Script);
-    } else
-        this.addClassName(WebInspector.ScriptTreeElement.AnonymousScriptIconStyleClassName);
+            this.tooltip = script.url;
 
-    this._script = script;
-};
+            this.addClassName(WebInspector.ResourceTreeElement.ResourceIconStyleClassName);
+            this.addClassName(WebInspector.Resource.Type.Script);
+        } else
+            this.addClassName(WebInspector.ScriptTreeElement.AnonymousScriptIconStyleClassName);
 
-WebInspector.ScriptTreeElement.AnonymousScriptIconStyleClassName = "anonymous-script-icon";
-WebInspector.ScriptTreeElement.StyleClassName = "script";
-
-WebInspector.ScriptTreeElement.prototype = {
-    constructor: WebInspector.ScriptTreeElement,
+        this._script = script;
+    }
 
     // Public
 
@@ -60,4 +56,4 @@ WebInspector.ScriptTreeElement.prototype = {
     }
 };
 
-WebInspector.ScriptTreeElement.prototype.__proto__ = WebInspector.SourceCodeTreeElement.prototype;
+WebInspector.ScriptTreeElement.AnonymousScriptIconStyleClassName = "anonymous-script-icon";

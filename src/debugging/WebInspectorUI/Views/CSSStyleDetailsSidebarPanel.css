@@ -28,11 +28,12 @@
     top: 0;
     left: 0;
     right: 0;
+    align-content: center;
 }
 
 .sidebar > .panel.details.css-style > .content {
     position: absolute;
-    top: 22px;
+    top: 29px;
     left: 0;
     right: 0;
     bottom: 0;
@@ -43,18 +44,18 @@
 
 .sidebar > .panel.details.css-style > .content > .pseudo-classes {
     padding: 10px;
-    border-bottom: 1px solid rgb(153, 153, 153);
+    border-bottom: 1px solid rgb(179, 179, 179);
 
-    display: -webkit-flex;
-    -webkit-flex-flow: row wrap;
-    -webkit-justify-content: space-around;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
 }
 
 .sidebar > .panel.details.css-style > .content > .pseudo-classes > .group {
-    display: -webkit-inline-flex;
-    -webkit-flex-flow: row wrap;
-    -webkit-justify-content: space-around;
-    -webkit-flex: 1;
+    display: inline-flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    flex: 1;
 }
 
 .sidebar > .panel.details.css-style > .content > .pseudo-classes > .group > label {

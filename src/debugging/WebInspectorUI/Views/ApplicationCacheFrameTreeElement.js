@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,23 +23,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ApplicationCacheFrameTreeElement = function(representedObject)
+WebInspector.ApplicationCacheFrameTreeElement = class ApplicationCacheFrameTreeElement extends WebInspector.GeneralTreeElement
 {
-    console.assert(representedObject instanceof WebInspector.ApplicationCacheFrame);
+    constructor(representedObject)
+    {
+        console.assert(representedObject instanceof WebInspector.ApplicationCacheFrame);
 
-    WebInspector.GeneralTreeElement.call(this, WebInspector.ApplicationCacheFrameTreeElement.StyleClassName, "", "", representedObject, false);
+        super("application-cache-frame", "", "", representedObject, false);
 
-    this.small = true;
-    
-    this.updateTitles();
-};
+        this.small = true;
 
-WebInspector.ApplicationCacheFrameTreeElement.StyleClassName = "application-cache-frame";
+        this.updateTitles();
+    }
 
-WebInspector.ApplicationCacheFrameTreeElement.prototype = {
-    constructor: WebInspector.ApplicationCacheFrameTreeElement,
-
-    updateTitles: function()
+    updateTitles()
     {
         var url = this.representedObject.frame.url;
         var parsedURL = parseURL(url);
@@ -50,12 +47,18 @@ WebInspector.ApplicationCacheFrameTreeElement.prototype = {
         // and it doesn't match the mainTitle.
         var subtitle = WebInspector.displayNameForHost(parsedURL.host);
 
-        // FIXME: This is bad layering. We should not be calling a global object to get this.
-        var manifestTreeElement = WebInspector.resourceSidebarPanel.treeElementForRepresentedObject(this.representedObject.manifest);
+        var manifestTreeElement = null;
+        var currentAncestor = this.parent;
+        while (currentAncestor && !currentAncestor.root) {
+            if (currentAncestor instanceof WebInspector.ApplicationCacheManifestTreeElement) {
+                manifestTreeElement = currentAncestor;
+                break;
+            }
 
-        var subtitleIsDuplicate = subtitle === this._mainTitle || subtitle === manifestTreeElement.subtitle;
+            currentAncestor = currentAncestor.parent;
+        }
+
+        var subtitleIsDuplicate = subtitle === this._mainTitle || manifestTreeElement ? subtitle === manifestTreeElement.subtitle : false;
         this.subtitle = subtitleIsDuplicate ? null : subtitle;
     }
 };
-
-WebInspector.ApplicationCacheFrameTreeElement.prototype.__proto__ = WebInspector.GeneralTreeElement.prototype;

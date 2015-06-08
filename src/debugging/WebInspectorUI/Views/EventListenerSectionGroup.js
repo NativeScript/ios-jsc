@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,35 +23,38 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.EventListenerSectionGroup = function(eventListener, nodeId)
+WebInspector.EventListenerSectionGroup = class EventListenerSectionGroup extends WebInspector.DetailsSectionGroup
 {
-    this._eventListener = eventListener;
-    this._nodeId = nodeId;
+    constructor(eventListener, nodeId)
+    {
+        super();
 
-    var rows = [];
-    rows.push(new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Node"), this._nodeTextOrLink()));
-    rows.push(new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Function"), this._functionTextOrLink()));
-    rows.push(new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Type"), this._type()));
+        this._eventListener = eventListener;
+        this._nodeId = nodeId;
 
-    WebInspector.DetailsSectionGroup.call(this, rows);
-}
+        var rows = [];
+        rows.push(new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Node"), this._nodeTextOrLink()));
+        rows.push(new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Function"), this._functionTextOrLink()));
+        rows.push(new WebInspector.DetailsSectionSimpleRow(WebInspector.UIString("Type"), this._type()));
+        this.rows = rows;
+    }
 
-WebInspector.EventListenerSectionGroup.prototype = {
-    constructor: WebInspector.EventListenerSectionGroup,
+    // Private
 
-    _nodeTextOrLink: function()
+    _nodeTextOrLink()
     {
         var node = this._eventListener.node;
+        console.assert(node);
         if (!node)
-            return;
+            return "";
 
         if (node.nodeType() === Node.DOCUMENT_NODE)
             return "document";
 
         return WebInspector.linkifyNodeReference(node);
-    },
+    }
 
-    _type: function()
+    _type()
     {
         if (this._eventListener.useCapture)
             return WebInspector.UIString("Capturing");
@@ -60,9 +63,9 @@ WebInspector.EventListenerSectionGroup.prototype = {
             return WebInspector.UIString("Attribute");
 
         return WebInspector.UIString("Bubbling");
-    },
+    }
 
-    _functionTextOrLink: function()
+    _functionTextOrLink()
     {
         var match = this._eventListener.handlerBody.match(/function ([^\(]+?)\(/);
         if (match) {
@@ -70,7 +73,7 @@ WebInspector.EventListenerSectionGroup.prototype = {
             var functionName = match[1];
         } else {
             var anonymous = true;
-            var functionName = WebInspector.UIString("(anonymous function)");        
+            var functionName = WebInspector.UIString("(anonymous function)");
         }
 
         if (!this._eventListener.location)
@@ -96,6 +99,4 @@ WebInspector.EventListenerSectionGroup.prototype = {
         fragment.appendChild(document.createTextNode(functionName));
         return fragment;
     }
-}
-
-WebInspector.EventListenerSectionGroup.prototype.__proto__ = WebInspector.DetailsSectionGroup.prototype;
+};

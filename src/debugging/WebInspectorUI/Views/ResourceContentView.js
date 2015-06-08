@@ -32,8 +32,7 @@ WebInspector.ResourceContentView = function(resource, styleClassName)
 
     this._resource = resource;
 
-    this.element.classList.add(WebInspector.ResourceContentView.StyleClassName);
-    this.element.classList.add(styleClassName);
+    this.element.classList.add(styleClassName, "resource");
 
     // Append a spinner while waiting for contentAvailable. The subclasses are responsible for removing
     // the spinner before showing the resource content.
@@ -43,7 +42,7 @@ WebInspector.ResourceContentView = function(resource, styleClassName)
     this.element.addEventListener("click", this._mouseWasClicked.bind(this), false);
 
     // Request content last so the spinner will always be removed in case the content is immediately available.
-    resource.requestContent(this._contentAvailable.bind(this));
+    resource.requestContent().then(this._contentAvailable.bind(this)).catch(this._protocolError.bind(this));
 
     if (!this.managesOwnIssues) {
         WebInspector.issueManager.addEventListener(WebInspector.IssueManager.Event.IssueWasAdded, this._issueWasAdded, this);
@@ -54,10 +53,9 @@ WebInspector.ResourceContentView = function(resource, styleClassName)
     }
 };
 
-WebInspector.ResourceContentView.StyleClassName = "resource";
-
 WebInspector.ResourceContentView.prototype = {
     constructor: WebInspector.ResourceContentView,
+    __proto__: WebInspector.ContentView.prototype,
 
     // Public
 
@@ -81,26 +79,40 @@ WebInspector.ResourceContentView.prototype = {
     closed: function()
     {
         if (!this.managesOwnIssues)
-            WebInspector.issueManager.removeEventListener(WebInspector.IssueManager.Event.IssueWasAdded, this._issueWasAdded, this);
+            WebInspector.issueManager.removeEventListener(null, null, this);
     },
 
     // Private
 
-    _contentAvailable: function(resource, content, base64Encoded)
+    _contentAvailable: function(parameters)
     {
-        // Check for failed loads.
-        if (this.resource.failed) {
-            // Don't show an error message if there is already an error message showing (like one added by addIssue.)
-            if (this.element.querySelector(".message-text-view.error"))
-                return;
-
-            this.element.removeChildren();
-            this.element.appendChild(WebInspector.createMessageTextView(WebInspector.UIString("An error occurred trying to load the resource."), true));
+        if (parameters.error) {
+            this._contentError(parameters.error);
             return;
         }
 
         // Content is ready to show, call the public method now.
-        this.contentAvailable(content, base64Encoded);
+        console.assert(!this._hasContent());
+        this.contentAvailable(parameters.content, parameters.base64Encoded);
+    },
+
+    _contentError: function(error)
+    {
+        if (this._hasContent())
+            return;
+
+        this.element.removeChildren();
+        this.element.appendChild(WebInspector.createMessageTextView(error, true));
+    },
+
+    _protocolError: function(error)
+    {
+        this._contentError(WebInspector.UIString("An error occurred trying to load the resource."));
+    },
+
+    _hasContent: function()
+    {
+        return !this.element.querySelector("." + WebInspector.IndeterminateProgressSpinner.StyleClassName);
     },
 
     _issueWasAdded: function(event)
@@ -121,5 +133,3 @@ WebInspector.ResourceContentView.prototype = {
         WebInspector.handlePossibleLinkClick(event, this.resource.parentFrame);
     }
 };
-
-WebInspector.ResourceContentView.prototype.__proto__ = WebInspector.ContentView.prototype;

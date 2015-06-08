@@ -6,7 +6,10 @@ set(HEADER_FILES
     Calling/FFICallbackInlines.h
     Calling/FFIFunctionCall.h
     Calling/FFIFunctionCallback.h
+    ConsoleMethodOverrides.h
     GlobalObject.h
+    InspectorTimelineAgent.h
+    InstrumentingAgents.h
     Interop.h
     JSErrors.h
     JSWarnings.h
@@ -59,6 +62,7 @@ set(HEADER_FILES
     Runtime/JSWeakRefInstance.h
     Runtime/JSWeakRefPrototype.h
     SymbolLoader.h
+    TimelineRecordFactory.h
     TNSRuntime+Diagnostics.h
     TNSRuntime+Inspector.h
     TNSRuntime+Private.h
@@ -71,7 +75,9 @@ set(SOURCE_FILES
     Calling/FFICall.cpp
     Calling/FFIFunctionCall.mm
     Calling/FFIFunctionCallback.cpp
+    ConsoleMethodOverrides.cpp
     GlobalObject.mm
+    InspectorTimelineAgent.cpp
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp
@@ -122,6 +128,7 @@ set(SOURCE_FILES
     Runtime/JSWeakRefInstance.cpp
     Runtime/JSWeakRefPrototype.cpp
     SymbolLoader.mm
+    TimelineRecordFactory.cpp
     TNSRuntime+Diagnostics.mm
     TNSRuntime+Inspector.mm
     TNSRuntime.mm

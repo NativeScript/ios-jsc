@@ -23,40 +23,38 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.SourceMapResource = function(url, sourceMap)
+WebInspector.SourceMapResource = class SourceMapResource extends WebInspector.Resource
 {
-    WebInspector.Resource.call(this, url, null);
+    constructor(url, sourceMap)
+    {
+        super(url, null);
 
-    console.assert(url);
-    console.assert(sourceMap);
+        console.assert(url);
+        console.assert(sourceMap);
 
-    this._sourceMap = sourceMap;
-    this._contentRequested = false;
+        this._sourceMap = sourceMap;
 
-    var inheritedMIMEType = this._sourceMap.originalSourceCode instanceof WebInspector.Resource ? this._sourceMap.originalSourceCode.syntheticMIMEType : null;
+        var inheritedMIMEType = this._sourceMap.originalSourceCode instanceof WebInspector.Resource ? this._sourceMap.originalSourceCode.syntheticMIMEType : null;
 
-    var fileExtension = WebInspector.fileExtensionForURL(url);
-    var fileExtensionMIMEType = WebInspector.mimeTypeForFileExtension(fileExtension, true);
+        var fileExtension = WebInspector.fileExtensionForURL(url);
+        var fileExtensionMIMEType = WebInspector.mimeTypeForFileExtension(fileExtension, true);
 
-    // FIXME: This is a layering violation. It should use a helper function on the
-    // Resource base-class to set _mimeType and _type.
-    this._mimeType = fileExtensionMIMEType || inheritedMIMEType || "text/javascript";
-    this._type = WebInspector.Resource.Type.fromMIMEType(this._mimeType);
+        // FIXME: This is a layering violation. It should use a helper function on the
+        // Resource base-class to set _mimeType and _type.
+        this._mimeType = fileExtensionMIMEType || inheritedMIMEType || "text/javascript";
+        this._type = WebInspector.Resource.typeFromMIMEType(this._mimeType);
 
-    // Mark the resource as loaded so it does not show a spinner in the sidebar.
-    // We will really load the resource the first time content is requested.
-    this.markAsFinished();
-};
-
-WebInspector.SourceMapResource.prototype = {
-    constructor: WebInspector.SourceMapResource,
+        // Mark the resource as loaded so it does not show a spinner in the sidebar.
+        // We will really load the resource the first time content is requested.
+        this.markAsFinished();
+    }
 
     // Public
 
     get sourceMap()
     {
         return this._sourceMap;
-    },
+    }
 
     get sourceMapDisplaySubpath()
     {
@@ -73,53 +71,64 @@ WebInspector.SourceMapResource.prototype = {
 
         // Same host. Just a subpath of the base.
         return resourceURLComponents.path.substring(sourceMappingBasePathURLComponents.path.length, resourceURLComponents.length);
-    },
+    }
 
-    canRequestContentFromBackend: function()
+    requestContentFromBackend(callback)
     {
-        return !this._contentRequested;
-    },
-
-    requestContentFromBackend: function(callback)
-    {
-        this._contentRequested = true;
-
         // Revert the markAsFinished that was done in the constructor.
         this.revertMarkAsFinished();
 
         var inlineContent = this._sourceMap.sourceContent(this.url);
         if (inlineContent) {
             // Force inline content to be asynchronous to match the expected load pattern.
-            setTimeout(function() {
-                // FIXME: We don't know the MIME-type for inline content. Guess by analyzing the content?
-                sourceMapResourceLoaded.call(this, null, inlineContent, this.mimeType, 200);
-            }.bind(this));
-
-            return true;
+            // FIXME: We don't know the MIME-type for inline content. Guess by analyzing the content?
+            // Returns a promise.
+            return sourceMapResourceLoaded.call(this, {content: inlineContent, mimeType: this.mimeType, status: 200});
         }
 
-        function sourceMapResourceLoaded(error, body, mimeType, statusCode)
+        function sourceMapResourceNotAvailable(error, content, mimeType, statusCode)
         {
-            const base64encoded = false;
+            this.markAsFailed();
+            return Promise.resolve({
+                error: WebInspector.UIString("An error occurred trying to load the resource."),
+                content,
+                mimeType,
+                statusCode
+            });
+        }
 
-            if (error || statusCode >= 400) {
-                this.markAsFailed();
-                callback(error, body, base64encoded);
-                return;
-            }
+        function sourceMapResourceLoadError(error)
+        {
+            // There was an error calling NetworkAgent.loadResource.
+            console.error(error || "There was an unknown error calling NetworkAgent.loadResource.");
+            this.markAsFailed();
+            return Promise.resolve({error: WebInspector.UIString("An error occurred trying to load the resource.")});
+        }
+
+        function sourceMapResourceLoaded(parameters)
+        {
+            var {error, content, mimeType, statusCode} = parameters;
+
+            var base64encoded = false;
+
+            if (statusCode >= 400 || error)
+                return sourceMapResourceNotAvailable(error, content, mimeType, statusCode);
 
             // FIXME: Add support for picking the best MIME-type. Right now the file extension is the best bet.
             // The constructor set MIME-type based on the file extension and we ignore mimeType here.
 
             this.markAsFinished();
 
-            callback(null, body, base64encoded);
+            return Promise.resolve({
+                content,
+                mimeType,
+                base64encoded,
+                statusCode
+            });
         }
 
-        if (!NetworkAgent.loadResource) {
-            sourceMapResourceLoaded.call(this, "error: no NetworkAgent.loadResource");
-            return false;
-        }
+        if (!NetworkAgent.loadResource)
+            return sourceMapResourceLoadError.call(this);
 
         var frameIdentifier = null;
         if (this._sourceMap.originalSourceCode instanceof WebInspector.Resource && this._sourceMap.originalSourceCode.parentFrame)
@@ -128,12 +137,10 @@ WebInspector.SourceMapResource.prototype = {
         if (!frameIdentifier)
             frameIdentifier = WebInspector.frameResourceManager.mainFrame.id;
 
-        NetworkAgent.loadResource(frameIdentifier, this.url, sourceMapResourceLoaded.bind(this));
+        return NetworkAgent.loadResource.promise(frameIdentifier, this.url).then(sourceMapResourceLoaded.bind(this)).catch(sourceMapResourceLoadError.bind(this));
+    }
 
-        return true;
-    },
-
-    createSourceCodeLocation: function(lineNumber, columnNumber)
+    createSourceCodeLocation(lineNumber, columnNumber)
     {
         // SourceCodeLocations are always constructed with raw resources and raw locations. Lookup the raw location.
         var entry = this._sourceMap.findEntryReversed(this.url, lineNumber);
@@ -152,9 +159,9 @@ WebInspector.SourceMapResource.prototype = {
         var location = originalSourceCode.createSourceCodeLocation(rawLineNumber, rawColumnNumber);
         location._setMappedLocation(this, lineNumber, columnNumber);
         return location;
-    },
+    }
 
-    createSourceCodeTextRange: function(textRange)
+    createSourceCodeTextRange(textRange)
     {
         // SourceCodeTextRanges are always constructed with raw resources and raw locations.
         // However, we can provide the most accurate mapped locations in construction.
@@ -163,5 +170,3 @@ WebInspector.SourceMapResource.prototype = {
         return new WebInspector.SourceCodeTextRange(this._sourceMap.originalSourceCode, startSourceCodeLocation, endSourceCodeLocation);
     }
 };
-
-WebInspector.SourceMapResource.prototype.__proto__ = WebInspector.Resource.prototype;

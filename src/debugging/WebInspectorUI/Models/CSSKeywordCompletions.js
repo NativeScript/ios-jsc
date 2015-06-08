@@ -45,6 +45,8 @@ WebInspector.CSSKeywordCompletions.forProperty = function(propertyName)
         acceptedKeywords = acceptedKeywords.concat(WebInspector.CSSKeywordCompletions._colors);
     else if (isNotPrefixed && ("-webkit-" + propertyName) in WebInspector.CSSKeywordCompletions._colorAwareProperties)
         acceptedKeywords = acceptedKeywords.concat(WebInspector.CSSKeywordCompletions._colors);
+    else if (propertyName.endsWith("color"))
+        acceptedKeywords = acceptedKeywords.concat(WebInspector.CSSKeywordCompletions._colors);
 
     // Only suggest "inherit" on inheritable properties even though it is valid on all properties.
     if (propertyName in WebInspector.CSSKeywordCompletions.InheritedProperties)
@@ -52,18 +54,42 @@ WebInspector.CSSKeywordCompletions.forProperty = function(propertyName)
     else if (isNotPrefixed && ("-webkit-" + propertyName) in WebInspector.CSSKeywordCompletions.InheritedProperties)
         acceptedKeywords.push("inherit");
 
-    if (acceptedKeywords.contains(WebInspector.CSSKeywordCompletions.AllPropertyNamesPlaceholder)) {
+    if (acceptedKeywords.includes(WebInspector.CSSKeywordCompletions.AllPropertyNamesPlaceholder)) {
         acceptedKeywords.remove(WebInspector.CSSKeywordCompletions.AllPropertyNamesPlaceholder);
         acceptedKeywords = acceptedKeywords.concat(WebInspector.CSSCompletions.cssNameCompletions.values);
     }
 
     return new WebInspector.CSSCompletions(acceptedKeywords, true);
-}
+};
 
-WebInspector.CSSKeywordCompletions.isColorAwareProperty = function(propertyName)
+WebInspector.CSSKeywordCompletions.addCustomCompletions = function(properties)
 {
-    return WebInspector.CSSKeywordCompletions._colorAwareProperties[propertyName] === true;
-}
+    // COMPATIBILITY (iOS 6): This used to be an array of strings. They won't have custom values.
+    if (properties.length && typeof properties[0] === "string")
+        return;
+
+    for (var property of properties) {
+        if (property.values)
+            WebInspector.CSSKeywordCompletions.addPropertyCompletionValues(property.name, property.values);
+    }
+};
+
+WebInspector.CSSKeywordCompletions.addPropertyCompletionValues = function(propertyName, newValues)
+{
+    var existingValues = WebInspector.CSSKeywordCompletions._propertyKeywordMap[propertyName];
+    if (!existingValues) {
+        WebInspector.CSSKeywordCompletions._propertyKeywordMap[propertyName] = newValues;
+        return;
+    }
+
+    var union = new Set;
+    for (var value of existingValues)
+        union.add(value);
+    for (var value of newValues)
+        union.add(value);
+
+    WebInspector.CSSKeywordCompletions._propertyKeywordMap[propertyName] = [...union.values()];
+};
 
 WebInspector.CSSKeywordCompletions.AllPropertyNamesPlaceholder = "__all-properties__";
 
@@ -362,7 +388,7 @@ WebInspector.CSSKeywordCompletions._propertyKeywordMap = {
         "none", "inline", "block", "list-item", "compact", "inline-block", "table", "inline-table",
         "table-row-group", "table-header-group", "table-footer-group", "table-row", "table-column-group",
         "table-column", "table-cell", "table-caption", "-webkit-box", "-webkit-inline-box", "-wap-marquee",
-        "-webkit-flex", "-webkit-inline-flex", "-webkit-grid", "-webkit-inline-grid"
+        "flex", "inline-flex", "-webkit-grid", "-webkit-inline-grid"
     ],
     "image-rendering": [
         "auto", "optimizeSpeed", "optimizeQuality", "-webkit-crisp-edges", "-webkit-optimize-contrast"
@@ -451,7 +477,8 @@ WebInspector.CSSKeywordCompletions._propertyKeywordMap = {
         "-webkit-system-font", "-apple-system-font", "-apple-system-headline", "-apple-system-body",
         "-apple-system-subheadline", "-apple-system-footnote", "-apple-system-caption1", "-apple-system-caption2",
         "-apple-system-short-headline", "-apple-system-short-body", "-apple-system-short-subheadline",
-        "-apple-system-short-footnote", "-apple-system-short-caption1", "-apple-system-tall-body"
+        "-apple-system-short-footnote", "-apple-system-short-caption1", "-apple-system-tall-body",
+        "-apple-system-title1", "-apple-system-title2", "-apple-system-title3"
     ],
     "text-overflow-mode": [
         "clip", "ellipsis"
@@ -667,32 +694,32 @@ WebInspector.CSSKeywordCompletions._propertyKeywordMap = {
     "-webkit-box-decoration-break": [
         "slice", "clone"
     ],
-    "-webkit-align-content": [
+    "align-content": [
         "flex-start", "flex-end", "center", "space-between", "space-around", "stretch"
     ],
-    "-webkit-align-items": [
+    "align-items": [
         "flex-start", "flex-end", "center", "baseline", "stretch"
     ],
-    "-webkit-align-self": [
+    "align-self": [
         "auto", "flex-start", "flex-end", "center", "baseline", "stretch"
     ],
-    "-webkit-justify-content": [
+    "justify-content": [
         "flex-start", "flex-end", "center", "space-between", "space-around"
     ],
-    "-webkit-flex-direction": [
+    "flex-direction": [
         "row", "row-reverse", "column", "column-reverse"
     ],
-    "-webkit-flex-wrap": [
+    "flex-wrap": [
         "nowrap", "wrap", "wrap-reverse"
     ],
-    "-webkit-flex-flow": [
+    "flex-flow": [
         "row", "row-reverse", "column", "column-reverse",
         "nowrap", "wrap", "wrap-reverse"
     ],
-    "-webkit-flex": [
+    "flex": [
         "none"
     ],
-    "-webkit-flex-basis": [
+    "flex-basis": [
         "auto"
     ],
     "-webkit-grid-after": [
@@ -901,9 +928,21 @@ WebInspector.CSSKeywordCompletions._propertyKeywordMap = {
     ],
     /*
     "-webkit-appearance": [
-        "none", "checkbox", "radio", "push-button", "square-button", "button", "button-bevel", "default-button", "inner-spin-button", "-webkit-input-speech-button", "listbox", "listitem", "media-enter-fullscreen-button", "media-exit-fullscreen-button", "media-fullscreen-volume-slider", "media-fullscreen-volume-slider-thumb", "media-mute-button", "media-play-button", "media-overlay-play-button", "media-seek-back-button", "media-seek-forward-button", "media-rewind-button", "media-return-to-realtime-button", "media-toggle-closed-captions-button", "media-slider", "media-sliderthumb", "media-volume-slider-container", "media-volume-slider", "media-volume-sliderthumb", "media-volume-slider-mute-button", "media-controls-background", "media-controls-fullscreen-background", "media-current-time-display", "media-time-remaining-display", "menulist", "menulist-button", "menulist-text", "menulist-textfield", "meter", "progress-bar", "progress-bar-value", "slider-horizontal", "slider-vertical", "sliderthumb-horizontal", "sliderthumb-vertical", "caret", "searchfield", "searchfield-decoration", "searchfield-results-decoration", "searchfield-results-button", "searchfield-cancel-button", "snapshotted-plugin-overlay", "textfield", "relevancy-level-indicator", "continuous-capacity-level-indicator", "discrete-capacity-level-indicator", "rating-level-indicator", "textarea"
+        "none", "checkbox", "radio", "push-button", "square-button", "button", "button-bevel", "default-button", "inner-spin-button", "listbox", "listitem", "media-enter-fullscreen-button", "media-exit-fullscreen-button", "media-fullscreen-volume-slider", "media-fullscreen-volume-slider-thumb", "media-mute-button", "media-play-button", "media-overlay-play-button", "media-seek-back-button", "media-seek-forward-button", "media-rewind-button", "media-return-to-realtime-button", "media-toggle-closed-captions-button", "media-slider", "media-sliderthumb", "media-volume-slider-container", "media-volume-slider", "media-volume-sliderthumb", "media-volume-slider-mute-button", "media-controls-background", "media-controls-fullscreen-background", "media-current-time-display", "media-time-remaining-display", "menulist", "menulist-button", "menulist-text", "menulist-textfield", "meter", "progress-bar", "progress-bar-value", "slider-horizontal", "slider-vertical", "sliderthumb-horizontal", "sliderthumb-vertical", "caret", "searchfield", "searchfield-decoration", "searchfield-results-decoration", "searchfield-results-button", "searchfield-cancel-button", "snapshotted-plugin-overlay", "textfield", "relevancy-level-indicator", "continuous-capacity-level-indicator", "discrete-capacity-level-indicator", "rating-level-indicator", "textarea"
     ],
     */
+    "-webkit-scroll-snap-type": [
+        "mandatory", "proximity", "none"
+    ],
+    "-webkit-scroll-snap-points-x": [
+        "elements", "repeat"
+    ],
+    "-webkit-scroll-snap-points-y": [
+        "elements", "repeat"
+    ],
+    "-webkit-scroll-snap-coordinate": [
+        "none"
+    ],
 
     // iOS Properties
     "-webkit-text-size-adjust": [

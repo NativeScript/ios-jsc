@@ -143,7 +143,6 @@ WebInspector.CookieStorageContentView.prototype = {
                 data["expires"] = cookie.session ? WebInspector.UIString("Session") : new Date(cookie.expires).toLocaleString();
 
             var node = new WebInspector.DataGridNode(data);
-            node.selectable = true;
             node.cookie = cookie;
 
             this._dataGrid.appendChild(node);
@@ -169,7 +168,7 @@ WebInspector.CookieStorageContentView.prototype = {
             // The main resource isn't always in the list of resources, make sure to add it to the list of resources
             // we get the URLs from.
             var mainResourceURLComponents = frames[i].mainResource.urlComponents;
-            if (mainResourceURLComponents && mainResourceURLComponents.host && mainResourceURLComponents.host == this.representedObject.host)
+            if (mainResourceURLComponents && mainResourceURLComponents.host && mainResourceURLComponents.host === this.representedObject.host)
                 resourcesForDomain.push(frames[i].mainResource.url);
         }
 
@@ -249,7 +248,7 @@ WebInspector.cookieMatchesResourceURL = function(cookie, resourceURL)
         return false;
 
     return (parsedURL.path.startsWith(cookie.path)
-        && (!cookie.port || parsedURL.port == cookie.port)
+        && (!cookie.port || parsedURL.port === cookie.port)
         && (!cookie.secure || parsedURL.scheme === "https"));
 }
 

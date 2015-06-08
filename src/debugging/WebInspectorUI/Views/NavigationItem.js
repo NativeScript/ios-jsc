@@ -24,22 +24,20 @@
  */
 
 WebInspector.NavigationItem = function(identifier, role, label) {
-    WebInspector.Object.call(this);
+    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
+    // WebInspector.Object.call(this);
 
     this._identifier = identifier || null;
 
     this._element = document.createElement("div");
     this._hidden = false;
-    
-    if (role) 
+
+    if (role)
         this._element.setAttribute("role", role);
     if (label)
         this._element.setAttribute("aria-label", label);
 
-    var classNames = this._classNames;
-    for (var i = 0; i < classNames.length; ++i)
-        this._element.classList.add(classNames[i]);
-
+    this._element.classList.add(...this._classNames);
     this._element.navigationItem = this;
 };
 
@@ -104,6 +102,6 @@ WebInspector.NavigationItem.prototype = {
             classNames = classNames.concat(this._additionalClassNames);
         return classNames;
     }
-}
+};
 
 WebInspector.NavigationItem.prototype.__proto__ = WebInspector.Object.prototype;

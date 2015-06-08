@@ -26,6 +26,7 @@
 .timeline-ruler {
     position: relative;
     pointer-events: none;
+    z-index: 1;
 }
 
 .timeline-ruler.allows-time-range-selection {
@@ -37,13 +38,13 @@
 }
 
 .timeline-ruler > .header {
-    border-bottom: 1px solid rgb(200, 200, 200);
+    border-bottom: 1px solid rgb(179, 179, 179);
 
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 22px;
+    height: 29px;
 }
 
 .timeline-ruler > .header > .divider {
@@ -52,12 +53,12 @@
     top: 0;
     bottom: 0;
     -webkit-transform: translateX(-1px);
-    background-image: linear-gradient(to bottom, rgba(200, 200, 200, 0), rgba(200, 200, 200, 1) 85%);
+    background-image: linear-gradient(to bottom, rgba(179, 179, 179, 0), rgba(179, 179, 179, 1) 85%);
 }
 
 .timeline-ruler > .header > .divider > .label {
     position: absolute;
-    top: 5px;
+    top: 8px;
     right: 5px;
     font-size: 9px;
     color: rgb(128, 128, 128);
@@ -128,7 +129,7 @@
 .timeline-ruler > .selection-drag {
     position: absolute;
     top: 0;
-    height: 22px;
+    height: 29px;
     cursor: -webkit-grab;
     pointer-events: all;
 }
@@ -141,7 +142,7 @@
     position: absolute;
     top: 0;
     width: 8px;
-    height: 21px;
+    height: 28px;
     border-radius: 5px;
     background-color: rgb(164, 164, 164);
     border: 1px solid white;

@@ -23,63 +23,65 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.Script = function(id, range, url, injected, sourceMapURL)
+WebInspector.Script = class Script extends WebInspector.SourceCode
 {
-    WebInspector.SourceCode.call(this);
+    constructor(id, range, url, injected, sourceMapURL)
+    {
+        super();
 
-    console.assert(id);
-    console.assert(range instanceof WebInspector.TextRange);
+        console.assert(id);
+        console.assert(range instanceof WebInspector.TextRange);
 
-    this._id = id || null;
-    this._range = range || null;
-    this._url = url || null;
-    this._injected = injected || false;
+        this._id = id || null;
+        this._range = range || null;
+        this._url = url || null;
+        this._injected = injected || false;
 
-    this._resource = this._resolveResource();
-    if (this._resource)
-        this._resource.associateWithScript(this);
+        this._resource = this._resolveResource();
+        if (this._resource)
+            this._resource.associateWithScript(this);
 
-    if (sourceMapURL)
-        WebInspector.sourceMapManager.downloadSourceMap(sourceMapURL, this._url, this);
-};
+        if (sourceMapURL)
+            WebInspector.sourceMapManager.downloadSourceMap(sourceMapURL, this._url, this);
 
-WebInspector.Script.TypeIdentifier = "script";
-WebInspector.Script.URLCookieKey = "script-url";
-WebInspector.Script.DisplayNameCookieKey = "script-display-name";
+        this._scriptSyntaxTree = null;
+    }
 
-WebInspector.Script.resetUniqueDisplayNameNumbers = function()
-{
-    WebInspector.Script._nextUniqueDisplayNameNumber = 1;
-}
+    // Static
 
-WebInspector.Script._nextUniqueDisplayNameNumber = 1;
-
-WebInspector.Script.prototype = {
-    constructor: WebInspector.Script,
+    static resetUniqueDisplayNameNumbers()
+    {
+        WebInspector.Script._nextUniqueDisplayNameNumber = 1;
+    }
 
     // Public
 
     get id()
     {
         return this._id;
-    },
+    }
 
     get range()
     {
         return this._range;
-    },
+    }
 
     get url()
     {
         return this._url;
-    },
+    }
 
     get urlComponents()
     {
         if (!this._urlComponents)
             this._urlComponents = parseURL(this._url);
         return this._urlComponents;
-    },
+    }
+
+    get mimeType()
+    {
+        return this._resource.mimeType;
+    }
 
     get displayName()
     {
@@ -91,45 +93,71 @@ WebInspector.Script.prototype = {
             this._uniqueDisplayNameNumber = this.constructor._nextUniqueDisplayNameNumber++;
 
         return WebInspector.UIString("Anonymous Script %d").format(this._uniqueDisplayNameNumber);
-    },
+    }
 
     get injected()
     {
         return this._injected;
-    },
+    }
 
     get resource()
     {
         return this._resource;
-    },
+    }
 
-    canRequestContentFromBackend: function()
+    get scriptSyntaxTree()
     {
-        // We can request content if we have an id.
-        return !!this._id;
-    },
+        return this._scriptSyntaxTree;
+    }
 
-    requestContentFromBackend: function(callback)
+    requestContentFromBackend()
     {
         if (!this._id) {
             // There is no identifier to request content with. Return false to cause the
             // pending callbacks to get null content.
-            return false;
+            return Promise.reject(new Error("There is no identifier to request content with."));
         }
 
-        DebuggerAgent.getScriptSource(this._id, callback);
-        return true;
-    },
+        return DebuggerAgent.getScriptSource.promise(this._id);
+    }
 
-    saveIdentityToCookie: function(cookie)
+    saveIdentityToCookie(cookie)
     {
         cookie[WebInspector.Script.URLCookieKey] = this.url;
         cookie[WebInspector.Script.DisplayNameCookieKey] = this.displayName;
-    },
+    }
+
+    requestScriptSyntaxTree(callback)
+    {
+        if (this._scriptSyntaxTree) {
+            setTimeout(function() { callback(this._scriptSyntaxTree); }.bind(this), 0);
+            return;
+        }
+
+        var makeSyntaxTreeAndCallCallback = function(content)
+        {
+            this._makeSyntaxTree(content);
+            callback(this._scriptSyntaxTree);
+        }.bind(this);
+
+        var content = this.content;
+        if (!content && this._resource && this._resource.type === WebInspector.Resource.Type.Script && this._resource.finished)
+            content = this._resource.content;
+        if (content) {
+            setTimeout(makeSyntaxTreeAndCallCallback, 0, content);
+            return;
+        }
+
+        this.requestContent().then(function(parameters) {
+            makeSyntaxTreeAndCallCallback(parameters.content);
+        }).catch(function(error) {
+            makeSyntaxTreeAndCallCallback(null);
+        });
+    }
 
     // Private
 
-    _resolveResource: function()
+    _resolveResource()
     {
         // FIXME: We should be able to associate a Script with a Resource through identifiers,
         // we shouldn't need to lookup by URL, which is not safe with frames, where there might
@@ -175,6 +203,18 @@ WebInspector.Script.prototype = {
 
         return null;
     }
+
+    _makeSyntaxTree(sourceText)
+    {
+        if (this._scriptSyntaxTree || !sourceText)
+            return;
+
+        this._scriptSyntaxTree = new WebInspector.ScriptSyntaxTree(sourceText, this);
+    }
 };
 
-WebInspector.Script.prototype.__proto__ = WebInspector.SourceCode.prototype;
+WebInspector.Script.TypeIdentifier = "script";
+WebInspector.Script.URLCookieKey = "script-url";
+WebInspector.Script.DisplayNameCookieKey = "script-display-name";
+
+WebInspector.Script._nextUniqueDisplayNameNumber = 1;

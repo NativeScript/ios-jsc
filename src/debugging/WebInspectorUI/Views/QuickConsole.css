@@ -26,28 +26,32 @@
 .quick-console {
     position: relative;
 
-    display: -webkit-flex;
-    -webkit-align-items: flex-end;
+    display: flex;
+    align-items: flex-end;
 
     background-color: white;
     border-top: 1px solid rgb(190, 190, 190);
+    padding: 3px 0 4px;
 
     outline: none;
     overflow: hidden;
 
     font-family: Menlo, monospace;
-    font-size: 11px;
+}
+
+body.window-inactive .quick-console {
+    border-top-color: rgb(219, 219, 219);
 }
 
 .quick-console.showing-log {
-    border-top-color: rgb(240, 240, 240);
+    border-top-color: rgb(240, 240, 240) !important;
 }
 
 .quick-console > .console-prompt {
-    display: -webkit-flex;
-    -webkit-flex: 1;
+    display: flex;
+    flex: 1;
 
-    -webkit-align-items: flex-start;
+    align-items: flex-start;
 
     max-height: 150px;
 
@@ -59,13 +63,13 @@
     position: relative;
     z-index: 1;
 
-    top: 5px;
+    top: 4px;
     left: 4px;
 
-    margin-right: 1px;
+    margin-right: 2px;
 
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
 
     content: url(../Images/UserInputPrompt.svg);
 }
