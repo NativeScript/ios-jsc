@@ -9,6 +9,9 @@ CMAKE_FLAGS="-G Xcode -DCMAKE_INSTALL_PREFIX=$WORKSPACE/dist"
 mkdir -p "$WORKSPACE/cmake-build"
 cd "$WORKSPACE/cmake-build"
 
+rm -rf WebKit-prefix/src/WebKit-stamp
+rm -rf MetadataGenerator-prefix/src/MetadataGenerator-stamp
+
 echo "Building NativeScript.framework..."
 rm -f CMakeCache.txt
 echo -e "\tConfiguring..."
