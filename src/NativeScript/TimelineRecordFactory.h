@@ -6,13 +6,12 @@
 
 namespace Inspector {
 
-    class TimelineRecordFactory {
-    public:
-        static Ref<InspectorObject> createGenericRecord(JSC::ExecState*, double startTime, int maxCallStackDepth);
-        static Ref<InspectorObject> createConsoleProfileData(const String& title);
-        static void appendProfile(Inspector::InspectorObject*, RefPtr<JSC::Profile>&&);
-    };
-    
+class TimelineRecordFactory {
+public:
+    static Ref<InspectorObject> createGenericRecord(JSC::ExecState*, double startTime, int maxCallStackDepth);
+    static Ref<InspectorObject> createConsoleProfileData(const String& title);
+    static void appendProfile(Inspector::InspectorObject*, RefPtr<JSC::Profile>&&);
+};
 }
 
 #endif /* defined(__NativeScript__TimelineRecordFactory__) */

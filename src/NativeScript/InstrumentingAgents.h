@@ -5,13 +5,14 @@
 #include "InspectorTimelineAgent.h"
 
 namespace Inspector {
-    class InstrumentingAgents {
-    public:
-        InspectorTimelineAgent* inspectorTimelineAgent() const { return m_inspectorTimelineAgent; }
-        void setInspectorTimelineAgent(InspectorTimelineAgent* agent) { m_inspectorTimelineAgent = agent; }
-    private:
-        InspectorTimelineAgent* m_inspectorTimelineAgent;
-    };
+class InstrumentingAgents {
+public:
+    InspectorTimelineAgent* inspectorTimelineAgent() const { return m_inspectorTimelineAgent; }
+    void setInspectorTimelineAgent(InspectorTimelineAgent* agent) { m_inspectorTimelineAgent = agent; }
+
+private:
+    InspectorTimelineAgent* m_inspectorTimelineAgent;
+};
 }
 
 #endif /* defined(__NativeScript__InspectorInstruments__) */

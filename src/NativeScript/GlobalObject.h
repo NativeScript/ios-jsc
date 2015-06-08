@@ -115,9 +115,9 @@ public:
     Inspector::JSGlobalObjectInspectorController& inspectorController() const {
         return *this->_inspectorController.get();
     }
-    
-    Inspector::InstrumentingAgents* instrumentingAgents() const {
-        return this->_instrumentingAgents;
+
+    Inspector::InstrumentingAgents& instrumentingAgents() const {
+        return *this->_instrumentingAgents.get();
     }
 
     TypeFactory* typeFactory() const {
@@ -142,8 +142,8 @@ private:
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
 
     std::unique_ptr<Inspector::JSGlobalObjectInspectorController> _inspectorController;
-    Inspector::InstrumentingAgents* _instrumentingAgents;
-    
+    std::unique_ptr<Inspector::InstrumentingAgents> _instrumentingAgents;
+
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCBlockCallStructure;
