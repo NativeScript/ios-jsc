@@ -9,9 +9,6 @@ CMAKE_FLAGS="-G Xcode -DCMAKE_INSTALL_PREFIX=$WORKSPACE/dist"
 mkdir -p "$WORKSPACE/cmake-build"
 cd "$WORKSPACE/cmake-build"
 
-rm -rf WebKit-prefix/src/WebKit-stamp
-rm -rf MetadataGenerator-prefix/src/MetadataGenerator-stamp
-
 echo "Building NativeScript.framework..."
 rm -f CMakeCache.txt
 echo -e "\tConfiguring..."
@@ -68,7 +65,7 @@ xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/examples/Gamer
          >> "$WORKSPACE/build.log" 2>&1
 GAMERAWW_IPA_SIZE=$(du -k "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.ipa" | awk '{print $1}')
 echo "TNS_IPA_SIZE: "$GAMERAWW_IPA_SIZE"KB"
-echo "TNS_IPA_SIZE_KB\\n"$GAMERAWW_IPA_SIZE > build-stats.csv
+echo "TNS_IPA_SIZE_KB\\n"$GAMERAWW_IPA_SIZE > "$WORKSPACE/build-stats.csv"
 
 echo "Building TestRunner..."
 xcodebuild -configuration Debug -sdk iphoneos -target TestRunner ARCHS="armv7" ONLY_ACTIVE_ARCH=NO  >> "$WORKSPACE/build.log" 2>&1
