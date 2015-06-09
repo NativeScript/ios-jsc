@@ -12,11 +12,13 @@ int main(int argc, char *argv[]) {
         initWithApplicationPath:[NSBundle mainBundle].bundlePath];
     TNSRuntimeInspector.logsToSystemConsole = YES;
 
-    #ifndef NDEBUG
-      enableDebugging(argc, argv);
-    #endif
+#ifndef NDEBUG
+    enableDebugging(argc, argv);
+#endif
 
-    [runtime executeModule:@"./"];
+    CFRunLoopPerformBlock(CFRunLoopGetCurrent(), kCFRunLoopCommonModes,
+                          ^{ [runtime executeModule:@"./"]; });
+    CFRunLoopRun();
 
     return 0;
   }

@@ -132,6 +132,7 @@ set(JSFILES
     require.js
     __extends.js
     inlineFunctions.js
+    systemjs.js
 )
 
 add_definitions(
