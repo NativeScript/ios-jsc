@@ -27,6 +27,7 @@ WebInspector.CallFrameView = class CallFrameView extends WebInspector.Object
 {
     constructor(callFrame)
     {
+        super();
         console.assert(callFrame instanceof WebInspector.CallFrame);
 
         var callFrameElement = document.createElement("div");
