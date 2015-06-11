@@ -121,7 +121,10 @@ static dispatch_source_t TNSCreateInspectorServer(
                       encoding:NSUTF16LittleEndianStringEncoding];
               handler(payload, nil);
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-retain-cycles"
               dispatch_io_read(io, 0, 4, queue, ioHandler);
+#pragma clang diagnostic pop
           });
       };
 
