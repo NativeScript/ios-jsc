@@ -20,6 +20,7 @@
 
     var isDirectory = new interop.Reference(interop.types.bool, false);
 
+    var pathCache = new Map();
     function __findModule(moduleIdentifier, previousPath) {
         var isBootstrap = !previousPath;
         if (isBootstrap) {
@@ -34,6 +35,11 @@
         } else {
             moduleDir = CORE_MODULES_ROOT;
             absolutePath = NSString.pathWithComponents([applicationPath, moduleDir, moduleIdentifier]);
+        }
+
+        var requestedPath = absolutePath;
+        if (pathCache.has(requestedPath)) {
+            return pathCache.get(requestedPath);
         }
 
         if (fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
@@ -68,11 +74,14 @@
 
             //console.debug('FIND_MODULE:', moduleIdentifier, absolutePath);
 
-            return {
+            var moduleMetadata = {
                 name: nsstr(moduleIdentifier).lastPathComponent,
                 path: absolutePath,
                 bundlePath: absolutePath.substr(applicationPath.length)
             };
+
+            pathCache.set(requestedPath, moduleMetadata);
+            return moduleMetadata;
         } else {
             throw new ModuleError("Failed to find module '" + moduleIdentifier + "' relative to '" + previousPath + "'. Computed path: " + absolutePath);
         }
