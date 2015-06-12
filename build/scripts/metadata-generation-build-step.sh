@@ -13,10 +13,10 @@ function generateMetadata {
         -framework-search-paths "$FRAMEWORK_SEARCH_PATHS" \
         -output-bin "$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin" \
         -output-umbrella "$BUILT_PRODUCTS_DIR/umbrella-$1.h" \
-        2> $errorLog
+        2> "$errorLog"
 
     if [ $? -ne 0 ]; then
-        cat $errorLog
+        cat "$errorLog"
         exit 1
     fi
 }
