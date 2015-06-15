@@ -13,6 +13,10 @@
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/StrongInlines.h>
 
+#if PLATFORM(IOS)
+#import <UIKit/UIApplication.h>
+#endif
+
 #include "require.h"
 #include "inlineFunctions.h"
 #import "TNSRuntime.h"
@@ -22,7 +26,11 @@
 using namespace JSC;
 using namespace NativeScript;
 
-@implementation TNSRuntime
+@implementation TNSRuntime {
+#if PLATFORM(IOS)
+    id _memoryPressureNotificationSubscription;
+#endif
+}
 
 + (void)initialize {
     if (self == [TNSRuntime self]) {
@@ -35,6 +43,15 @@ using namespace NativeScript;
         self->_vm = VM::create(SmallHeap);
         self->_applicationPath = [applicationPath copy];
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
+
+#if PLATFORM(IOS)
+        VM* vm = self->_vm.get();
+        self->_memoryPressureNotificationSubscription = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:nil usingBlock:^(NSNotification *note) {
+            JSLockHolder lock(vm);
+            vm->heap.collect();
+            vm->heap.releaseDelayedReleasedObjects();
+        }];
+#endif
 
         JSLockHolder lock(*self->_vm);
         self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
@@ -115,6 +132,10 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
 
 - (void)dealloc {
     [self->_applicationPath release];
+#if PLATFORM(IOS)
+    [[NSNotificationCenter defaultCenter] removeObserver:self->_memoryPressureNotificationSubscription];
+    [self->_memoryPressureNotificationSubscription release];
+#endif
 
     {
         JSLockHolder lock(*self->_vm);
