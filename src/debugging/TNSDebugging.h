@@ -133,8 +133,7 @@ static dispatch_source_t TNSCreateInspectorServer(TNSInspectorFrontendConnectedH
 }
 
 static void TNSObjectiveCUncaughtExceptionHandler(NSException* exception) {
-    JSStringRef exceptionMessage = JSStringCreateWithCFString((__bridge CFStringRef)(exception.description));
-
+    JSStringRef exceptionMessage = JSStringCreateWithUTF8CString(exception.description.UTF8String);
     JSValueRef errorArguments[] = { JSValueMakeString(runtime.globalContext, exceptionMessage) };
     JSObjectRef error = JSObjectMakeError(runtime.globalContext, 1, errorArguments, NULL);
 
