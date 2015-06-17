@@ -849,20 +849,4 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProperty: calledinstance derivedCategoryProperty called');
     });
-    it('allocAndNewMethodsRetaining', function () {
-        var obj1 = new NSObject();
-        expect(obj1.retainCount()).toBe(1);
-
-        var obj2 = NSObject.alloc();
-        expect(obj2.retainCount()).toBe(1);
-
-        var obj3 = NSObject.new();
-        expect(obj3.retainCount()).toBe(1);
-    });
-    it('initializerResolving', function () {
-        var arr = new NSArray([1, 2, 3]);
-        expect(arr.objectAtIndex(0)).toBe(1);
-        expect(arr.objectAtIndex(1)).toBe(2);
-        expect(arr.objectAtIndex(2)).toBe(3);
-    });
 });
