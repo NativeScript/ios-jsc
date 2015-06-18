@@ -72,7 +72,12 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         }
 
         var firstTreeElement = this.contentTreeOutline.children[0];
-        if (firstTreeElement)
+
+        // Due to the lack of frame, the resources that come are placed under Extra Scripts folder.
+        // When we navigate to the Resources Tab the content view tries to initialize its conent with the content of the folder,
+        // but this doens't seem to be implemented in the inspector logic so we receive some exceptions
+        // So as a workaround until we have a frame, show a content view only if the first item is a script tree item
+        if (firstTreeElement && firstTreeElement instanceof WebInspector.ScriptTreeElement)
             this.showDefaultContentViewForTreeElement(firstTreeElement);
     }
 
