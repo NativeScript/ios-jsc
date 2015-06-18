@@ -62,6 +62,9 @@ module.exports = function (grunt) {
             npmPackPackage: {
                 cmd: "npm pack ./package",
                 cwd: outDistDir
+            },
+            copyInspector: {
+                cmd: "cp -a '<%= srcDir %>/build/inspector/NativeScript Inspector.app' '<%= outPackageDir %>/WebInspectorUI/NativeScript Inspector.app'"
             }
         },
         copy: {
@@ -115,6 +118,7 @@ module.exports = function (grunt) {
         "shell:NativeScript",
         "mkdir:outPackageFramework",
         "copy:packageComponents",
+        "exec:copyInspector",
         "shell:getGitSHA",
         "copy:packageJson",
         "exec:npmPackPackage"
