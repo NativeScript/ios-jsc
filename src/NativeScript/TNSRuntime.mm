@@ -48,7 +48,7 @@ using namespace NativeScript;
         VM* vm = self->_vm.get();
         self->_memoryPressureNotificationSubscription = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:nil usingBlock:^(NSNotification *note) {
             JSLockHolder lock(vm);
-            vm->heap.collect();
+            vm->heap.collect(FullCollection);
             vm->heap.releaseDelayedReleasedObjects();
         }];
 #endif
