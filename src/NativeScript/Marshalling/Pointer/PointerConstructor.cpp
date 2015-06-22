@@ -23,7 +23,7 @@ void PointerConstructor::finishCreation(VM& vm, PointerPrototype* pointerPrototy
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;
-    this->_ffiTypeMethodTable.postCall = &postCall;
+    this->_ffiTypeMethodTable.postCall = nullptr;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 
@@ -77,9 +77,6 @@ void PointerConstructor::write(ExecState* execState, const JSValue& value, void*
     }
 
     *reinterpret_cast<void**>(buffer) = handle;
-}
-
-void PointerConstructor::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
 }
 
 bool PointerConstructor::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {

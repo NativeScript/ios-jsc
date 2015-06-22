@@ -34,12 +34,12 @@ static JSValue objCInstancetype_read(ExecState* execState, const void* buffer, J
         RELEASE_ASSERT_NOT_REACHED();
     }
 
-    return toValue(execState, value, ^{ return structure; });
+    return toValue(execState, value, ^{
+      return structure;
+    });
 }
 static void objCInstancetype_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     *static_cast<id*>(buffer) = NativeScript::toObject(execState, value);
-}
-static void objCInstancetype_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
 }
 static bool objCInstancetype_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isNull() || value.inherits(ObjCWrapperObject::info()) || value.inherits(ObjCConstructorBase::info());
@@ -50,7 +50,7 @@ static const char* objCInstancetype_encode(JSC::JSCell* self) {
 const FFITypeMethodTable objCInstancetypeTypeMethodTable = {
     .read = &objCInstancetype_read,
     .write = &objCInstancetype_write,
-    .postCall = &objCInstancetype_postCall,
+    .postCall = nullptr,
     .canConvert = &objCInstancetype_canConvert,
     .ffiType = &ffi_type_pointer,
     .encode = objCInstancetype_encode
@@ -76,8 +76,6 @@ static void objCProtocol_write(ExecState* execState, const JSValue& value, void*
         return;
     }
 }
-static void objCProtocol_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool objCProtocol_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.inherits(ObjCProtocolWrapper::info()) || value.isUndefinedOrNull();
 }
@@ -87,7 +85,7 @@ static const char* objCProtocol_encode(JSC::JSCell* self) {
 const FFITypeMethodTable objCProtocolTypeMethodTable = {
     .read = &objCProtocol_read,
     .write = &objCProtocol_write,
-    .postCall = &objCProtocol_postCall,
+    .postCall = nullptr,
     .canConvert = &objCProtocol_canConvert,
     .ffiType = &ffi_type_pointer,
     .encode = objCProtocol_encode
@@ -113,8 +111,6 @@ static void objCClass_write(ExecState* execState, const JSValue& value, void* bu
         return;
     }
 }
-static void objCClass_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool objCClass_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.inherits(ObjCConstructorBase::info()) || value.isUndefinedOrNull();
 }
@@ -124,7 +120,7 @@ static const char* objCClass_encode(JSC::JSCell* self) {
 const FFITypeMethodTable objCClassTypeMethodTable = {
     .read = &objCClass_read,
     .write = &objCClass_write,
-    .postCall = &objCClass_postCall,
+    .postCall = nullptr,
     .canConvert = &objCClass_canConvert,
     .ffiType = &ffi_type_pointer,
     .encode = &objCClass_encode
@@ -147,8 +143,6 @@ static void objCSelector_write(ExecState* execState, const JSValue& value, void*
         return;
     }
 }
-static void objCSelector_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool objCSelector_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isString() || value.isUndefinedOrNull();
 }
@@ -158,7 +152,7 @@ static const char* objCSelector_encode(JSC::JSCell* self) {
 const FFITypeMethodTable objCSelectorTypeMethodTable = {
     .read = &objCSelector_read,
     .write = &objCSelector_write,
-    .postCall = &objCSelector_postCall,
+    .postCall = nullptr,
     .canConvert = &objCSelector_canConvert,
     .ffiType = &ffi_type_pointer,
     .encode = &objCSelector_encode

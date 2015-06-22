@@ -11,28 +11,26 @@
 namespace NativeScript {
 using namespace JSC;
 
-#define CREATE_NUMERIC_TYPE_METHOD_TABLE(name, T, ffi_type)                                              \
-    static JSValue name##Read(ExecState* execState, const void* buffer, JSCell* self) {                  \
-        return jsNumber(*static_cast<const T*>(buffer));                                                 \
-    }                                                                                                    \
-    static void name##Write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {    \
-        *static_cast<T*>(buffer) = value.toNumber(execState);                                            \
-    }                                                                                                    \
-    static void name##PostCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) { \
-    }                                                                                                    \
-    static bool name##CanConvert(ExecState* execState, const JSValue& value, JSCell* self) {             \
-        return value.isNumber();                                                                         \
-    }                                                                                                    \
-    static const char* name##encode(JSCell* self) {                                                      \
-        return @encode(T);                                                                               \
-    }                                                                                                    \
-    const FFITypeMethodTable name##TypeMethodTable = {                                                   \
-        .read = name##Read,                                                                              \
-        .write = name##Write,                                                                            \
-        .postCall = name##PostCall,                                                                      \
-        .canConvert = name##CanConvert,                                                                  \
-        .ffiType = &ffi_type,                                                                            \
-        .encode = name##encode                                                                           \
+#define CREATE_NUMERIC_TYPE_METHOD_TABLE(name, T, ffi_type)                                           \
+    static JSValue name##Read(ExecState* execState, const void* buffer, JSCell* self) {               \
+        return jsNumber(*static_cast<const T*>(buffer));                                              \
+    }                                                                                                 \
+    static void name##Write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) { \
+        *static_cast<T*>(buffer) = value.toNumber(execState);                                         \
+    }                                                                                                 \
+    static bool name##CanConvert(ExecState* execState, const JSValue& value, JSCell* self) {          \
+        return value.isNumber();                                                                      \
+    }                                                                                                 \
+    static const char* name##encode(JSCell* self) {                                                   \
+        return @encode(T);                                                                            \
+    }                                                                                                 \
+    const FFITypeMethodTable name##TypeMethodTable = {                                                \
+        .read = name##Read,                                                                           \
+        .write = name##Write,                                                                         \
+        .postCall = nullptr,                                                                          \
+        .canConvert = name##CanConvert,                                                               \
+        .ffiType = &ffi_type,                                                                         \
+        .encode = name##encode                                                                        \
     };
 
 CREATE_NUMERIC_TYPE_METHOD_TABLE(int8, int8_t, ffi_type_sint8);

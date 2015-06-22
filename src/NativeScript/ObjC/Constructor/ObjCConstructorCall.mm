@@ -26,28 +26,21 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);
 
     Base::initializeFFI(vm, returnType, parametersTypes, 2);
-    Base::setArgument(1, metadata->selector());
+    _selector = metadata->selector();
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCConstructorCall::executeCall(ExecState* execState) {
-    ObjCConstructorCall* self = jsCast<ObjCConstructorCall*>(execState->callee());
+EncodedJSValue ObjCConstructorCall::call(FFICallFrame& frame) {
+    id allocatedInstance = [_klass alloc];
+    frame.setArgument(0, allocatedInstance);
+    frame.setArgument(1, _selector);
+    frame.setFunction(FFI_FN(&objc_msgSend));
 
-    self->preCall(execState);
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
+    auto result = baseCall(frame);
 
-    id instance = [self->_klass alloc];
-    self->setArgument(0, instance);
-    self->executeFFICall(execState, FFI_FN(&objc_msgSend));
-
-    JSValue result = self->postCall(execState);
-
-    // wrapping the object retains it, we need to balance the +1 from alloc-ing it
-    id resultObject = *static_cast<id*>(self->getReturn());
+    id resultObject = *static_cast<id*>(frame.result());
     [resultObject release];
 
-    return JSValue::encode(result);
+    return result;
 }
 
 CallType ObjCConstructorCall::getCallData(JSCell* cell, CallData& callData) {

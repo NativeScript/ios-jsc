@@ -32,8 +32,8 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    const void* functionPointer() const {
-        return this->_functionPointer;
+    const void* function() const {
+        return this->_function;
     }
 
     bool retainsReturnedCocoaObjects() {
@@ -47,7 +47,11 @@ private:
 
     void finishCreation(JSC::VM&, const void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState*);
+    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState* execState) {
+        return Base::baseExecuteCall<FFIFunctionCall>(execState);
+    }
+
+    FFI_DERIVED_MEMBERS;
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
@@ -55,7 +59,7 @@ private:
         JSC::jsCast<FFIFunctionCall*>(cell)->~FFIFunctionCall();
     }
 
-    const void* _functionPointer;
+    const void* _function;
 
     bool _retainsReturnedCocoaObjects;
 };

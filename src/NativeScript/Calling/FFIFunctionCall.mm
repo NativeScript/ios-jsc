@@ -14,29 +14,23 @@ using namespace Metadata;
 
 const ClassInfo FFIFunctionCall::s_info = { "FFIFunctionCall", &Base::s_info, 0, CREATE_METHOD_TABLE(FFIFunctionCall) };
 
-void FFIFunctionCall::finishCreation(VM& vm, const void* functionPointer, const WTF::String& name, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects) {
+void FFIFunctionCall::finishCreation(VM& vm, const void* function, const WTF::String& name, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects) {
     Base::finishCreation(vm, name);
-    this->_functionPointer = functionPointer;
+    this->_function = function;
     this->_retainsReturnedCocoaObjects = retainsReturnedCocoaObjects;
     Base::initializeFFI(vm, returnType, parameterTypes);
 }
 
-EncodedJSValue FFIFunctionCall::executeCall(ExecState* execState) {
-    FFIFunctionCall* self = jsCast<FFIFunctionCall*>(execState->callee());
+EncodedJSValue FFIFunctionCall::call(FFICallFrame& frame) {
+    frame.setFunction(FFI_FN(_function));
 
-    self->preCall(execState);
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
+    auto result = baseCall(frame);
 
-    self->executeFFICall(execState, FFI_FN(self->_functionPointer));
-
-    JSValue result = self->postCall(execState);
-    if (self->retainsReturnedCocoaObjects()) {
-        id returnValue = *static_cast<id*>(self->getReturn());
+    if (retainsReturnedCocoaObjects()) {
+        id returnValue = *static_cast<id*>(frame.result());
         [returnValue release];
     }
-    return JSValue::encode(result);
+    return result;
 }
 
 CallType FFIFunctionCall::getCallData(JSCell* cell, CallData& callData) {
