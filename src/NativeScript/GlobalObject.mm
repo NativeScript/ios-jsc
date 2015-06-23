@@ -28,6 +28,7 @@
 #include "RecordConstructor.h"
 #include "RecordPrototypeFunctions.h"
 #include "Interop.h"
+#include "InspectorPageAgent.h"
 #include "ObjCExtend.h"
 #include "ObjCTypeScriptExtend.h"
 #include "__extends.h"
@@ -111,11 +112,14 @@ void GlobalObject::finishCreation(VM& vm) {
     ExecState* globalExec = this->globalExec();
 
     std::unique_ptr<Inspector::InspectorTimelineAgent> timelineAgent = std::make_unique<Inspector::InspectorTimelineAgent>(this);
+    std::unique_ptr<Inspector::InspectorPageAgent> pageAgent = std::make_unique<Inspector::InspectorPageAgent>();
+    
     this->_instrumentingAgents = std::make_unique<Inspector::InstrumentingAgents>();
     this->_instrumentingAgents->setInspectorTimelineAgent(timelineAgent.get());
 
     this->_inspectorController = std::make_unique<Inspector::JSGlobalObjectInspectorController>(*this);
     this->_inspectorController->appendExtraAgent(WTF::move(timelineAgent));
+    this->_inspectorController->appendExtraAgent(WTF::move(pageAgent));
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
 
