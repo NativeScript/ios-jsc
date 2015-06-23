@@ -1,1 +1,0 @@
-Versions/Current/WebKitPluginHost.app

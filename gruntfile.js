@@ -64,7 +64,7 @@ module.exports = function (grunt) {
                 cwd: outDistDir
             },
             copyInspector: {
-                cmd: "cp -a '<%= srcDir %>/build/inspector/NativeScript Inspector.app' '<%= outPackageDir %>/WebInspectorUI/NativeScript Inspector.app'"
+                cmd: "cp -a '<%= srcDir %>/build/inspector/NativeScript Inspector.zip' '<%= outPackageDir %>/WebInspectorUI/NativeScript Inspector.zip'"
             }
         },
         copy: {
@@ -74,6 +74,7 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "TNSDebugging.h", dest: "<%= outPackageFrameworkDir %>/__PROJECT_NAME__" },
                     { expand: true, cwd: "<%= srcDir %>/src/debugging/WebInspectorUI", src: "**", dest: "<%= outPackageDir %>/WebInspectorUI/Safari" },
+                    { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "unpack-inspector.js", dest: "<%= outPackageDir %>" },
                     { expand: true, cwd: "<%= outDistDir %>/metadataGenerator", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
                 ],
