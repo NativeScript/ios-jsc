@@ -8,10 +8,10 @@ set(HEADER_FILES
     Calling/FFIFunctionCallback.h
     ConsoleMethodOverrides.h
     GlobalObject.h
-    InspectorTimelineAgent.h
-    InspectorPageAgent.h
-    InstrumentingAgents.h
-    MimeTypeHelper.h
+    inspector/InspectorTimelineAgent.h
+    inspector/InspectorPageAgent.h
+    inspector/InstrumentingAgents.h
+    inspector/MimeTypeHelper.h
     Interop.h
     JSErrors.h
     JSWarnings.h
@@ -85,8 +85,8 @@ set(SOURCE_FILES
     Calling/FFIFunctionCallback.cpp
     ConsoleMethodOverrides.cpp
     GlobalObject.mm
-    InspectorTimelineAgent.cpp
-    InspectorPageAgent.mm
+    inspector/InspectorTimelineAgent.cpp
+    inspector/InspectorPageAgent.mm
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp
