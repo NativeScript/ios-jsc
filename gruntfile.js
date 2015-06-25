@@ -84,7 +84,6 @@ module.exports = function (grunt) {
             },
             packageJson: { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
         },
-
         shell: {
             NativeScript: {
                 command: './build/scripts/build.sh',
@@ -101,7 +100,22 @@ module.exports = function (grunt) {
                     callback: assignGitSHA
                 }
             },
-        }
+        },
+        modify_json: {
+            file: {
+              expand: true,
+              cwd: outPackageDir,
+              src: ['package.json'],
+              options: {
+                  add: true,
+                  fields: {
+                      "scripts": { "postinstall": "node ./unpack-inspector.js" }
+                  }
+              }
+          }
+
+          
+        }        
     });
 
     grunt.loadNpmTasks("grunt-contrib-clean");
@@ -109,6 +123,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-mkdir");
     grunt.loadNpmTasks("grunt-exec");
     grunt.loadNpmTasks("grunt-shell");
+    grunt.loadNpmTasks("grunt-modify-json");
 
     grunt.registerTask("default", [
         "package"
@@ -122,6 +137,7 @@ module.exports = function (grunt) {
         "exec:copyInspector",
         "shell:getGitSHA",
         "copy:packageJson",
+        "modify_json",
         "exec:npmPackPackage"
     ]);
 };
