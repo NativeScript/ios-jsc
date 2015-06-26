@@ -18,7 +18,7 @@
 #include <JavaScriptCore/runtime/JSConsole.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 #include "ConsoleMethodOverrides.h"
-#include "InstrumentingAgents.h"
+#include "inspector/InstrumentingAgents.h"
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCPrototype.h"
@@ -28,7 +28,7 @@
 #include "RecordConstructor.h"
 #include "RecordPrototypeFunctions.h"
 #include "Interop.h"
-#include "InspectorPageAgent.h"
+#include "inspector/InspectorPageAgent.h"
 #include "ObjCExtend.h"
 #include "ObjCTypeScriptExtend.h"
 #include "__extends.h"

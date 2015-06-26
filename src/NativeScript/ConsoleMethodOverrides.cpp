@@ -1,7 +1,7 @@
 #include "ConsoleMethodOverrides.h"
 #include "GlobalObject.h"
-#include "InspectorTimelineAgent.h"
-#include "InstrumentingAgents.h"
+#include "inspector/InspectorTimelineAgent.h"
+#include "inspector/InstrumentingAgents.h"
 
 using namespace JSC;
 

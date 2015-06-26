@@ -8,6 +8,7 @@ set(HEADER_FILES
     Calling/FFIFunctionCallback.h
     ConsoleMethodOverrides.h
     GlobalObject.h
+    inspector/CachedResource.h
     inspector/InspectorTimelineAgent.h
     inspector/InspectorPageAgent.h
     inspector/InstrumentingAgents.h
@@ -87,6 +88,7 @@ set(SOURCE_FILES
     GlobalObject.mm
     inspector/InspectorTimelineAgent.cpp
     inspector/InspectorPageAgent.mm
+    inspector/CachedResource.mm
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp

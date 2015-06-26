@@ -6,6 +6,7 @@
 #include <JavaScriptCore/inspector/InspectorAgentBase.h>
 #include <JavaScriptCore/inspector/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/inspector/InspectorFrontendDispatchers.h>
+#include "CachedResource.h"
 
 namespace Inspector {
     class InspectorPageAgent
@@ -49,13 +50,11 @@ namespace Inspector {
 
         
     private:
+        const WTF::String m_frameIdentifier;
         std::unique_ptr<PageFrontendDispatcher> m_frontendDispatcher;
         RefPtr<PageBackendDispatcher> m_backendDispatcher;
 
-        std::unique_ptr<WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType>> m_mimeTypeMap;
-        WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType>* m_cachedResources;
-        
-        Inspector::Protocol::Page::ResourceType resourceTypeByMimeType(WTF::String mimeType);
+        WTF::HashMap<WTF::String, Inspector::CachedResource>* m_cachedResources;
     };
 }
 
