@@ -87,10 +87,6 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     }
 
     JSFunction* moduleFunction = jsCast<JSFunction*>(constructedFunction);
-    SourceProvider* sourceProvider = moduleFunction->sourceCode()->provider();
-
-    TNSRuntime* runtime = static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData);
-    runtime->_sourceProviders.append(sourceProvider);
 
     return JSValue::encode(moduleFunction);
 }

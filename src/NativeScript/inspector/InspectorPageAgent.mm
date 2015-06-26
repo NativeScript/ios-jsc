@@ -8,7 +8,8 @@
 namespace Inspector {
 InspectorPageAgent::InspectorPageAgent()
     : Inspector::InspectorAgentBase(WTF::ASCIILiteral("Page"))
-    , m_frameIdentifier("NativeScriptMainFrameIdentifier") {
+    , m_frameIdentifier("NativeScriptMainFrameIdentifier")
+    , m_frameUrl("http://main.xml") {
 }
 
 void InspectorPageAgent::didCreateFrontendAndBackend(FrontendChannel* frontendChannel, BackendDispatcher* backendDispatcher) {
@@ -53,7 +54,7 @@ void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protoco
     Ref<Inspector::Protocol::Page::Frame> frameObject = Inspector::Protocol::Page::Frame::create()
                                                             .setId(m_frameIdentifier)
                                                             .setLoaderId("Loader Identifier")
-                                                            .setUrl("http://main.xml")
+                                                            .setUrl(m_frameUrl)
                                                             .setSecurityOrigin("")
                                                             .setMimeType("text/xml")
                                                             .release();
@@ -172,6 +173,13 @@ void InspectorPageAgent::archive(ErrorString&, String* out_data) {
 }
 
 void InspectorPageAgent::getResourceContent(ErrorString& errorString, const String& in_frameId, const String& in_url, String* out_content, bool* out_base64Encoded) {
+    if(in_url == m_frameUrl) {
+        *out_base64Encoded = false;
+        *out_content = WTF::emptyString();
+        
+        return;
+    }
+    
     auto iterator = m_cachedResources->find(in_url);
     if (iterator == m_cachedResources->end()) {
         errorString = WTF::ASCIILiteral("No such item");

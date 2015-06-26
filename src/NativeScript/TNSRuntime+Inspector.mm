@@ -57,14 +57,6 @@ private:
                                           messageHandler:messageHandler] autorelease];
 }
 
-- (void)flushSourceProviders {
-    if (JSC::Debugger* debugger = self->_globalObject->debugger()) {
-        for (SourceProvider* e : self->_sourceProviders) {
-            debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
-        }
-    }
-}
-
 @end
 
 @implementation TNSRuntimeInspector {
@@ -97,13 +89,6 @@ private:
 
 - (void)dispatchMessage:(NSString*)message {
     self->_inspectorController->dispatchMessageFromFrontend(message);
-
-    id json = [NSJSONSerialization JSONObjectWithData:[message dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
-    if ([json isKindOfClass:[NSDictionary class]]) {
-        if ([@"Debugger.enable" isEqual:[json valueForKey:@"method"]]) {
-            [self->_runtime flushSourceProviders];
-        }
-    }
 }
 
 - (void)reportFatalError:(JSValueRef)error {

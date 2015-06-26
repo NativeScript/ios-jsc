@@ -49,6 +49,7 @@ public:
 
 private:
     const WTF::String m_frameIdentifier;
+    const WTF::String m_frameUrl;
     std::unique_ptr<PageFrontendDispatcher> m_frontendDispatcher;
     RefPtr<PageBackendDispatcher> m_backendDispatcher;
 
