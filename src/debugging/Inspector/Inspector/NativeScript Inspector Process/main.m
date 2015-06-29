@@ -1,11 +1,5 @@
-#import <Foundation/Foundation.h>
-#import <AppKit/NSApplication.h>
-#import <AppKit/NSWindow.h>
+@import AppKit;
 @import WebKit;
-
-@interface WKPreferences (WKPrivate)
-@property (nonatomic, setter=_setAllowFileAccessFromFileURLs:) BOOL _allowFileAccessFromFileURLs;
-@end
 
 @interface InspectorApplicationDelegate : NSObject <NSApplicationDelegate>
 -(BOOL) applicationShouldTerminateAfterLastWindowClosed: (NSApplication *)sender;
@@ -28,12 +22,11 @@ int main(int argc, const char * argv[]) {
         [app activateIgnoringOtherApps:YES];
         
         NSRect frame = NSMakeRect(60.0, 200.0, 750.0, 650.0);
-        WKWebViewConfiguration* configuration = [[WKWebViewConfiguration alloc] init];
-        configuration.preferences._allowFileAccessFromFileURLs = YES;
-        
-        WKWebView* webView = [[WKWebView alloc] initWithFrame:frame configuration:configuration];
+
+        WebView* webView = [[WebView alloc] initWithFrame:frame];
+
         webView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:@(argv[1])]]];
+        webView.mainFrameURL = @(argv[1]);
         
         NSWindow* window = [[NSWindow alloc]
                             initWithContentRect: frame

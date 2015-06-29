@@ -62,9 +62,6 @@ module.exports = function (grunt) {
             npmPackPackage: {
                 cmd: "npm pack ./package",
                 cwd: outDistDir
-            },
-            copyInspector: {
-                cmd: "cp -a '<%= srcDir %>/build/inspector/NativeScript Inspector.zip' '<%= outPackageDir %>/WebInspectorUI/NativeScript Inspector.zip'"
             }
         },
         copy: {
@@ -74,7 +71,7 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "TNSDebugging.h", dest: "<%= outPackageFrameworkDir %>/__PROJECT_NAME__" },
                     { expand: true, cwd: "<%= srcDir %>/src/debugging/WebInspectorUI", src: "**", dest: "<%= outPackageDir %>/WebInspectorUI/Safari" },
-                    { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "unpack-inspector.js", dest: "<%= outPackageDir %>" },
+                    { expand: true, cwd: "<%= srcDir %>/build/inspector/", src: "NativeScript Inspector.zip", dest: "<%= outPackageDir %>/WebInspectorUI/" },
                     { expand: true, cwd: "<%= outDistDir %>/metadataGenerator", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
                 ],
@@ -109,7 +106,7 @@ module.exports = function (grunt) {
               options: {
                   add: true,
                   fields: {
-                      "scripts": { "postinstall": "node ./unpack-inspector.js" }
+                      "scripts": { "postinstall": "unzip './WebInspectorUI/NativeScript Inspector.zip' -d ./WebInspectorUI" }
                   }
               }
           }
@@ -134,7 +131,6 @@ module.exports = function (grunt) {
         "shell:NativeScript",
         "mkdir:outPackageFramework",
         "copy:packageComponents",
-        "exec:copyInspector",
         "shell:getGitSHA",
         "copy:packageJson",
         "modify_json",
