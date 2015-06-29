@@ -59,40 +59,42 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     this->setSelector(aSelector ?: metadata->selector());
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCMethodCall::executeCall(ExecState* execState) {
-    ObjCMethodCall* self = jsCast<ObjCMethodCall*>(execState->callee());
-
-    self->preCall(execState);
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
+EncodedJSValue ObjCMethodCall::call(FFICallFrame& frame) {
+    ExecState* execState = frame.execState();
+    EncodedJSValue result;
 
     id target = NativeScript::toObject(execState, execState->thisValue());
     Class targetClass = object_getClass(target);
 
     if (class_conformsToProtocol(targetClass, @protocol(TNSDerivedClass))) {
-        objc_super super = { target, class_getSuperclass(targetClass) };
+        struct objc_super objCSuper = { target, class_getSuperclass(targetClass) };
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
-        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super.super_class), NSStringFromSelector(self->getArgument<SEL>(1)));
+        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(objCSuper.super_class), NSStringFromSelector(_selector));
 #endif
-        self->setArgument(0, &super);
-        self->executeFFICall(execState, FFI_FN(self->_msgSendSuper));
+        frame.setArgument(0, &objCSuper);
+        frame.setArgument(1, _selector);
+        frame.setFunction(FFI_FN(_msgSendSuper));
+
+        result = baseCall(frame); // WARNING: We will use a pointer to the objCSuper so don't call this outside the scope.
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
-        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(self->getArgument<SEL>(1)));
+        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(_selector));
 #endif
-        self->setArgument(0, target);
-        self->executeFFICall(execState, FFI_FN(self->_msgSend));
+        frame.setArgument(0, target);
+        frame.setArgument(1, _selector);
+        frame.setFunction(FFI_FN(_msgSend));
+
+        result = baseCall(frame);
     }
 
-    JSValue result = self->postCall(execState);
-    if (self->retainsReturnedCocoaObjects()) {
-        id returnValue = *static_cast<id*>(self->getReturn());
+    if (retainsReturnedCocoaObjects()) {
+        id returnValue = *static_cast<id*>(frame.result());
         [returnValue release];
     }
-    return JSValue::encode(result);
+
+    return result;
 }
 
 CallType ObjCMethodCall::getCallData(JSCell* cell, CallData& callData) {

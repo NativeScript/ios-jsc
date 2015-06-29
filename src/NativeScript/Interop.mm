@@ -55,7 +55,7 @@ void* tryHandleofValue(const JSValue& value, bool* hasHandle) {
         handle = static_cast<void*>(protocolWrapper->protocol());
     } else if (FFIFunctionCall* functionCall = jsDynamicCast<FFIFunctionCall*>(value)) {
         *hasHandle = true;
-        handle = const_cast<void*>(functionCall->functionPointer());
+        handle = const_cast<void*>(functionCall->function());
     } else if (ObjCBlockCall* blockCall = jsDynamicCast<ObjCBlockCall*>(value)) {
         *hasHandle = true;
         handle = static_cast<void*>(blockCall->block());

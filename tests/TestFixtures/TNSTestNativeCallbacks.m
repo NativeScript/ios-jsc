@@ -257,4 +257,8 @@
     TNSLog([NSString stringWithFormat:@"%d", [object instanceMethod:3]]);
 }
 
++ (NSString*)callRecursively:(NSString* (^)())block {
+    return block();
+}
+
 @end

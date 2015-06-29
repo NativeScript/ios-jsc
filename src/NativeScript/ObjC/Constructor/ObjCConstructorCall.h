@@ -32,9 +32,7 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    SEL selector() const {
-        return getArgument<SEL>(1);
-    }
+    SEL selector() const { return _selector; }
 
     Class klass() const {
         return this->_klass;
@@ -49,13 +47,19 @@ private:
 
     void finishCreation(JSC::VM&, GlobalObject*, Class, const Metadata::MethodMeta*);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState*);
+    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState* execState) {
+        return Base::baseExecuteCall<ObjCConstructorCall>(execState);
+    }
+
+    FFI_DERIVED_MEMBERS;
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
     static void destroy(JSC::JSCell* cell) {
         JSC::jsCast<ObjCConstructorCall*>(cell)->~ObjCConstructorCall();
     }
+
+    SEL _selector;
 
     Class _klass;
 };

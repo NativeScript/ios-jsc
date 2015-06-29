@@ -45,9 +45,6 @@ static void writeAdapter(ExecState* execState, const JSValue& value, void* buffe
     }
 }
 
-void ObjCConstructorBase::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
-
 bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     ObjCConstructorBase* type = jsCast<ObjCConstructorBase*>(self);
 
@@ -96,7 +93,7 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
 
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
-    this->_ffiTypeMethodTable.postCall = &postCall;
+    this->_ffiTypeMethodTable.postCall = nullptr;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 

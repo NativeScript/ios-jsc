@@ -128,9 +128,6 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
     }
 }
 
-void RecordConstructor::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
-
 bool RecordConstructor::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isObject() || value.inherits(RecordInstance::info());
 }
@@ -163,7 +160,7 @@ void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, Rec
     this->_ffiTypeMethodTable.ffiType = ffiType;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;
-    this->_ffiTypeMethodTable.postCall = &postCall;
+    this->_ffiTypeMethodTable.postCall = nullptr;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
     this->_recordType = recordType;

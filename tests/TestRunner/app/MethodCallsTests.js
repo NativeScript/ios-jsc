@@ -849,4 +849,12 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProperty: calledinstance derivedCategoryProperty called');
     });
+    it('methods can be recursively called', function() {
+        var result = TNSTestNativeCallbacks.callRecursively(function() {
+            return TNSTestNativeCallbacks.callRecursively(function() {
+                 return "InnerRecursiveResult";
+            });
+        });
+        expect(result).toBe("InnerRecursiveResult");
+    });
 });

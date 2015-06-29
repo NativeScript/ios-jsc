@@ -54,4 +54,6 @@
 
 + (void)apiSwizzle:(TNSSwizzleKlass*)object;
 
++ (NSString*)callRecursively:(NSString* (^)())block;
+
 @end
