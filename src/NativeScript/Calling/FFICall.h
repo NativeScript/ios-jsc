@@ -35,19 +35,25 @@ protected:
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
     template <class Derived>
-    static JSC::EncodedJSValue baseExecuteCall(JSC::ExecState* execState) {
+    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState* execState) {
         auto instance = JSC::jsCast<Derived*>(execState->callee());
-        uint8_t* buffer = (uint8_t*)alloca(instance->_stackSize);
+        uint8_t* buffer = reinterpret_cast<uint8_t*>(alloca(instance->_stackSize));
         void** args = reinterpret_cast<void**>(buffer + instance->_argsArrayOffset);
         for (size_t i = 0; i < instance->_argsCount; i++) {
             args[i] = buffer + instance->_argValueOffsets[i];
         }
-        return instance->derivedExecuteCall(buffer, execState);
+
+        instance->preCall(execState, buffer);
+        if (execState->hadException()) {
+            return JSC::JSValue::encode(JSC::jsUndefined());
+        }
+
+        return instance->derivedExecuteCall(execState, buffer);
     }
 
-    void preCall(uint8_t* buffer, JSC::ExecState* execState);
+    void preCall(JSC::ExecState* execState, uint8_t* buffer);
 
-    JSC::JSValue postCall(uint8_t* buffer, JSC::ExecState* execState);
+    JSC::JSValue postCall(JSC::ExecState* execState, uint8_t* buffer);
 
     template <class T>
     void setArgument(uint8_t* buffer, unsigned index, T argumentValue) {
@@ -59,7 +65,7 @@ protected:
         return *static_cast<T*>(buffer + this->_argValueOffsets[index]);
     }
 
-    void executeFFICall(uint8_t* buffer, JSC::ExecState* execState, void (*function)(void)) {
+    void executeFFICall(JSC::ExecState* execState, uint8_t* buffer, void (*function)(void)) {
         JSC::JSLock::DropAllLocks locksDropper(execState);
         ffi_call(this->_cif, function, reinterpret_cast<void*>(buffer + this->_returnOffset), reinterpret_cast<void**>(buffer + this->_argsArrayOffset));
     }
@@ -82,7 +88,7 @@ protected:
 
 #define FFI_DERIVED_MEMBERS \
     friend class FFICall;   \
-    JSC::EncodedJSValue derivedExecuteCall(uint8_t* buffer, JSC::ExecState* execState);
+    JSC::EncodedJSValue derivedExecuteCall(JSC::ExecState* execState, uint8_t* buffer);
 };
 }
 

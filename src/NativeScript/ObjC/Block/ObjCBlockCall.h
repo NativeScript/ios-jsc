@@ -51,8 +51,6 @@ private:
 
     void finishCreation(JSC::VM&, id block, ObjCBlockType*);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState* execState) { return Base::baseExecuteCall<ObjCBlockCall>(execState); }
-
     FFI_DERIVED_MEMBERS;
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);

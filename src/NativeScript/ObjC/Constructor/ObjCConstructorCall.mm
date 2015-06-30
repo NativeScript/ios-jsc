@@ -29,30 +29,23 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     this->_selector = metadata->selector();
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCConstructorCall::derivedExecuteCall(uint8_t* buffer, ExecState* execState) {
-    ObjCConstructorCall* self = jsCast<ObjCConstructorCall*>(execState->callee());
+EncodedJSValue JSC_HOST_CALL ObjCConstructorCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
+    id instance = [this->_klass alloc];
+    this->setArgument(buffer, 0, instance);
+    this->setArgument(buffer, 1, this->selector());
+    this->executeFFICall(execState, buffer, FFI_FN(&objc_msgSend));
 
-    self->preCall(buffer, execState);
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
-
-    id instance = [self->_klass alloc];
-    self->setArgument(buffer, 0, instance);
-    self->setArgument(buffer, 1, this->selector());
-    self->executeFFICall(buffer, execState, FFI_FN(&objc_msgSend));
-
-    JSValue result = self->postCall(buffer, execState);
+    JSValue result = this->postCall(execState, buffer);
 
     // wrapping the object retains it, we need to balance the +1 from alloc-ing it
-    id resultObject = *static_cast<id*>(self->getReturn(buffer));
+    id resultObject = *static_cast<id*>(this->getReturn(buffer));
     [resultObject release];
 
     return JSValue::encode(result);
 }
 
 CallType ObjCConstructorCall::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &ObjCConstructorCall::executeCall;
+    callData.native.function = &Base::executeCall<ObjCConstructorCall>;
     return CallTypeHost;
 }
 

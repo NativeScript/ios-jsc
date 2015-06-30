@@ -59,12 +59,7 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     this->setSelector(aSelector ?: metadata->selector());
 }
 
-EncodedJSValue ObjCMethodCall::derivedExecuteCall(uint8_t* buffer, ExecState* execState) {
-    this->preCall(buffer, execState);
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
-
+EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
     id target = NativeScript::toObject(execState, execState->thisValue());
     Class targetClass = object_getClass(target);
 
@@ -76,7 +71,7 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(uint8_t* buffer, ExecState* ex
 #endif
         this->setArgument(buffer, 0, &super);
         this->setArgument(buffer, 1, this->_selector);
-        this->executeFFICall(buffer, execState, FFI_FN(this->_msgSendSuper));
+        this->executeFFICall(execState, buffer, FFI_FN(this->_msgSendSuper));
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
@@ -84,10 +79,10 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(uint8_t* buffer, ExecState* ex
 #endif
         this->setArgument(buffer, 0, target);
         this->setArgument(buffer, 1, this->_selector);
-        this->executeFFICall(buffer, execState, FFI_FN(this->_msgSend));
+        this->executeFFICall(execState, buffer, FFI_FN(this->_msgSend));
     }
 
-    JSValue result = this->postCall(buffer, execState);
+    JSValue result = this->postCall(execState, buffer);
     if (this->retainsReturnedCocoaObjects()) {
         id returnValue = *static_cast<id*>(this->getReturn(buffer));
         [returnValue release];
@@ -96,7 +91,7 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(uint8_t* buffer, ExecState* ex
 }
 
 CallType ObjCMethodCall::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &ObjCMethodCall::executeCall;
+    callData.native.function = &Base::executeCall<ObjCMethodCall>;
     return CallTypeHost;
 }
 }

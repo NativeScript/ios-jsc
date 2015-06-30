@@ -43,18 +43,18 @@ void FFICall::initializeFFI(VM& vm, JSCell* returnType, const Vector<JSCell*>& p
     this->_cif = new ffi_cif;
     ffi_prep_cif(this->_cif, FFI_DEFAULT_ABI, parametersCount + initialArgumentIndex, const_cast<ffi_type*>(this->_returnType.ffiType), const_cast<ffi_type**>(parameterTypesFFITypes));
 
-    _argsCount = _cif->nargs;
-    _stackSize = 0;
+    this->_argsCount = _cif->nargs;
+    this->_stackSize = 0;
 
-    _argsArrayOffset = _stackSize;
-    _stackSize += sizeof(void * [_cif->nargs]);
+    this->_argsArrayOffset = this->_stackSize;
+    this->_stackSize += sizeof(void * [this->_cif->nargs]);
 
-    _returnOffset = _stackSize;
-    _stackSize += _cif->rtype->size;
+    this->_returnOffset = this->_stackSize;
+    this->_stackSize += this->_cif->rtype->size;
 
-    for (size_t i = 0; i < _argsCount; i++) {
-        _argValueOffsets.push_back(_stackSize);
-        _stackSize += _cif->arg_types[i]->size;
+    for (size_t i = 0; i < this->_argsCount; i++) {
+        this->_argValueOffsets.push_back(this->_stackSize);
+        this->_stackSize += this->_cif->arg_types[i]->size;
     }
 }
 
@@ -71,7 +71,7 @@ void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(ffiCall->_parameterTypesCells.begin(), ffiCall->_parameterTypesCells.end());
 }
 
-void FFICall::preCall(uint8_t* buffer, ExecState* execState) {
+void FFICall::preCall(ExecState* execState, uint8_t* buffer) {
     const size_t parametersCount = this->_parameterTypes.size();
     if (parametersCount != execState->argumentCount()) {
         WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\". ", execState->argumentCount(), parametersCount);
@@ -93,7 +93,7 @@ void FFICall::preCall(uint8_t* buffer, ExecState* execState) {
     }
 }
 
-JSValue FFICall::postCall(uint8_t* buffer, ExecState* execState) {
+JSValue FFICall::postCall(ExecState* execState, uint8_t* buffer) {
     for (unsigned i = 0; i < execState->argumentCount(); i++) {
         JSValue argument = execState->uncheckedArgument(i);
         void* argumentBuffer = reinterpret_cast<void**>(buffer + this->_argsArrayOffset)[i + this->_initialArgumentIndex];

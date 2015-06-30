@@ -49,8 +49,6 @@ private:
 
     void finishCreation(JSC::VM&, GlobalObject*, Class, const Metadata::MethodMeta*);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState* execState) { return Base::baseExecuteCall<ObjCConstructorCall>(execState); }
-
     FFI_DERIVED_MEMBERS;
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
