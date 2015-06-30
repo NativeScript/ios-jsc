@@ -47,7 +47,7 @@ private:
 
     void finishCreation(JSC::VM&, const void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState*);
+    FFI_DERIVED_MEMBERS;
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 

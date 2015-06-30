@@ -10,14 +10,15 @@
 #define __NativeScript__FFICall__
 
 #include "FFIType.h"
+#include <vector>
 
 namespace NativeScript {
 class FFICall : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    void* getReturn() {
-        return this->_return;
+    void* getReturn(uint8_t* buffer) {
+        return static_cast<void*>(buffer + this->_returnOffset);
     }
 
     DECLARE_INFO;
@@ -33,36 +34,61 @@ protected:
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
-    void preCall(JSC::ExecState*);
+    template <class Derived>
+    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState* execState) {
+        auto instance = JSC::jsCast<Derived*>(execState->callee());
+        uint8_t* buffer = reinterpret_cast<uint8_t*>(alloca(instance->_stackSize));
+        void** args = reinterpret_cast<void**>(buffer + instance->_argsArrayOffset);
+        for (size_t i = 0; i < instance->_argsCount; i++) {
+            args[i] = buffer + instance->_argValueOffsets[i];
+        }
 
-    JSC::JSValue postCall(JSC::ExecState*);
+        instance->preCall(execState, buffer);
+        if (execState->hadException()) {
+            return JSC::JSValue::encode(JSC::jsUndefined());
+        }
+
+        return instance->derivedExecuteCall(execState, buffer);
+    }
+
+    void preCall(JSC::ExecState* execState, uint8_t* buffer);
+
+    JSC::JSValue postCall(JSC::ExecState* execState, uint8_t* buffer);
 
     template <class T>
-    void setArgument(unsigned index, T argumentValue) {
-        *static_cast<T*>(this->_arguments[index]) = argumentValue;
+    void setArgument(uint8_t* buffer, unsigned index, T argumentValue) {
+        *static_cast<T*>(static_cast<void*>(buffer + this->_argValueOffsets[index])) = argumentValue;
     }
 
     template <class T>
-    T getArgument(unsigned index) const {
-        return *static_cast<T*>(this->_arguments[index]);
+    T getArgument(uint8_t* buffer, unsigned index) const {
+        return *static_cast<T*>(buffer + this->_argValueOffsets[index]);
     }
 
-    void executeFFICall(JSC::ExecState* execState, void (*function)(void)) {
+    void executeFFICall(JSC::ExecState* execState, uint8_t* buffer, void (*function)(void)) {
         JSC::JSLock::DropAllLocks locksDropper(execState);
-        ffi_call(this->_cif, function, this->_return, this->_arguments);
+        ffi_call(this->_cif, function, reinterpret_cast<void*>(buffer + this->_returnOffset), reinterpret_cast<void**>(buffer + this->_argsArrayOffset));
     }
 
     JSC::WriteBarrier<JSC::JSCell> _returnTypeCell;
     FFITypeMethodTable _returnType;
-    void* _return;
 
     WTF::Vector<JSC::WriteBarrier<JSC::JSCell>> _parameterTypesCells;
     WTF::Vector<FFITypeMethodTable> _parameterTypes;
-    void** _arguments;
 
     size_t _initialArgumentIndex;
 
     ffi_cif* _cif;
+
+    size_t _argsCount;
+    size_t _stackSize;
+    size_t _returnOffset;
+    size_t _argsArrayOffset;
+    std::vector<size_t> _argValueOffsets;
+
+#define FFI_DERIVED_MEMBERS \
+    friend class FFICall;   \
+    JSC::EncodedJSValue derivedExecuteCall(JSC::ExecState* execState, uint8_t* buffer);
 };
 }
 

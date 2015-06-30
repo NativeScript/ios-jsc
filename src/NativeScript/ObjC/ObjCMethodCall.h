@@ -32,8 +32,12 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
+    SEL selector() {
+        return this->_selector;
+    }
+
     void setSelector(SEL aSelector) {
-        Base::setArgument(1, aSelector);
+        this->_selector = aSelector;
     }
 
     bool retainsReturnedCocoaObjects() {
@@ -47,7 +51,7 @@ private:
 
     void finishCreation(JSC::VM&, GlobalObject*, const Metadata::MethodMeta*, SEL);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL executeCall(JSC::ExecState*);
+    FFI_DERIVED_MEMBERS;
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
@@ -60,6 +64,8 @@ private:
     void* _msgSendSuper;
 
     bool _retainsReturnedCocoaObjects;
+
+    SEL _selector;
 };
 }
 

@@ -26,32 +26,26 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);
 
     Base::initializeFFI(vm, returnType, parametersTypes, 2);
-    Base::setArgument(1, metadata->selector());
+    this->_selector = metadata->selector();
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCConstructorCall::executeCall(ExecState* execState) {
-    ObjCConstructorCall* self = jsCast<ObjCConstructorCall*>(execState->callee());
+EncodedJSValue ObjCConstructorCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
+    id instance = [this->_klass alloc];
+    this->setArgument(buffer, 0, instance);
+    this->setArgument(buffer, 1, this->selector());
+    this->executeFFICall(execState, buffer, FFI_FN(&objc_msgSend));
 
-    self->preCall(execState);
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
-
-    id instance = [self->_klass alloc];
-    self->setArgument(0, instance);
-    self->executeFFICall(execState, FFI_FN(&objc_msgSend));
-
-    JSValue result = self->postCall(execState);
+    JSValue result = this->postCall(execState, buffer);
 
     // wrapping the object retains it, we need to balance the +1 from alloc-ing it
-    id resultObject = *static_cast<id*>(self->getReturn());
+    id resultObject = *static_cast<id*>(this->getReturn(buffer));
     [resultObject release];
 
     return JSValue::encode(result);
 }
 
 CallType ObjCConstructorCall::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &ObjCConstructorCall::executeCall;
+    callData.native.function = &Base::executeCall<ObjCConstructorCall>;
     return CallTypeHost;
 }
 

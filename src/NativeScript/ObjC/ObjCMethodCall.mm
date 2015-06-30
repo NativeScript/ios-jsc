@@ -59,14 +59,7 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     this->setSelector(aSelector ?: metadata->selector());
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCMethodCall::executeCall(ExecState* execState) {
-    ObjCMethodCall* self = jsCast<ObjCMethodCall*>(execState->callee());
-
-    self->preCall(execState);
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
-
+EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
     id target = NativeScript::toObject(execState, execState->thisValue());
     Class targetClass = object_getClass(target);
 
@@ -76,27 +69,29 @@ EncodedJSValue JSC_HOST_CALL ObjCMethodCall::executeCall(ExecState* execState) {
         bool isInstance = !class_isMetaClass(targetClass);
         NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super.super_class), NSStringFromSelector(self->getArgument<SEL>(1)));
 #endif
-        self->setArgument(0, &super);
-        self->executeFFICall(execState, FFI_FN(self->_msgSendSuper));
+        this->setArgument(buffer, 0, &super);
+        this->setArgument(buffer, 1, this->_selector);
+        this->executeFFICall(execState, buffer, FFI_FN(this->_msgSendSuper));
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
         NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(self->getArgument<SEL>(1)));
 #endif
-        self->setArgument(0, target);
-        self->executeFFICall(execState, FFI_FN(self->_msgSend));
+        this->setArgument(buffer, 0, target);
+        this->setArgument(buffer, 1, this->_selector);
+        this->executeFFICall(execState, buffer, FFI_FN(this->_msgSend));
     }
 
-    JSValue result = self->postCall(execState);
-    if (self->retainsReturnedCocoaObjects()) {
-        id returnValue = *static_cast<id*>(self->getReturn());
+    JSValue result = this->postCall(execState, buffer);
+    if (this->retainsReturnedCocoaObjects()) {
+        id returnValue = *static_cast<id*>(this->getReturn(buffer));
         [returnValue release];
     }
     return JSValue::encode(result);
 }
 
 CallType ObjCMethodCall::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &ObjCMethodCall::executeCall;
+    callData.native.function = &Base::executeCall<ObjCMethodCall>;
     return CallTypeHost;
 }
 }
