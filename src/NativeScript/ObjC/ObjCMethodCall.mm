@@ -59,10 +59,8 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     this->setSelector(aSelector ?: metadata->selector());
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCMethodCall::executeCall(ExecState* execState) {
-    ObjCMethodCall* self = jsCast<ObjCMethodCall*>(execState->callee());
-
-    self->preCall(execState);
+EncodedJSValue ObjCMethodCall::derivedExecuteCall(uint8_t* buffer, ExecState* execState) {
+    this->preCall(buffer, execState);
     if (execState->hadException()) {
         return JSValue::encode(jsUndefined());
     }
@@ -76,20 +74,22 @@ EncodedJSValue JSC_HOST_CALL ObjCMethodCall::executeCall(ExecState* execState) {
         bool isInstance = !class_isMetaClass(targetClass);
         NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super.super_class), NSStringFromSelector(self->getArgument<SEL>(1)));
 #endif
-        self->setArgument(0, &super);
-        self->executeFFICall(execState, FFI_FN(self->_msgSendSuper));
+        this->setArgument(buffer, 0, &super);
+        this->setArgument(buffer, 1, this->_selector);
+        this->executeFFICall(buffer, execState, FFI_FN(this->_msgSendSuper));
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
         NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(self->getArgument<SEL>(1)));
 #endif
-        self->setArgument(0, target);
-        self->executeFFICall(execState, FFI_FN(self->_msgSend));
+        this->setArgument(buffer, 0, target);
+        this->setArgument(buffer, 1, this->_selector);
+        this->executeFFICall(buffer, execState, FFI_FN(this->_msgSend));
     }
 
-    JSValue result = self->postCall(execState);
-    if (self->retainsReturnedCocoaObjects()) {
-        id returnValue = *static_cast<id*>(self->getReturn());
+    JSValue result = this->postCall(buffer, execState);
+    if (this->retainsReturnedCocoaObjects()) {
+        id returnValue = *static_cast<id*>(this->getReturn(buffer));
         [returnValue release];
     }
     return JSValue::encode(result);

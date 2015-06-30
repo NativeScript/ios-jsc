@@ -28,20 +28,21 @@ void ObjCBlockCall::finishCreation(VM& vm, id block, ObjCBlockType* blockType) {
     const WTF::Vector<JSCell*> parameterTypes = blockType->parameterTypes();
 
     Base::initializeFFI(vm, blockType->returnType(), parameterTypes, 1);
-    Base::setArgument(0, this->_block.get());
 }
 
-EncodedJSValue ObjCBlockCall::executeCall(ExecState* execState) {
+EncodedJSValue ObjCBlockCall::derivedExecuteCall(uint8_t* buffer, ExecState* execState) {
     ObjCBlockCall* self = jsCast<ObjCBlockCall*>(execState->callee());
 
-    self->preCall(execState);
+    Base::setArgument(buffer, 0, this->_block.get());
+
+    self->preCall(buffer, execState);
     if (execState->hadException()) {
         return JSValue::encode(jsUndefined());
     }
 
-    self->executeFFICall(execState, FFI_FN(reinterpret_cast<BlockLiteral*>(self->_block.get())->invoke));
+    self->executeFFICall(buffer, execState, FFI_FN(reinterpret_cast<BlockLiteral*>(self->_block.get())->invoke));
 
-    return JSValue::encode(self->postCall(execState));
+    return JSValue::encode(self->postCall(buffer, execState));
 }
 
 CallType ObjCBlockCall::getCallData(JSCell* cell, CallData& callData) {
