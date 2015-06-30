@@ -29,7 +29,7 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     this->_selector = metadata->selector();
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCConstructorCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
+EncodedJSValue ObjCConstructorCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
     id instance = [this->_klass alloc];
     this->setArgument(buffer, 0, instance);
     this->setArgument(buffer, 1, this->selector());
