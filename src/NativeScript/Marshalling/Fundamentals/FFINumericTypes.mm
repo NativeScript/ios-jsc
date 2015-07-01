@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
+#include <string.h>
 #include "FFINumericTypes.h"
 
 namespace NativeScript {
@@ -16,7 +17,9 @@ using namespace JSC;
         return jsNumber(*static_cast<const T*>(buffer));                                                 \
     }                                                                                                    \
     static void name##Write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {    \
-        *static_cast<T*>(buffer) = value.toNumber(execState);                                            \
+        /* TRICKY: The buffer pointer is no longer well aligned T. */                                    \
+        T theValue = value.toNumber(execState);                                                          \
+        memcpy(buffer, &theValue, sizeof(T));                                                            \
     }                                                                                                    \
     static void name##PostCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) { \
     }                                                                                                    \
