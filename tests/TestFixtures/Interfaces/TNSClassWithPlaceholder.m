@@ -14,7 +14,7 @@
 
 @implementation TNSClassWithPlaceholderReal
 
-- (NSString *)description {
+- (NSString*)description {
     return @"real";
 }
 
@@ -26,9 +26,14 @@
 
 @implementation TNSClassWithPlaceholderPlaceholder
 
-- (TNSClassWithPlaceholder *)init {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-designated-initializers"
+
+- (TNSClassWithPlaceholder*)init {
     return (id)[[TNSClassWithPlaceholderReal alloc] init];
 }
+
+#pragma clang diagnostic pop
 
 - (oneway void)release {
     [super release];
