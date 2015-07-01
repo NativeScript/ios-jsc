@@ -11,6 +11,7 @@ function generateMetadata {
         -std $GCC_C_LANGUAGE_STANDARD \
         -header-search-paths "$HEADER_SEARCH_PATHS" \
         -framework-search-paths "$FRAMEWORK_SEARCH_PATHS" \
+        -enable-header-preprocessing-if-needed=true \
         -output-bin "$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin" \
         -output-umbrella "$BUILT_PRODUCTS_DIR/umbrella-$1.h" \
         2> "$errorLog"
