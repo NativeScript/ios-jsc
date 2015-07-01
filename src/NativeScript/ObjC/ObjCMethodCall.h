@@ -20,9 +20,9 @@ class ObjCMethodCall : public FFICall {
 public:
     typedef FFICall Base;
 
-    static ObjCMethodCall* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, const Metadata::MethodMeta* metadata, SEL aSelector = nil) {
+    static ObjCMethodCall* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, const Metadata::MethodMeta* metadata) {
         ObjCMethodCall* cell = new (NotNull, JSC::allocateCell<ObjCMethodCall>(vm.heap)) ObjCMethodCall(vm, structure);
-        cell->finishCreation(vm, globalObject, metadata, aSelector);
+        cell->finishCreation(vm, globalObject, metadata);
         return cell;
     }
 
@@ -49,7 +49,7 @@ private:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM&, GlobalObject*, const Metadata::MethodMeta*, SEL);
+    void finishCreation(JSC::VM&, GlobalObject*, const Metadata::MethodMeta*);
 
     FFI_DERIVED_MEMBERS;
 

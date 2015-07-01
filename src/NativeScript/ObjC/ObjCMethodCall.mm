@@ -19,7 +19,7 @@ using namespace Metadata;
 
 const ClassInfo ObjCMethodCall::s_info = { "ObjCMethodCall", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCMethodCall) };
 
-void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const MethodMeta* metadata, SEL aSelector) {
+void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const MethodMeta* metadata) {
     Base::finishCreation(vm, metadata->jsName());
     const TypeEncoding* encodings = metadata->encodings()->first();
 
@@ -56,7 +56,7 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     }
 #endif
 
-    this->setSelector(aSelector ?: metadata->selector());
+    this->setSelector(metadata->selector());
 }
 
 EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
