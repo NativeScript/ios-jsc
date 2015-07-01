@@ -49,5 +49,9 @@ describe(module.id, function () {
         expect(NSDataBase64DecodingOptions.NSDataBase64DecodingIgnoreUnknownCharacters).toBe(1);
         expect(NSDataBase64DecodingOptions.IgnoreUnknownCharacters).toBe(1);
     });
+
+    it("EnumWithoutCommonPrefix", function () {
+        expect(CLAuthorizationStatus.kCLAuthorizationStatusRestricted).toBe(1);
+    });
     
 });
