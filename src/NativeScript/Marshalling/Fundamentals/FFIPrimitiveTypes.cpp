@@ -13,6 +13,7 @@
 #include "TypeFactory.h"
 #include "FFISimpleType.h"
 #include "ReferenceInstance.h"
+#include "ReleasePool.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -127,13 +128,9 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
     }
 
     if (value.isString()) {
-        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-
         WTF::CString result = value.toString(execState)->value(execState).utf8();
-        char* copy = strdup(result.data());
-        PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), copy));
-        pointer->setAdopted(true);
-        *static_cast<char**>(buffer) = static_cast<char*>(pointer->data());
+        *static_cast<const char**>(buffer) = result.data();
+        ReleasePool<WTF::CString>::releaseSoon(std::move(result));
         return;
     }
 

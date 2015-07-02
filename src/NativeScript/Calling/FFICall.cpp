@@ -92,8 +92,4 @@ void FFICall::preCall(ExecState* execState, uint8_t* buffer) {
         }
     }
 }
-
-JSValue FFICall::postCall(ExecState* execState, uint8_t* buffer) {
-    return this->_returnType.read(execState, buffer + this->_returnOffset, this->_returnTypeCell.get());
-}
 }

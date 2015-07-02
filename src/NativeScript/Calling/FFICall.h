@@ -56,7 +56,9 @@ protected:
 
     void preCall(JSC::ExecState* execState, uint8_t* buffer);
 
-    JSC::JSValue postCall(JSC::ExecState* execState, uint8_t* buffer);
+    JSC::JSValue postCall(JSC::ExecState* execState, uint8_t* buffer) {
+        return this->_returnType.read(execState, buffer + this->_returnOffset, this->_returnTypeCell.get());
+    }
 
     template <class T>
     void setArgument(uint8_t* buffer, unsigned index, T argumentValue) {
