@@ -7,6 +7,7 @@
 //
 
 #include "FFICall.h"
+#include <malloc/malloc.h>
 
 namespace NativeScript {
 using namespace JSC;
@@ -47,14 +48,14 @@ void FFICall::initializeFFI(VM& vm, JSCell* returnType, const Vector<JSCell*>& p
     this->_stackSize = 0;
 
     this->_argsArrayOffset = this->_stackSize;
-    this->_stackSize += sizeof(void * [this->_cif->nargs]);
+    this->_stackSize += malloc_good_size(sizeof(void * [this->_cif->nargs]));
 
     this->_returnOffset = this->_stackSize;
-    this->_stackSize += this->_cif->rtype->size;
+    this->_stackSize += malloc_good_size(std::max(this->_cif->rtype->size, sizeof(ffi_arg)));
 
     for (size_t i = 0; i < this->_argsCount; i++) {
         this->_argValueOffsets.push_back(this->_stackSize);
-        this->_stackSize += this->_cif->arg_types[i]->size;
+        this->_stackSize += malloc_good_size(std::max(this->_cif->arg_types[i]->size, sizeof(ffi_arg)));
     }
 }
 
