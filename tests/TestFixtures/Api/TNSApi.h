@@ -12,7 +12,7 @@ typedef NS_ENUM(NSInteger, TNSEnums) {
     TNSEnum3,
 };
 
-typedef NS_OPTIONS(NSInteger, TNSOptions) {
+typedef NS_OPTIONS(NSInteger, TNSOptions){
     TNSOption1 = 1 << 0,
     TNSOption2 = 1 << 1,
     TNSOption3 = 1 << 2,
@@ -28,8 +28,7 @@ void functionThrowsException();
 
 @interface TNSApi : NSObject
 
-@property(getter=customGetter, setter=customSetter
-          :) int property;
+@property(getter=customGetter, setter=customSetter:) int property;
 
 typedef UIColor NIKColor;
 @property(strong, nonatomic) NIKColor* strokeColor; // ^{UIColor=#}
@@ -38,6 +37,8 @@ typedef UIColor NIKColor;
 - (void)methodThrowsException;
 
 - (void)methodCalledInDealloc;
+
++ (BOOL)method:(NSInteger)errorCode error:(NSError**)outError;
 @end
 
 @interface TNSConflictingSelectorTypes1 : NSObject

@@ -28,6 +28,14 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
 
     Base::initializeFFI(vm, returnTypeCell, parameterTypesCells, 2);
     this->_retainsReturnedCocoaObjects = metadata->ownsReturnedCocoaObject();
+    this->_hasErrorOutParameter = metadata->hasErrorOutParameter();
+
+    if (this->_hasErrorOutParameter) {
+        this->_argumentCountValidator = [](FFICall* call, ExecState* execState) {
+            return execState->argumentCount() == call->parametersCount() ||
+                   execState->argumentCount() == call->parametersCount() - 1;
+        };
+    }
 
     this->_msgSend = reinterpret_cast<void*>(&objc_msgSend);
     this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper);
@@ -63,6 +71,13 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t*
     id target = NativeScript::toObject(execState, execState->thisValue());
     Class targetClass = object_getClass(target);
 
+    NSError* outError = nil;
+    if (this->_hasErrorOutParameter) {
+        if (this->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
+            this->setArgument(buffer, this->_argsCount - 1, &outError);
+        }
+    }
+
     if (class_conformsToProtocol(targetClass, @protocol(TNSDerivedClass))) {
         objc_super super = { target, class_getSuperclass(targetClass) };
 #ifdef DEBUG_OBJC_INVOCATION
@@ -86,6 +101,10 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t*
     if (this->retainsReturnedCocoaObjects()) {
         id returnValue = *static_cast<id*>(this->getReturn(buffer));
         [returnValue release];
+    }
+
+    if (outError) {
+        return throwVMError(execState, toValue(execState, outError));
     }
     return JSValue::encode(result);
 }

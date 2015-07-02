@@ -24,6 +24,10 @@ public:
 
     DECLARE_INFO;
 
+    size_t parametersCount() const {
+        return this->_parameterTypesCells.size();
+    }
+
 protected:
     FFICall(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
@@ -74,6 +78,10 @@ protected:
         JSC::JSLock::DropAllLocks locksDropper(execState);
         ffi_call(this->_cif, function, reinterpret_cast<void*>(buffer + this->_returnOffset), reinterpret_cast<void**>(buffer + this->_argsArrayOffset));
     }
+
+    bool (*_argumentCountValidator)(FFICall*, JSC::ExecState*) = [](FFICall* call, JSC::ExecState* execState) {
+        return call->parametersCount() == execState->argumentCount();
+    };
 
     JSC::WriteBarrier<JSC::JSCell> _returnTypeCell;
     FFITypeMethodTable _returnType;

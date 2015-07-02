@@ -279,6 +279,34 @@ describe(module.id, function () {
         }).toThrowError();
     });
 
+    it("NSError", function () {
+        expect(function () {
+            TNSApi.methodError(0);
+        }).not.toThrow();
+
+        var isThrown = false;
+        try {
+            TNSApi.methodError(1);
+        } catch (e) {
+            isThrown = true;
+            expect(e instanceof NSError).toBe(true);
+        } finally {
+            expect(isThrown).toBe(true);
+        }
+
+        expect(function () {
+            TNSApi.methodError(1, null);
+        }).not.toThrow();
+
+        expect(function () {
+            TNSApi.methodError(1, 2, 3);
+        }).toThrowError(/arguments count/);
+
+        var errorRef = new interop.Reference();
+        TNSApi.methodError(1, errorRef);
+        expect(errorRef.value instanceof NSError).toBe(true);
+    });
+
     it("globalPropertyOfGlobalObject", function () {
         expect(global.toString()).toBe("[object NativeScriptGlobal]");
     });

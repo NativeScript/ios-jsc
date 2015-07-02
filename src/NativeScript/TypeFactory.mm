@@ -401,7 +401,12 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::PointerEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = (innerType == this->_voidType.get()) ? reinterpret_cast<JSCell*>(this->_pointerConstructor.get()) : reinterpret_cast<JSCell*>(this->getReferenceType(globalObject, innerType));
+        if (innerType == this->_voidType.get()) {
+            result = this->_pointerConstructor.get();
+        } else {
+            result = this->getReferenceType(globalObject, innerType);
+        }
+
         break;
     }
     case BinaryTypeEncodingType::VaListEncoding:

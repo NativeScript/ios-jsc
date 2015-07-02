@@ -42,6 +42,17 @@ void functionThrowsException() {
     [self methodCalledInDealloc];
 }
 
++ (BOOL)method:(NSInteger)errorCode error:(NSError**)outError {
+    if (outError) {
+        if (errorCode != 0) {
+            *outError = [NSError errorWithDomain:@"TNSErrorDomain" code:errorCode userInfo:nil];
+        } else {
+            *outError = nil;
+        }
+    }
+    return errorCode == 0;
+}
+
 @end
 
 @implementation TNSConflictingSelectorTypes1
