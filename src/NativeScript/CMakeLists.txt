@@ -61,6 +61,7 @@ set(HEADER_FILES
     Runtime/JSWeakRefConstructor.h
     Runtime/JSWeakRefInstance.h
     Runtime/JSWeakRefPrototype.h
+    Runtime/ReleasePool.h
     SymbolLoader.h
     TimelineRecordFactory.h
     TNSRuntime+Diagnostics.h

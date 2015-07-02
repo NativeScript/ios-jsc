@@ -23,7 +23,6 @@ void PointerConstructor::finishCreation(VM& vm, PointerPrototype* pointerPrototy
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;
-    this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 

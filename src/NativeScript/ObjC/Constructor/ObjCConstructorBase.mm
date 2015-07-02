@@ -45,9 +45,6 @@ static void writeAdapter(ExecState* execState, const JSValue& value, void* buffe
     }
 }
 
-void ObjCConstructorBase::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
-
 bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     ObjCConstructorBase* type = jsCast<ObjCConstructorBase*>(self);
 
@@ -96,7 +93,6 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
 
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
-    this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 
@@ -191,8 +187,8 @@ static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
     }
 
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
-    JSValue result = toValue(execState, static_cast<id>(handle), ^Structure * {
-        return constructor->instancesStructure();
+    JSValue result = toValue(execState, static_cast<id>(handle), ^Structure* {
+      return constructor->instancesStructure();
     });
     return JSValue::encode(result);
 }

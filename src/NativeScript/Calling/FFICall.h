@@ -10,6 +10,7 @@
 #define __NativeScript__FFICall__
 
 #include "FFIType.h"
+#include "ReleasePool.h"
 #include <vector>
 
 namespace NativeScript {
@@ -42,6 +43,8 @@ protected:
         for (size_t i = 0; i < instance->_argsCount; i++) {
             args[i] = buffer + instance->_argValueOffsets[i];
         }
+
+        ReleasePoolHolder poolHolder;
 
         instance->preCall(execState, buffer);
         if (execState->hadException()) {

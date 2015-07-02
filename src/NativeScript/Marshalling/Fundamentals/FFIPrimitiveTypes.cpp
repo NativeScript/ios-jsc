@@ -26,15 +26,12 @@ static void noopType_write(ExecState* execState, const JSValue& value, void* buf
     JSValue exception = createError(execState, WTF::ASCIILiteral("Can not write to noop type."));
     execState->vm().throwException(execState, exception);
 }
-static void noopType_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool noopType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return false;
 }
 const FFITypeMethodTable noopTypeMethodTable = {
     .read = &noopType_read,
     .write = &noopType_write,
-    .postCall = &noopType_postCall,
     .canConvert = &noopType_canConvert,
     .ffiType = &ffi_type_pointer
 };
@@ -45,8 +42,6 @@ static JSValue voidType_read(ExecState* execState, const void* buffer, JSCell* s
 }
 static void voidType_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
 }
-static void voidType_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool voidType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isUndefinedOrNull();
 }
@@ -56,7 +51,6 @@ static const char* voidType_encode(JSC::JSCell* self) {
 const FFITypeMethodTable voidTypeMethodTable = {
     .read = &voidType_read,
     .write = &voidType_write,
-    .postCall = &voidType_postCall,
     .canConvert = &voidType_canConvert,
     .ffiType = &ffi_type_void,
     .encode = &voidType_encode
@@ -69,8 +63,6 @@ static JSValue boolType_read(ExecState* execState, const void* buffer, JSCell* s
 static void boolType_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     *static_cast<bool*>(buffer) = value.toBoolean(execState);
 }
-static void boolType_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool boolType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return true;
 }
@@ -80,7 +72,6 @@ static const char* boolType_encode(JSC::JSCell* self) {
 const FFITypeMethodTable boolTypeMethodTable = {
     .read = &boolType_read,
     .write = &boolType_write,
-    .postCall = &boolType_postCall,
     .canConvert = &boolType_canConvert,
     .ffiType = &ffi_type_sint8,
     .encode = &boolType_encode
@@ -102,8 +93,6 @@ static void unicharType_write(ExecState* execState, const JSValue& value, void* 
     UChar character = str->value(execState).characterAt(0);
     *static_cast<UChar*>(buffer) = character;
 }
-static void unicharType_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool unicharType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isCell() && value.toString(execState)->length() == 1;
 }
@@ -113,7 +102,6 @@ static const char* unicharType_encode(JSC::JSCell* self) {
 const FFITypeMethodTable unicharTypeMethodTable = {
     .read = &unicharType_read,
     .write = &unicharType_write,
-    .postCall = &unicharType_postCall,
     .canConvert = &unicharType_canConvert,
     .ffiType = &ffi_type_ushort,
     .encode = &unicharType_encode
@@ -160,8 +148,6 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
     execState->vm().throwException(execState, exception);
     return;
 }
-static void cStringType_postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
 static bool cStringType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return true;
 }
@@ -171,7 +157,6 @@ static const char* cStringType_encode(JSC::JSCell* self) {
 const FFITypeMethodTable utf8CStringTypeMethodTable = {
     .read = &cStringType_read,
     .write = &cStringType_write,
-    .postCall = &cStringType_postCall,
     .canConvert = &cStringType_canConvert,
     .ffiType = &ffi_type_pointer,
     .encode = &cStringType_encode

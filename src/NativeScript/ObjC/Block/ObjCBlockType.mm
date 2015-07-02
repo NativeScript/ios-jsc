@@ -6,13 +6,16 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
+#include <memory>
 #include "ObjCBlockType.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockCallback.h"
 #include "PointerInstance.h"
+#include "ReleasePool.h"
 
 namespace NativeScript {
 
+using namespace std;
 using namespace JSC;
 
 typedef struct {
@@ -55,17 +58,21 @@ static JSBlock* createBlock(ExecState* execState, JSCell* function, ObjCBlockTyp
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ObjCBlockCallback* blockCallback = ObjCBlockCallback::create(execState->vm(), globalObject, globalObject->objCBlockCallbackStructure(), function, blockType);
 
-    JSBlock* block = new JSBlock({.isa = nullptr,
-                                  .flags = BLOCK_HAS_COPY_DISPOSE,
-                                  .reserved = 0,
-                                  .invoke = nullptr,
-                                  .descriptor = &kJSBlockDescriptor,
-                                  .callback = blockCallback });
+    unique_ptr<JSBlock> block = make_unique<JSBlock>();
+    block->isa = nullptr;
+    block->flags = BLOCK_HAS_COPY_DISPOSE;
+    block->reserved = 0;
+    block->invoke = nullptr;
+    block->descriptor = &kJSBlockDescriptor;
+    block->callback = blockCallback;
+
     block->invoke = block->callback->functionPointer();
+    JSBlock* blockPointer = block.get();
 
-    object_setClass(reinterpret_cast<id>(block), objc_getClass("__NSMallocBlock__"));
+    ReleasePool<unique_ptr<JSBlock>>::releaseSoon(std::move(block));
+    object_setClass(reinterpret_cast<id>(blockPointer), objc_getClass("__NSMallocBlock__"));
 
-    return block;
+    return blockPointer;
 }
 
 const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockType) };
@@ -91,10 +98,6 @@ void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buff
     }
 }
 
-void ObjCBlockType::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-    delete *static_cast<JSBlock**>(buffer);
-}
-
 bool ObjCBlockType::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     if (value.isCell()) {
         CallData callData;
@@ -114,7 +117,6 @@ void ObjCBlockType::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;
-    this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 
