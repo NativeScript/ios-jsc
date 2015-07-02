@@ -71,6 +71,7 @@ module.exports = function (grunt) {
                     { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
                     { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "TNSDebugging.h", dest: "<%= outPackageFrameworkDir %>/__PROJECT_NAME__" },
                     { expand: true, cwd: "<%= srcDir %>/src/debugging/WebInspectorUI", src: "**", dest: "<%= outPackageDir %>/WebInspectorUI/Safari" },
+                    { expand: true, cwd: "<%= srcDir %>/build/inspector/", src: "NativeScript Inspector.zip", dest: "<%= outPackageDir %>/WebInspectorUI/" },
                     { expand: true, cwd: "<%= outDistDir %>/metadataGenerator", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
                     { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
                 ],
@@ -80,7 +81,6 @@ module.exports = function (grunt) {
             },
             packageJson: { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
         },
-
         shell: {
             NativeScript: {
                 command: './build/scripts/build.sh',
@@ -97,7 +97,22 @@ module.exports = function (grunt) {
                     callback: assignGitSHA
                 }
             },
-        }
+        },
+        modify_json: {
+            file: {
+              expand: true,
+              cwd: outPackageDir,
+              src: ['package.json'],
+              options: {
+                  add: true,
+                  fields: {
+                      "scripts": { "postinstall": "unzip './WebInspectorUI/NativeScript Inspector.zip' -d ./WebInspectorUI" }
+                  }
+              }
+          }
+
+          
+        }        
     });
 
     grunt.loadNpmTasks("grunt-contrib-clean");
@@ -105,6 +120,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-mkdir");
     grunt.loadNpmTasks("grunt-exec");
     grunt.loadNpmTasks("grunt-shell");
+    grunt.loadNpmTasks("grunt-modify-json");
 
     grunt.registerTask("default", [
         "package"
@@ -117,6 +133,7 @@ module.exports = function (grunt) {
         "copy:packageComponents",
         "shell:getGitSHA",
         "copy:packageJson",
+        "modify_json",
         "exec:npmPackPackage"
     ]);
 };

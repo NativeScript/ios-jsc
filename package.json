@@ -29,6 +29,7 @@
     "grunt-exec": "^0.4.6",
     "grunt-grunt": "^0.2.2",
     "grunt-mkdir": "^0.1.2",
+    "grunt-modify-json": "^0.1.1",
     "grunt-shell": "^0.7.0",
     "shelljs": "^0.3.0",
     "ws": "^0.7.1"
