@@ -92,19 +92,4 @@ void FFICall::preCall(ExecState* execState, uint8_t* buffer) {
         }
     }
 }
-
-JSValue FFICall::postCall(ExecState* execState, uint8_t* buffer) {
-    for (unsigned i = 0; i < execState->argumentCount(); i++) {
-        JSValue argument = execState->uncheckedArgument(i);
-        void* argumentBuffer = reinterpret_cast<void**>(buffer + this->_argsArrayOffset)[i + this->_initialArgumentIndex];
-        JSCell* parameterType = this->_parameterTypesCells[i].get();
-        this->_parameterTypes[i].postCall(execState, argument, argumentBuffer, parameterType);
-
-        if (execState->hadException()) {
-            return jsUndefined();
-        }
-    }
-
-    return this->_returnType.read(execState, buffer + this->_returnOffset, this->_returnTypeCell.get());
-}
 }

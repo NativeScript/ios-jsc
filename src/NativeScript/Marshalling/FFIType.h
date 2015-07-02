@@ -21,8 +21,6 @@ struct FFITypeMethodTable {
 
     void (*write)(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell* self);
 
-    void (*postCall)(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell* self);
-
     bool (*canConvert)(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell* self);
 
     const ffi_type* ffiType;

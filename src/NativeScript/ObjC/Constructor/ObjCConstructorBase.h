@@ -67,8 +67,6 @@ private:
 
     static void write(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell*);
 
-    static void postCall(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell*);
-
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
     static const char* encode(JSC::JSCell*);

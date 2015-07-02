@@ -55,9 +55,6 @@ void ReferenceTypeInstance::write(ExecState* execState, const JSValue& value, vo
     *reinterpret_cast<void**>(buffer) = handle;
 }
 
-void ReferenceTypeInstance::postCall(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-}
-
 bool ReferenceTypeInstance::canConvert(ExecState* execState, const JSValue& value, JSCell* buffer) {
     return value.isUndefinedOrNull() || value.inherits(ReferenceInstance::info()) || value.inherits(PointerInstance::info());
 }
@@ -81,7 +78,6 @@ void ReferenceTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;
-    this->_ffiTypeMethodTable.postCall = &postCall;
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 
