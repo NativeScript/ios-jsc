@@ -17,9 +17,7 @@ using namespace JSC;
         return jsNumber(*static_cast<const T*>(buffer));                                              \
     }                                                                                                 \
     static void name##Write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) { \
-        /* TRICKY: The buffer pointer is no longer well aligned T. */                                 \
-        T theValue = value.toNumber(execState);                                                       \
-        memcpy(buffer, &theValue, sizeof(T));                                                         \
+        *static_cast<T*>(buffer) = value.toNumber(execState);                                         \
     }                                                                                                 \
     static bool name##CanConvert(ExecState* execState, const JSValue& value, JSCell* self) {          \
         return value.isNumber();                                                                      \
