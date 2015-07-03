@@ -3,20 +3,10 @@
 
 namespace Inspector {
 WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResource::m_mimeTypeMap = {
-    { "text/html", Inspector::Protocol::Page::ResourceType::Document },
     { "text/xml", Inspector::Protocol::Page::ResourceType::Document },
     { "text/plain", Inspector::Protocol::Page::ResourceType::Document },
     { "application/xhtml+xml", Inspector::Protocol::Page::ResourceType::Document },
     { "text/css", Inspector::Protocol::Page::ResourceType::Stylesheet },
-    { "text/xsl", Inspector::Protocol::Page::ResourceType::Stylesheet },
-    { "text/x-less", Inspector::Protocol::Page::ResourceType::Stylesheet },
-    { "text/x-sass", Inspector::Protocol::Page::ResourceType::Stylesheet },
-    { "text/x-scss", Inspector::Protocol::Page::ResourceType::Stylesheet },
-    { "application/pdf", Inspector::Protocol::Page::ResourceType::Image },
-    { "application/x-font-type1", Inspector::Protocol::Page::ResourceType::Font },
-    { "application/x-font-ttf", Inspector::Protocol::Page::ResourceType::Font },
-    { "application/x-font-woff", Inspector::Protocol::Page::ResourceType::Font },
-    { "application/x-truetype-font", Inspector::Protocol::Page::ResourceType::Font },
     { "text/javascript", Inspector::Protocol::Page::ResourceType::Script },
     { "text/ecmascript", Inspector::Protocol::Page::ResourceType::Script },
     { "application/javascript", Inspector::Protocol::Page::ResourceType::Script },
@@ -26,15 +16,7 @@ WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResourc
     { "application/x-json", Inspector::Protocol::Page::ResourceType::Script },
     { "text/x-javascript", Inspector::Protocol::Page::ResourceType::Script },
     { "text/x-json", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/javascript1.1", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/javascript1.2", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/javascript1.3", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/jscript", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/livescript", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/x-livescript", Inspector::Protocol::Page::ResourceType::Script },
     { "text/typescript", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/x-clojure", Inspector::Protocol::Page::ResourceType::Script },
-    { "text/x-coffeescript", Inspector::Protocol::Page::ResourceType::Script }
 };
 
 CachedResource::CachedResource() {}
