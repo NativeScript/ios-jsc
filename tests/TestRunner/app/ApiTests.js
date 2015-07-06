@@ -281,12 +281,12 @@ describe(module.id, function () {
 
     it("NSError", function () {
         expect(function () {
-            TNSApi.methodError(0);
+            TNSApi.new().methodError(0);
         }).not.toThrow();
 
         var isThrown = false;
         try {
-            TNSApi.methodError(1);
+            TNSApi.new().methodError(1);
         } catch (e) {
             isThrown = true;
             expect(e instanceof NSError).toBe(true);
@@ -295,16 +295,60 @@ describe(module.id, function () {
         }
 
         expect(function () {
-            TNSApi.methodError(1, null);
+            TNSApi.new().methodError(1, null);
         }).not.toThrow();
 
         expect(function () {
-            TNSApi.methodError(1, 2, 3);
+            TNSApi.new().methodError(1, 2, 3);
         }).toThrowError(/arguments count/);
 
         var errorRef = new interop.Reference();
-        TNSApi.methodError(1, errorRef);
+        TNSApi.new().methodError(1, errorRef);
         expect(errorRef.value instanceof NSError).toBe(true);
+    });
+
+    it("NSErrorOverride", function () {
+        var JSApi = TNSApi.extend({
+            methodError: function (x) {
+                TNSLog(x.toString());
+
+                if (x !== 0) {
+                    throw new Error("JS error");
+                }
+            }
+        });
+
+        TNSTestNativeCallbacks.apiNSErrorOverride(JSApi.new());
+        expect(TNSGetOutput()).toBe("011TNSErrorDomain");
+
+        expect(function () {
+            JSApi.new().methodError(1);
+        }).toThrowError(/JS error/);
+    });
+
+    it("NSErrorExpose", function () {
+        var JSApi = TNSApi.extend({
+            "method:error2:": function (x) {
+                TNSLog(x.toString());
+
+                if (x !== 0) {
+                    throw new Error("JS error");
+                }
+            }
+        }, {
+            exposedMethods: {
+                "method:error2:": {
+                    returns: interop.types.bool,
+                    params: [interop.types.int32, new interop.types.ReferenceType(NSError)] }
+            }
+        });
+
+        TNSTestNativeCallbacks.apiNSErrorExpose(JSApi.new());
+        expect(TNSGetOutput()).toBe("011TNSErrorDomain");
+
+        expect(function () {
+            JSApi.new()["method:error2:"](1);
+        }).toThrowError(/JS error/);
     });
 
     it("globalPropertyOfGlobalObject", function () {

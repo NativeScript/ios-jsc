@@ -32,6 +32,10 @@
 
 + (void)apiDescriptionOverride:(id)object;
 
++ (void)apiNSErrorOverride:(TNSApi*)object;
+
++ (void)apiNSErrorExpose:(TNSApi*)object;
+
 + (void)protocolImplementationMethods:(id<TNSBaseProtocol1, NSObject>)object;
 
 + (void)protocolImplementationProtocolInheritance:(id<TNSBaseProtocol2, NSObject>)object;

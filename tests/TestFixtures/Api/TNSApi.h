@@ -38,7 +38,7 @@ typedef UIColor NIKColor;
 
 - (void)methodCalledInDealloc;
 
-+ (BOOL)method:(NSInteger)errorCode error:(NSError**)outError;
+- (BOOL)method:(NSInteger)errorCode error:(NSError**)outError;
 @end
 
 @interface TNSConflictingSelectorTypes1 : NSObject

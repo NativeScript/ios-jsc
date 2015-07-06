@@ -11,6 +11,9 @@
 #include "Metadata.h"
 #include "TypeFactory.h"
 #include "ObjCTypes.h"
+#include "ReferenceTypeInstance.h"
+#include "ObjCConstructorNative.h"
+#include "FFISimpleType.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -23,19 +26,42 @@ ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue 
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings);
     Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1);
 
-    ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), value.asCell(), returnType, parameterTypes);
+    ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), value.asCell(), returnType, parameterTypes, TriState(meta->hasErrorOutParameter()));
     gcProtect(methodCallback);
     return methodCallback;
 }
 
+static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<JSCell*>& parameterTypes) {
+    if (!(parameterTypes.size() > 0)) {
+        return false;
+    }
+
+    if (ReferenceTypeInstance* referenceInstance = jsDynamicCast<ReferenceTypeInstance*>(parameterTypes.last())) {
+        if (ObjCConstructorNative* constructor = jsDynamicCast<ObjCConstructorNative*>(referenceInstance->innerType())) {
+            if (constructor->klass() == [NSError class]) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 const ClassInfo ObjCMethodCallback::s_info = { "ObjCMethodCallback", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCMethodCallback) };
 
-void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, JSCell* returnType, WTF::Vector<JSCell*> parameterTypes) {
+void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, JSCell* returnType, WTF::Vector<JSCell*> parameterTypes, TriState hasErrorOutParameter) {
     Base::finishCreation(vm, globalObject, function, returnType, parameterTypes, 2);
+
+    if (hasErrorOutParameter != TriState::MixedTriState) {
+        this->_hasErrorOutParameter = hasErrorOutParameter;
+    } else {
+        this->_hasErrorOutParameter = checkErrorOutParameter(globalObject->globalExec(), parameterTypes);
+    }
 }
 
 void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     ObjCMethodCallback* methodCallback = reinterpret_cast<ObjCMethodCallback*>(userData);
+    ExecState* execState = methodCallback->_globalExecState;
 
     id target = *static_cast<id*>(argValues[0]);
 #ifdef DEBUG_OBJC_INVOCATION
@@ -46,11 +72,31 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
 
     MarkedArgumentBuffer arguments;
     methodCallback->marshallArguments(argValues, arguments, methodCallback);
-    if (methodCallback->_globalExecState->hadException()) {
+    if (execState->hadException()) {
         return;
     }
 
-    JSValue thisValue = toValue(methodCallback->_globalExecState, target);
+    JSValue thisValue = toValue(execState, target);
     methodCallback->callFunction(thisValue, arguments, retValue);
+
+    if (methodCallback->_hasErrorOutParameter) {
+        size_t methodCallbackLength = jsDynamicCast<JSObject*>(methodCallback->function())->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
+        if (methodCallbackLength == methodCallback->parametersCount() - 1) {
+            if (execState->hadException()) {
+                JSValue exception = execState->exception();
+                execState->clearException();
+                memset(retValue, 0, methodCallback->_returnType.ffiType->size);
+                id marshalledException = NativeScript::toObject(execState, exception);
+                NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:marshalledException];
+
+                NSError**** outErrorPtr = reinterpret_cast<NSError****>(argValues + (methodCallback->parametersCount() + methodCallback->_initialArgumentIndex - 1));
+                if (**outErrorPtr) {
+                    *** outErrorPtr = nserror;
+                }
+            } else if (methodCallback->_returnTypeCell.get() == static_cast<JSCell*>(jsCast<GlobalObject*>(execState->lexicalGlobalObject())->typeFactory()->boolType())) {
+                memset(retValue, 1, methodCallback->_returnType.ffiType->size);
+            }
+        }
+    }
 }
 }

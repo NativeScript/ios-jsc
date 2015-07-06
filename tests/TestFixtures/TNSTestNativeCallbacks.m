@@ -167,6 +167,38 @@
     NSAssert([[object description] isEqualToString:@"js description"], NSStringFromSelector(_cmd));
 }
 
++ (void)apiNSErrorOverride:(TNSApi*)object {
+    {
+        NSError* error = nil;
+        NSAssert([object method:0 error:&error] == true, NSStringFromSelector(_cmd));
+        NSAssert(error == nil, NSStringFromSelector(_cmd));
+    }
+
+    NSAssert([object method:1 error:nil] == false, NSStringFromSelector(_cmd));
+
+    {
+        NSError* error = nil;
+        NSAssert([object method:1 error:&error] == false, NSStringFromSelector(_cmd));
+        TNSLog(error.domain);
+    }
+}
+
++ (void)apiNSErrorExpose:(TNSApi*)object {
+    {
+        NSError* error = nil;
+        NSAssert(((BOOL (*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 0, &error) == true, NSStringFromSelector(_cmd));
+        NSAssert(error == nil, NSStringFromSelector(_cmd));
+    }
+
+    NSAssert(((BOOL (*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 1, nil) == false, NSStringFromSelector(_cmd));
+
+    {
+        NSError* error = nil;
+        NSAssert(((BOOL (*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 1, &error) == false, NSStringFromSelector(_cmd));
+        TNSLog(error.domain);
+    }
+}
+
 + (void)protocolImplementationMethods:(id<TNSBaseProtocol1, NSObject>)object {
     NSAssert([object conformsToProtocol:@protocol(TNSBaseProtocol1)], NSStringFromSelector(_cmd));
     NSAssert([[object class] conformsToProtocol:@protocol(TNSBaseProtocol1)], NSStringFromSelector(_cmd));
