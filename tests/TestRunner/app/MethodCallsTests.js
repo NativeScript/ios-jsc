@@ -857,4 +857,54 @@ describe(module.id, function () {
         });
         expect(result).toBe("InnerRecursiveResult");
     });
+    it('methods returning blocks can be recursively called', function() {
+        var i = 0;
+        var stack = null;
+        var log = function(what) {
+            if (stack) {
+                stack += "\n" + what;
+            } else {
+                stack = what;
+            }
+        }
+
+        var Derived = TNSTestNativeCallbacks.extend({
+            getBlock: function() {
+                i ++;
+                var that = this;
+                if (i < 3) {
+                    log("get recurse");
+                    var next = that.getBlock();
+                    return function() {
+                        log("exec recurse");
+                        return next();
+                    }
+                } else {
+                    log("get bottom");
+                    return function() {
+                        log("exec bottom");
+                    }
+                }
+            }
+        });
+
+        var inst = Derived.alloc().init();
+
+        log("get");
+        var block = inst.getBlock();
+        log("exec");
+        var blockResult = block();
+
+        var expectedStack =
+              "get\n"
+            + "get recurse\n"
+            + "get recurse\n"
+            + "get bottom\n"
+            + "exec\n"
+            + "exec recurse\n"
+            + "exec recurse\n"
+            + "exec bottom";
+
+        expect(stack).toBe(expectedStack);
+    });
 });

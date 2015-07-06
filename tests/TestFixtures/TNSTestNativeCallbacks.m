@@ -261,4 +261,8 @@
     return block();
 }
 
+- (HLB3)getBlock {
+    return nil;
+}
+
 @end
