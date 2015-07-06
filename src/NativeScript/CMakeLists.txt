@@ -192,10 +192,10 @@ elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_library ${WEBKIT_LIBRARIES})
         set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -l${_library}")
     endforeach()
-    
+
     set_target_properties(NativeScript PROPERTIES
         STATIC_LIBRARY_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${LIBFFI_DIR}/lib -lffi"
-    )    
+    )
 endif()
 
 include(EmbedResourceInHeader)
