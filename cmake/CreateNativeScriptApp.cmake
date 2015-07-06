@@ -3,7 +3,6 @@ function(CreateNativeScriptApp _target _main _plist _resources)
     link_directories(${WEBKIT_LINK_DIRECTORIES} "${LIBFFI_DIR}/lib")
 
     add_executable(${_target} ${_main} ${_resources})
-    add_dependencies(${_target} MetadataGenerator)
 
     target_link_libraries(${_target}
         "-framework CoreGraphics"
@@ -17,7 +16,7 @@ function(CreateNativeScriptApp _target _main _plist _resources)
             libz.dylib
             libc++.dylib
         )
-        
+
         if(NOT ${EMBED_STATIC_DEPENDENCIES})
             target_link_libraries(${_target} ${WEBKIT_LIBRARIES} ffi)
         endif()
