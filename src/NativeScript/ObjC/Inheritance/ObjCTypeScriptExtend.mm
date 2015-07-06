@@ -61,12 +61,12 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     JSValue baseConstructor = execState->argument(1);
     __block std::unique_ptr<ObjCClassBuilder> classBuilder = std::make_unique<ObjCClassBuilder>(execState, baseConstructor, constructEmptyObject(execState), name);
     if (execState->hadException()) {
-        return JSValue::encode(execState->exception());
+        return JSValue::encode(jsUndefined());
     }
 
     ObjCConstructorDerived* derivedConstructor = classBuilder->build(execState);
     if (execState->hadException()) {
-        return JSValue::encode(execState->exception());
+        return JSValue::encode(jsUndefined());
     }
 
     CallFrame* callFrame = execState->callerFrame();
@@ -90,7 +90,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
 
         classBuilder->implementProtocols(globalExec, implementedProtocols);
         if (globalExec->hadException()) {
-            JSValue exception = globalExec->exception();
+            Exception* exception = globalExec->exception();
             globalExec->clearException();
             jsCast<GlobalObject*>(globalExec->lexicalGlobalObject())->inspectorController().reportAPIException(globalExec, exception);
             WTFCrash();
@@ -98,7 +98,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
 
         classBuilder->addInstanceMembers(globalExec, instanceMethods, exposedMethods);
         if (globalExec->hadException()) {
-            JSValue exception = globalExec->exception();
+            Exception* exception = globalExec->exception();
             globalExec->clearException();
             jsCast<GlobalObject*>(globalExec->lexicalGlobalObject())->inspectorController().reportAPIException(globalExec, exception);
             WTFCrash();

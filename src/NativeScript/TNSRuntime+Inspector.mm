@@ -110,7 +110,7 @@ private:
     JSC::JSLockHolder lock(_runtime->_vm.get());
 
     ExecState* globalExec = self->_runtime->_globalObject->globalExec();
-    reportFatalErrorBeforeShutdown(globalExec, toJS(globalExec, error));
+    reportFatalErrorBeforeShutdown(globalExec, Exception::create(*self->_runtime->_vm, toJS(globalExec, error)));
 }
 
 - (void)dealloc {

@@ -23,12 +23,12 @@ namespace NativeScript {
 
 using namespace JSC;
 
-void reportFatalErrorBeforeShutdown(ExecState* execState, JSValue error) {
+void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception) {
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
-    globalObject->inspectorController().reportAPIException(execState, error);
+    globalObject->inspectorController().reportAPIException(execState, exception);
 
     if (uncaughtErrorHandler) {
-        uncaughtErrorHandler(toRef(execState), toRef(execState, error));
+        uncaughtErrorHandler(toRef(execState), toRef(execState, exception->value()));
     }
 
     if (globalObject->debugger()) {

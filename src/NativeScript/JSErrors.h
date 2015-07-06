@@ -9,8 +9,10 @@
 #ifndef __NativeScript__JSErrors__
 #define __NativeScript__JSErrors__
 
+#include <JavaScriptCore/Exception.h>
+
 namespace NativeScript {
-void reportFatalErrorBeforeShutdown(JSC::ExecState* execState, JSC::JSValue error) NO_RETURN_DUE_TO_CRASH;
+void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*) NO_RETURN_DUE_TO_CRASH;
 }
 
 #endif /* defined(__NativeScript__JSErrors__) */

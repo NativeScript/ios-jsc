@@ -79,13 +79,13 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
 - (void)executeModule:(NSString*)entryPointModuleIdentifier {
     JSLockHolder lock(*self->_vm);
 
-    JSValue exception;
+    WTF::NakedPtr<Exception> exception;
 #ifdef DEBUG
     SourceCode sourceCode = makeSource(WTF::String(require_js, require_js_len), WTF::ASCIILiteral("require.js"));
 #else
     SourceCode sourceCode = makeSource(WTF::String(require_js, require_js_len));
 #endif
-    JSValue requireFactory = evaluate(self->_globalObject->globalExec(), sourceCode, JSValue(), &exception);
+    JSValue requireFactory = evaluate(self->_globalObject->globalExec(), sourceCode, JSValue(), exception);
     if (exception) {
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
         return;
@@ -96,7 +96,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     requireFactoryArgs.append(JSFunction::create(*self->_vm, self->_globalObject.get(), 2, WTF::emptyString(), createModuleFunction));
     CallData requireFactoryCallData;
     CallType requireFactoryCallType = requireFactory.asCell()->methodTable()->getCallData(requireFactory.asCell(), requireFactoryCallData);
-    JSValue require = call(self->_globalObject->globalExec(), requireFactory.asCell(), requireFactoryCallType, requireFactoryCallData, jsNull(), requireFactoryArgs, &exception);
+    JSValue require = call(self->_globalObject->globalExec(), requireFactory.asCell(), requireFactoryCallType, requireFactoryCallData, jsNull(), requireFactoryArgs, exception);
     if (exception) {
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
         return;
@@ -107,7 +107,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
 
     CallData requireCallData;
     CallType requireCallType = require.asCell()->methodTable()->getCallData(require.asCell(), requireCallData);
-    call(self->_globalObject->globalExec(), require.asCell(), requireCallType, requireCallData, jsNull(), requireArgs, &exception);
+    call(self->_globalObject->globalExec(), require.asCell(), requireCallType, requireCallData, jsNull(), requireArgs, exception);
     if (exception) {
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
     }
@@ -119,7 +119,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     {
         JSLockHolder lock(*self->_vm);
         self->_globalObject.clear();
-        self->_vm.clear();
+        self->_vm = nullptr;
     }
 
     [super dealloc];

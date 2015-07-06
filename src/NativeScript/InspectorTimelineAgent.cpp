@@ -30,7 +30,7 @@ void InspectorTimelineAgent::didCreateFrontendAndBackend(FrontendChannel* fronte
 
 void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {
     m_frontendDispatcher = nullptr;
-    m_backendDispatcher.clear();
+    m_backendDispatcher = nullptr;
 
     ErrorString unused;
     stop(unused);

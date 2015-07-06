@@ -26,7 +26,7 @@ inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void*
     static_cast<DerivedCallback*>(callback)->ffiClosureCallback(retValue, argValues, userData);
 
     if (execState->hadException()) {
-        JSC::JSValue exception = execState->exception();
+        JSC::Exception* exception = execState->exception();
         execState->clearException();
 
         reportFatalErrorBeforeShutdown(execState, exception);
