@@ -860,29 +860,35 @@ describe(module.id, function () {
     it('methods returning blocks can be recursively called', function() {
         var i = 0;
         var stack = null;
-        var log = function(what) {
+        var log = function(message) {
             if (stack) {
-                stack += "\n" + what;
+                stack += " > " + message;
             } else {
-                stack = what;
+                stack = message;
             }
         }
 
+        log("start");
         var Derived = TNSTestNativeCallbacks.extend({
             getBlock: function() {
-                i ++;
+                i++;
                 var that = this;
-                if (i < 3) {
+                if (i == 1) {
                     log("get recurse");
-                    var next = that.getBlock();
+                    that.getBlockFromNative()();
                     return function() {
-                        log("exec recurse");
-                        return next();
+                        log("f1");
+                    }
+                } else if (i == 2) {
+                    log("get recurse");
+                    that.getBlockFromNative()();
+                    return function() {
+                        log("f2");
                     }
                 } else {
                     log("get bottom");
                     return function() {
-                        log("exec bottom");
+                        log("f3");
                     }
                 }
             }
@@ -894,16 +900,9 @@ describe(module.id, function () {
         var block = inst.getBlock();
         log("exec");
         var blockResult = block();
+        log("end");
 
-        var expectedStack =
-              "get\n"
-            + "get recurse\n"
-            + "get recurse\n"
-            + "get bottom\n"
-            + "exec\n"
-            + "exec recurse\n"
-            + "exec recurse\n"
-            + "exec bottom";
+        var expectedStack = "start > get > get recurse > get recurse > get bottom > f3 > f2 > exec > f1 > end";
 
         expect(stack).toBe(expectedStack);
     });

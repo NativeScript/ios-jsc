@@ -56,10 +56,7 @@
 
 + (NSString*)callRecursively:(NSString* (^)())block;
 
-typedef void (^HLB1)();
-typedef HLB1 (^HLB2)();
-typedef HLB2 (^HLB3)();
-
-- (HLB3)getBlock;
+- (void (^)())getBlock;
+- (void (^)())getBlockFromNative;
 
 @end
