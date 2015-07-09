@@ -65,6 +65,8 @@ private:
 
     bool _retainsReturnedCocoaObjects;
 
+    bool _hasErrorOutParameter;
+
     SEL _selector;
 };
 }

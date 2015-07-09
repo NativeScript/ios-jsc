@@ -35,6 +35,10 @@ public:
         return this->_globalExecState;
     }
 
+    size_t parametersCount() const {
+        return this->_parameterTypesCells.size();
+    }
+
 protected:
     FFICallback(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
@@ -56,16 +60,16 @@ protected:
 
     JSC::ExecState* _globalExecState;
 
-private:
-    static void ffiClosureCallback(ffi_cif*, void* retValue, void** argValues, void* userData);
-
     JSC::WriteBarrier<JSCell> _returnTypeCell;
     FFITypeMethodTable _returnType;
 
     WTF::Vector<JSC::WriteBarrier<JSCell>> _parameterTypesCells;
     WTF::Vector<FFITypeMethodTable> _parameterTypes;
+
     size_t _initialArgumentIndex;
 
+private:
+    static void ffiClosureCallback(ffi_cif*, void* retValue, void** argValues, void* userData);
     JSC::WriteBarrier<JSC::JSCell> _function;
     void* _functionPointer;
     ffi_cif* _cif;

@@ -26,6 +26,7 @@ enum MetaFlags {
     MethodIsVariadic = 2,
     MethodIsNullTerminatedVariadic = 3,
     MethodOwnsReturnedCocoaObject = 4,
+    MethodHasErrorOutParameter = 5,
     PropertyHasGetter = 2,
     PropertyHasSetter = 3
 };
@@ -574,6 +575,10 @@ public:
 
     bool isVariadicNullTerminated() const {
         return this->flag(MetaFlags::MethodIsNullTerminatedVariadic);
+    }
+
+    bool hasErrorOutParameter() const {
+        return this->flag(MetaFlags::MethodHasErrorOutParameter);
     }
 
     SEL selector() const {

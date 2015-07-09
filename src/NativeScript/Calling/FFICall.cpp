@@ -25,7 +25,7 @@ void FFICall::initializeFFI(VM& vm, JSCell* returnType, const Vector<JSCell*>& p
     size_t parametersCount = parameterTypes.size();
     this->putDirect(vm, vm.propertyNames->length, jsNumber(parametersCount), ReadOnly | DontEnum | DontDelete);
 
-    const ffi_type** parameterTypesFFITypes = new const ffi_type*[parametersCount + initialArgumentIndex];
+    const ffi_type** parameterTypesFFITypes = new const ffi_type* [parametersCount + initialArgumentIndex];
 
     for (size_t i = 0; i < initialArgumentIndex; ++i) {
         parameterTypesFFITypes[i] = &ffi_type_pointer;
@@ -73,16 +73,15 @@ void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 }
 
 void FFICall::preCall(ExecState* execState, uint8_t* buffer) {
-    const size_t parametersCount = this->_parameterTypes.size();
-    if (parametersCount != execState->argumentCount()) {
-        WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\". ", execState->argumentCount(), parametersCount);
+    if (!this->_argumentCountValidator(this, execState)) {
+        WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\". ", execState->argumentCount(), this->parametersCount());
         execState->vm().throwException(execState, createError(execState, message));
         return;
     }
 
     // TODO: Check if arguments can be converted
 
-    for (unsigned i = 0; i < parametersCount; i++) {
+    for (unsigned i = 0; i < execState->argumentCount(); i++) {
         JSValue argument = execState->uncheckedArgument(i);
         void* argumentBuffer = reinterpret_cast<void**>(buffer + this->_argsArrayOffset)[i + this->_initialArgumentIndex];
         JSCell* parameterType = this->_parameterTypesCells[i].get();
