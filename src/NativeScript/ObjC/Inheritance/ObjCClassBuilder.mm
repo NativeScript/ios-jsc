@@ -49,17 +49,17 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
     __block Class blockKlass = newKlass;
     IMP allocWithZone = findNotOverridenMethod(metaClass, @selector(allocWithZone:));
-    IMP newAllocWithZone = imp_implementationWithBlock(^(id self, NSZone* nsZone) {
+    IMP newAllocWithZone = imp_implementationWithBlock (^(id self, NSZone * nsZone) {
         id instance = allocWithZone(self, @selector(allocWithZone:), nsZone);
         VM& vm = globalObject->vm();
         JSLockHolder lockHolder(vm);
 
         Structure* instancesStructure = globalObject->constructorFor(blockKlass)->instancesStructure();
-        ObjCWrapperObject* derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance);
+        ObjCWrapperObject* derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
         gcProtect(derivedWrapper);
 
         Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
-        ObjCSuperObject* superObject = ObjCSuperObject::create(vm, superStructure, derivedWrapper);
+        ObjCSuperObject* superObject = ObjCSuperObject::create(vm, superStructure, derivedWrapper, globalObject);
         derivedWrapper->putDirect(vm, vm.propertyNames->superKeyword, superObject, ReadOnly | DontEnum | DontDelete);
 
         [TNSValueWrapper attachValue:derivedWrapper toHost:instance];
@@ -68,7 +68,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
 
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
-    IMP newRetain = imp_implementationWithBlock(^(id self) {
+    IMP newRetain = imp_implementationWithBlock (^(id self) {
         if ([self retainCount] == 1) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 JSLockHolder lockHolder(globalObject->vm());
@@ -81,7 +81,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(newKlass, @selector(retain), newRetain, "@@:");
 
     void (*release)(id, SEL) = (void (*)(id, SEL))findNotOverridenMethod(newKlass, @selector(release));
-    IMP newRelease = imp_implementationWithBlock(^(id self) {
+    IMP newRelease = imp_implementationWithBlock (^(id self) {
         if ([self retainCount] == 2) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 JSLockHolder lockHolder(globalObject->vm());

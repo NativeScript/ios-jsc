@@ -12,6 +12,7 @@
 #include "ObjCClassBuilder.h"
 #include "TypeFactory.h"
 #include "Metadata.h"
+#include "AllocedObject.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -98,7 +99,7 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t*
     }
 
     JSValue result = this->postCall(execState, buffer);
-    if (this->retainsReturnedCocoaObjects()) {
+    if (this->retainsReturnedCocoaObjects() || asObject(execState->thisValue())->classInfo() == AllocedObject::info()) {
         id returnValue = *static_cast<id*>(this->getReturn(buffer));
         [returnValue release];
     }

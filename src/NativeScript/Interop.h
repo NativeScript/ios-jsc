@@ -50,6 +50,10 @@ public:
         return this->_functionReferenceInstanceStructure.get();
     }
 
+    JSC::Symbol* instancesStructureSymbol() const {
+        return this->_instancesStructureSymbol.get();
+    }
+
 private:
     Interop(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure)
@@ -65,6 +69,8 @@ private:
     JSC::WriteBarrier<JSC::Structure> _referenceInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _functionReferenceInstanceStructure;
+
+    JSC::WriteBarrier<JSC::Symbol> _instancesStructureSymbol;
 
     JSC::WeakGCMap<const void*, PointerInstance> _pointerToInstance;
 };

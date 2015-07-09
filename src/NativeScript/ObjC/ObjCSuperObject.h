@@ -16,9 +16,9 @@ class ObjCSuperObject : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static ObjCSuperObject* create(JSC::VM& vm, JSC::Structure* structure, ObjCWrapperObject* wrapper) {
+    static ObjCSuperObject* create(JSC::VM& vm, JSC::Structure* structure, ObjCWrapperObject* wrapper, GlobalObject* globalObject) {
         ObjCSuperObject* cell = new (NotNull, JSC::allocateCell<ObjCSuperObject>(vm.heap)) ObjCSuperObject(vm, structure);
-        cell->finishCreation(vm, wrapper);
+        cell->finishCreation(vm, wrapper, globalObject);
         return cell;
     }
 
@@ -41,7 +41,7 @@ private:
         JSC::jsCast<ObjCSuperObject*>(cell)->~ObjCSuperObject();
     }
 
-    void finishCreation(JSC::VM&, ObjCWrapperObject*);
+    void finishCreation(JSC::VM&, ObjCWrapperObject*, GlobalObject*);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 

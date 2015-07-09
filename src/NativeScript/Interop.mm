@@ -206,6 +206,8 @@ static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
 void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     Base::finishCreation(vm);
 
+    this->_instancesStructureSymbol.set(vm, this, JSC::Symbol::create(vm)); // , JSC::Symbol::create(vm, WTF::AtomicString("instancesStructureSymbol").impl())
+
     PointerConstructor* pointerConstructor = globalObject->typeFactory()->pointerConstructor();
     this->_pointerInstanceStructure.set(vm, this, PointerInstance::createStructure(globalObject, pointerConstructor->get(globalObject->globalExec(), vm.propertyNames->prototype)));
     this->putDirect(vm, Identifier::fromString(&vm, pointerConstructor->name(globalObject->globalExec())), pointerConstructor, ReadOnly | DontDelete);

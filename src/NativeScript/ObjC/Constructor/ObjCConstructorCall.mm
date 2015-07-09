@@ -10,6 +10,8 @@
 #include <objc/message.h>
 #include "Metadata.h"
 #include "TypeFactory.h"
+#include "ObjCTypes.h"
+#include "ObjCConstructorBase.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -35,13 +37,14 @@ EncodedJSValue ObjCConstructorCall::derivedExecuteCall(ExecState* execState, uin
     this->setArgument(buffer, 1, this->selector());
     this->executeFFICall(execState, buffer, FFI_FN(&objc_msgSend));
 
-    JSValue result = this->postCall(execState, buffer);
+    id resultObject = *static_cast<id*>(this->getReturn(buffer));
+    Structure* instancesStructure = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->constructorFor(this->_klass)->instancesStructure();
+    JSValue value = toValue(execState, resultObject, ^{ return instancesStructure; });
 
     // wrapping the object retains it, we need to balance the +1 from alloc-ing it
-    id resultObject = *static_cast<id*>(this->getReturn(buffer));
     [resultObject release];
 
-    return JSValue::encode(result);
+    return JSValue::encode(value);
 }
 
 CallType ObjCConstructorCall::getCallData(JSCell* cell, CallData& callData) {

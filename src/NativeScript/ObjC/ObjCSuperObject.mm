@@ -8,15 +8,18 @@
 
 #include "ObjCSuperObject.h"
 #include "ObjCWrapperObject.h"
+#include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
 
 const ClassInfo ObjCSuperObject::s_info = { "ObjCSuperObject", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCSuperObject) };
 
-void ObjCSuperObject::finishCreation(VM& vm, ObjCWrapperObject* wrapper) {
+void ObjCSuperObject::finishCreation(VM& vm, ObjCWrapperObject* wrapper, GlobalObject* globalObject) {
     Base::finishCreation(vm);
     this->_wrapperObject.set(vm, this, wrapper);
+    Identifier instancesStructureIdentifier = Identifier::fromUid(globalObject->interop()->instancesStructureSymbol()->privateName());
+    this->putDirect(vm, instancesStructureIdentifier, JSValue(this->wrapperObject()->structure()), ReadOnly | DontEnum | DontDelete);
 }
 
 JSValue ObjCSuperObject::toThis(JSCell* cell, ExecState* execState, ECMAMode mode) {

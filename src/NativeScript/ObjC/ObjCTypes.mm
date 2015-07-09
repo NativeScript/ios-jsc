@@ -47,7 +47,8 @@ static WeakHandleOwner* weakHandleOwner() {
 }
 
 + (void)attachValue:(JSC::JSObject*)value toHost:(id)host {
-    TNSValueWrapper* wrapper = [[self alloc] initWithValue:value host:host];
+    TNSValueWrapper* wrapper = [[self alloc] initWithValue:value
+                                                      host:host];
 
     objc_setAssociatedObject(host, value->globalObject()->JSC::JSScope::vm(), wrapper, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 #ifdef DEBUG_MEMORY
@@ -128,7 +129,8 @@ id toObject(ExecState* execState, const JSValue& value) {
     }
 
     if (JSArray* array = jsDynamicCast<JSArray*>(value)) {
-        return [[[TNSArrayAdapter alloc] initWithJSObject:array execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
+        return [[[TNSArrayAdapter alloc] initWithJSObject:array
+                                                execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     if (value.inherits(ObjCSuperObject::info())) {
@@ -154,7 +156,8 @@ id toObject(ExecState* execState, const JSValue& value) {
     }
 
     if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
-        return [[[TNSDictionaryAdapter alloc] initWithJSObject:object execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
+        return [[[TNSDictionaryAdapter alloc] initWithJSObject:object
+                                                     execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     throwVMError(execState, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));
@@ -213,7 +216,7 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
             return wrapper;
         }
 
-        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object);
+        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object, jsCast<GlobalObject*>(execState->lexicalGlobalObject()));
         globalObject->taggedPointers().set(object, wrapper);
         return wrapper;
     } else {
@@ -223,8 +226,9 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
             return wrapper;
         }
 
-        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object);
-        [TNSValueWrapper attachValue:wrapper toHost:object];
+        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object, jsCast<GlobalObject*>(execState->lexicalGlobalObject()));
+        [TNSValueWrapper attachValue:wrapper
+                              toHost:object];
         return wrapper;
 #if defined(__LP64__) && __LP64__
     }
