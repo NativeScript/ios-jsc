@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
         NSString* liveSyncPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
         NSString* appFolderPath = [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
 
-        NSArray* appContents = [[NSFileManager defaultManager] directoryContentsAtPath:appFolderPath];
+        NSArray* appContents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:appFolderPath error:nil];
         if (appContents.count > 0) {
             applicationPath = liveSyncPath;
         }
