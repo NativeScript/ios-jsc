@@ -25,9 +25,11 @@
 
 WebInspector.StyleDetailsPanel = class StyleDetailsPanel extends WebInspector.Object
 {
-    constructor(className, identifier, label)
+    constructor(delegate, className, identifier, label)
     {
         super();
+
+        this._delegate = delegate || null;
 
         this._element = document.createElement("div");
         this._element.className = className;
@@ -86,7 +88,7 @@ WebInspector.StyleDetailsPanel = class StyleDetailsPanel extends WebInspector.Ob
 
         if (!this._nodeStyles || this._nodeStyles.node !== domNode) {
             if (this._nodeStyles) {
-                this._nodeStyles.removeEventListener(WebInspector.DOMNodeStyles.Event.Refreshed, this._nodeStylesRefreshed, this);
+                this._nodeStyles.removeEventListener(WebInspector.DOMNodeStyles.Event.Refreshed, this.nodeStylesRefreshed, this);
                 this._nodeStyles.removeEventListener(WebInspector.DOMNodeStyles.Event.NeedsRefresh, this._nodeStylesNeedsRefreshed, this);
             }
 
@@ -96,7 +98,7 @@ WebInspector.StyleDetailsPanel = class StyleDetailsPanel extends WebInspector.Ob
             if (!this._nodeStyles)
                 return;
 
-            this._nodeStyles.addEventListener(WebInspector.DOMNodeStyles.Event.Refreshed, this._nodeStylesRefreshed, this);
+            this._nodeStyles.addEventListener(WebInspector.DOMNodeStyles.Event.Refreshed, this.nodeStylesRefreshed, this);
             this._nodeStyles.addEventListener(WebInspector.DOMNodeStyles.Event.NeedsRefresh, this._nodeStylesNeedsRefreshed, this);
 
             this._forceSignificantChange = true;
@@ -109,6 +111,15 @@ WebInspector.StyleDetailsPanel = class StyleDetailsPanel extends WebInspector.Ob
     refresh(significantChange)
     {
         // Implemented by subclasses.
+        this.dispatchEventToListeners(WebInspector.StyleDetailsPanel.Event.Refreshed);
+    }
+
+    // Protected
+
+    nodeStylesRefreshed(event)
+    {
+        if (this._visible)
+            this._refreshPreservingScrollPosition(event.data.significantChange);
     }
 
     // Private
@@ -146,15 +157,13 @@ WebInspector.StyleDetailsPanel = class StyleDetailsPanel extends WebInspector.Ob
             this.element.parentNode.scrollTop = previousScrollTop;
     }
 
-    _nodeStylesRefreshed(event)
-    {
-        if (this._visible)
-            this._refreshPreservingScrollPosition(event.data.significantChange);
-    }
-
     _nodeStylesNeedsRefreshed(event)
     {
         if (this._visible)
             this._refreshNodeStyles();
     }
+};
+
+WebInspector.StyleDetailsPanel.Event = {
+    Refreshed: "style-details-panel-refreshed"
 };

@@ -60,6 +60,8 @@ WebInspector.JavaScriptLogViewController = class JavaScriptLogViewController ext
         this._promptFindKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "F", this._handleFindShortcut.bind(this), this._prompt.element);
         this._promptFindNextKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "G", this._handleFindNextShortcut.bind(this), this._prompt.element);
         this._promptFindPreviousKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl | WebInspector.KeyboardShortcut.Modifier.Shift, "G", this._handleFindPreviousShortcut.bind(this), this._prompt.element);
+        this._promptSaveKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "S", this._save.bind(this), this._prompt.element);
+        this._promptSaveAsKeyboardShortcut = new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.Shift | WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "S", this._saveAs.bind(this), this._prompt.element);
 
         this.startNewSession();
     }
@@ -83,9 +85,6 @@ WebInspector.JavaScriptLogViewController = class JavaScriptLogViewController ext
         this.startNewSession(true);
 
         this.prompt.focus();
-
-        if (this.delegate && typeof this.delegate.didClearMessages === "function")
-            this.delegate.didClearMessages();
     }
 
     startNewSession(clearPreviousSessions)
@@ -148,14 +147,14 @@ WebInspector.JavaScriptLogViewController = class JavaScriptLogViewController ext
     {
         console.assert(this._previousMessageView);
         if (!this._previousMessageView)
-            return;
+            return false;
 
         var previousIgnoredCount = this._previousMessageView[WebInspector.JavaScriptLogViewController.IgnoredRepeatCount] || 0;
         var previousVisibleCount = this._previousMessageView.repeatCount;
 
         if (!this._repeatCountWasInterrupted) {
             this._previousMessageView.repeatCount = count - previousIgnoredCount;
-            return;
+            return true;
         }
 
         var consoleMessage = this._previousMessageView.message;
@@ -163,6 +162,8 @@ WebInspector.JavaScriptLogViewController = class JavaScriptLogViewController ext
         duplicatedConsoleMessageView[WebInspector.JavaScriptLogViewController.IgnoredRepeatCount] = previousIgnoredCount + previousVisibleCount;
         duplicatedConsoleMessageView.repeatCount = 1;
         this._appendConsoleMessageView(duplicatedConsoleMessageView);
+
+        return true;
     }
 
     isScrolledToBottom()
@@ -233,8 +234,6 @@ WebInspector.JavaScriptLogViewController = class JavaScriptLogViewController ext
             this._appendConsoleMessageView(commandResultMessageView, true);
         }
 
-        text += "\n//# sourceURL=__WebInspectorConsole__\n";
-
         WebInspector.runtimeManager.evaluateInInspectedWindow(text, "console", true, false, false, true, true, printResult.bind(this));
     }
 
@@ -242,7 +241,7 @@ WebInspector.JavaScriptLogViewController = class JavaScriptLogViewController ext
 
     _handleClearShortcut()
     {
-        this.clear();
+        WebInspector.logManager.requestClearMessages();
     }
 
     _handleFindShortcut()
@@ -258,6 +257,16 @@ WebInspector.JavaScriptLogViewController = class JavaScriptLogViewController ext
     _handleFindPreviousShortcut()
     {
         this.delegate.highlightPreviousSearchMatch();
+    }
+
+    _save()
+    {
+        this.delegate.save();
+    }
+
+    _saveAs()
+    {
+        this.delegate.saveAs();
     }
 
     _appendConsoleMessageView(messageView, repeatCountWasInterrupted)

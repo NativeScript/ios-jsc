@@ -269,7 +269,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         return newActivatedState;
     }
 
-    showPopoverForTypes(types, bounds, title)
+    showPopoverForTypes(typeDescription, bounds, title)
     {
         var content = document.createElement("div");
         content.className = "object expandable";
@@ -279,10 +279,11 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         titleElement.textContent = title;
         content.appendChild(titleElement);
 
-        var section = new WebInspector.TypePropertiesSection(types);
-        section.expanded = true;
-        section.element.classList.add("body");
-        content.appendChild(section.element);
+        var bodyElement = content.appendChild(document.createElement("div"));
+        bodyElement.className = "body";
+
+        var typeTreeView = new WebInspector.TypeTreeView(typeDescription);
+        bodyElement.appendChild(typeTreeView.element);
 
         this._showPopover(content, bounds);
     }
@@ -1383,13 +1384,15 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
             }
         }
 
+        var expression = appendWebInspectorSourceURL(candidate.expression);
+
         if (WebInspector.debuggerManager.activeCallFrame) {
-            DebuggerAgent.evaluateOnCallFrame.invoke({callFrameId: WebInspector.debuggerManager.activeCallFrame.id, expression: candidate.expression, objectGroup: "popover", doNotPauseOnExceptionsAndMuteConsole: true}, populate.bind(this));
+            DebuggerAgent.evaluateOnCallFrame.invoke({callFrameId: WebInspector.debuggerManager.activeCallFrame.id, expression, objectGroup: "popover", doNotPauseOnExceptionsAndMuteConsole: true}, populate.bind(this));
             return;
         }
 
         // No call frame available. Use the main page's context.
-        RuntimeAgent.evaluate.invoke({expression: candidate.expression, objectGroup: "popover", doNotPauseOnExceptionsAndMuteConsole: true}, populate.bind(this));
+        RuntimeAgent.evaluate.invoke({expression, objectGroup: "popover", doNotPauseOnExceptionsAndMuteConsole: true}, populate.bind(this));
     }
 
     _tokenTrackingControllerHighlightedJavaScriptTypeInformation(candidate)
@@ -1417,10 +1420,11 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
             console.assert(allTypes.length === 1);
             if (!allTypes.length)
                 return;
-            var types = allTypes[0];
-            if (types.isValid) {
+
+            var typeDescription = WebInspector.TypeDescription.fromPayload(allTypes[0]);
+            if (typeDescription.valid) {
                 var popoverTitle = WebInspector.TypeTokenView.titleForPopover(WebInspector.TypeTokenView.TitleType.Variable, candidate.expression);
-                this.showPopoverForTypes(types, null, popoverTitle);
+                this.showPopoverForTypes(typeDescription, null, popoverTitle);
             }
         }
 
@@ -1500,6 +1504,22 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         titleElement.textContent = data.description;
         content.appendChild(titleElement);
 
+        if (data.subtype === "node") {
+            data.pushNodeToFrontend(function(nodeId) {
+                if (!nodeId)
+                    return;
+
+                var domNode = WebInspector.domTreeManager.nodeForId(nodeId);
+                if (!domNode.ownerDocument)
+                    return;
+
+                var goToButton = titleElement.appendChild(WebInspector.createGoToArrowButton());
+                goToButton.addEventListener("click", function() {
+                    WebInspector.domTreeManager.inspectElement(nodeId);
+                });
+            });
+        }
+
         // FIXME: If this is a variable, it would be nice to put the variable name in the PropertyPath.
         var objectTree = new WebInspector.ObjectTreeView(data);
         objectTree.showOnlyProperties();
@@ -1509,7 +1529,13 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         bodyElement.className = "body";
         bodyElement.appendChild(objectTree.element);
 
-        this._showPopover(content);
+        // Show the popover once we have the first set of properties for the object.
+        var candidate = this.tokenTrackingController.candidate;
+        objectTree.addEventListener(WebInspector.ObjectTreeView.Event.Updated, function() {
+            if (candidate === this.tokenTrackingController.candidate)
+                this._showPopover(content);
+            objectTree.removeEventListener(null, null, this);
+        }, this);
     }
 
     _showPopoverWithFormattedValue(remoteObject)

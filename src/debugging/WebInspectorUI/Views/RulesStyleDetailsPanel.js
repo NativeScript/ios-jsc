@@ -25,11 +25,22 @@
 
 WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebInspector.StyleDetailsPanel
 {
-    constructor()
+    constructor(delegate)
     {
-        super("rules", "rules", WebInspector.UIString("Rules"));
+        super(delegate, "rules", "rules", WebInspector.UIString("Rules"));
 
         this._sections = [];
+        this._previousFocusedSection = null;
+        this._ruleMediaAndInherticanceList = [];
+        this._propertyToSelectAndHighlight = null;
+
+        this._emptyFilterResultsElement = document.createElement("div");
+        this._emptyFilterResultsElement.classList.add("no-filter-results");
+
+        this._emptyFilterResultsMessage = document.createElement("div");
+        this._emptyFilterResultsMessage.classList.add("no-filter-results-message");
+        this._emptyFilterResultsMessage.textContent = WebInspector.UIString("No Results Found");
+        this._emptyFilterResultsElement.appendChild(this._emptyFilterResultsMessage);
     }
 
     // Public
@@ -38,15 +49,16 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
     {
         // We only need to do a rebuild on significant changes. Other changes are handled
         // by the sections and text editors themselves.
-        if (!significantChange)
+        if (!significantChange) {
+            super.refresh();
             return;
+        }
 
         var newSections = [];
         var newDOMFragment = document.createDocumentFragment();
 
         var previousMediaList = [];
         var previousSection = null;
-        var previousFocusedSection = null;
 
         function mediaListsEqual(a, b)
         {
@@ -115,17 +127,17 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
         function appendStyleSection(style)
         {
             var section = style.__rulesSection;
-            if (section && section.focused && !previousFocusedSection)
-                previousFocusedSection = section;
+            if (section && section.focused && !this._previousFocusedSection)
+                this._previousFocusedSection = section;
 
             if (!section) {
-                section = new WebInspector.CSSStyleDeclarationSection(style);
+                section = new WebInspector.CSSStyleDeclarationSection(this, style);
                 style.__rulesSection = section;
             } else
                 section.refresh();
 
             if (this._focusNextNewInspectorRule && style.ownerRule && style.ownerRule.type === WebInspector.CSSRule.Type.Inspector) {
-                previousFocusedSection = section;
+                this._previousFocusedSection = section;
                 delete this._focusNextNewInspectorRule;
             }
 
@@ -158,21 +170,29 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
         }
 
         var pseudoElements = this.nodeStyles.pseudoElements;
-        for (var pseudoIdentifier in pseudoElements) {
-            var pseudoElement = pseudoElements[pseudoIdentifier];
-            var orderedStyles = uniqueOrderedStyles(pseudoElement.orderedStyles);
-            for (var style of orderedStyles)
-                appendStyleSection.call(this, style);
+        var pseudoElementsStyle = [];
 
-            if (previousSection)
-                previousSection.lastInGroup = true;
-        }
+        for (var pseudoIdentifier in pseudoElements)
+            pseudoElementsStyle = pseudoElementsStyle.concat(pseudoElements[pseudoIdentifier].orderedStyles);
+
+        var orderedPseudoStyles = uniqueOrderedStyles(pseudoElementsStyle);
+        var pseudoElementSelectors = [];
+
+        for (var style of orderedPseudoStyles)
+            pseudoElementSelectors.push({ style, selectorText: style.ownerRule.selectorText.replace(/:{1,2}[\w-]+\s*/, " ").trimRight() });
+
+        // Reverse the array to allow ensure that splicing the array will not mess with the order.
+        if (pseudoElementSelectors.length)
+            pseudoElementSelectors.reverse();
 
         var addedNewRuleButton = false;
+        this._ruleMediaAndInherticanceList = [];
 
         var orderedStyles = uniqueOrderedStyles(this.nodeStyles.orderedStyles);
         for (var i = 0; i < orderedStyles.length; ++i) {
             var style = orderedStyles[i];
+
+            var hasMediaOrInherited = [];
 
             if (style.type === WebInspector.CSSStyleDeclaration.Type.Rule && !addedNewRuleButton)
                 addNewRuleButton.call(this);
@@ -188,6 +208,8 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
                 inheritedLabel.appendChild(prefixElement);
                 inheritedLabel.appendChild(WebInspector.linkifyNodeReference(style.node));
                 newDOMFragment.appendChild(inheritedLabel);
+
+                hasMediaOrInherited.push(inheritedLabel);
             }
 
             // Only include the media list if it is different from the previous media list shown.
@@ -217,10 +239,55 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
                     }
 
                     newDOMFragment.appendChild(mediaLabel);
+
+                    hasMediaOrInherited.push(mediaLabel);
+                }
+            }
+
+            if (!hasMediaOrInherited.length && style.type !== WebInspector.CSSStyleDeclaration.Type.Inline) {
+                if (previousSection && !previousSection.lastInGroup)
+                    hasMediaOrInherited = this._ruleMediaAndInherticanceList.lastValue;
+                else {
+                    var prefixElement = document.createElement("strong");
+                    prefixElement.textContent = WebInspector.UIString("Media: ");
+
+                    var mediaLabel = document.createElement("div");
+                    mediaLabel.className = "label";
+                    mediaLabel.appendChild(prefixElement);
+                    mediaLabel.appendChild(document.createTextNode("all"));
+
+                    newDOMFragment.appendChild(mediaLabel);
+                    hasMediaOrInherited.push(mediaLabel);
+                }
+            }
+
+            this._ruleMediaAndInherticanceList.push(hasMediaOrInherited);
+
+            if (pseudoElementSelectors.length && style.ownerRule) {
+                for (var j = pseudoElementSelectors.length - 1; j >= 0; --j) {
+                    var pseudoElement = pseudoElementSelectors[j];
+
+                    if (style.ownerRule.type === WebInspector.CSSRule.Type.UserAgent || style.inerhited
+                    || (pseudoElement.lastMatchingSelector && pseudoElement.lastMatchingSelector !== style.ownerRule.selectorText)) {
+                        appendStyleSection.call(this, pseudoElement.style);
+                        pseudoElementSelectors.splice(j, 1);
+                        this._ruleMediaAndInherticanceList.push(hasMediaOrInherited);
+
+                        continue;
+                    }
+
+                    if (style.ownerRule.selectorText.includes(pseudoElement.selectorText))
+                        pseudoElement.lastMatchingSelector = style.ownerRule.selectorText;
                 }
             }
 
             appendStyleSection.call(this, style);
+        }
+
+        // Just in case there are any pseudo-selectors left that haven't been added.
+        if (pseudoElementSelectors.length) {
+            for (var i = pseudoElementSelectors.length - 1; i >= 0; --i)
+                appendStyleSection.call(this, pseudoElementSelectors[i].style);
         }
 
         if (!addedNewRuleButton)
@@ -231,21 +298,102 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
 
         this.element.removeChildren();
         this.element.appendChild(newDOMFragment);
+        this.element.appendChild(this._emptyFilterResultsElement);
 
         this._sections = newSections;
 
         for (var i = 0; i < this._sections.length; ++i)
             this._sections[i].updateLayout();
 
-        if (previousFocusedSection)
-            previousFocusedSection.focus();
+        super.refresh();
+    }
+
+    scrollToSectionAndHighlightProperty(property)
+    {
+        if (!this._visible) {
+            this._propertyToSelectAndHighlight = property;
+            return false;
+        }
+
+        for (var section of this._sections) {
+            if (section.highlightProperty(property))
+                return true;
+        }
+
+        return false;
+    }
+
+    cssStyleDeclarationSectionEditorFocused(ignoredSection)
+    {
+        for (var section of this._sections) {
+            if (section !== ignoredSection)
+                section.clearSelection();
+        }
+    }
+
+    cssStyleDeclarationSectionEditorNextRule(currentSection)
+    {
+        currentSection.clearSelection();
+
+        var index = this._sections.indexOf(currentSection);
+        this._sections[index < this._sections.length - 1 ? index + 1 : 0].focusRuleSelector();
+    }
+
+    cssStyleDeclarationSectionEditorPreviousRule(currentSection, selectLastProperty) {
+        currentSection.clearSelection();
+
+        if (selectLastProperty || currentSection.selectorLocked) {
+            var index = this._sections.indexOf(currentSection);
+            index = index > 0 ? index - 1 : this._sections.length - 1;
+
+            var section = this._sections[index];
+            while (section.locked) {
+                index = index > 0 ? index - 1 : this._sections.length - 1;
+                section = this._sections[index];
+            }
+
+            section.focus();
+            section.selectLastProperty();
+            return;
+        }
+
+        currentSection.focusRuleSelector(true);
+    }
+
+    filterDidChange(filterBar)
+    {
+        for (var labels of this._ruleMediaAndInherticanceList) {
+            for (var i = 0; i < labels.length; ++i) {
+                labels[i].classList.toggle(WebInspector.CSSStyleDetailsSidebarPanel.NoFilterMatchInSectionClassName, filterBar.hasActiveFilters());
+
+                if (i === labels.length - 1)
+                    labels[i].classList.toggle("filter-matching-label", filterBar.hasActiveFilters());
+            }
+        }
+
+        var matchFound = !filterBar.hasActiveFilters();
+        for (var i = 0; i < this._sections.length; ++i) {
+            var section = this._sections[i];
+
+            if (section.findMatchingPropertiesAndSelectors(filterBar.filters.text) && filterBar.hasActiveFilters()) {
+                if (this._ruleMediaAndInherticanceList[i].length) {
+                    for (var label of this._ruleMediaAndInherticanceList[i])
+                        label.classList.remove(WebInspector.CSSStyleDetailsSidebarPanel.NoFilterMatchInSectionClassName);
+                } else
+                    section.element.classList.add(WebInspector.CSSStyleDetailsSidebarPanel.FilterMatchingSectionHasLabelClassName);
+                
+                matchFound = true;
+            }
+        }
+
+        this.element.classList.toggle("filter-non-matching", !matchFound);
     }
 
     // Protected
 
     shown()
     {
-        WebInspector.StyleDetailsPanel.prototype.shown.call(this);
+        super.shown();
 
         // Associate the style and section objects so they can be reused.
         // Also update the layout in case we changed widths while hidden.
@@ -258,7 +406,7 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
 
     hidden()
     {
-        WebInspector.StyleDetailsPanel.prototype.hidden.call(this);
+        super.hidden();
 
         // Disconnect the style and section objects so they have a chance
         // to release their objects when this panel is not visible.
@@ -270,6 +418,21 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
     {
         for (var i = 0; i < this._sections.length; ++i)
             this._sections[i].updateLayout();
+    }
+
+    nodeStylesRefreshed(event)
+    {
+        super.nodeStylesRefreshed(event);
+        
+        if (this._propertyToSelectAndHighlight) {
+            this.scrollToSectionAndHighlightProperty(this._propertyToSelectAndHighlight);
+            this._propertyToSelectAndHighlight = null;
+        }
+
+        if (this._previousFocusedSection && this._visible) {
+            this._previousFocusedSection.focus();
+            this._previousFocusedSection = null;
+        }
     }
 
     // Private

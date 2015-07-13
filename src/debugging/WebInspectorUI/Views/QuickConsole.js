@@ -42,7 +42,7 @@ WebInspector.QuickConsole = class QuickConsole extends WebInspector.Object
         this._element.classList.add("quick-console");
 
         this.prompt = new WebInspector.ConsolePrompt(null, "text/javascript");
-        this.prompt.element.classList.add(WebInspector.QuickConsole.TextPromptStyleClassName);
+        this.prompt.element.classList.add("text-prompt");
         this._element.appendChild(this.prompt.element);
 
         // FIXME: CodeMirror 4 has a default "Esc" key handler that always prevents default.
@@ -105,10 +105,10 @@ WebInspector.QuickConsole = class QuickConsole extends WebInspector.Object
 
     consoleLogVisibilityChanged(visible)
     {
-        if (visible)
-            this.element.classList.add(WebInspector.QuickConsole.ShowingLogClassName);
-        else
-            this.element.classList.remove(WebInspector.QuickConsole.ShowingLogClassName);
+        if (visible === this.element.classList.contains(WebInspector.QuickConsole.ShowingLogClassName))
+            return;
+
+        this.element.classList.toggle(WebInspector.QuickConsole.ShowingLogClassName, visible);
 
         this.dispatchEventToListeners(WebInspector.QuickConsole.Event.DidResize);
     }
@@ -340,9 +340,6 @@ WebInspector.QuickConsole = class QuickConsole extends WebInspector.Object
 };
 
 WebInspector.QuickConsole.ShowingLogClassName = "showing-log";
-WebInspector.QuickConsole.NavigationBarContainerStyleClassName = "navigation-bar-container";
-WebInspector.QuickConsole.NavigationBarSpacerStyleClassName = "navigation-bar-spacer";
-WebInspector.QuickConsole.TextPromptStyleClassName = "text-prompt";
 
 WebInspector.QuickConsole.ToolbarSingleLineHeight = 21;
 WebInspector.QuickConsole.ToolbarPromptPadding = 4;

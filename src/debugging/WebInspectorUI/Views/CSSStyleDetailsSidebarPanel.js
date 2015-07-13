@@ -39,7 +39,7 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
 
         if (WebInspector.cssStyleManager.canForcePseudoClasses()) {
             this._forcedPseudoClassContainer = document.createElement("div");
-            this._forcedPseudoClassContainer.className = WebInspector.CSSStyleDetailsSidebarPanel.PseudoClassesElementStyleClassName;
+            this._forcedPseudoClassContainer.className = "pseudo-classes";
 
             var groupElement = null;
 
@@ -60,7 +60,7 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
 
                 if (!groupElement || groupElement.children.length === 2) {
                     groupElement = document.createElement("div");
-                    groupElement.className = WebInspector.CSSStyleDetailsSidebarPanel.PseudoClassesGroupElementStyleClassName;
+                    groupElement.className = "group";
                     this._forcedPseudoClassContainer.appendChild(groupElement);
                 }
 
@@ -70,9 +70,12 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
             this.contentElement.appendChild(this._forcedPseudoClassContainer);
         }
 
-        this._computedStyleDetailsPanel = new WebInspector.ComputedStyleDetailsPanel;
-        this._rulesStyleDetailsPanel = new WebInspector.RulesStyleDetailsPanel;
-        this._metricsStyleDetailsPanel = new WebInspector.MetricsStyleDetailsPanel;
+        this._computedStyleDetailsPanel = new WebInspector.ComputedStyleDetailsPanel(this);
+        this._rulesStyleDetailsPanel = new WebInspector.RulesStyleDetailsPanel(this);
+        this._metricsStyleDetailsPanel = new WebInspector.MetricsStyleDetailsPanel(this);
+
+        this._computedStyleDetailsPanel.addEventListener(WebInspector.StyleDetailsPanel.Event.Refreshed, this._filterDidChange, this);
+        this._rulesStyleDetailsPanel.addEventListener(WebInspector.StyleDetailsPanel.Event.Refreshed, this._filterDidChange, this);
 
         this._panels = [this._computedStyleDetailsPanel, this._rulesStyleDetailsPanel, this._metricsStyleDetailsPanel];
 
@@ -84,6 +87,11 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
 
         // This will cause the selected panel to be set in _navigationItemSelected.
         this._navigationBar.selectedNavigationItem = this._lastSelectedSectionSetting.value;
+
+        this._filterBar = new WebInspector.FilterBar;
+        this._filterBar.placeholder = WebInspector.UIString("Filter Styles");
+        this._filterBar.addEventListener(WebInspector.FilterBar.Event.FilterDidChange, this._filterDidChange, this);
+        this.element.appendChild(this._filterBar.element);
     }
 
     // Public
@@ -101,9 +109,9 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
 
         this.contentElement.scrollTop = this._initialScrollOffset;
 
-        for (var i = 0; i < this._panels.length; ++i) {
-            delete this._panels[i].element._savedScrollTop;
-            this._panels[i].markAsNeedsRefresh(domNode);
+        for (var panel of this._panels) {
+            panel.element._savedScrollTop = undefined;
+            panel.markAsNeedsRefresh(domNode);
         }
 
         this._updatePseudoClassCheckboxes();
@@ -111,7 +119,7 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
 
     visibilityDidChange()
     {
-        WebInspector.SidebarPanel.prototype.visibilityDidChange.call(this);
+        super.visibilityDidChange();
 
         if (!this._selectedPanel)
             return;
@@ -135,6 +143,14 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
 
         if (this._selectedPanel)
             this._selectedPanel.widthDidChange();
+    }
+
+    computedStyleDetailsPanelShowProperty(property)
+    {
+        this._rulesStyleDetailsPanel.scrollToSectionAndHighlightProperty(property);
+        this._switchPanels(this._rulesStyleDetailsPanel);
+
+        this._navigationBar.selectedNavigationItem = this._lastSelectedSectionSetting.value;
     }
 
     // Protected
@@ -180,6 +196,11 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
             break;
         }
 
+        this._switchPanels(selectedPanel);
+    }
+
+    _switchPanels(selectedPanel)
+    {
         console.assert(selectedPanel);
 
         if (this._selectedPanel) {
@@ -198,10 +219,15 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
             else
                 this.contentElement.scrollTop = this._initialScrollOffset;
 
+            var hasFilter = typeof this._selectedPanel.filterDidChange === "function";
+            this.contentElement.classList.toggle("has-filter-bar", hasFilter);
+            if (this._filterBar)
+                this.contentElement.classList.toggle(WebInspector.CSSStyleDetailsSidebarPanel.FilterInProgressClassName, hasFilter && this._filterBar.hasActiveFilters());
+
             this._selectedPanel.shown();
         }
 
-        this._lastSelectedSectionSetting.value = selectedNavigationItem.identifier;
+        this._lastSelectedSectionSetting.value = selectedPanel.navigationItem.identifier;
     }
 
     _forcedPseudoClassCheckboxChanged(pseudoClass, event)
@@ -224,8 +250,19 @@ WebInspector.CSSStyleDetailsSidebarPanel = class CSSStyleDetailsSidebarPanel ext
             checkboxElement.checked = enabledPseudoClasses.includes(pseudoClass);
         }
     }
+
+    _filterDidChange()
+    {
+        this.contentElement.classList.toggle(WebInspector.CSSStyleDetailsSidebarPanel.FilterInProgressClassName, this._filterBar.hasActiveFilters());
+
+        this._selectedPanel.filterDidChange(this._filterBar);
+    }
 };
 
-WebInspector.CSSStyleDetailsSidebarPanel.PseudoClassesElementStyleClassName = "pseudo-classes";
-WebInspector.CSSStyleDetailsSidebarPanel.PseudoClassesGroupElementStyleClassName = "group";
 WebInspector.CSSStyleDetailsSidebarPanel.NoForcedPseudoClassesScrollOffset = 38; // Default height of the forced pseudo classes container. Updated in widthDidChange.
+WebInspector.CSSStyleDetailsSidebarPanel.FilterInProgressClassName = "filter-in-progress";
+WebInspector.CSSStyleDetailsSidebarPanel.FilterMatchingSectionHasLabelClassName = "filter-section-has-label";
+WebInspector.CSSStyleDetailsSidebarPanel.FilterMatchSectionClassName = "filter-matching";
+WebInspector.CSSStyleDetailsSidebarPanel.NoFilterMatchInSectionClassName = "filter-section-non-matching";
+WebInspector.CSSStyleDetailsSidebarPanel.NoFilterMatchInPropertyClassName = "filter-property-non-matching";
+

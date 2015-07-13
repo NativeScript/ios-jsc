@@ -257,9 +257,11 @@ WebInspector.ObjectTreePropertyTreeElement = class ObjectTreePropertyTreeElement
                 }
             }
 
+            var parentDescription = this._propertyPath.object.description;
+
             // Native function property on a native function is likely a "Foo.method".
-            if (isFunctionStringNativeCode(this._propertyPath.object.description)) {
-                var match = this._propertyPath.object.description.match(/^function\s+([^)]+?)\(/);
+            if (isFunctionStringNativeCode(parentDescription)) {
+                var match = parentDescription.match(/^function\s+([^)]+?)\(/);
                 if (match) {
                     var name = match[1];
                     if (WebInspector.NativeConstructorFunctionParameters[name]) {
@@ -269,9 +271,9 @@ WebInspector.ObjectTreePropertyTreeElement = class ObjectTreePropertyTreeElement
                 }
             }
 
-            // Native DOM constructor.
-            if (this._propertyPath.object.description.endsWith("Constructor")) {
-                var name = this._propertyPath.object.description;
+            // Native DOM constructor or on native objects that are not functions.
+            if (parentDescription.endsWith("Constructor") || parentDescription === "Math" || parentDescription === "JSON") {
+                var name = parentDescription;
                 if (WebInspector.NativeConstructorFunctionParameters[name]) {
                     var params = WebInspector.NativeConstructorFunctionParameters[name][this._property.name];
                     return params ? "(" + params + ")" : "()";
@@ -279,7 +281,7 @@ WebInspector.ObjectTreePropertyTreeElement = class ObjectTreePropertyTreeElement
             }
         }
 
-        var match = resolvedValue.description.match(/^function.*?(\([^)]+?\))/);
+        var match = resolvedValue.functionDescription.match(/^function.*?(\([^)]*?\))/);
         return match ? match[1] : "()";
     }
 
@@ -369,6 +371,11 @@ WebInspector.ObjectTreePropertyTreeElement = class ObjectTreePropertyTreeElement
             // For now, just skip native binding getters in API mode, since we likely
             // already showed them in the Properties section.
             if (isAPI && propertyDescriptor.nativeGetter)
+                continue;
+
+            // COMPATIBILITY (iOS 8): Sometimes __proto__ is not a value, but a get/set property.
+            // In those cases it is actually not useful to show.
+            if (propertyDescriptor.name === "__proto__" && !propertyDescriptor.hasValue())
                 continue;
 
             if (isArray && isPropertyMode) {

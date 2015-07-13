@@ -275,6 +275,32 @@ WebInspector.CSSCompletions = class CSSCompletions
     {
         return this._shorthands[longhand] || [];
     }
+
+    isValidPropertyName(name)
+    {
+        return this._values.includes(name);
+    }
+
+    propertyRequiresWebkitPrefix(name)
+    {
+        return this._values.includes("-webkit-" + name) && !this._values.includes(name);
+    }
+
+    getClosestPropertyName(name)
+    {
+        var bestMatches = [{distance: Infinity, name: null}];
+
+        for (var property of this._values) {
+            var distance = name.levenshteinDistance(property);
+
+            if (distance < bestMatches[0].distance)
+                bestMatches = [{distance, name: property}];
+            else if (distance === bestMatches[0].distance)
+                bestMatches.push({distance, name: property});
+        }
+
+        return bestMatches.length < 3 ? bestMatches[0].name : false;
+    }
 };
 
 WebInspector.CSSCompletions.cssNameCompletions = null;

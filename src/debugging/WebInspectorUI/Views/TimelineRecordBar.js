@@ -29,7 +29,7 @@ WebInspector.TimelineRecordBar = function(records, renderMode)
     // WebInspector.Object.call(this);
 
     this._element = document.createElement("div");
-    this._element.classList.add(WebInspector.TimelineRecordBar.StyleClassName);
+    this._element.classList.add("timeline-record-bar");
 
     this.renderMode = renderMode;
     this.records = records;
@@ -38,7 +38,6 @@ WebInspector.TimelineRecordBar = function(records, renderMode)
 // FIXME: Move to a WebInspector.Object subclass and we can remove this.
 WebInspector.Object.deprecatedAddConstructorFunctions(WebInspector.TimelineRecordBar);
 
-WebInspector.TimelineRecordBar.StyleClassName = "timeline-record-bar";
 WebInspector.TimelineRecordBar.BarSegmentStyleClassName = "segment";
 WebInspector.TimelineRecordBar.InactiveStyleClassName = "inactive";
 WebInspector.TimelineRecordBar.UnfinishedStyleClassName = "unfinished";
@@ -206,8 +205,11 @@ WebInspector.TimelineRecordBar.prototype = {
 
     set records(records)
     {
-        if (this._records && this._records.length)
+        if (this._records && this._records.length) {
             this._element.classList.remove(this._records[0].type);
+            if (this._records[0].eventType)
+                this._element.classList.remove(this._records[0].eventType);
+        }
 
         records = records || [];
 
@@ -217,8 +219,13 @@ WebInspector.TimelineRecordBar.prototype = {
         this._records = records;
 
         // Assume all records are the same type.
-        if (this._records.length)
+        if (this._records.length) {
             this._element.classList.add(this._records[0].type);
+            // Although all records may not have the same event type, the first record is
+            // sufficient to determine the correct style for the record bar.
+            if (this._records[0].eventType)
+                this._element.classList.add(this._records[0].eventType);
+        }
     },
 
     refresh: function(graphDataSource)
