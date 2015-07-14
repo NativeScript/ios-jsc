@@ -183,8 +183,8 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
     {
         // Called from WebInspector.PageObserver.
 
-        if (isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
-            WebInspector.frameResourceManager.mainFrame.markLoadEvent(this.activeRecording.computeElapsedTime(timestamp));
+        // if (isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
+        //     WebInspector.frameResourceManager.mainFrame.markLoadEvent(this.activeRecording.computeElapsedTime(timestamp));
     }
 
     // Private
