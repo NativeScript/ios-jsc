@@ -42,22 +42,22 @@ EncodedJSValue JSC_HOST_CALL ObjCExtendFunction(ExecState* execState) {
 
     ObjCClassBuilder classBuilder(execState, baseConstructor, instanceMethods, className);
     if (execState->hadException()) {
-        return JSValue::encode(execState->exception());
+        return JSValue::encode(jsUndefined());
     }
 
     classBuilder.implementProtocols(execState, protocolsArray);
     if (execState->hadException()) {
-        return JSValue::encode(execState->exception());
+        return JSValue::encode(jsUndefined());
     }
 
     classBuilder.addInstanceMembers(execState, instanceMethods, exposedMethods);
     if (execState->hadException()) {
-        return JSValue::encode(execState->exception());
+        return JSValue::encode(jsUndefined());
     }
 
     ObjCConstructorDerived* constructor = classBuilder.build(execState);
     if (execState->hadException()) {
-        return JSValue::encode(execState->exception());
+        return JSValue::encode(jsUndefined());
     }
 
     return JSValue::encode(constructor);

@@ -655,6 +655,25 @@ WebInspector.close = function()
     InspectorFrontendHost.closeWindow();
 };
 
+WebInspector.saveDataToFile = function(saveData, forceSaveAs)
+{
+    console.assert(saveData);
+    if (!saveData)
+        return;
+
+    if (typeof saveData.customSaveHandler === "function") {
+        saveData.customSaveHandler(forceSaveAs);
+        return;
+    }
+
+    console.assert(saveData.url);
+    console.assert(typeof saveData.content === "string");
+    if (!saveData.url || typeof saveData.content !== "string")
+        return;
+
+    InspectorFrontendHost.save(saveData.url, saveData.content, false, forceSaveAs || saveData.forceSaveAs);
+};
+
 WebInspector.isConsoleFocused = function()
 {
     return this.quickConsole.prompt.focused;
@@ -1111,7 +1130,7 @@ WebInspector._frameWasAdded = function(event)
 
     function delayedWork()
     {
-        this.showSourceCodeForFrame(frame.id);
+        this.showSourceCodeForFrame(frame.id, true);
     }
 
     // Delay showing the frame since FrameWasAdded is called before MainFrameChanged.
@@ -1450,12 +1469,21 @@ WebInspector._moveWindowMouseDown = function(event)
         !event.target.classList.contains("item-section"))
         return;
 
-    // Ignore dragging on the top of the toolbar on Mac where the inspector content fills the entire window.
-    if (WebInspector.Platform.name === "mac" && WebInspector.Platform.version.release >= 10) {
-        const windowDragHandledTitleBarHeight = 22;
-        if (event.pageY < windowDragHandledTitleBarHeight) {
+    if (WebInspector.Platform.name === "mac") {
+        // New Mac releases can start a window drag.
+        if (WebInspector.Platform.version.release >= 11) {
+            InspectorFrontendHost.startWindowDrag();
             event.preventDefault();
             return;
+        }
+
+        // Ignore dragging on the top of the toolbar on Mac if the system handles it.
+        if (WebInspector.Platform.version.release === 10) {
+            const windowDragHandledTitleBarHeight = 22;
+            if (event.pageY < windowDragHandledTitleBarHeight) {
+                event.preventDefault();
+                return;
+            }
         }
     }
 

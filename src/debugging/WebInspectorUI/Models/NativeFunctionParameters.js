@@ -30,19 +30,21 @@ WebInspector.NativeConstructorFunctionParameters = {
     Object: {
         assign: "target, ...sources",
         create: "prototype, [propertiesObject]",
-        defineProperty: "object, propertyName, descriptor",
         defineProperties: "object, properties",
+        defineProperty: "object, propertyName, descriptor",
         freeze: "object",
         getOwnPropertyDescriptor: "object, propertyName",
         getOwnPropertyNames: "object",
         getOwnPropertySymbols: "object",
         getPrototypeOf: "object",
+        is: "value1, value2",
         isExtensible: "object",
         isFrozen: "object",
         isSealed: "object",
         keys: "object",
         preventExtensions: "object",
         seal: "object",
+        setPrototypeOf: "object, prototype",
         __proto__: null,
     },
 
@@ -75,11 +77,12 @@ WebInspector.NativeConstructorFunctionParameters = {
         acosh: "x",
         asin: "x",
         asinh: "x",
-        atan: "x",
         atan2: "y, x",
+        atan: "x",
         atanh: "x",
         cbrt: "x",
         ceil: "x",
+        clz32: "x",
         cos: "x",
         cosh: "x",
         exp: "x",
@@ -96,6 +99,7 @@ WebInspector.NativeConstructorFunctionParameters = {
         min: "[...x]",
         pow: "x, y",
         round: "x",
+        sign: "x",
         sin: "x",
         sinh: "x",
         sqrt: "x",
@@ -126,7 +130,9 @@ WebInspector.NativeConstructorFunctionParameters = {
     },
 
     String: {
-        fromCharCode: "code, [...codes]",
+        fromCharCode: "...codeUnits",
+        fromCodePoint: "...codePoints",
+        raw: "template, ...substitutions",
         __proto__: null,
     },
 
@@ -191,6 +197,7 @@ WebInspector.NativePrototypeFunctionParameters = {
 
     Array: {
         concat: "value, ...",
+        copyWithin: "targetIndex, startIndex, [endIndex=length]",
         every: "callback, [thisArg]",
         fill: "value, [startIndex=0], [endIndex=length]",
         filter: "callback, [thisArg]",
@@ -300,18 +307,35 @@ WebInspector.NativePrototypeFunctionParameters = {
     String: {
         charAt: "index",
         charCodeAt: "index",
+        codePoints: "index",
         concat: "string, ...",
         includes: "searchValue, [startIndex=0]",
         indexOf: "searchValue, [startIndex=0]",
         lastIndexOf: "searchValue, [startIndex=length]",
         localeCompare: "string",
         match: "regex",
+        repeat: "count",
         replace: "regex|string, replaceString|replaceHandler, [flags]",
         search: "regex",
         slice: "startIndex, [endIndex=length]",
         split: "[separator], [limit]",
         substr: "startIndex, [numberOfCharacters]",
         substring: "startIndex, [endIndex=length]",
+        __proto__: null,
+    },
+
+    WeakMap: {
+        delete: "key",
+        get: "key",
+        has: "key",
+        set: "key, value",
+        __proto__: null,
+    },
+
+    WeakSet: {
+        delete: "value",
+        has: "value",
+        add: "value",
         __proto__: null,
     },
 
@@ -733,6 +757,7 @@ WebInspector.NativePrototypeFunctionParameters = {
     },
 
     DocumentFragment: {
+        getElementById: "id",
         querySelector: "selectors",
         querySelectorAll: "selectors",
         __proto__: null,
@@ -2062,9 +2087,6 @@ WebInspector.NativePrototypeFunctionParameters = {
         __proto__: null,
     },
 };
-
-WebInspector.NativePrototypeFunctionParameters.WeakMap = WebInspector.NativePrototypeFunctionParameters.Map;
-WebInspector.NativePrototypeFunctionParameters.WeakSet = WebInspector.NativePrototypeFunctionParameters.Set;
 
 (function() {
     var EventTarget = {

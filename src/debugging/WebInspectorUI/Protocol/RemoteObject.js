@@ -31,7 +31,7 @@
 
 WebInspector.RemoteObject = class RemoteObject
 {
-    constructor(objectId, type, subtype, value, description, size, classPrototype, preview)
+    constructor(objectId, type, subtype, value, description, size, classPrototype, className, preview)
     {
         console.assert(type);
         console.assert(!preview || preview instanceof WebInspector.ObjectPreview);
@@ -52,8 +52,10 @@ WebInspector.RemoteObject = class RemoteObject
             this._classPrototype = classPrototype;
             this._preview = preview;
 
-            if (subtype === "class")
-                this._description = "class " + this._description;
+            if (subtype === "class") {
+                this._functionDescription = this._description;
+                this._description = "class " + className;
+            }
         } else {
             // Primitive or null.
             console.assert(type !== "object" || value === null);
@@ -69,7 +71,7 @@ WebInspector.RemoteObject = class RemoteObject
 
     static fromPrimitiveValue(value)
     {
-        return new WebInspector.RemoteObject(undefined, typeof value, undefined, value, undefined, undefined, undefined);
+        return new WebInspector.RemoteObject(undefined, typeof value, undefined, value, undefined, undefined, undefined, undefined);
     }
 
     static fromPayload(payload)
@@ -102,7 +104,7 @@ WebInspector.RemoteObject = class RemoteObject
             payload.preview = WebInspector.ObjectPreview.fromPayload(payload.preview);
         }
 
-        return new WebInspector.RemoteObject(payload.objectId, payload.type, payload.subtype, payload.value, payload.description, payload.size, payload.classPrototype, payload.preview);
+        return new WebInspector.RemoteObject(payload.objectId, payload.type, payload.subtype, payload.value, payload.description, payload.size, payload.classPrototype, payload.className, payload.preview);
     }
 
     static createCallArgument(valueOrObject)
@@ -161,6 +163,13 @@ WebInspector.RemoteObject = class RemoteObject
     get description()
     {
         return this._description;
+    }
+
+    get functionDescription()
+    {
+        console.assert(this.type === "function");
+
+        return this._functionDescription || this._description;
     }
 
     get hasChildren()
@@ -297,7 +306,8 @@ WebInspector.RemoteObject = class RemoteObject
             return;
         }
 
-        RuntimeAgent.evaluate.invoke({expression:value, doNotPauseOnExceptionsAndMuteConsole:true}, evaluatedCallback.bind(this));
+        // FIXME: It doesn't look like setPropertyValue is used yet. This will need to be tested when it is again (editable ObjectTrees).
+        RuntimeAgent.evaluate.invoke({expression:appendWebInspectorSourceURL(value), doNotPauseOnExceptionsAndMuteConsole:true}, evaluatedCallback.bind(this));
 
         function evaluatedCallback(error, result, wasThrown)
         {
@@ -313,7 +323,7 @@ WebInspector.RemoteObject = class RemoteObject
 
             delete result.description; // Optimize on traffic.
 
-            RuntimeAgent.callFunctionOn(this._objectId, setPropertyValue.toString(), [{value:name}, result], true, undefined, propertySetCallback.bind(this));
+            RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(setPropertyValue.toString()), [{value:name}, result], true, undefined, propertySetCallback.bind(this));
 
             if (result._objectId)
                 RuntimeAgent.releaseObject(result._objectId);
@@ -397,7 +407,7 @@ WebInspector.RemoteObject = class RemoteObject
         if (args)
             args = args.map(WebInspector.RemoteObject.createCallArgument);
 
-        RuntimeAgent.callFunctionOn(this._objectId, functionDeclaration.toString(), args, true, undefined, generatePreview, mycallback);
+        RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(functionDeclaration.toString()), args, true, undefined, generatePreview, mycallback);
     }
 
     callFunctionJSON(functionDeclaration, args, callback)
@@ -407,7 +417,7 @@ WebInspector.RemoteObject = class RemoteObject
             callback((error || wasThrown) ? null : result.value);
         }
 
-        RuntimeAgent.callFunctionOn(this._objectId, functionDeclaration.toString(), args, true, true, mycallback);
+        RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(functionDeclaration.toString()), args, true, true, mycallback);
     }
     
     invokeGetter(getterRemoteObject, callback)

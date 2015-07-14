@@ -8,6 +8,7 @@
 
 #include "RecordConstructor.h"
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
+#include "JSErrors.h"
 #include "Interop.h"
 #include "RecordPrototype.h"
 #include "RecordInstance.h"
@@ -100,8 +101,7 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
     if (RecordInstance* record = jsDynamicCast<RecordInstance*>(value)) {
         if (ffiType != jsCast<RecordConstructor*>(record->get(execState, execState->vm().propertyNames->constructor))->_ffiTypeMethodTable.ffiType) {
             JSValue exception = createError(execState, "Different record types");
-            jsCast<GlobalObject*>(execState->lexicalGlobalObject())->inspectorController().reportAPIException(execState, exception);
-            WTFCrash();
+            reportFatalErrorBeforeShutdown(execState, Exception::create(execState->vm(), exception));
         }
 
         memcpy(buffer, record->data(), record->size());

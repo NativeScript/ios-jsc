@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,17 +23,33 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.PropertiesSection = function(title, subtitle)
+WebInspector.WrappedPromise = class WrappedPromise
 {
-    this.propertiesElement = document.createElement("ol");
-    this.propertiesElement.className = "properties properties-tree";
-    this.propertiesElement.tabIndex = 0;
-    this.propertiesTreeOutline = new WebInspector.TreeOutline(this.propertiesElement);
-    this.propertiesTreeOutline.section = this;
+    constructor(work)
+    {
+        this._promise = new Promise(function(resolve, reject) {
+            this._resolve = resolve;
+            this._reject = reject;
 
-    WebInspector.Section.call(this, title, subtitle);
+            if (work && typeof work === "function")
+                work();
+        }.bind(this));
+    }
 
-    this.element.appendChild(this.propertiesElement);
-};
+    // Public
 
-WebInspector.PropertiesSection.prototype.__proto__ = WebInspector.Section.prototype;
+    get promise()
+    {
+        return this._promise;
+    }
+
+    resolve(value)
+    {
+        this._resolve(value);
+    }
+
+    reject(value)
+    {
+        this._reject(value);
+    }
+}

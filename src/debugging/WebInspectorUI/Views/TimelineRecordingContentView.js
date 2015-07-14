@@ -34,7 +34,7 @@ WebInspector.TimelineRecordingContentView = function(recording, extraArguments)
     this._recording = recording;
     this._timelineSidebarPanel = extraArguments.timelineSidebarPanel;
 
-    this.element.classList.add(WebInspector.TimelineRecordingContentView.StyleClassName);
+    this.element.classList.add("timeline-recording");
 
     this._linearTimelineOverview = new WebInspector.LinearTimelineOverview(this._recording);
     this._linearTimelineOverview.addEventListener(WebInspector.TimelineOverview.Event.TimeRangeSelectionChanged, this._timeRangeSelectionChanged, this);
@@ -83,8 +83,6 @@ WebInspector.TimelineRecordingContentView = function(recording, extraArguments)
 
     this.showOverviewTimelineView();
 };
-
-WebInspector.TimelineRecordingContentView.StyleClassName = "timeline-recording";
 
 WebInspector.TimelineRecordingContentView.SelectedTimelineTypeCookieKey = "timeline-recording-content-view-selected-timeline-type";
 WebInspector.TimelineRecordingContentView.OverviewTimelineViewCookieValue = "timeline-recording-content-view-overview-timeline-view";
@@ -267,11 +265,12 @@ WebInspector.TimelineRecordingContentView.prototype = {
 
             if (this._renderingFrameTimeline && this._renderingFrameTimeline.records.length) {
                 var records = this._renderingFrameTimeline.records;
-                var startIndex = Math.floor(startTime);
+                var startIndex = this._currentTimelineOverview.timelineRuler.snapInterval ? startTime : Math.floor(startTime);
                 if (startIndex >= records.length)
                     return false;
 
-                var endIndex = Math.min(Math.floor(endTime), records.length - 1);
+                var endIndex = this._currentTimelineOverview.timelineRuler.snapInterval ? endTime - 1: Math.floor(endTime);
+                endIndex = Math.min(endIndex, records.length - 1);
                 console.assert(startIndex <= endIndex, startIndex);
 
                 startTime = records[startIndex].startTime;
@@ -309,10 +308,8 @@ WebInspector.TimelineRecordingContentView.prototype = {
 
         if (treeElement instanceof WebInspector.ProfileNodeTreeElement) {
             var profileNode = treeElement.profileNode;
-            for (var call of profileNode.calls) {
-                if (checkTimeBounds(call.startTime, call.endTime))
-                    return true;
-            }
+            if (checkTimeBounds(profileNode.startTime, profileNode.endTime))
+                return true;
 
             return false;
         }
@@ -418,7 +415,7 @@ WebInspector.TimelineRecordingContentView.prototype = {
             for (var timelineView of this._timelineViewMap.values())
                 timelineView.zeroTime = startTime;
 
-            delete this._startTimeNeedsReset;
+            this._startTimeNeedsReset = false;
         }
 
         this._linearTimelineOverview.endTime = Math.max(endTime, currentTime);
@@ -532,6 +529,9 @@ WebInspector.TimelineRecordingContentView.prototype = {
 
     _clearTimeline: function(event)
     {
+        if (WebInspector.timelineManager.activeRecording === this._recording && WebInspector.timelineManager.isCapturing())
+            WebInspector.timelineManager.stopCapturing();
+
         this._recording.reset();
     },
 
@@ -670,7 +670,7 @@ WebInspector.TimelineRecordingContentView.prototype = {
             return;
 
         var startIndex = this._renderingFrameTimelineOverview.selectionStartTime;
-        var endIndex = startIndex + this._renderingFrameTimelineOverview.selectionDuration;
+        var endIndex = startIndex + this._renderingFrameTimelineOverview.selectionDuration - 1;
         this._timelineSidebarPanel.updateFrameSelection(startIndex, endIndex);
     }
 };

@@ -255,6 +255,8 @@ WebInspector.ObjectTreeView = class ObjectTreeView extends WebInspector.Object
         }
 
         handler.call(this, list, this._propertyPath);
+
+        this.dispatchEventToListeners(WebInspector.ObjectTreeView.Event.Updated);
     }
 
     _updateEntries(entries, propertyPath)
@@ -291,6 +293,11 @@ WebInspector.ObjectTreeView = class ObjectTreeView extends WebInspector.Object
 
         var hadProto = false;
         for (var propertyDescriptor of properties) {
+            // COMPATIBILITY (iOS 8): Sometimes __proto__ is not a value, but a get/set property.
+            // In those cases it is actually not useful to show.
+            if (propertyDescriptor.name === "__proto__" && !propertyDescriptor.hasValue())
+                continue;
+
             if (isArray && isPropertyMode) {
                 if (propertyDescriptor.isIndexProperty())
                     this._outline.appendChild(new WebInspector.ObjectTreeArrayIndexTreeElement(propertyDescriptor, propertyPath));
@@ -334,7 +341,6 @@ WebInspector.ObjectTreeView = class ObjectTreeView extends WebInspector.Object
 
         if (this._inConsole) {
             WebInspector.logManager.addEventListener(WebInspector.LogManager.Event.Cleared, this._untrackWeakEntries, this);
-            WebInspector.logManager.addEventListener(WebInspector.LogManager.Event.ActiveLogCleared, this._untrackWeakEntries, this);
             WebInspector.logManager.addEventListener(WebInspector.LogManager.Event.SessionStarted, this._untrackWeakEntries, this);
         }
     }
@@ -353,7 +359,6 @@ WebInspector.ObjectTreeView = class ObjectTreeView extends WebInspector.Object
 
         if (this._inConsole) {
             WebInspector.logManager.removeEventListener(WebInspector.LogManager.Event.Cleared, this._untrackWeakEntries, this);
-            WebInspector.logManager.removeEventListener(WebInspector.LogManager.Event.ActiveLogCleared, this._untrackWeakEntries, this);
             WebInspector.logManager.removeEventListener(WebInspector.LogManager.Event.SessionStarted, this._untrackWeakEntries, this);
         }
 
@@ -367,4 +372,8 @@ WebInspector.ObjectTreeView.Mode = {
     Properties: Symbol("object-tree-properties"),      // Properties
     PrototypeAPI: Symbol("object-tree-prototype-api"), // API view on a live object instance, so getters can be invoked.
     ClassAPI: Symbol("object-tree-class-api"),         // API view without an object instance, can not invoke getters.
+};
+
+WebInspector.ObjectTreeView.Event = {
+    Updated: "object-tree-updated",
 };

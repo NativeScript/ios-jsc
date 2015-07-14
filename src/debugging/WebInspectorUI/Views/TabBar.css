@@ -35,7 +35,7 @@
     background-image: linear-gradient(to bottom, rgb(199, 199, 199), rgb(184, 184, 184));
     background-size: 100% 200%;
 
-    height: 30px;
+    height: 26px;
 
     white-space: nowrap;
     overflow: hidden;
@@ -87,6 +87,7 @@ body.window-inactive .tab-bar > .top-border {
     border-top: 1px solid rgb(168, 168, 168);
 
     height: 100%;
+    line-height: 15px;
     outline: none;
 
     /* FIXME: These cause noticeable transitions when focusing the window. Fix that with JavaScript? */

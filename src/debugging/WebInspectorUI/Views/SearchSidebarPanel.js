@@ -56,8 +56,12 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
 
         this.contentTreeOutline.onselect = this._treeElementSelected.bind(this);
 
-        if (WebInspector.debuggableType === WebInspector.DebuggableType.JavaScript)
-            this._resourcesContentTreeOutline.element.classList.add(WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName);
+        // This seems like a leftover 
+        // https://github.com/WebKit/webkit/commit/2f9488b09b9e9290c1a1261b78eb507016afe97a splits SearchSidebarPanel from the ResourceSidebarPanel
+        // and this logic seems to be part of the ResourceSidebarPanel
+        // Furthermore there is no _resourcesContentTreeOutline nowhere in the WebInspectorUI content, or webkit content
+        // if (WebInspector.debuggableType === WebInspector.DebuggableType.JavaScript)
+        //     this._resourcesContentTreeOutline.element.classList.add(WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName);
     }
 
     // Public
@@ -211,6 +215,8 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
             if (error || !resultsCount)
                 return;
 
+            console.assert(searchId);
+
             this._domSearchIdentifier = searchId;
 
             function domSearchResults(error, nodeIds)
@@ -277,9 +283,9 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
         setTimeout(searchScripts.bind(this, WebInspector.debuggerManager.knownNonResourceScripts), 0);
 
         if (window.DOMAgent) {
-            if ("_domSearchIdentifier" in this) {
+            if (this._domSearchIdentifier) {
                 DOMAgent.discardSearchResults(this._domSearchIdentifier);
-                delete this._domSearchIdentifier;
+                this._domSearchIdentifier = undefined;
             }
 
             DOMAgent.performSearch(searchQuery, domCallback.bind(this));
