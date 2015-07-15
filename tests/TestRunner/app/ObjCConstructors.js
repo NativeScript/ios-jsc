@@ -64,7 +64,7 @@ describe("Constructing Objective-C classes with new operator", function () {
         var obj2 = NSObject.alloc();
         expect(obj2.retainCount()).toBe(1);
 
-       var obj3 = NSObject.new();
+        var obj3 = NSObject.new();
         expect(obj3.retainCount()).toBe(1);
     });
          
