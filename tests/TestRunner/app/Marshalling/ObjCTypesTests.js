@@ -192,4 +192,9 @@ describe(module.id, function () {
     it("NSNull", function () {
         expect(NSNull.null() instanceof NSObject).toBe(true);
     });
+         
+    it("AllocatedPlaceholderHasOblyOneSymbol", function () {
+       var symbols = Object.getOwnPropertySymbols(NSObject.alloc());
+       expect(symbols.length).toBe(1);
+    });
 });

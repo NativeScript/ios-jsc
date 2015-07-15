@@ -109,7 +109,7 @@ void GlobalObject::finishCreation(VM& vm) {
 
     ExecState* globalExec = this->globalExec();
 
-    this->_instanceStructureIdentifier = Identifier::fromString(&vm, WTF::ASCIILiteral("__instanceStructureIdentifier"));
+    this->_instanceStructureIdentifier = Identifier::fromUid(PrivateName(ASCIILiteral("__instanceStructureIdentifier")));
 
     std::unique_ptr<Inspector::InspectorTimelineAgent> timelineAgent = std::make_unique<Inspector::InspectorTimelineAgent>(this);
     this->_instrumentingAgents = std::make_unique<Inspector::InstrumentingAgents>();

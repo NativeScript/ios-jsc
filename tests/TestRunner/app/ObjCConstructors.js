@@ -59,17 +59,15 @@ describe("Constructing Objective-C classes with new operator", function () {
 
     it('allocAndNewMethodsRetaining', function () {
         var obj1 = new NSObject();
-        console.log("retainCount:", obj1.retainCount());
         expect(obj1.retainCount()).toBe(1);
 
         var obj2 = NSObject.alloc();
-       console.log("retainCount:", obj2.retainCount());
         expect(obj2.retainCount()).toBe(1);
 
        var obj3 = NSObject.new();
-       console.log("retainCount:", obj3.retainCount());
         expect(obj3.retainCount()).toBe(1);
     });
+         
     it('initializerResolving', function () {
         var arr = new NSArray([1, 2, 3]);
         expect(arr.objectAtIndex(0)).toBe(1);

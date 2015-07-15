@@ -27,11 +27,11 @@ public:
     }
 
     id wrappedObject() const {
-        return this->_wrappedObject.get();
+        return this->_wrappedObject;
     }
 
 private:
-    WTF::RetainPtr<id> _wrappedObject;
+    id _wrappedObject;
 
     AllocatedPlaceholder(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
