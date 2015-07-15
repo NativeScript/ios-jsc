@@ -197,4 +197,22 @@ describe(module.id, function () {
        var symbols = Object.getOwnPropertySymbols(NSObject.alloc());
        expect(symbols.length).toBe(1);
     });
+         
+    it("Initialize a class(NSTimer) whose init deallocates the result from alloc", function () {
+       var actionCalled = false;
+       
+       var JSObject = NSObject.extend({
+           action: function () {
+               actionCalled = true;
+           }
+       }, {
+           exposedMethods: {
+               action: { returns: interop.types.void }
+           }
+       });
+
+       var timer = NSTimer.alloc().initWithFireDateIntervalTargetSelectorUserInfoRepeats(new Date(), 0, new JSObject(), "action", null, true);
+       timer.fire();
+       expect(actionCalled).toBe(true);
+    });
 });
