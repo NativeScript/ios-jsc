@@ -16,6 +16,7 @@
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorDerived.h"
 #include "Interop.h"
+#include "AllocatedPlaceholder.h"
 
 #import "TNSArrayAdapter.h"
 #import "TNSDictionaryAdapter.h"
@@ -102,6 +103,10 @@ id toObject(ExecState* execState, const JSValue& value) {
 
     if (value.inherits(ObjCConstructorBase::info())) {
         return jsCast<ObjCConstructorBase*>(value.asCell())->klass();
+    }
+
+    if (value.inherits(AllocatedPlaceholder::info())) {
+        return jsCast<AllocatedPlaceholder*>(value.asCell())->wrappedObject();
     }
 
     if (value.isUndefinedOrNull()) {

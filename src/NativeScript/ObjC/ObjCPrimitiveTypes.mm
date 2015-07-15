@@ -21,9 +21,9 @@ using namespace JSC;
 #pragma mark objCInstancetype
 static JSValue objCInstancetype_read(ExecState* execState, const void* buffer, JSCell* self) {
     id value = *static_cast<const id*>(buffer);
-    JSC::Symbol* instancesStructureSymbol = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->instancesStructureSymbol();
+    JSC::Identifier instancesStructureIdentifier = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->instanceStructureIdentifier();
 
-    if (Structure* structure = jsDynamicCast<Structure*>(execState->thisValue().get(execState, instancesStructureSymbol->privateName()))) {
+    if (Structure* structure = jsDynamicCast<Structure*>(execState->thisValue().get(execState, instancesStructureIdentifier))) {
         return toValue(execState, value, ^{
             return structure;
         });

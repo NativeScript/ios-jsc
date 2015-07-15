@@ -12,7 +12,7 @@
 #include "ObjCClassBuilder.h"
 #include "TypeFactory.h"
 #include "Metadata.h"
-#include "AllocedObject.h"
+#include "AllocatedPlaceholder.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -29,6 +29,7 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
 
     Base::initializeFFI(vm, returnTypeCell, parameterTypesCells, 2);
     this->_retainsReturnedCocoaObjects = metadata->ownsReturnedCocoaObject();
+    this->_isInitializer = metadata->isInitializer();
     this->_hasErrorOutParameter = metadata->hasErrorOutParameter();
 
     if (this->_hasErrorOutParameter) {
@@ -99,7 +100,8 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t*
     }
 
     JSValue result = this->postCall(execState, buffer);
-    if (this->retainsReturnedCocoaObjects() || asObject(execState->thisValue())->classInfo() == AllocedObject::info()) {
+
+    if (this->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo() == AllocatedPlaceholder::info() && this->_isInitializer)) {
         id returnValue = *static_cast<id*>(this->getReturn(buffer));
         [returnValue release];
     }

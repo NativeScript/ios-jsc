@@ -20,8 +20,7 @@ void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* g
     this->setWrappedObject(wrappedObject);
     this->_canSetObjectAtIndexedSubscript = [wrappedObject respondsToSelector:@selector(setObject:
                                                                                   atIndexedSubscript:)];
-    Identifier instancesStructureIdentifier = Identifier::fromUid(globalObject->interop()->instancesStructureSymbol()->privateName());
-    this->putDirect(vm, instancesStructureIdentifier, JSValue(this->structure()), ReadOnly | DontEnum | DontDelete);
+    this->putDirect(vm, globalObject->instanceStructureIdentifier(), JSValue(this->structure()), ReadOnly | DontEnum | DontDelete);
 }
 
 WTF::String ObjCWrapperObject::className(const JSObject* object) {

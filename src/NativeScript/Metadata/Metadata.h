@@ -21,8 +21,10 @@ static const int MetaTypeMask = 7; // 0000 0111
 // Bit indices in flags section
 enum MetaFlags {
     HasName = 7,
+    // IsIosAppExtensionAvailable = 6, the flag exists in metadata generator but we never use it in the runtime
     FunctionIsVariadic = 5,
     FunctionOwnsReturnedCocoaObject = 4,
+    MethodIsInitializer = 1,
     MethodIsVariadic = 2,
     MethodIsNullTerminatedVariadic = 3,
     MethodOwnsReturnedCocoaObject = 4,
@@ -285,10 +287,10 @@ struct PtrTo {
         return valuePtr();
     }
     PtrTo<T> add(int value) const {
-        return PtrTo<T>{.offset = this->offset + value * sizeof(T) };
+        return PtrTo<T>{ .offset = this->offset + value * sizeof(T) };
     }
     PtrTo<T> addBytes(int bytes) const {
-        return PtrTo<T>{.offset = this->offset + bytes };
+        return PtrTo<T>{ .offset = this->offset + bytes };
     }
     template <typename V>
     PtrTo<V>& castTo() const {
@@ -579,6 +581,10 @@ public:
 
     bool hasErrorOutParameter() const {
         return this->flag(MetaFlags::MethodHasErrorOutParameter);
+    }
+
+    bool isInitializer() const {
+        return this->flag(MetaFlags::MethodIsInitializer);
     }
 
     SEL selector() const {

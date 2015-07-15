@@ -18,8 +18,7 @@ const ClassInfo ObjCSuperObject::s_info = { "ObjCSuperObject", &Base::s_info, 0,
 void ObjCSuperObject::finishCreation(VM& vm, ObjCWrapperObject* wrapper, GlobalObject* globalObject) {
     Base::finishCreation(vm);
     this->_wrapperObject.set(vm, this, wrapper);
-    Identifier instancesStructureIdentifier = Identifier::fromUid(globalObject->interop()->instancesStructureSymbol()->privateName());
-    this->putDirect(vm, instancesStructureIdentifier, JSValue(this->wrapperObject()->structure()), ReadOnly | DontEnum | DontDelete);
+    this->putDirect(vm, globalObject->instanceStructureIdentifier(), JSValue(this->wrapperObject()->structure()), ReadOnly | DontEnum | DontDelete);
 }
 
 JSValue ObjCSuperObject::toThis(JSCell* cell, ExecState* execState, ECMAMode mode) {

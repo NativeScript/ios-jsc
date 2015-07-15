@@ -44,7 +44,7 @@
 #include "TypeFactory.h"
 #include "ObjCFastEnumerationIterator.h"
 #include "ObjCFastEnumerationIteratorPrototype.h"
-#include "AllocedObject.h"
+#include "AllocatedPlaceholder.h"
 #include "ObjCTypes.h"
 
 namespace NativeScript {
@@ -62,8 +62,8 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
         JSValue jsValue = toValue(execState, instance, ^{ return constructorDerived->instancesStructure(); });
         return JSValue::encode(jsValue);
     } else if (jsDynamicCast<ObjCConstructorNative*>(constructor) != nullptr) {
-        AllocedObject* allocedObj = AllocedObject::create(execState->vm(), AllocedObject::createStructure(execState->vm(), globalObject, constructor->instancesStructure()->storedPrototype()), klass);
-        return JSValue::encode(JSValue(allocedObj));
+        AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), jsCast<GlobalObject*>(execState->lexicalGlobalObject()), AllocatedPlaceholder::createStructure(execState->vm(), globalObject, constructor->instancesStructure()->storedPrototype()), instance, constructor->instancesStructure());
+        return JSValue::encode(JSValue(allocatedPlaceholder));
     } else {
         ASSERT_NOT_REACHED();
     }
@@ -108,6 +108,8 @@ void GlobalObject::finishCreation(VM& vm) {
     Base::finishCreation(vm);
 
     ExecState* globalExec = this->globalExec();
+
+    this->_instanceStructureIdentifier = Identifier::fromString(&vm, WTF::ASCIILiteral("__instanceStructureIdentifier"));
 
     std::unique_ptr<Inspector::InspectorTimelineAgent> timelineAgent = std::make_unique<Inspector::InspectorTimelineAgent>(this);
     this->_instrumentingAgents = std::make_unique<Inspector::InstrumentingAgents>();
