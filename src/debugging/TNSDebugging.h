@@ -5,6 +5,7 @@
 //  Copyright (c) 2015 г. Telerik. All rights reserved.
 //
 
+#import <UIKit/UIApplication.h>
 #import <JavaScriptCore/JavaScript.h>
 #import <JavaScriptCore/JSStringRefCF.h>
 #import <NativeScript.h>
@@ -157,6 +158,10 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
       NSSetUncaughtExceptionHandler(NULL);
   };
 
+  [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillResignActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) { notify_post(NOTIFICATION("ApplicationWillResignActive")); }];
+    
+  [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) { notify_post(NOTIFICATION("ApplicationDidBecomeActive")); }];
+    
   TNSInspectorFrontendConnectedHandler connectionHandler =
       ^TNSInspectorProtocolHandler(
           TNSInspectorSendMessageBlock sendMessageToFrontend, NSError *error) {
