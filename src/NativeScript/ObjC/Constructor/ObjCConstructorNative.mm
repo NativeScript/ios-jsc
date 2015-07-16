@@ -13,6 +13,7 @@
 #include "SymbolLoader.h"
 #include "ObjCMethodCallback.h"
 #include "Interop.h"
+#include "AllocatedPlaceholder.h"
 
 namespace NativeScript {
 
@@ -27,6 +28,7 @@ void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject,
     Base::finishCreation(vm, globalObject, prototype, klass);
     this->_metadata = metadata;
     this->ObjCConstructorBase::_initializersGenerator = std::bind(&ObjCConstructorNative::initializersGenerator, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    this->_allocatedPlaceholderStructure.set(vm, this, AllocatedPlaceholder::createStructure(vm, globalObject, prototype));
 }
 
 bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
@@ -117,5 +119,11 @@ const WTF::Vector<ObjCConstructorCall*> ObjCConstructorNative::initializersGener
     } while (metadata);
 
     return constructors;
+}
+
+void ObjCConstructorNative::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor) {
+    Base::visitChildren(cell, visitor);
+    ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
+    visitor.append(&constructor->_allocatedPlaceholderStructure);
 }
 }

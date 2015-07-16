@@ -61,8 +61,8 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
         [instance release];
         JSValue jsValue = toValue(execState, instance, ^{ return constructorDerived->instancesStructure(); });
         return JSValue::encode(jsValue);
-    } else if (jsDynamicCast<ObjCConstructorNative*>(constructor) != nullptr) {
-        AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, AllocatedPlaceholder::createStructure(execState->vm(), globalObject, constructor->instancesStructure()->storedPrototype()), instance, constructor->instancesStructure());
+    } else if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(constructor)) {
+        AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, nativeConstructor->allocatedPlaceholderStructure(), instance, nativeConstructor->instancesStructure());
         return JSValue::encode(allocatedPlaceholder);
     }
 
