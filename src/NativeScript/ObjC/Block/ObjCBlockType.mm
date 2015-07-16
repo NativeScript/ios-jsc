@@ -12,45 +12,68 @@
 #include "ObjCBlockCallback.h"
 #include "PointerInstance.h"
 #include "ReleasePool.h"
+#include <JavaScriptCore/StrongInlines.h>
 
 namespace NativeScript {
 
 using namespace std;
 using namespace JSC;
 
-typedef struct {
-    uintptr_t reserved;
-    uintptr_t size;
-    void (*copy)(struct JSBlock*, const struct JSBlock*);
-    void (*dispose)(const struct JSBlock*);
-} JSBlockDescriptor;
-
 typedef struct JSBlock {
+
+    typedef struct {
+        uintptr_t reserved;
+        uintptr_t size;
+        void (*copy)(struct JSBlock*, const struct JSBlock*);
+        void (*dispose)(struct JSBlock*);
+    } JSBlockDescriptor;
+
+    enum {
+        BLOCK_NEEDS_FREE = (1 << 24), // runtime
+        BLOCK_HAS_COPY_DISPOSE = (1 << 25), // compiler
+    };
+
     void* isa;
     volatile int32_t flags; // contains ref count
     int32_t reserved;
     const void* invoke;
     JSBlockDescriptor* descriptor;
 
-    ObjCBlockCallback* callback;
+    Strong<ObjCBlockCallback> callback;
+
+    static JSBlockDescriptor kJSBlockDescriptor;
+
+    static CFTypeRef createBlock(Strong<ObjCBlockCallback> callback) {
+        JSBlock* blockPointer = reinterpret_cast<JSBlock*>(malloc(sizeof(JSBlock)));
+
+        memset(&blockPointer->callback, 0, sizeof(Strong<ObjCBlockCallback>));
+
+        *blockPointer = {
+            .isa = nullptr,
+            .flags = BLOCK_HAS_COPY_DISPOSE | BLOCK_NEEDS_FREE | (1 /* ref count */ << 1),
+            .reserved = 0,
+            .invoke = callback->functionPointer(),
+            .descriptor = &kJSBlockDescriptor,
+            .callback = callback
+        };
+
+        object_setClass(reinterpret_cast<id>(blockPointer), objc_getClass("__NSMallocBlock__"));
+
+        return blockPointer;
+    }
+
+    static void copyBlock(JSBlock* dst, const JSBlock* src) {
+        ASSERT_NOT_REACHED();
+    }
+
+    static void disposeBlock(JSBlock* block) {
+        JSLockHolder locker(block->callback->vm());
+        block->callback.clear();
+    }
+
 } JSBlock;
 
-enum {
-    BLOCK_NEEDS_FREE = (1 << 24), // runtime
-    BLOCK_HAS_COPY_DISPOSE = (1 << 25), // compiler
-};
-
-static void copyBlock(JSBlock* dst, const JSBlock* src) {
-    JSLockHolder locker(dst->callback->execState());
-    gcProtect(dst->callback);
-}
-
-static void disposeBlock(const JSBlock* block) {
-    JSLockHolder locker(block->callback->execState());
-    gcUnprotect(block->callback);
-}
-
-JSBlockDescriptor kJSBlockDescriptor = {
+JSBlock::JSBlockDescriptor JSBlock::kJSBlockDescriptor = {
     .reserved = 0,
     .size = sizeof(JSBlock),
     .copy = &copyBlock,
@@ -60,22 +83,9 @@ JSBlockDescriptor kJSBlockDescriptor = {
 static CFTypeRef createBlock(ExecState* execState, JSCell* function, ObjCBlockType* blockType) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ObjCBlockCallback* blockCallback = ObjCBlockCallback::create(execState->vm(), globalObject, globalObject->objCBlockCallbackStructure(), function, blockType);
-
-    gcProtect(blockCallback);
-
-    JSBlock* blockPointer = reinterpret_cast<JSBlock*>(malloc(sizeof(JSBlock)));
-    *blockPointer = {
-        .isa = nullptr,
-        .flags = BLOCK_HAS_COPY_DISPOSE | BLOCK_NEEDS_FREE | (1 /* ref count */ << 1),
-        .reserved = 0,
-        .invoke = blockCallback->functionPointer(),
-        .descriptor = &kJSBlockDescriptor,
-        .callback = blockCallback
-    };
-
-    object_setClass(reinterpret_cast<id>(blockPointer), objc_getClass("__NSMallocBlock__"));
-
-    return CFAutorelease(blockPointer);
+    Strong<ObjCBlockCallback> strongBlockCallback(execState->vm(), blockCallback);
+    CFTypeRef block = JSBlock::createBlock(strongBlockCallback);
+    return CFAutorelease(block);
 }
 
 const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockType) };
