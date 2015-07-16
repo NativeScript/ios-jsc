@@ -41,6 +41,8 @@
 #include "JSWeakRefPrototype.h"
 #include "JSWeakRefInstance.h"
 #include "TypeFactory.h"
+#include "ObjCFastEnumerationIterator.h"
+#include "ObjCFastEnumerationIteratorPrototype.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -119,6 +121,9 @@ void GlobalObject::finishCreation(VM& vm) {
     this->_weakRefInstanceStructure.set(vm, this, JSWeakRefInstance::createStructure(vm, this, weakRefPrototype));
     this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("WeakRef")), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
 
+    auto fastEnumerationIteratorPrototype = ObjCFastEnumerationIteratorPrototype::create(vm, this, ObjCFastEnumerationIteratorPrototype::createStructure(vm, this, this->objectPrototype()));
+    this->_fastEnumerationIteratorStructure.set(vm, this, ObjCFastEnumerationIterator::createStructure(vm, this, fastEnumerationIteratorPrototype));
+
     this->_interopIdentifier = Identifier::fromString(&vm, Interop::info()->className);
     this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())));
 
@@ -166,6 +171,7 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_weakRefConstructorStructure);
     visitor.append(&globalObject->_weakRefPrototypeStructure);
     visitor.append(&globalObject->_weakRefInstanceStructure);
+    visitor.append(&globalObject->_fastEnumerationIteratorStructure);
 }
 
 void GlobalObject::destroy(JSCell* cell) {

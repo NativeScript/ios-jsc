@@ -50,3 +50,13 @@
     TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
 }
 @end
+
+@implementation TNSIterableConsumer
+
++ (void)consumeIterable:(id<NSFastEnumeration>)iterable {
+    for (id obj in iterable) {
+        TNSLog([obj description]);
+    }
+}
+
+@end

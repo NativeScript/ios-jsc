@@ -48,4 +48,29 @@ using namespace JSC;
     return toObject(self->_execState, self->_object.get()->get(self->_execState, index));
 }
 
+- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id [])buffer count:(NSUInteger)len {
+    if (state->state == 0) { // uninitialized
+        state->state = 1;
+        state->mutationsPtr = reinterpret_cast<unsigned long*>(self);
+        state->extra[0] = 0; // current index
+        state->extra[1] = self->_object->get(self->_execState, self->_execState->propertyNames().length).toUInt32(self->_execState);
+    }
+
+    NSUInteger currentIndex = state->extra[0];
+    unsigned int length = state->extra[1];
+    NSUInteger count = 0;
+    state->itemsPtr = buffer;
+
+    JSLockHolder lock(self->_execState);
+    while (count < len && currentIndex < length) {
+        *buffer++ = toObject(self->_execState, self->_object->get(self->_execState, currentIndex));
+        currentIndex++;
+        count++;
+    }
+
+    state->extra[0] = currentIndex;
+
+    return count;
+}
+
 @end

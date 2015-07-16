@@ -15,6 +15,8 @@
 #include "ObjCMethodCall.h"
 #include "SymbolLoader.h"
 #include "Interop.h"
+#include "ObjCTypes.h"
+#include "ObjCFastEnumerationIterator.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -29,10 +31,22 @@ WTF::String ObjCPrototype::className(const JSObject* object) {
     return WTF::String::format("%sPrototype", className);
 }
 
-void ObjCPrototype::finishCreation(VM& vm, const InterfaceMeta* metadata) {
+static EncodedJSValue JSC_HOST_CALL getIterator(ExecState* execState) {
+    id object = toObject(execState, execState->thisValue());
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+
+    ObjCFastEnumerationIterator* iterator = ObjCFastEnumerationIterator::create(execState->vm(), globalObject, globalObject->fastEnumerationIteratorStructure(), object);
+    return JSValue::encode(iterator);
+}
+
+void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const InterfaceMeta* metadata) {
     Base::finishCreation(vm);
 
     this->_metadata = metadata;
+
+    if ([objc_getClass(metadata->name()) instancesRespondToSelector:@selector(countByEnumeratingWithState:objects:count:)]) {
+        this->putDirect(vm, vm.propertyNames->iteratorSymbol, JSFunction::create(vm, globalObject, 0, vm.propertyNames->values.string(), getIterator), DontEnum);
+    }
 }
 
 bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {

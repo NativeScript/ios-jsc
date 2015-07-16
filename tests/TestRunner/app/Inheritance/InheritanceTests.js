@@ -1841,4 +1841,40 @@ describe(module.id, function () {
         var encoding = method_getTypeEncoding(method);
         expect(NSString.stringWithCString(encoding).toString()).toBe("v@:");
     });
+    
+    it("should project Symbol.iterable as NSFastEnumeration", function () {
+        var start = 1;
+        var end = 10;
+        var lastStep = 0;
+        var IterableClass = NSObject.extend({
+            [Symbol.iterator]() {
+                return {
+                    step: start,
+                    
+                    next() {
+                        if (this.step <= end) {
+                            return { value: this.step++, done: false };
+                        } else {
+                            return { done: true };
+                        }
+                    },
+                    
+                    return() {
+                        lastStep = this.step;
+                        return {};
+                    }
+                }
+            }
+        });
+        
+        var expected = "12345678910";
+        TNSIterableConsumer.consumeIterable(IterableClass.alloc().init());
+        var actual = TNSGetOutput();
+        
+        expect(IterableClass.conformsToProtocol(NSFastEnumeration)).toBe(true);
+        expect(actual).toEqual(expected);
+        expect(lastStep).toEqual(end + 1);
+        
+        TNSClearOutput();
+    })
 });
