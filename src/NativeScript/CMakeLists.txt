@@ -49,11 +49,8 @@ set(HEADER_FILES
     ObjC/Inheritance/ObjCExtend.h
     ObjC/Inheritance/ObjCTypeScriptExtend.h
     ObjC/Enumeration/ObjCFastEnumerationIterator.h
-    ObjC/Enumeration/ObjCFastEnumerationIterator.mm
     ObjC/Enumeration/ObjCFastEnumerationIteratorPrototype.h
-    ObjC/Enumeration/ObjCFastEnumerationIteratorPrototype.mm
     ObjC/Enumeration/TNSFastEnumerationAdapter.h
-    ObjC/Enumeration/TNSFastEnumerationAdapter.mm
     ObjC/ObjCMethodCall.h
     ObjC/ObjCMethodCallback.h
     ObjC/ObjCPrimitiveTypes.h
@@ -121,6 +118,9 @@ set(SOURCE_FILES
     ObjC/Inheritance/ObjCClassBuilder.mm
     ObjC/Inheritance/ObjCExtend.mm
     ObjC/Inheritance/ObjCTypeScriptExtend.mm
+    ObjC/Enumeration/ObjCFastEnumerationIterator.mm
+    ObjC/Enumeration/ObjCFastEnumerationIteratorPrototype.mm
+    ObjC/Enumeration/TNSFastEnumerationAdapter.mm
     ObjC/ObjCMethodCall.mm
     ObjC/ObjCMethodCallback.mm
     ObjC/ObjCPrimitiveTypes.mm
