@@ -10,7 +10,6 @@
 #include <string>
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <JavaScriptCore/FunctionConstructor.h>
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/Microtask.h>
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/StrongInlines.h>
@@ -18,7 +17,6 @@
 #include <JavaScriptCore/runtime/JSConsole.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 #include "ConsoleMethodOverrides.h"
-#include "inspector/InstrumentingAgents.h"
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCPrototype.h"
@@ -28,7 +26,7 @@
 #include "RecordConstructor.h"
 #include "RecordPrototypeFunctions.h"
 #include "Interop.h"
-#include "inspector/InspectorPageAgent.h"
+#include "inspector/GlobalObjectInspectorController.h"
 #include "ObjCExtend.h"
 #include "ObjCTypeScriptExtend.h"
 #include "__extends.h"
@@ -83,6 +81,7 @@ GlobalObject::GlobalObject(VM& vm, Structure* structure)
     , _taggedPointers(vm)
 #endif
 {
+    _sourceProvidersByUrl = std::make_unique<WTF::HashMap<WTF::String, JSC::SourceProvider*>>();
 }
 
 GlobalObject::~GlobalObject() {
@@ -111,15 +110,7 @@ void GlobalObject::finishCreation(VM& vm) {
 
     ExecState* globalExec = this->globalExec();
 
-    std::unique_ptr<Inspector::InspectorTimelineAgent> timelineAgent = std::make_unique<Inspector::InspectorTimelineAgent>(this);
-    std::unique_ptr<Inspector::InspectorPageAgent> pageAgent = std::make_unique<Inspector::InspectorPageAgent>();
-    
-    this->_instrumentingAgents = std::make_unique<Inspector::InstrumentingAgents>();
-    this->_instrumentingAgents->setInspectorTimelineAgent(timelineAgent.get());
-
-    this->_inspectorController = std::make_unique<Inspector::JSGlobalObjectInspectorController>(*this);
-    this->_inspectorController->appendExtraAgent(WTF::move(timelineAgent));
-    this->_inspectorController->appendExtraAgent(WTF::move(pageAgent));
+    this->_inspectorController = std::make_unique<Inspector::GlobalObjectInspectorController>(*this);
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
 

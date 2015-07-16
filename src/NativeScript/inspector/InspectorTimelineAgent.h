@@ -55,7 +55,7 @@ class InspectorTimelineAgent final
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    InspectorTimelineAgent(NativeScript::GlobalObject*);
+    InspectorTimelineAgent(JSC::JSGlobalObject&);
 
     virtual void didCreateFrontendAndBackend(FrontendChannel*, BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(DisconnectReason) override;

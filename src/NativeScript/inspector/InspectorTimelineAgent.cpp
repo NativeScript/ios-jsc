@@ -1,17 +1,17 @@
 #include "InspectorTimelineAgent.h"
 #include "TimelineRecordFactory.h"
 #include <JavaScriptCore/InspectorEnvironment.h>
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/profiler/LegacyProfiler.h>
+#include "GlobalObjectInspectorController.h"
 
 namespace Inspector {
 
-InspectorTimelineAgent::InspectorTimelineAgent(NativeScript::GlobalObject* globalObject)
+InspectorTimelineAgent::InspectorTimelineAgent(JSC::JSGlobalObject& globalObject)
     : Inspector::InspectorAgentBase(ASCIILiteral("Timeline"))
-    , m_globalObject(globalObject)
     , m_consoleRecordEntry()
     , m_maxCallStackDepth(5)
     , m_enabled(false) {
+        m_globalObject = JSC::jsCast<NativeScript::GlobalObject*>(&globalObject);
 }
 
 void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {

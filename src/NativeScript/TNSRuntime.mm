@@ -88,6 +88,9 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
 
     JSFunction* moduleFunction = jsCast<JSFunction*>(constructedFunction);
 
+    NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+    globalObject->sourceProviders()->add(moduleUrl, moduleFunction->sourceCode()->provider());
+
     return JSValue::encode(moduleFunction);
 }
 

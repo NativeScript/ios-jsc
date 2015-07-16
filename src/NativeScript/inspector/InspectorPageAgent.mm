@@ -22,7 +22,7 @@ void InspectorPageAgent::didCreateFrontendAndBackend(FrontendChannel* frontendCh
 void InspectorPageAgent::willDestroyFrontendAndBackend(DisconnectReason) {
     m_cachedResources = nullptr;
     m_frontendDispatcher = nullptr;
-    m_backendDispatcher.clear();
+    m_backendDispatcher = nullptr;
 }
 
 void InspectorPageAgent::enable(ErrorString&) {

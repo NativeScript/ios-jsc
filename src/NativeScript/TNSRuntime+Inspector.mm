@@ -8,12 +8,12 @@
 
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
 #include <JavaScriptCore/Debugger.h>
 
+#include "GlobalObjectInspectorController.h"
 #import "TNSRuntime+Inspector.h"
 #import "TNSRuntime+Private.h"
 #include "JSErrors.h"
@@ -62,7 +62,7 @@ private:
 @implementation TNSRuntimeInspector {
     TNSRuntime* _runtime;
     std::unique_ptr<TNSRuntimeInspectorFrontendChannel> _frontendChannel;
-    Inspector::JSGlobalObjectInspectorController* _inspectorController;
+    Inspector::GlobalObjectInspectorController* _inspectorController;
 }
 
 + (BOOL)logsToSystemConsole {

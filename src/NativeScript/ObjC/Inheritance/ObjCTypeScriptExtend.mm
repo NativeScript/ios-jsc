@@ -7,7 +7,7 @@
 //
 
 #include "ObjCTypeScriptExtend.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
+#include "GlobalObjectInspectorController.h"
 #include <JavaScriptCore/ObjectConstructor.h>
 #include "ObjCConstructorDerived.h"
 #include "ObjCClassBuilder.h"
