@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
-#include <memory>
+#include <stdlib.h>
 #include "ObjCBlockType.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockCallback.h"
@@ -43,19 +43,22 @@ typedef struct JSBlock {
 
     static JSBlockDescriptor kJSBlockDescriptor;
 
-    static CFTypeRef createBlock(Strong<ObjCBlockCallback> callback) {
-        JSBlock* blockPointer = reinterpret_cast<JSBlock*>(malloc(sizeof(JSBlock)));
+    static CFTypeRef createBlock(ExecState* execState, JSCell* function, ObjCBlockType* blockType) {
 
-        memset(&blockPointer->callback, 0, sizeof(Strong<ObjCBlockCallback>));
+        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+        ObjCBlockCallback* blockCallback = ObjCBlockCallback::create(execState->vm(), globalObject, globalObject->objCBlockCallbackStructure(), function, blockType);
+
+        JSBlock* blockPointer = reinterpret_cast<JSBlock*>(calloc(1, sizeof(JSBlock)));
 
         *blockPointer = {
             .isa = nullptr,
             .flags = BLOCK_HAS_COPY_DISPOSE | BLOCK_NEEDS_FREE | (1 /* ref count */ << 1),
             .reserved = 0,
-            .invoke = callback->functionPointer(),
+            .invoke = blockCallback->functionPointer(),
             .descriptor = &kJSBlockDescriptor,
-            .callback = callback
         };
+
+        blockPointer->callback.set(execState->vm(), blockCallback);
 
         object_setClass(reinterpret_cast<id>(blockPointer), objc_getClass("__NSMallocBlock__"));
 
@@ -80,14 +83,6 @@ JSBlock::JSBlockDescriptor JSBlock::kJSBlockDescriptor = {
     .dispose = &disposeBlock
 };
 
-static CFTypeRef createBlock(ExecState* execState, JSCell* function, ObjCBlockType* blockType) {
-    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    ObjCBlockCallback* blockCallback = ObjCBlockCallback::create(execState->vm(), globalObject, globalObject->objCBlockCallbackStructure(), function, blockType);
-    Strong<ObjCBlockCallback> strongBlockCallback(execState->vm(), blockCallback);
-    CFTypeRef block = JSBlock::createBlock(strongBlockCallback);
-    return CFAutorelease(block);
-}
-
 const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockType) };
 
 JSValue ObjCBlockType::read(ExecState* execState, const void* buffer, JSCell* self) {
@@ -101,7 +96,7 @@ void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buff
 
     CallData callData;
     if (value.isCell() && value.asCell()->methodTable()->getCallData(value.asCell(), callData) != CallTypeNone) {
-        *static_cast<CFTypeRef*>(buffer) = createBlock(execState, value.asCell(), blockType);
+        *static_cast<CFTypeRef*>(buffer) = CFAutorelease(JSBlock::createBlock(execState, value.asCell(), blockType));
     } else if (value.isUndefinedOrNull()) {
         *static_cast<CFTypeRef*>(buffer) = nullptr;
     } else {
