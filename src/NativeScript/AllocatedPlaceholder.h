@@ -40,7 +40,7 @@ private:
     void finishCreation(JSC::VM& vm, GlobalObject* globalObject, id wrappedObject, JSC::Structure* instanceStructure) {
         Base::finishCreation(vm);
         this->_wrappedObject = wrappedObject;
-        this->putDirect(vm, globalObject->instanceStructureIdentifier(), JSC::JSValue(instanceStructure), JSC::ReadOnly | JSC::DontEnum | JSC::DontDelete);
+        this->putDirect(vm, globalObject->instanceStructureIdentifier(), instanceStructure, JSC::ReadOnly | JSC::DontEnum | JSC::DontDelete);
     }
 };
 }

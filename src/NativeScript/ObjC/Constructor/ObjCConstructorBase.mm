@@ -89,7 +89,7 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
 
     this->_prototype.set(vm, this, prototype);
     this->_instancesStructure.set(vm, this, ObjCWrapperObject::createStructure(vm, globalObject, prototype));
-    this->putDirect(vm, jsCast<GlobalObject*>(globalObject)->instanceStructureIdentifier(), JSValue(this->instancesStructure()), ReadOnly | DontEnum | DontDelete);
+    this->putDirect(vm, jsCast<GlobalObject*>(globalObject)->instanceStructureIdentifier(), this->instancesStructure(), ReadOnly | DontEnum | DontDelete);
 
     this->_klass = klass;
 

@@ -62,11 +62,12 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
         JSValue jsValue = toValue(execState, instance, ^{ return constructorDerived->instancesStructure(); });
         return JSValue::encode(jsValue);
     } else if (jsDynamicCast<ObjCConstructorNative*>(constructor) != nullptr) {
-        AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), jsCast<GlobalObject*>(execState->lexicalGlobalObject()), AllocatedPlaceholder::createStructure(execState->vm(), globalObject, constructor->instancesStructure()->storedPrototype()), instance, constructor->instancesStructure());
-        return JSValue::encode(JSValue(allocatedPlaceholder));
-    } else {
-        ASSERT_NOT_REACHED();
+        AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, AllocatedPlaceholder::createStructure(execState->vm(), globalObject, constructor->instancesStructure()->storedPrototype()), instance, constructor->instancesStructure());
+        return JSValue::encode(allocatedPlaceholder);
     }
+
+    ASSERT_NOT_REACHED();
+    return JSValue::encode(jsUndefined());
 }
 
 const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(GlobalObject) };

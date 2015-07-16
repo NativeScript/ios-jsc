@@ -193,11 +193,6 @@ describe(module.id, function () {
         expect(NSNull.null() instanceof NSObject).toBe(true);
     });
          
-    it("AllocatedPlaceholderHasOnlyOneSymbol", function () {
-       var symbols = Object.getOwnPropertySymbols(NSObject.alloc());
-       expect(symbols.length).toBe(1);
-    });
-         
     it("Initialize a class(NSTimer) whose init deallocates the result from alloc", function () {
        var actionCalled = false;
        
