@@ -50,3 +50,9 @@
 - (void)derivedNotImplementedCategoryMethod;
 - (void)derivedNotImplementedNativeCategoryMethodOverridenInJavaScript;
 @end
+
+@interface TNSIterableConsumer : NSObject
+
++ (void)consumeIterable:(id<NSFastEnumeration>)iterable;
+
+@end

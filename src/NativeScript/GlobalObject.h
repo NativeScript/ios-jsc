@@ -124,6 +124,10 @@ public:
         return _typeFactory.get();
     }
 
+    JSC::Structure* fastEnumerationIteratorStructure() const {
+        return this->_fastEnumerationIteratorStructure.get();
+    }
+
 #if defined(__LP64__) && __LP64__
     JSC::WeakGCMap<const void*, ObjCWrapperObject>& taggedPointers() {
         return this->_taggedPointers;
@@ -155,6 +159,8 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _recordFieldGetterStructure;
     JSC::WriteBarrier<JSC::Structure> _recordFieldSetterStructure;
+
+    JSC::WriteBarrier<JSC::Structure> _fastEnumerationIteratorStructure;
 
     JSC::WriteBarrier<TypeFactory> _typeFactory;
 

@@ -19,6 +19,7 @@
 #include "ObjCTypes.h"
 #include "FFIType.h"
 #include "Interop.h"
+#include "TNSFastEnumerationAdapter.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -393,6 +394,19 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
                 warn(execState, errorMessage);
             }
         }
+    }
+
+    if (instanceMethods->hasOwnProperty(execState, execState->propertyNames().iteratorSymbol)) {
+        class_addProtocol(this->_constructor->klass(), @protocol(NSFastEnumeration));
+        class_addProtocol(object_getClass(this->_constructor->klass()), @protocol(NSFastEnumeration));
+
+        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+        IMP imp = imp_implementationWithBlock(^NSUInteger(id self, NSFastEnumerationState* state, id buffer[], NSUInteger length) {
+            return TNSFastEnumerationAdapter(self, state, buffer, length, globalObject);
+        });
+
+        struct objc_method_description fastEnumerationMethodDescription = protocol_getMethodDescription(@protocol(NSFastEnumeration), @selector(countByEnumeratingWithState:objects:count:), YES, YES);
+        class_addMethod(this->_constructor->klass(), @selector(countByEnumeratingWithState:objects:count:), imp, fastEnumerationMethodDescription.types);
     }
 }
 

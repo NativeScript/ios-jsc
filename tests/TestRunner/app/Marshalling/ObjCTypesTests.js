@@ -110,7 +110,7 @@ describe(module.id, function () {
         expect(TNSGetOutput()).toBe('2001-09-09 01:46:40 +0000');
     });
 
-    it("MethodWithNSArray", function () {
+    it("should be possible to marshal a JavaScript Array exotic to NSArray", function () {
         var array = [1, [2, 'a'], NSObject];
         var result = TNSObjCTypes.alloc().init().methodWithNSArray(array);
         expect(TNSGetOutput()).toBe(
@@ -132,6 +132,20 @@ describe(module.id, function () {
             '3' +
             '4' +
             'NSObject');
+        TNSClearOutput();
+    });
+
+    it("should be possible to marshal an array-like object to NSArray", function () {
+        var expected = "";
+        var arrayLike = { length: 256 };
+        for (var i = 0; i < arrayLike.length; i++) {
+            arrayLike[i] = i;
+            expected += String(i);
+        }
+        
+        TNSObjCTypes.alloc().init().methodWithNSArray(arrayLike);
+        
+        expect(TNSGetOutput()).toBe(expected);
         TNSClearOutput();
     });
 
