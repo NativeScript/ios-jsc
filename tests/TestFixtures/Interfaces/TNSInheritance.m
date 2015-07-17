@@ -33,6 +33,8 @@
 }
 @end
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincomplete-implementation"
 @implementation TNSIBaseInterface (TNSIBaseCategory)
 - (void)baseImplementedCategoryMethod {
     TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
@@ -50,6 +52,7 @@
     TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
 }
 @end
+#pragma clang diagnostic pop
 
 @implementation TNSIterableConsumer
 
