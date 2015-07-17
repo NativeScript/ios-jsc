@@ -293,4 +293,12 @@
     return block();
 }
 
+- (void (^)())getBlock {
+    return nil;
+}
+
+- (void (^)())getBlockFromNative {
+    return [self getBlock];
+}
+
 @end

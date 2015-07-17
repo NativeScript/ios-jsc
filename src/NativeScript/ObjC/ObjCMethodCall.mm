@@ -82,7 +82,7 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t*
         objc_super super = { target, class_getSuperclass(targetClass) };
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
-        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super.super_class), NSStringFromSelector(self->getArgument<SEL>(1)));
+        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super.super_class), NSStringFromSelector(this->selector()));
 #endif
         this->setArgument(buffer, 0, &super);
         this->setArgument(buffer, 1, this->_selector);
@@ -90,7 +90,7 @@ EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t*
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
-        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(self->getArgument<SEL>(1)));
+        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(this->selector()));
 #endif
         this->setArgument(buffer, 0, target);
         this->setArgument(buffer, 1, this->_selector);

@@ -60,4 +60,7 @@
 
 + (NSString*)callRecursively:(NSString* (^)())block;
 
+- (void (^)())getBlock;
+- (void (^)())getBlockFromNative;
+
 @end
