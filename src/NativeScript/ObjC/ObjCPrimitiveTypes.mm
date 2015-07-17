@@ -13,6 +13,7 @@
 #include "ObjCSuperObject.h"
 #include "ObjCConstructorBase.h"
 #include "ObjCProtocolWrapper.h"
+#include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -20,23 +21,15 @@ using namespace JSC;
 #pragma mark objCInstancetype
 static JSValue objCInstancetype_read(ExecState* execState, const void* buffer, JSCell* self) {
     id value = *static_cast<const id*>(buffer);
-    Structure* structure;
+    JSC::Identifier instancesStructureIdentifier = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->instanceStructureIdentifier();
 
-    if (ObjCConstructorBase* constructor = jsDynamicCast<ObjCConstructorBase*>(execState->thisValue())) {
-        structure = constructor->instancesStructure();
-    } else if (ObjCWrapperObject* wrapperObject = jsDynamicCast<ObjCWrapperObject*>(execState->thisValue())) {
-        structure = wrapperObject->structure();
-    } else if (ObjCSuperObject* superObject = jsDynamicCast<ObjCSuperObject*>(execState->thisValue())) {
-        structure = superObject->wrapperObject()->structure();
-    } else if (ObjCConstructorCall* constructorCall = jsDynamicCast<ObjCConstructorCall*>(execState->callee())) {
-        structure = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->constructorFor(constructorCall->klass())->instancesStructure();
-    } else {
-        RELEASE_ASSERT_NOT_REACHED();
+    if (Structure* structure = jsDynamicCast<Structure*>(execState->thisValue().get(execState, instancesStructureIdentifier))) {
+        return toValue(execState, value, ^{
+            return structure;
+        });
     }
 
-    return toValue(execState, value, ^{
-      return structure;
-    });
+    RELEASE_ASSERT_NOT_REACHED();
 }
 static void objCInstancetype_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     *static_cast<id*>(buffer) = NativeScript::toObject(execState, value);

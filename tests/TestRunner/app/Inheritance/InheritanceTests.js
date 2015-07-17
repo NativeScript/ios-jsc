@@ -1596,10 +1596,10 @@ describe(module.id, function () {
     it('ConstructorOverrideAndVirtualCall: prototype', function () {
         var JSObject = TNSIConstructorVirtualCalls.extend({
             initWithXAndY: function initWithXAndY(x, y) {
-                TNSIConstructorVirtualCalls.prototype.initWithXAndY.apply(this, arguments);
+                var self = TNSIConstructorVirtualCalls.prototype.initWithXAndY.apply(this, arguments);
                 TNSLog('js initWithX:' + x + 'andY:' + y + ' called');
-                TNSLog('virtual: ' + this.description);
-                return this;
+                TNSLog('virtual: ' + self.description);
+                return self;
             },
             get description() {
                 return 'virtual: ' + Object.getOwnPropertyDescriptor(NSObject.prototype, 'description').get.call(this);
@@ -1629,10 +1629,10 @@ describe(module.id, function () {
     it('ConstructorOverrideAndVirtualCall: super', function () {
         var JSObject = TNSIConstructorVirtualCalls.extend({
             initWithXAndY: function initWithXAndY(x, y) {
-                this.super.initWithXAndY(x, y);
+                var self = this.super.initWithXAndY(x, y);
                 TNSLog('js initWithX:' + x + 'andY:' + y + ' called');
-                TNSLog('virtual: ' + this.description);
-                return this;
+                TNSLog('virtual: ' + self.description);
+                return self;
             },
             get description() {
                 return 'virtual: ' + this.super.description;

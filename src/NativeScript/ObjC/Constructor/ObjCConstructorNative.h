@@ -39,6 +39,10 @@ public:
         return this->_metadata;
     }
 
+    JSC::Structure* allocatedPlaceholderStructure() const {
+        return _allocatedPlaceholderStructure.get();
+    }
+
     const WTF::Vector<ObjCConstructorCall*> initializersGenerator(JSC::VM&, GlobalObject*, Class);
 
 protected:
@@ -52,10 +56,14 @@ protected:
 
     static void put(JSC::JSCell*, JSC::ExecState*, JSC::PropertyName, JSC::JSValue, JSC::PutPropertySlot&);
 
+    static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
+
 private:
     static bool getOwnPropertySlot(JSC::JSObject*, JSC::ExecState*, JSC::PropertyName, JSC::PropertySlot&);
 
     const Metadata::InterfaceMeta* _metadata;
+
+    JSC::WriteBarrier<JSC::Structure> _allocatedPlaceholderStructure;
 };
 }
 

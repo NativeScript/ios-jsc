@@ -52,6 +52,10 @@ public:
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
+    const JSC::Identifier& instanceStructureIdentifier() const {
+        return this->_instanceStructureIdentifier;
+    }
+
     JSC::Structure* objCMethodCallStructure() const {
         return this->_objCMethodCallStructure.get();
     }
@@ -144,6 +148,8 @@ private:
     static void destroy(JSC::JSCell* cell);
 
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
+
+    JSC::Identifier _instanceStructureIdentifier;
 
     std::unique_ptr<Inspector::JSGlobalObjectInspectorController> _inspectorController;
     std::unique_ptr<Inspector::InstrumentingAgents> _instrumentingAgents;

@@ -39,7 +39,8 @@ static void writeAdapter(ExecState* execState, const JSValue& value, void* buffe
     if (ObjCWrapperObject* wrapper = jsDynamicCast<ObjCWrapperObject*>(value)) {
         *static_cast<id*>(buffer) = wrapper->wrappedObject();
     } else if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
-        *static_cast<id*>(buffer) = [[[TAdapter alloc] initWithJSObject:object execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
+        *static_cast<id*>(buffer) = [[[TAdapter alloc] initWithJSObject:object
+                                                              execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     } else {
         *static_cast<id*>(buffer) = nil;
     }
@@ -88,6 +89,7 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
 
     this->_prototype.set(vm, this, prototype);
     this->_instancesStructure.set(vm, this, ObjCWrapperObject::createStructure(vm, globalObject, prototype));
+    this->putDirect(vm, jsCast<GlobalObject*>(globalObject)->instanceStructureIdentifier(), this->instancesStructure(), ReadOnly | DontEnum | DontDelete);
 
     this->_klass = klass;
 
@@ -187,7 +189,7 @@ static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
     }
 
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
-    JSValue result = toValue(execState, static_cast<id>(handle), ^Structure* {
+    JSValue result = toValue(execState, static_cast<id>(handle), ^Structure * {
       return constructor->instancesStructure();
     });
     return JSValue::encode(result);

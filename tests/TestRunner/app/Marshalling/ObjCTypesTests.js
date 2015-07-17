@@ -192,4 +192,22 @@ describe(module.id, function () {
     it("NSNull", function () {
         expect(NSNull.null() instanceof NSObject).toBe(true);
     });
+         
+    it("Initialize a class(NSTimer) whose init deallocates the result from alloc", function () {
+       var actionCalled = false;
+       
+       var JSObject = NSObject.extend({
+           action: function () {
+               actionCalled = true;
+           }
+       }, {
+           exposedMethods: {
+               action: { returns: interop.types.void }
+           }
+       });
+
+       var timer = NSTimer.alloc().initWithFireDateIntervalTargetSelectorUserInfoRepeats(new Date(), 0, new JSObject(), "action", null, true);
+       timer.fire();
+       expect(actionCalled).toBe(true);
+    });
 });

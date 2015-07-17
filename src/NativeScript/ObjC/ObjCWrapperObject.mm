@@ -8,17 +8,19 @@
 
 #include "ObjCWrapperObject.h"
 #include "ObjCTypes.h"
+#include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
 
 const ClassInfo ObjCWrapperObject::s_info = { "ObjCWrapperObject", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCWrapperObject) };
 
-void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject) {
+void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* globalObject) {
     Base::finishCreation(vm);
     this->setWrappedObject(wrappedObject);
     this->_canSetObjectAtIndexedSubscript = [wrappedObject respondsToSelector:@selector(setObject:
                                                                                   atIndexedSubscript:)];
+    this->putDirect(vm, globalObject->instanceStructureIdentifier(), this->structure(), ReadOnly | DontEnum | DontDelete);
 }
 
 WTF::String ObjCWrapperObject::className(const JSObject* object) {

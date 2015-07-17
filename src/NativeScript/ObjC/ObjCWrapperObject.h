@@ -17,9 +17,9 @@ class ObjCWrapperObject : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static ObjCWrapperObject* create(JSC::VM& vm, JSC::Structure* structure, id wrappedObject) {
+    static ObjCWrapperObject* create(JSC::VM& vm, JSC::Structure* structure, id wrappedObject, GlobalObject* globalObject) {
         ObjCWrapperObject* object = new (NotNull, JSC::allocateCell<ObjCWrapperObject>(vm.heap)) ObjCWrapperObject(vm, structure);
-        object->finishCreation(vm, wrappedObject);
+        object->finishCreation(vm, wrappedObject, globalObject);
         return object;
     }
 
@@ -50,7 +50,7 @@ private:
         static_cast<ObjCWrapperObject*>(cell)->~ObjCWrapperObject();
     }
 
-    void finishCreation(JSC::VM& vm, id wrappedObject);
+    void finishCreation(JSC::VM& vm, id wrappedObject, GlobalObject* globalObject);
 
     static bool getOwnPropertySlotByIndex(JSC::JSObject* object, JSC::ExecState* execState, unsigned propertyName, JSC::PropertySlot& propertySlot);
 

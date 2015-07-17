@@ -33,6 +33,7 @@
 #include "__extends.h"
 #include "ObjCMethodCall.h"
 #include "ObjCConstructorCall.h"
+#include "ObjCConstructorDerived.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockCallback.h"
 #include "ObjCMethodCallback.h"
@@ -43,10 +44,31 @@
 #include "TypeFactory.h"
 #include "ObjCFastEnumerationIterator.h"
 #include "ObjCFastEnumerationIteratorPrototype.h"
+#include "AllocatedPlaceholder.h"
+#include "ObjCTypes.h"
 
 namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
+
+JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
+    ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->thisValue().asCell());
+    Class klass = constructor->klass();
+    id instance = [klass alloc];
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+
+    if (ObjCConstructorDerived* constructorDerived = jsDynamicCast<ObjCConstructorDerived*>(constructor)) {
+        [instance release];
+        JSValue jsValue = toValue(execState, instance, ^{ return constructorDerived->instancesStructure(); });
+        return JSValue::encode(jsValue);
+    } else if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(constructor)) {
+        AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, nativeConstructor->allocatedPlaceholderStructure(), instance, nativeConstructor->instancesStructure());
+        return JSValue::encode(allocatedPlaceholder);
+    }
+
+    ASSERT_NOT_REACHED();
+    return JSValue::encode(jsUndefined());
+}
 
 const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(GlobalObject) };
 
@@ -87,6 +109,8 @@ void GlobalObject::finishCreation(VM& vm) {
     Base::finishCreation(vm);
 
     ExecState* globalExec = this->globalExec();
+
+    this->_instanceStructureIdentifier = Identifier::fromUid(PrivateName(PrivateName::Description, ASCIILiteral("__instanceStructureIdentifier")));
 
     std::unique_ptr<Inspector::InspectorTimelineAgent> timelineAgent = std::make_unique<Inspector::InspectorTimelineAgent>(this);
     this->_instrumentingAgents = std::make_unique<Inspector::InstrumentingAgents>();
@@ -139,6 +163,7 @@ void GlobalObject::finishCreation(VM& vm) {
 
     ObjCConstructorNative* NSObjectConstructor = this->typeFactory()->NSObjectConstructor(this);
     NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("extend")), 2, ObjCExtendFunction, NoIntrinsic, DontEnum | Attribute::Function);
+    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, NSObjectAlloc, NoIntrinsic, DontDelete | Attribute::Function);
 
     MarkedArgumentBuffer descriptionFunctionArgs;
     descriptionFunctionArgs.append(jsString(globalExec, WTF::ASCIILiteral("return this.description;")));

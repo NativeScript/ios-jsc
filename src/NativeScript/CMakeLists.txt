@@ -73,6 +73,7 @@ set(HEADER_FILES
     TNSRuntime.h
     TypeFactory.h
     WeakHandleOwners.h
+    AllocatedPlaceholder.h
 )
 
 set(SOURCE_FILES
@@ -140,6 +141,7 @@ set(SOURCE_FILES
     TNSRuntime+Inspector.mm
     TNSRuntime.mm
     TypeFactory.mm
+    AllocatedPlaceholder.cpp
 )
 
 set(NativeScript_PUBLIC_HEADERS
