@@ -209,54 +209,69 @@ describe(module.id, function () {
         expect(propertyNames.length).toBeGreaterThan(4000);
     });
 
-    it("ApiIterator", function () {
+    it("ApiIterator", function (done) {
+
+        function each_async(arr, fn) {
+            return new Promise(function(resolve, reject) {
+                var i = 0;
+                (function () {
+                    fn(arr[i]);
+                    if (++i < arr.length) {
+                        setTimeout(arguments.callee, 0);
+                    } else {
+                        resolve();
+                    }
+                }());
+            });
+        }
+
         var counter = 0;
+        each_async(Object.getOwnPropertyNames(global), function (className) {
+            var symbol = global[className];
 
-        Object.getOwnPropertyNames(global).forEach(function (x) {
-            // console.debug(x);
+            if (!(NSObject.isPrototypeOf(symbol) || (symbol === NSObject))) {
+                return;
+            }
 
-            var symbol = global[x];
+            // console.debug(className);
+
+            var klass = symbol;
+            expect(klass).toBeDefined();
             counter++;
 
-            if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
-                var klass = symbol;
-                expect(klass).toBeDefined();
+            Object.getOwnPropertyNames(klass).forEach(function (y) {
+                if (klass.respondsToSelector(y)) {
+                    // console.debug(x, y);
 
-                // console.debug(klass);
+                    var method = klass[y];
+                    expect(method).toBeDefined();
 
-                Object.getOwnPropertyNames(klass).forEach(function (y) {
-                    if (klass.respondsToSelector(y)) {
-                        // console.debug(x, y);
+                    counter++;
+                }
+            });
 
-                        var method = klass[y];
+            Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
+                if (klass.instancesRespondToSelector(y)) {
+                    // console.debug(x, "proto", y);
+
+                    var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
+
+                    if (!property) {
+                        var method = klass.prototype[y];
                         expect(method).toBeDefined();
-
-                        counter++;
                     }
-                });
 
-                Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
-                    if (klass.instancesRespondToSelector(y)) {
-                        // console.debug(x, "proto", y);
-
-                        var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
-
-                        if (!property) {
-                            var method = klass.prototype[y];
-                            expect(method).toBeDefined();
-                        }
-
-                        counter++;
-                    }
-                });
-            }
+                    counter++;
+                }
+            });
 
             if (counter % 100 === 0) {
                 __collect();
             }
+        }).then(function() {
+            expect(counter).toBeGreaterThan(2900);
+            done();
         });
-
-        expect(counter).toBeGreaterThan(2900);
     });
 
     it("NSObjectSuperClass", function () {
