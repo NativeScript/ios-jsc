@@ -26,11 +26,7 @@
 using namespace JSC;
 using namespace NativeScript;
 
-@implementation TNSRuntime {
-#if PLATFORM(IOS)
-    id _memoryPressureNotificationSubscription;
-#endif
-}
+@implementation TNSRuntime
 
 + (void)initialize {
     if (self == [TNSRuntime self]) {
@@ -45,12 +41,10 @@ using namespace NativeScript;
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
 #if PLATFORM(IOS)
-        VM* vm = self->_vm.get();
-        self->_memoryPressureNotificationSubscription = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:nil usingBlock:^(NSNotification *note) {
-            JSLockHolder lock(vm);
-            vm->heap.collect(FullCollection);
-            vm->heap.releaseDelayedReleasedObjects();
-        }];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(_onMemoryWarning)
+                                                     name:UIApplicationDidReceiveMemoryWarningNotification
+                                                   object:nil];
 #endif
 
         JSLockHolder lock(*self->_vm);
@@ -66,6 +60,14 @@ using namespace NativeScript;
 - (JSGlobalContextRef)globalContext {
     return toGlobalRef(self->_globalObject->globalExec());
 }
+
+#if PLATFORM(IOS)
+- (void)_onMemoryWarning {
+    JSLockHolder lock(self->_vm.get());
+    self->_vm->heap.collect(FullCollection);
+    self->_vm->heap.releaseDelayedReleasedObjects();
+}
+#endif
 
 static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     JSString* moduleBody = jsString(execState, execState->argument(0).toWTFString(execState));
@@ -133,8 +135,7 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
 - (void)dealloc {
     [self->_applicationPath release];
 #if PLATFORM(IOS)
-    [[NSNotificationCenter defaultCenter] removeObserver:self->_memoryPressureNotificationSubscription];
-    [self->_memoryPressureNotificationSubscription release];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
 #endif
 
     {
