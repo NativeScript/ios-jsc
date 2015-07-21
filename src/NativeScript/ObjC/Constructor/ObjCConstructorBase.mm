@@ -17,6 +17,7 @@
 
 #import "TNSArrayAdapter.h"
 #import "TNSDictionaryAdapter.h"
+#import "TNSDataAdapter.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -102,6 +103,8 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
         this->_ffiTypeMethodTable.write = &writeAdapter<TNSArrayAdapter>;
     } else if (klass == [NSDictionary class]) {
         this->_ffiTypeMethodTable.write = &writeAdapter<TNSDictionaryAdapter>;
+    } else if (klass == [NSData class] || klass == [NSMutableData class]) {
+        this->_ffiTypeMethodTable.write = &writeAdapter<TNSDataAdapter>;
     } else {
         this->_ffiTypeMethodTable.write = &write;
     }

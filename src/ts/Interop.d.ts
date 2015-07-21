@@ -72,6 +72,11 @@ declare module interop {
     function handleof(instance: any): Pointer;
 
     /**
+     * Wraps an NSData instance in an ArrayBuffer.
+     */
+    function bufferFromData(data: NSData): ArrayBuffer;
+
+    /**
      * A type that wraps a pointer and allows read/write operations on its value.
      */
     interface Reference<T> {

@@ -168,18 +168,30 @@ describe(module.id, function () {
         expect(result).toBe(map);
     });
 
-    it("MethodWithNSData", function () {
+    it("should be possible to wrap an ArrayBuffer in NSData", function () {
         var data = new Uint8Array([49, 50, 51, 52]);
+        var buffer = data.buffer;
         var expected = '1234';
 
-        TNSObjCTypes.alloc().init().methodWithNSData(data);
+        var wrappedArrayBufferViewData = TNSObjCTypes.alloc().init().methodWithNSData(data);
         expect(TNSGetOutput()).toBe(expected);
+        expect(wrappedArrayBufferViewData).toBe(data);
         TNSClearOutput();
 
-        TNSObjCTypes.alloc().init().methodWithNSData(data.buffer);
+        var wrappedArrayBufferData = TNSObjCTypes.alloc().init().methodWithNSData(buffer);
         expect(TNSGetOutput()).toBe(expected);
+        expect(wrappedArrayBufferData).toBe(buffer);
         TNSClearOutput();
     });
+
+    it("should be possible to wrap NSData in an ArrayBuffer", function () {
+        var data = NSString.stringWithString("test").dataUsingEncoding(NSUTF8StringEncoding);
+        
+        var buffer = interop.bufferFromData(data);
+        
+        expect(buffer).toEqual(jasmine.any(ArrayBuffer));
+        expect(interop.handleof(buffer)).toBe(data.bytes);
+    })
 
     it("MethodWithNSCFBool", function () {
         expect(TNSObjCTypes.alloc().init().methodWithNSCFBool()).toBe(true);
