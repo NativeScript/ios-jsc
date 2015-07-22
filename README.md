@@ -1,5 +1,9 @@
 # NativeScript for iOS Runtime
 
+```shell
+git clone --recursive git@github.com:NativeScript/ios-runtime.git
+```
+
 ## Requirements
  - OSX 10.10.3+
  - Xcode 6.3+
