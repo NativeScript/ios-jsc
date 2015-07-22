@@ -7,11 +7,11 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
 ## Requirements
  - OSX 10.10.3+
  - Xcode 6.3+
- - [cmake](http://www.cmake.org/)
- - [llvm](http://llvm.org/) 3.6 - used to build the [metadata generator](https://github.com/NativeScript/ios-metadata-generator) submodule. Be sure to have `llvm-config` in PATH. It is available in [Homebrew](http://brew.sh) as the `llvm36` formula.
+ - [cmake](http://www.cmake.org/) - It is available in [Homebrew](http://brew.sh) as `cmake`.
+ - [llvm](http://llvm.org/) 3.6 - used to build the [metadata generator](https://github.com/NativeScript/ios-metadata-generator) submodule. Be sure to have `llvm-config` in PATH. It is available in Homebrew as the `llvm36` formula.
 
 ## Building
-Run `build/scripts/build.sh` in the root of the repository. This will produce a static library and Cocoa Framework versions of the iOS runtime and a build of the metadata generator and place them in the `dist` folder.
+Run `build/scripts/build.sh` in the root of the repository. This will produce a static library and Cocoa Framework versions of the iOS runtime and a build of the metadata generator and place them in the `dist` folder. The script depends on the repo's git submodules, so if you run into issues make sure to update them using `git submodule update --init`.
 
 ## Creating an Xcode Project
 ```shell
