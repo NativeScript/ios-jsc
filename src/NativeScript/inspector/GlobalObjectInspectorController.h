@@ -36,97 +36,106 @@
 #include "AugmentableInspectorController.h"
 #endif
 
-namespace WTF {
-    class Stopwatch;
+namespace Inspector {
+class BackendDispatcher;
+class FrontendChannel;
+class InjectedScriptManager;
+class InspectorAgent;
+class InspectorConsoleAgent;
+class InspectorDebuggerAgent;
+class InspectorTimelineAgent;
+class JSGlobalObjectConsoleClient;
+class ScriptCallStack;
 }
 
+namespace WTF {
+class Stopwatch;
+}
 
 namespace JSC {
-    class ConsoleClient;
-    class Exception;
-    class ExecState;
-    class JSGlobalObject;
-    class JSValue;
+class JSGlobalObjectConsole;
+class ConsoleClient;
+class Exception;
+class ExecState;
+class JSGlobalObject;
+class JSValue;
 }
 
-namespace Inspector {
-    
-    class BackendDispatcher;
-    class FrontendChannel;
-    class InjectedScriptManager;
-    class InspectorAgent;
-    class InspectorConsoleAgent;
-    class InspectorDebuggerAgent;
-    class InspectorTimelineAgent;
-    class JSGlobalObjectConsoleClient;
-    class ScriptCallStack;
-    
-    class GlobalObjectInspectorController final
-    : public InspectorEnvironment
+namespace NativeScript {
+
+class GlobalObjectInspectorController final
+    : public Inspector::InspectorEnvironment
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-    , public AugmentableInspectorController
+      ,
+      public Inspector::AugmentableInspectorController
 #endif
-    {
-        WTF_MAKE_NONCOPYABLE(GlobalObjectInspectorController);
-        WTF_MAKE_FAST_ALLOCATED;
-    public:
-        GlobalObjectInspectorController(JSC::JSGlobalObject&);
-        ~GlobalObjectInspectorController();
-        
-        void connectFrontend(FrontendChannel*, bool isAutomaticInspection);
-        void disconnectFrontend(DisconnectReason);
-        void dispatchMessageFromFrontend(const String&);
-        
-        void globalObjectDestroyed();
-        
-        bool includesNativeCallStackWhenReportingExceptions() const { return m_includeNativeCallStackWithExceptions; }
-        void setIncludesNativeCallStackWhenReportingExceptions(bool includesNativeCallStack) { m_includeNativeCallStackWithExceptions = includesNativeCallStack; }
-        
-        void pause();
-        void reportAPIException(JSC::ExecState*, JSC::Exception*);
-        
-        JSC::ConsoleClient* consoleClient() const;
-        InspectorTimelineAgent* timelineAgent() const;
-        
-        virtual bool developerExtrasEnabled() const override;
-        virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override { return true; }
-        virtual InspectorFunctionCallHandler functionCallHandler() const override;
-        virtual InspectorEvaluateHandler evaluateHandler() const override;
-        virtual void willCallInjectedScriptFunction(JSC::ExecState*, const String&, int) override { }
-        virtual void didCallInjectedScriptFunction(JSC::ExecState*) override { }
-        virtual void frontendInitialized() override;
-        virtual Ref<WTF::Stopwatch> executionStopwatch() override;
-        
+{
+    WTF_MAKE_NONCOPYABLE(GlobalObjectInspectorController);
+    WTF_MAKE_FAST_ALLOCATED;
+
+public:
+    GlobalObjectInspectorController(GlobalObject&);
+    ~GlobalObjectInspectorController();
+
+    void connectFrontend(Inspector::FrontendChannel*, bool isAutomaticInspection);
+    void disconnectFrontend(Inspector::DisconnectReason);
+    void dispatchMessageFromFrontend(const String&);
+
+    void globalObjectDestroyed();
+
+    bool includesNativeCallStackWhenReportingExceptions() const { return m_includeNativeCallStackWithExceptions; }
+    void setIncludesNativeCallStackWhenReportingExceptions(bool includesNativeCallStack) { m_includeNativeCallStackWithExceptions = includesNativeCallStack; }
+
+    void pause();
+    void reportAPIException(JSC::ExecState*, JSC::Exception*);
+
+    JSC::ConsoleClient* consoleClient() const {
+        return m_consoleClient.get();
+    }
+
+    Inspector::InspectorTimelineAgent* timelineAgent() const {
+        return m_timelineAgent;
+    }
+
+    virtual bool developerExtrasEnabled() const override;
+    virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override { return true; }
+    virtual Inspector::InspectorFunctionCallHandler functionCallHandler() const override;
+    virtual Inspector::InspectorEvaluateHandler evaluateHandler() const override;
+    virtual void willCallInjectedScriptFunction(JSC::ExecState*, const String&, int) override {}
+    virtual void didCallInjectedScriptFunction(JSC::ExecState*) override {}
+    virtual void frontendInitialized() override;
+    virtual Ref<WTF::Stopwatch> executionStopwatch() override;
+
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-        virtual AugmentableInspectorControllerClient* augmentableInspectorControllerClient() const override { return m_augmentingClient; }
-        virtual void setAugmentableInspectorControllerClient(AugmentableInspectorControllerClient* client) override { m_augmentingClient = client; }
-        
-        virtual FrontendChannel* frontendChannel() const override { return m_frontendChannel; }
-        virtual void appendExtraAgent(std::unique_ptr<InspectorAgentBase>) override;
+    virtual Inspector::AugmentableInspectorControllerClient* augmentableInspectorControllerClient() const override { return m_augmentingClient; }
+    virtual void setAugmentableInspectorControllerClient(Inspector::AugmentableInspectorControllerClient* client) override { m_augmentingClient = client; }
+
+    virtual Inspector::FrontendChannel* frontendChannel() const override { return m_frontendChannel; }
+    virtual void appendExtraAgent(std::unique_ptr<Inspector::InspectorAgentBase>) override;
 #endif
-        
-    private:
-        void appendAPIBacktrace(ScriptCallStack* callStack);
-        
-        JSC::JSGlobalObject& m_globalObject;
-        std::unique_ptr<InjectedScriptManager> m_injectedScriptManager;
-        std::unique_ptr<JSGlobalObjectConsoleClient> m_consoleClient;
-        InspectorAgent* m_inspectorAgent;
-        InspectorConsoleAgent* m_consoleAgent;
-        InspectorDebuggerAgent* m_debuggerAgent;
-        InspectorTimelineAgent* m_timelineAgent;
-        AgentRegistry m_agents;
-        FrontendChannel* m_frontendChannel;
-        RefPtr<BackendDispatcher> m_backendDispatcher;
-        Ref<WTF::Stopwatch> m_executionStopwatch;
-        bool m_includeNativeCallStackWithExceptions;
-        bool m_isAutomaticInspection;
-        
+
+private:
+    void appendAPIBacktrace(Inspector::ScriptCallStack* callStack);
+
+    GlobalObject& m_globalObject;
+    std::unique_ptr<Inspector::InjectedScriptManager> m_injectedScriptManager;
+    std::unique_ptr<JSC::ConsoleClient> m_consoleClient;
+    Inspector::InspectorAgent* m_inspectorAgent;
+    Inspector::InspectorConsoleAgent* m_consoleAgent;
+    Inspector::InspectorDebuggerAgent* m_debuggerAgent;
+    Inspector::InspectorTimelineAgent* m_timelineAgent;
+    Inspector::AgentRegistry m_agents;
+    Inspector::FrontendChannel* m_frontendChannel;
+    RefPtr<Inspector::BackendDispatcher> m_backendDispatcher;
+    Ref<WTF::Stopwatch> m_executionStopwatch;
+    bool m_includeNativeCallStackWithExceptions;
+    bool m_isAutomaticInspection;
+
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-        AugmentableInspectorControllerClient* m_augmentingClient;
+    Inspector::AugmentableInspectorControllerClient* m_augmentingClient;
 #endif
-    };
-    
+};
+
 } // namespace Inspector
 
 #endif // !defined(GlobalObjectInspectorController_h)

@@ -15,12 +15,9 @@ InspectorPageAgent::InspectorPageAgent()
 void InspectorPageAgent::didCreateFrontendAndBackend(FrontendChannel* frontendChannel, BackendDispatcher* backendDispatcher) {
     m_frontendDispatcher = std::make_unique<PageFrontendDispatcher>(frontendChannel);
     m_backendDispatcher = PageBackendDispatcher::create(backendDispatcher, this);
-
-    m_cachedResources = new WTF::HashMap<WTF::String, Inspector::CachedResource>();
 }
 
 void InspectorPageAgent::willDestroyFrontendAndBackend(DisconnectReason) {
-    m_cachedResources = nullptr;
     m_frontendDispatcher = nullptr;
     m_backendDispatcher = nullptr;
 }
@@ -59,33 +56,24 @@ void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protoco
                                                             .setMimeType("text/xml")
                                                             .release();
 
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+
     RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::FrameResource>> subresources = Inspector::Protocol::Array<Inspector::Protocol::Page::FrameResource>::create();
     out_frameTree = Inspector::Protocol::Page::FrameResourceTree::create()
                         .setFrame(frameObject.copyRef())
                         .setResources(subresources.copyRef())
                         .release();
 
-    NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] bundlePath], @"app"];
-    NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL URLWithString:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
+    for (auto iterator = resources.begin(); iterator != resources.end(); ++iterator) {
+        auto resource = iterator.get();
+        CachedResource& cachedResource = resource->value;
+        Ref<Inspector::Protocol::Page::FrameResource> frameResource = Inspector::Protocol::Page::FrameResource::create()
+                                                                          .setUrl(resource->key)
+                                                                          .setType(cachedResource.type())
+                                                                          .setMimeType(cachedResource.mimeType())
+                                                                          .release();
 
-    NSURL* file;
-    NSError* error;
-    while ((file = [directoryEnumerator nextObject])) {
-        NSNumber* isDirectory;
-        [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
-        if (![isDirectory boolValue]) {
-            WTF::String absoluteString = WTF::String([file absoluteString]);
-            Inspector::CachedResource resource = Inspector::CachedResource(absoluteString);
-
-            Ref<Inspector::Protocol::Page::FrameResource> frameResource = Inspector::Protocol::Page::FrameResource::create()
-                                                                              .setUrl(resource.url())
-                                                                              .setType(resource.type())
-                                                                              .setMimeType(resource.mimeType())
-                                                                              .release();
-
-            m_cachedResources->add(absoluteString, resource);
-            subresources->addItem(WTF::move(frameResource));
-        }
+        subresources->addItem(WTF::move(frameResource));
     }
 }
 
@@ -96,14 +84,14 @@ void InspectorPageAgent::searchInResource(ErrorString&, const String& in_frameId
     bool isRegex = in_isRegex ? *in_isRegex : false;
     bool caseSensitive = in_caseSensitive ? *in_caseSensitive : false;
 
-    auto iterator = m_cachedResources->find(in_url);
-    if (iterator != m_cachedResources->end()) {
-        WTF::String* content = new WTF::String;
-        ErrorString out_error;
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+    auto iterator = resources.find(in_url);
+    if (iterator != resources.end()) {
         CachedResource& resource = iterator->value;
-        resource.content(content, out_error);
+        ErrorString out_error;
+        WTF::String content = resource.content(out_error);
         if (out_error.isEmpty()) {
-            out_result = ContentSearchUtilities::searchInTextByLines(*content, in_query, caseSensitive, isRegex);
+            out_result = ContentSearchUtilities::searchInTextByLines(content, in_query, caseSensitive, isRegex);
         }
     }
 }
@@ -123,12 +111,12 @@ void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, 
     bool caseSensitive = in_caseSensitive ? *in_caseSensitive : false;
     JSC::Yarr::RegularExpression regex = ContentSearchUtilities::createSearchRegex(in_text, caseSensitive, isRegex);
 
-    for (CachedResource& cachedResource : m_cachedResources->values()) {
-        WTF::String* out_content = new WTF::String;
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+    for (CachedResource& cachedResource : resources.values()) {
         ErrorString out_error;
-        cachedResource.content(out_content, out_error);
+        WTF::String out_content = cachedResource.content(out_error);
         if (out_error.isEmpty()) {
-            int matchesCount = ContentSearchUtilities::countRegularExpressionMatches(regex, *out_content);
+            int matchesCount = ContentSearchUtilities::countRegularExpressionMatches(regex, out_content);
             if (matchesCount) {
                 out_result->addItem(buildObjectForSearchResult(m_frameIdentifier, cachedResource.url(), matchesCount));
             }
@@ -173,15 +161,16 @@ void InspectorPageAgent::archive(ErrorString&, String* out_data) {
 }
 
 void InspectorPageAgent::getResourceContent(ErrorString& errorString, const String& in_frameId, const String& in_url, String* out_content, bool* out_base64Encoded) {
-    if(in_url == m_frameUrl) {
+    if (in_url == m_frameUrl) {
         *out_base64Encoded = false;
         *out_content = WTF::emptyString();
-        
+
         return;
     }
-    
-    auto iterator = m_cachedResources->find(in_url);
-    if (iterator == m_cachedResources->end()) {
+
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+    auto iterator = resources.find(in_url);
+    if (iterator == resources.end()) {
         errorString = WTF::ASCIILiteral("No such item");
 
         return;
@@ -190,6 +179,30 @@ void InspectorPageAgent::getResourceContent(ErrorString& errorString, const Stri
     CachedResource& resource = iterator->value;
 
     *out_base64Encoded = !resource.hasTextContent();
-    resource.content(out_content, errorString);
+    *out_content = resource.content(errorString);
+}
+
+WTF::HashMap<WTF::String, Inspector::CachedResource>& InspectorPageAgent::cachedResources() {
+    static WTF::HashMap<WTF::String, Inspector::CachedResource> cachedResources;
+
+    static std::once_flag flag;
+    std::call_once(flag, []() {
+        NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] bundlePath], @"app"];
+        NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL URLWithString:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
+
+        NSURL* file;
+        NSError* error;
+        while ((file = [directoryEnumerator nextObject])) {
+            NSNumber* isDirectory;
+            [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
+            if (![isDirectory boolValue]) {
+                WTF::String absoluteString = WTF::String([file absoluteString]);
+                Inspector::CachedResource resource(absoluteString);
+
+                cachedResources.add(absoluteString, resource);
+            }
+        }
+    });
+    return cachedResources;
 }
 }

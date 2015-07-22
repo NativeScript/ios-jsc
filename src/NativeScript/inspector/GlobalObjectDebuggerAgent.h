@@ -30,36 +30,37 @@
 #include "JSGlobalObjectScriptDebugServer.h"
 
 namespace Inspector {
-    
-    class InspectorConsoleAgent;
-    
-    class GlobalObjectDebuggerAgent final : public InspectorDebuggerAgent {
-        WTF_MAKE_NONCOPYABLE(GlobalObjectDebuggerAgent);
-        WTF_MAKE_FAST_ALLOCATED;
-    public:
-        GlobalObjectDebuggerAgent(InjectedScriptManager*, JSC::JSGlobalObject&, InspectorConsoleAgent*);
-        virtual ~GlobalObjectDebuggerAgent() { }
-        
-        virtual JSGlobalObjectScriptDebugServer& scriptDebugServer() override { return m_scriptDebugServer; }
-        
-        virtual void enable(ErrorString&) override;
-        virtual void startListeningScriptDebugServer() override;
-        virtual void stopListeningScriptDebugServer(bool isBeingDestroyed) override;
-        virtual InjectedScript injectedScriptForEval(ErrorString&, const int* executionContextId) override;
-        
-        virtual void breakpointActionLog(JSC::ExecState*, const String&) override;
-        
-        // NOTE: JavaScript inspector does not yet need to mute a console because no messages
-        // are sent to the console outside of the API boundary or console object.
-        virtual void muteConsole() override { }
-        virtual void unmuteConsole() override { }
-        
-    private:
-        JSGlobalObjectScriptDebugServer m_scriptDebugServer;
-        InspectorConsoleAgent* m_consoleAgent;
-        NativeScript::GlobalObject* m_globalObject;
-    };
-    
+class InspectorConsoleAgent;
+}
+namespace NativeScript {
+class GlobalObjectDebuggerAgent final : public Inspector::InspectorDebuggerAgent {
+    WTF_MAKE_NONCOPYABLE(GlobalObjectDebuggerAgent);
+    WTF_MAKE_FAST_ALLOCATED;
+
+public:
+    GlobalObjectDebuggerAgent(Inspector::InjectedScriptManager*, JSC::JSGlobalObject&, Inspector::InspectorConsoleAgent*);
+    virtual ~GlobalObjectDebuggerAgent() {}
+
+    virtual Inspector::JSGlobalObjectScriptDebugServer& scriptDebugServer() override { return m_scriptDebugServer; }
+
+    virtual void enable(Inspector::ErrorString&) override;
+    virtual void startListeningScriptDebugServer() override;
+    virtual void stopListeningScriptDebugServer(bool isBeingDestroyed) override;
+    virtual Inspector::InjectedScript injectedScriptForEval(Inspector::ErrorString&, const int* executionContextId) override;
+
+    virtual void breakpointActionLog(JSC::ExecState*, const String&) override;
+
+    // NOTE: JavaScript inspector does not yet need to mute a console because no messages
+    // are sent to the console outside of the API boundary or console object.
+    virtual void muteConsole() override {}
+    virtual void unmuteConsole() override {}
+
+private:
+    Inspector::JSGlobalObjectScriptDebugServer m_scriptDebugServer;
+    Inspector::InspectorConsoleAgent* m_consoleAgent;
+    NativeScript::GlobalObject* m_globalObject;
+};
+
 } // namespace Inspector
 
 #endif // !defined(GlobalObjectDebuggerAgent_h)

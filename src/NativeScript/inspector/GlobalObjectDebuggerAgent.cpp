@@ -25,7 +25,7 @@
 
 #include "config.h"
 #include "GlobalObjectDebuggerAgent.h"
-
+#include "SourceProviderManager.h"
 #include "ConsoleMessage.h"
 #include "InjectedScriptManager.h"
 #include "InspectorConsoleAgent.h"
@@ -35,49 +35,48 @@
 #include "ScriptCallStackFactory.h"
 
 using namespace JSC;
+using namespace Inspector;
 
-namespace Inspector {
-    
-    GlobalObjectDebuggerAgent::GlobalObjectDebuggerAgent(InjectedScriptManager* injectedScriptManager, JSC::JSGlobalObject& globalObject, InspectorConsoleAgent* consoleAgent)
+namespace NativeScript {
+
+GlobalObjectDebuggerAgent::GlobalObjectDebuggerAgent(InjectedScriptManager* injectedScriptManager, JSC::JSGlobalObject& globalObject, InspectorConsoleAgent* consoleAgent)
     : InspectorDebuggerAgent(injectedScriptManager)
     , m_scriptDebugServer(globalObject)
-    , m_consoleAgent(consoleAgent)
-    {
-        m_globalObject = jsCast<NativeScript::GlobalObject*>(&globalObject);
+    , m_consoleAgent(consoleAgent) {
+    m_globalObject = jsCast<NativeScript::GlobalObject*>(&globalObject);
+}
+
+void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
+    InspectorDebuggerAgent::enable(errorString);
+
+    ResourceManager& resourceManager = ResourceManager::getInstance();
+    WTF::HashMap<WTF::String, WTF::RefPtr<JSC::SourceProvider>>& sourceProviders = resourceManager.sourceProviders();
+
+    for (auto iterator = sourceProviders.begin(); iterator != sourceProviders.end(); ++iterator) {
+        m_globalObject->debugger()->sourceParsed(m_globalObject->globalExec(), iterator->value.get(), -1, WTF::emptyString());
     }
-    
-    void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
-        InspectorDebuggerAgent::enable(errorString);
-        
-        for(auto sourceProvider: *m_globalObject->sourceProviders()) {
-            m_globalObject->debugger()->sourceParsed(m_globalObject->globalExec(), sourceProvider.value, -1, WTF::emptyString());
-        }
+}
+
+void GlobalObjectDebuggerAgent::startListeningScriptDebugServer() {
+    scriptDebugServer().addListener(this);
+}
+
+void GlobalObjectDebuggerAgent::stopListeningScriptDebugServer(bool isBeingDestroyed) {
+    scriptDebugServer().removeListener(this, isBeingDestroyed);
+}
+
+InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& error, const int* executionContextId) {
+    if (executionContextId) {
+        error = ASCIILiteral("Execution context id is not supported for JSContext inspection as there is only one execution context.");
+        return InjectedScript();
     }
-    
-    void GlobalObjectDebuggerAgent::startListeningScriptDebugServer()
-    {
-        scriptDebugServer().addListener(this);
-    }
-    
-    void GlobalObjectDebuggerAgent::stopListeningScriptDebugServer(bool isBeingDestroyed)
-    {
-        scriptDebugServer().removeListener(this, isBeingDestroyed);
-    }
-    
-    InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& error, const int* executionContextId)
-    {
-        if (executionContextId) {
-            error = ASCIILiteral("Execution context id is not supported for JSContext inspection as there is only one execution context.");
-            return InjectedScript();
-        }
-        
-        ExecState* exec = m_scriptDebugServer.globalObject().globalExec();
-        return injectedScriptManager()->injectedScriptFor(exec);
-    }
-    
-    void GlobalObjectDebuggerAgent::breakpointActionLog(JSC::ExecState* exec, const String& message)
-    {
-        m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Log, message, createScriptCallStack(exec, ScriptCallStack::maxCallStackSizeToCapture), 0));
-    }
-    
+
+    ExecState* exec = m_scriptDebugServer.globalObject().globalExec();
+    return injectedScriptManager()->injectedScriptFor(exec);
+}
+
+void GlobalObjectDebuggerAgent::breakpointActionLog(JSC::ExecState* exec, const String& message) {
+    m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Log, message, createScriptCallStack(exec, ScriptCallStack::maxCallStackSizeToCapture), 0));
+}
+
 } // namespace Inspector

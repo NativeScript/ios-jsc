@@ -55,7 +55,7 @@ class InspectorTimelineAgent final
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    InspectorTimelineAgent(JSC::JSGlobalObject&);
+    InspectorTimelineAgent(NativeScript::GlobalObject&);
 
     virtual void didCreateFrontendAndBackend(FrontendChannel*, BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(DisconnectReason) override;
@@ -92,7 +92,7 @@ private:
     std::unique_ptr<TimelineFrontendDispatcher> m_frontendDispatcher;
     RefPtr<TimelineBackendDispatcher> m_backendDispatcher;
 
-    NativeScript::GlobalObject* m_globalObject;
+    NativeScript::GlobalObject& m_globalObject;
     TimelineRecordEntry m_consoleRecordEntry;
     int m_maxCallStackDepth;
     bool m_enabled;

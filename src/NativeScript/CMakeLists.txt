@@ -8,6 +8,7 @@ set(HEADER_FILES
     Calling/FFIFunctionCallback.h
     ConsoleMethodOverrides.h
     GlobalObject.h
+    inspector/SourceProviderManager.h
     inspector/CachedResource.h
     inspector/GlobalObjectDebuggerAgent.h
     inspector/GlobalObjectInspectorController.h
@@ -89,6 +90,7 @@ set(SOURCE_FILES
     ConsoleMethodOverrides.cpp
     GlobalObject.mm
     inspector/GlobalObjectDebuggerAgent.cpp
+    inspector/SourceProviderManager.cpp
     inspector/GlobalObjectInspectorController.cpp
     inspector/InspectorTimelineAgent.cpp
     inspector/InspectorPageAgent.mm

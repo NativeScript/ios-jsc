@@ -59,10 +59,11 @@
 #endif
 
 using namespace JSC;
+using namespace Inspector;
 
-namespace Inspector {
-    
-    GlobalObjectInspectorController::GlobalObjectInspectorController(JSGlobalObject& globalObject)
+namespace NativeScript {
+
+GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& globalObject)
     : m_globalObject(globalObject)
     , m_injectedScriptManager(std::make_unique<InjectedScriptManager>(*this, InjectedScriptHost::create()))
     , m_frontendChannel(nullptr)
@@ -72,215 +73,191 @@ namespace Inspector {
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
     , m_augmentingClient(nullptr)
 #endif
-    {
-        auto inspectorAgent = std::make_unique<InspectorAgent>(*this);
-        auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_injectedScriptManager.get(), m_globalObject);
-        auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_injectedScriptManager.get());
-        auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_injectedScriptManager.get(), m_globalObject, consoleAgent.get());
-        auto pageAgent = std::make_unique<InspectorPageAgent>();
-        auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_globalObject);
-        
-        m_inspectorAgent = inspectorAgent.get();
-        m_debuggerAgent = debuggerAgent.get();
-        m_consoleAgent = consoleAgent.get();
-        m_consoleClient = std::make_unique<JSGlobalObjectConsoleClient>(m_consoleAgent);
-        
-        runtimeAgent->setScriptDebugServer(&debuggerAgent->scriptDebugServer());
-        
-        m_agents.append(WTF::move(inspectorAgent));
-        m_agents.append(WTF::move(timelineAgent));
-        m_agents.append(WTF::move(pageAgent));
-        m_agents.append(WTF::move(runtimeAgent));
-        m_agents.append(WTF::move(consoleAgent));
-        m_agents.append(WTF::move(debuggerAgent));
-        
-        m_executionStopwatch->start();
-    }
-    
-    GlobalObjectInspectorController::~GlobalObjectInspectorController()
-    {
-        m_agents.discardAgents();
-    }
-    
-    void GlobalObjectInspectorController::globalObjectDestroyed()
-    {
-        disconnectFrontend(DisconnectReason::InspectedTargetDestroyed);
-        
-        m_injectedScriptManager->disconnect();
-    }
-    
-    void GlobalObjectInspectorController::connectFrontend(FrontendChannel* frontendChannel, bool isAutomaticInspection)
-    {
-        ASSERT(!m_frontendChannel);
-        ASSERT(!m_backendDispatcher);
-        
-        m_isAutomaticInspection = isAutomaticInspection;
-        
-        m_frontendChannel = frontendChannel;
-        m_backendDispatcher = BackendDispatcher::create(frontendChannel);
-        
-        m_agents.didCreateFrontendAndBackend(frontendChannel, m_backendDispatcher.get());
-        
-#if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-        m_inspectorAgent->activateExtraDomains(m_agents.extraDomains());
-        
-        if (m_augmentingClient)
-            m_augmentingClient->inspectorConnected();
-#endif
-    }
-    
-    void GlobalObjectInspectorController::disconnectFrontend(DisconnectReason reason)
-    {
-        if (!m_frontendChannel)
-            return;
-        
-        m_agents.willDestroyFrontendAndBackend(reason);
-        
-        m_backendDispatcher->clearFrontend();
-        m_backendDispatcher = nullptr;
-        m_frontendChannel = nullptr;
-        
-        m_isAutomaticInspection = false;
-        
-#if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-        if (m_augmentingClient)
-            m_augmentingClient->inspectorDisconnected();
-#endif
-    }
-    
-    void GlobalObjectInspectorController::dispatchMessageFromFrontend(const String& message)
-    {
-        if (m_backendDispatcher)
-            m_backendDispatcher->dispatch(message);
-    }
-    
-    void GlobalObjectInspectorController::pause()
-    {
-        if (!m_frontendChannel)
-            return;
-        
-        ErrorString dummyError;
-        m_debuggerAgent->enable(dummyError);
-        m_debuggerAgent->pause(dummyError);
-    }
-    
-    void GlobalObjectInspectorController::appendAPIBacktrace(ScriptCallStack* callStack)
-    {
-#if OS(DARWIN) || (OS(LINUX) && !PLATFORM(GTK))
-        static const int framesToShow = 31;
-        static const int framesToSkip = 3; // WTFGetBacktrace, appendAPIBacktrace, reportAPIException.
-        
-        void* samples[framesToShow + framesToSkip];
-        int frames = framesToShow + framesToSkip;
-        WTFGetBacktrace(samples, &frames);
-        
-        void** stack = samples + framesToSkip;
-        int size = frames - framesToSkip;
-        for (int i = 0; i < size; ++i) {
-            const char* mangledName = nullptr;
-            char* cxaDemangled = nullptr;
-            Dl_info info;
-            if (dladdr(stack[i], &info) && info.dli_sname)
-                mangledName = info.dli_sname;
-            if (mangledName)
-                cxaDemangled = abi::__cxa_demangle(mangledName, nullptr, nullptr, nullptr);
-            if (mangledName || cxaDemangled)
-                callStack->append(ScriptCallFrame(cxaDemangled ? cxaDemangled : mangledName, ASCIILiteral("[native code]"), 0, 0));
-            else
-                callStack->append(ScriptCallFrame(ASCIILiteral("?"), ASCIILiteral("[native code]"), 0, 0));
-            free(cxaDemangled);
-        }
-#else
-        UNUSED_PARAM(callStack);
-#endif
-    }
-    
-    void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Exception* exception)
-    {
-        if (isTerminatedExecutionException(exception))
-            return;
-        
-        ErrorHandlingScope errorScope(exec->vm());
-        
-        RefPtr<ScriptCallStack> callStack = createScriptCallStackFromException(exec, exception, ScriptCallStack::maxCallStackSizeToCapture);
-        if (includesNativeCallStackWhenReportingExceptions())
-            appendAPIBacktrace(callStack.get());
-        
-        // FIXME: <http://webkit.org/b/115087> Web Inspector: Should not evaluate JavaScript handling exceptions
-        // If this is a custom exception object, call toString on it to try and get a nice string representation for the exception.
-        String errorMessage = exception->value().toString(exec)->value(exec);
-        exec->clearException();
-        
-        if (JSGlobalObjectConsoleClient::logToSystemConsole()) {
-            if (callStack->size()) {
-                const ScriptCallFrame& callFrame = callStack->at(0);
-                ConsoleClient::printConsoleMessage(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callFrame.sourceURL(), callFrame.lineNumber(), callFrame.columnNumber());
-            } else
-                ConsoleClient::printConsoleMessage(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, String(), 0, 0);
-        }
-        
-        m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack));
-    }
-    
-    ConsoleClient* GlobalObjectInspectorController::consoleClient() const
-    {
-        return m_consoleClient.get();
-    }
-    
-    InspectorTimelineAgent* GlobalObjectInspectorController::timelineAgent() const {
-        return m_timelineAgent;
-    }
-    
-    bool GlobalObjectInspectorController::developerExtrasEnabled() const
-    {
-#if ENABLE(REMOTE_INSPECTOR)
-        if (!RemoteInspector::singleton().enabled())
-            return false;
-        
-        if (!m_globalObject.inspectorDebuggable().remoteDebuggingAllowed())
-            return false;
-#endif
-        
-        return true;
-    }
-    
-    InspectorFunctionCallHandler GlobalObjectInspectorController::functionCallHandler() const
-    {
-        return JSC::call;
-    }
-    
-    InspectorEvaluateHandler GlobalObjectInspectorController::evaluateHandler() const
-    {
-        return JSC::evaluate;
-    }
-    
-    void GlobalObjectInspectorController::frontendInitialized()
-    {
-#if ENABLE(REMOTE_INSPECTOR)
-        if (m_isAutomaticInspection)
-            m_globalObject.inspectorDebuggable().unpauseForInitializedInspector();
-#endif
-    }
-    
-    Ref<Stopwatch> GlobalObjectInspectorController::executionStopwatch()
-    {
-        return m_executionStopwatch.copyRef();
-    }
-    
-#if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-    void GlobalObjectInspectorController::appendExtraAgent(std::unique_ptr<InspectorAgentBase> agent)
-    {
-        String domainName = agent->domainName();
-        
-        if (m_frontendChannel)
-            agent->didCreateFrontendAndBackend(m_frontendChannel, m_backendDispatcher.get());
-        
-        m_agents.appendExtraAgent(WTF::move(agent));
-        
-        if (m_frontendChannel)
-            m_inspectorAgent->activateExtraDomain(domainName);
-    }
-#endif
-    
-} // namespace Inspector
+{
+    auto inspectorAgent = std::make_unique<InspectorAgent>(*this);
+    auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_injectedScriptManager.get(), m_globalObject);
+    auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_injectedScriptManager.get());
+    auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_injectedScriptManager.get(), m_globalObject, consoleAgent.get());
+    auto pageAgent = std::make_unique<InspectorPageAgent>();
+    auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_globalObject);
 
+    m_inspectorAgent = inspectorAgent.get();
+    m_debuggerAgent = debuggerAgent.get();
+    m_consoleAgent = consoleAgent.get();
+    m_consoleClient = std::make_unique<JSGlobalObjectConsoleClient>(m_consoleAgent);
+
+    runtimeAgent->setScriptDebugServer(&debuggerAgent->scriptDebugServer());
+
+    m_agents.append(WTF::move(inspectorAgent));
+    m_agents.append(WTF::move(timelineAgent));
+    m_agents.append(WTF::move(pageAgent));
+    m_agents.append(WTF::move(runtimeAgent));
+    m_agents.append(WTF::move(consoleAgent));
+    m_agents.append(WTF::move(debuggerAgent));
+
+    m_executionStopwatch->start();
+}
+
+GlobalObjectInspectorController::~GlobalObjectInspectorController() {
+    m_agents.discardAgents();
+}
+
+void GlobalObjectInspectorController::globalObjectDestroyed() {
+    disconnectFrontend(DisconnectReason::InspectedTargetDestroyed);
+
+    m_injectedScriptManager->disconnect();
+}
+
+void GlobalObjectInspectorController::connectFrontend(FrontendChannel* frontendChannel, bool isAutomaticInspection) {
+    ASSERT(!m_frontendChannel);
+    ASSERT(!m_backendDispatcher);
+
+    m_isAutomaticInspection = isAutomaticInspection;
+
+    m_frontendChannel = frontendChannel;
+    m_backendDispatcher = BackendDispatcher::create(frontendChannel);
+
+    m_agents.didCreateFrontendAndBackend(frontendChannel, m_backendDispatcher.get());
+
+#if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
+    m_inspectorAgent->activateExtraDomains(m_agents.extraDomains());
+
+    if (m_augmentingClient)
+        m_augmentingClient->inspectorConnected();
+#endif
+}
+
+void GlobalObjectInspectorController::disconnectFrontend(DisconnectReason reason) {
+    if (!m_frontendChannel)
+        return;
+
+    m_agents.willDestroyFrontendAndBackend(reason);
+
+    m_backendDispatcher->clearFrontend();
+    m_backendDispatcher = nullptr;
+    m_frontendChannel = nullptr;
+
+    m_isAutomaticInspection = false;
+
+#if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
+    if (m_augmentingClient)
+        m_augmentingClient->inspectorDisconnected();
+#endif
+}
+
+void GlobalObjectInspectorController::dispatchMessageFromFrontend(const String& message) {
+    if (m_backendDispatcher)
+        m_backendDispatcher->dispatch(message);
+}
+
+void GlobalObjectInspectorController::pause() {
+    if (!m_frontendChannel)
+        return;
+
+    ErrorString dummyError;
+    m_debuggerAgent->enable(dummyError);
+    m_debuggerAgent->pause(dummyError);
+}
+
+void GlobalObjectInspectorController::appendAPIBacktrace(ScriptCallStack* callStack) {
+#if OS(DARWIN) || (OS(LINUX) && !PLATFORM(GTK))
+    static const int framesToShow = 31;
+    static const int framesToSkip = 3; // WTFGetBacktrace, appendAPIBacktrace, reportAPIException.
+
+    void* samples[framesToShow + framesToSkip];
+    int frames = framesToShow + framesToSkip;
+    WTFGetBacktrace(samples, &frames);
+
+    void** stack = samples + framesToSkip;
+    int size = frames - framesToSkip;
+    for (int i = 0; i < size; ++i) {
+        const char* mangledName = nullptr;
+        char* cxaDemangled = nullptr;
+        Dl_info info;
+        if (dladdr(stack[i], &info) && info.dli_sname)
+            mangledName = info.dli_sname;
+        if (mangledName)
+            cxaDemangled = abi::__cxa_demangle(mangledName, nullptr, nullptr, nullptr);
+        if (mangledName || cxaDemangled)
+            callStack->append(ScriptCallFrame(cxaDemangled ? cxaDemangled : mangledName, ASCIILiteral("[native code]"), 0, 0));
+        else
+            callStack->append(ScriptCallFrame(ASCIILiteral("?"), ASCIILiteral("[native code]"), 0, 0));
+        free(cxaDemangled);
+    }
+#else
+    UNUSED_PARAM(callStack);
+#endif
+}
+
+void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Exception* exception) {
+    if (isTerminatedExecutionException(exception))
+        return;
+
+    ErrorHandlingScope errorScope(exec->vm());
+
+    RefPtr<ScriptCallStack> callStack = createScriptCallStackFromException(exec, exception, ScriptCallStack::maxCallStackSizeToCapture);
+    if (includesNativeCallStackWhenReportingExceptions())
+        appendAPIBacktrace(callStack.get());
+
+    // FIXME: <http://webkit.org/b/115087> Web Inspector: Should not evaluate JavaScript handling exceptions
+    // If this is a custom exception object, call toString on it to try and get a nice string representation for the exception.
+    String errorMessage = exception->value().toString(exec)->value(exec);
+    exec->clearException();
+
+    if (JSGlobalObjectConsoleClient::logToSystemConsole()) {
+        if (callStack->size()) {
+            const ScriptCallFrame& callFrame = callStack->at(0);
+            ConsoleClient::printConsoleMessage(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callFrame.sourceURL(), callFrame.lineNumber(), callFrame.columnNumber());
+        } else
+            ConsoleClient::printConsoleMessage(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, String(), 0, 0);
+    }
+
+    m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack));
+}
+
+bool GlobalObjectInspectorController::developerExtrasEnabled() const {
+#if ENABLE(REMOTE_INSPECTOR)
+    if (!RemoteInspector::singleton().enabled())
+        return false;
+
+    if (!m_globalObject.inspectorDebuggable().remoteDebuggingAllowed())
+        return false;
+#endif
+
+    return true;
+}
+
+InspectorFunctionCallHandler GlobalObjectInspectorController::functionCallHandler() const {
+    return JSC::call;
+}
+
+InspectorEvaluateHandler GlobalObjectInspectorController::evaluateHandler() const {
+    return JSC::evaluate;
+}
+
+void GlobalObjectInspectorController::frontendInitialized() {
+#if ENABLE(REMOTE_INSPECTOR)
+    if (m_isAutomaticInspection)
+        m_globalObject.inspectorDebuggable().unpauseForInitializedInspector();
+#endif
+}
+
+Ref<Stopwatch> GlobalObjectInspectorController::executionStopwatch() {
+    return m_executionStopwatch.copyRef();
+}
+
+#if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
+void GlobalObjectInspectorController::appendExtraAgent(std::unique_ptr<InspectorAgentBase> agent) {
+    String domainName = agent->domainName();
+
+    if (m_frontendChannel)
+        agent->didCreateFrontendAndBackend(m_frontendChannel, m_backendDispatcher.get());
+
+    m_agents.appendExtraAgent(WTF::move(agent));
+
+    if (m_frontendChannel)
+        m_inspectorAgent->activateExtraDomain(domainName);
+}
+#endif
+
+} // namespace Inspector

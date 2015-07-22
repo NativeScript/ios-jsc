@@ -13,10 +13,6 @@
 #include <objc/runtime.h>
 #include <map>
 
-namespace Inspector {
-class GlobalObjectInspectorController;
-}
-
 namespace NativeScript {
 class ObjCConstructorBase;
 class ObjCProtocolWrapper;
@@ -24,6 +20,7 @@ class RecordConstructor;
 class Interop;
 class TypeFactory;
 class ObjCWrapperObject;
+class GlobalObjectInspectorController;
 
 class GlobalObject : public JSC::JSGlobalObject {
 public:
@@ -111,7 +108,7 @@ public:
         return this->_typeScriptOriginalExtendsFunction.get();
     }
 
-    Inspector::GlobalObjectInspectorController& inspectorController() const {
+    GlobalObjectInspectorController& inspectorController() const {
         return *this->_inspectorController.get();
     }
 
@@ -140,7 +137,7 @@ private:
 
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
 
-    std::unique_ptr<Inspector::GlobalObjectInspectorController> _inspectorController;
+    std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;

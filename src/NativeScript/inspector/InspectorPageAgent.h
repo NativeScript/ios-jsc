@@ -53,7 +53,7 @@ private:
     std::unique_ptr<PageFrontendDispatcher> m_frontendDispatcher;
     RefPtr<PageBackendDispatcher> m_backendDispatcher;
 
-    WTF::HashMap<WTF::String, Inspector::CachedResource>* m_cachedResources;
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources();
 };
 }
 

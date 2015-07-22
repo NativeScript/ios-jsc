@@ -81,7 +81,6 @@ GlobalObject::GlobalObject(VM& vm, Structure* structure)
     , _taggedPointers(vm)
 #endif
 {
-    _sourceProvidersByUrl = std::make_unique<WTF::HashMap<WTF::String, JSC::SourceProvider*>>();
 }
 
 GlobalObject::~GlobalObject() {
@@ -110,7 +109,7 @@ void GlobalObject::finishCreation(VM& vm) {
 
     ExecState* globalExec = this->globalExec();
 
-    this->_inspectorController = std::make_unique<Inspector::GlobalObjectInspectorController>(*this);
+    this->_inspectorController = std::make_unique<GlobalObjectInspectorController>(*this);
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
 

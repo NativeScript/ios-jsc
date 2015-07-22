@@ -62,7 +62,7 @@ private:
 @implementation TNSRuntimeInspector {
     TNSRuntime* _runtime;
     std::unique_ptr<TNSRuntimeInspectorFrontendChannel> _frontendChannel;
-    Inspector::GlobalObjectInspectorController* _inspectorController;
+    GlobalObjectInspectorController* _inspectorController;
 }
 
 + (BOOL)logsToSystemConsole {

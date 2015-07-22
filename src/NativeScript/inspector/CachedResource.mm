@@ -21,7 +21,8 @@ WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResourc
 
 CachedResource::CachedResource() {}
 
-CachedResource::CachedResource(WTF::String url) {
+CachedResource::CachedResource(WTF::String url)
+    : m_content(WTF::emptyString()) {
     m_url = url;
 
     NSString* cachedResourcePath = (NSString*)url;
@@ -34,38 +35,6 @@ CachedResource::CachedResource(WTF::String url) {
     }
 
     m_type = resourceType;
-}
-
-void CachedResource::content(WTF::String* out_content, ErrorString& out_error) {
-    NSString* cachedResourcePath = (NSString*)m_url;
-    NSURL* cachedResourceUrl = [NSURL URLWithString:cachedResourcePath];
-
-    bool out_base64Encoded = !hasTextContent();
-    if (m_content.isEmpty()) {
-        if (out_base64Encoded) {
-            NSData* data = [[NSFileManager defaultManager] contentsAtPath:[cachedResourceUrl path]];
-            if (data == nil) {
-                out_error = WTF::ASCIILiteral("An error occurred");
-
-                return;
-            } else {
-                NSString* base64Encoded = [data base64EncodedStringWithOptions:0];
-                m_content = WTF::String(base64Encoded);
-            }
-        } else {
-            NSError* error;
-            NSString* content = [NSString stringWithContentsOfURL:cachedResourceUrl encoding:NSUTF8StringEncoding error:&error];
-            if (content == nil) {
-                out_error = [error localizedDescription];
-
-                return;
-            } else {
-                m_content = WTF::String(content);
-            }
-        }
-    }
-
-    *out_content = m_content;
 }
 
 bool CachedResource::hasTextContent() {
@@ -87,5 +56,36 @@ Inspector::Protocol::Page::ResourceType CachedResource::resourceTypeByMimeType(W
     }
 
     return Inspector::Protocol::Page::ResourceType::Other;
+}
+
+WTF::String CachedResource::content(ErrorString& out_error) {
+    if (m_content.isEmpty()) {
+        NSString* cachedResourcePath = (NSString*)m_url;
+        NSURL* cachedResourceUrl = [NSURL URLWithString:cachedResourcePath];
+        bool out_base64Encoded = !hasTextContent();
+        if (out_base64Encoded) {
+            NSData* data = [[NSFileManager defaultManager] contentsAtPath:[cachedResourceUrl path]];
+            if (data == nil) {
+                out_error = WTF::ASCIILiteral("An error occurred");
+
+                return WTF::emptyString();
+            } else {
+                NSString* base64Encoded = [data base64EncodedStringWithOptions:0];
+                m_content = WTF::String(base64Encoded);
+            }
+        } else {
+            NSError* error;
+            NSString* content = [NSString stringWithContentsOfURL:cachedResourceUrl encoding:NSUTF8StringEncoding error:&error];
+            if (content == nil) {
+                out_error = [error localizedDescription];
+
+                return WTF::emptyString();
+            } else {
+                m_content = content;
+            }
+        }
+    }
+
+    return m_content;
 }
 }

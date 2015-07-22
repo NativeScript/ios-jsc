@@ -22,6 +22,7 @@
 #import "TNSRuntime.h"
 #import "TNSRuntime+Private.h"
 #include "JSErrors.h"
+#include "inspector/SourceProviderManager.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -69,27 +70,36 @@ using namespace NativeScript;
 }
 #endif
 
+JSObject* constructFunction(
+    ExecState* exec, JSGlobalObject* globalObject,
+    const Identifier& functionName, const String& sourceURL,
+    const String& moduleBody, const TextPosition& position) {
+    if (!globalObject->evalEnabled())
+        return exec->vm().throwException(exec, createEvalError(exec, globalObject->evalDisabledErrorMessage()));
+
+    ResourceManager& resourceManager = ResourceManager::getInstance();
+    WTF::RefPtr<SourceProvider> sourceProvider = resourceManager.addSourceProvider(sourceURL, moduleBody);
+    SourceCode source = SourceCode(sourceProvider, position.m_line.oneBasedInt(), position.m_column.oneBasedInt());
+    JSObject* exception = nullptr;
+    FunctionExecutable* function = FunctionExecutable::fromGlobalCode(functionName, *exec, source, exception, -1);
+    if (!function) {
+        ASSERT(exception);
+        return exec->vm().throwException(exec, exception);
+    }
+
+    return JSFunction::create(exec->vm(), function, globalObject);
+}
+
 static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
-    JSString* moduleBody = jsString(execState, execState->argument(0).toWTFString(execState));
+    WTF::String moduleBody = execState->argument(0).toWTFString(execState);
     WTF::String moduleUrl = execState->argument(1).toString(execState)->value(execState);
 
-    MarkedArgumentBuffer requireArgs;
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("require")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("module")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("exports")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("__dirname")));
-    requireArgs.append(jsString(execState, WTF::ASCIILiteral("__filename")));
-    requireArgs.append(moduleBody);
-
-    JSObject* constructedFunction = constructFunction(execState, execState->lexicalGlobalObject(), requireArgs, Identifier::fromString(execState, "anonymous"), moduleUrl, WTF::TextPosition());
+    JSObject* constructedFunction = constructFunction(execState, execState->lexicalGlobalObject(), Identifier::fromString(execState, "anonymous"), moduleUrl, moduleBody, WTF::TextPosition());
     if (execState->hadException()) {
         return JSValue::encode(jsUndefined());
     }
 
     JSFunction* moduleFunction = jsCast<JSFunction*>(constructedFunction);
-
-    NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
-    globalObject->sourceProviders()->add(moduleUrl, moduleFunction->sourceCode()->provider());
 
     return JSValue::encode(moduleFunction);
 }
