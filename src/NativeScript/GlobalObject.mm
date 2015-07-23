@@ -109,6 +109,7 @@ void GlobalObject::finishCreation(VM& vm) {
 
     ExecState* globalExec = this->globalExec();
 
+    this->_instanceStructureIdentifier = Identifier::fromUid(PrivateName(PrivateName::Description, ASCIILiteral("__instanceStructureIdentifier")));
     this->_inspectorController = std::make_unique<GlobalObjectInspectorController>(*this);
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);

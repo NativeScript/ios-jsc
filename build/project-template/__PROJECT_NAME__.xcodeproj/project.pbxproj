@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		517DDD8F1B611B7A001C8A19 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 517DDD8E1B611B7A001C8A19 /* MobileCoreServices.framework */; };
 		858B83F318CA22B800AB12DE /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 858B833D18CA111C00AB12DE /* main.m */; };
 		858B842918CA22B800AB12DE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 858B833118CA111C00AB12DE /* Foundation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		858B842A18CA22B800AB12DE /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 858B833518CA111C00AB12DE /* UIKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
@@ -55,6 +56,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		517DDD8E1B611B7A001C8A19 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		858B832E18CA111C00AB12DE /* __PROJECT_NAME__.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = __PROJECT_NAME__.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		858B833118CA111C00AB12DE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		858B833518CA111C00AB12DE /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -103,6 +105,7 @@
 				F9161D911993C00300F9E5FD /* libc++.dylib in Frameworks */,
 				858B842918CA22B800AB12DE /* Foundation.framework in Frameworks */,
 				858B842A18CA22B800AB12DE /* UIKit.framework in Frameworks */,
+				517DDD8F1B611B7A001C8A19 /* MobileCoreServices.framework in Frameworks */,
 				CD1343101AF8E03800D3B65B /* libNativeScript.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -132,6 +135,7 @@
 		858B833018CA111C00AB12DE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				517DDD8E1B611B7A001C8A19 /* MobileCoreServices.framework */,
 				CD13430F1AF8E03800D3B65B /* libNativeScript.a */,
 				F9161D941993C01600F9E5FD /* libicucore.dylib */,
 				F9161D921993C00B00F9E5FD /* libz.dylib */,

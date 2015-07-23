@@ -23,25 +23,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
 #include "GlobalObjectInspectorController.h"
+#include <JavaScriptCore/config.h>
 
-#include "Completion.h"
-#include "ConsoleMessage.h"
-#include "ErrorHandlingScope.h"
-#include "Exception.h"
-#include "InjectedScriptHost.h"
-#include "InjectedScriptManager.h"
-#include "InspectorAgent.h"
-#include "InspectorBackendDispatcher.h"
-#include "InspectorFrontendChannel.h"
-#include "JSGlobalObject.h"
-#include "JSGlobalObjectConsoleAgent.h"
-#include "JSGlobalObjectConsoleClient.h"
-#include "JSGlobalObjectRuntimeAgent.h"
-#include "ScriptArguments.h"
-#include "ScriptCallStack.h"
-#include "ScriptCallStackFactory.h"
+#include <JavaScriptCore/Completion.h>
+#include <JavaScriptCore/ConsoleMessage.h>
+#include <JavaScriptCore/ErrorHandlingScope.h>
+#include <JavaScriptCore/Exception.h>
+#include <JavaScriptCore/InjectedScriptHost.h>
+#include <JavaScriptCore/InjectedScriptManager.h>
+#include <JavaScriptCore/InspectorAgent.h>
+#include <JavaScriptCore/InspectorBackendDispatcher.h>
+#include <JavaScriptCore/InspectorFrontendChannel.h>
+#include <JavaScriptCore/JSGlobalObject.h>
+#include <JavaScriptCore/JSGlobalObjectConsoleAgent.h>
+#include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
+#include <JavaScriptCore/JSGlobalObjectRuntimeAgent.h>
+#include <JavaScriptCore/ScriptArguments.h>
+#include <JavaScriptCore/ScriptCallStack.h>
+#include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <wtf/Stopwatch.h>
 #include "GlobalObjectDebuggerAgent.h"
 #include "InspectorPageAgent.h"
@@ -54,8 +54,8 @@
 #endif
 
 #if ENABLE(REMOTE_INSPECTOR)
-#include "JSGlobalObjectDebuggable.h"
-#include "RemoteInspector.h"
+#include <JavaScriptCore/JSGlobalObjectDebuggable.h>
+#include <JavaScriptCore/RemoteInspector.h>
 #endif
 
 using namespace JSC;

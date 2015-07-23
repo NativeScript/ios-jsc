@@ -70,7 +70,7 @@ using namespace NativeScript;
 }
 #endif
 
-JSObject* constructFunction(
+static JSObject* constructFunction(
     ExecState* exec, JSGlobalObject* globalObject,
     const Identifier& functionName, const String& sourceURL,
     const String& moduleBody, const TextPosition& position) {
@@ -92,9 +92,9 @@ JSObject* constructFunction(
 
 static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
     WTF::String moduleBody = execState->argument(0).toWTFString(execState);
-    WTF::String moduleUrl = execState->argument(1).toString(execState)->value(execState);
+    WTF::String moduleUrl = execState->argument(1).toWTFString(execState);
 
-    JSObject* constructedFunction = constructFunction(execState, execState->lexicalGlobalObject(), Identifier::fromString(execState, "anonymous"), moduleUrl, moduleBody, WTF::TextPosition());
+    JSObject* constructedFunction = constructFunction(execState, execState->lexicalGlobalObject(), execState->propertyNames().anonymous, moduleUrl, moduleBody, WTF::TextPosition());
     if (execState->hadException()) {
         return JSValue::encode(jsUndefined());
     }

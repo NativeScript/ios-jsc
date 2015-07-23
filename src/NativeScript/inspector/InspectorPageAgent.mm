@@ -29,21 +29,27 @@ void InspectorPageAgent::disable(ErrorString&) {
 }
 
 void InspectorPageAgent::addScriptToEvaluateOnLoad(ErrorString&, const String& in_scriptSource, String* out_identifier) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::removeScriptToEvaluateOnLoad(ErrorString&, const String& in_identifier) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::reload(ErrorString&, const bool* in_ignoreCache, const String* in_scriptToEvaluateOnLoad) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::navigate(ErrorString&, const String& in_url) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::getCookies(ErrorString&, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::Cookie>>& out_cookies) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::deleteCookie(ErrorString&, const String& in_cookieName, const String& in_url) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protocol::Page::FrameResourceTree>& out_frameTree) {
@@ -64,11 +70,10 @@ void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protoco
                         .setResources(subresources.copyRef())
                         .release();
 
-    for (auto iterator = resources.begin(); iterator != resources.end(); ++iterator) {
-        auto resource = iterator.get();
-        CachedResource& cachedResource = resource->value;
+    for (auto resource : resources) {
+        CachedResource& cachedResource = resource.value;
         Ref<Inspector::Protocol::Page::FrameResource> frameResource = Inspector::Protocol::Page::FrameResource::create()
-                                                                          .setUrl(resource->key)
+                                                                          .setUrl(resource.key)
                                                                           .setType(cachedResource.type())
                                                                           .setMimeType(cachedResource.mimeType())
                                                                           .release();
@@ -125,39 +130,50 @@ void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, 
 }
 
 void InspectorPageAgent::setDocumentContent(ErrorString&, const String& in_frameId, const String& in_html) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::setShowPaintRects(ErrorString&, bool in_result) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::getScriptExecutionStatus(ErrorString&, PageBackendDispatcherHandler::Result* out_result) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::setScriptExecutionDisabled(ErrorString&, bool in_value) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::setTouchEmulationEnabled(ErrorString&, bool in_enabled) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::setEmulatedMedia(ErrorString&, const String& in_media) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::getCompositingBordersVisible(ErrorString&, bool* out_result) {
 }
 
 void InspectorPageAgent::setCompositingBordersVisible(ErrorString&, bool in_visible) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::snapshotNode(ErrorString&, int in_nodeId, String* out_dataURL) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::snapshotRect(ErrorString&, int in_x, int in_y, int in_width, int in_height, const String& in_coordinateSystem, String* out_dataURL) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::handleJavaScriptDialog(ErrorString&, bool in_accept, const String* in_promptText) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::archive(ErrorString&, String* out_data) {
+    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::getResourceContent(ErrorString& errorString, const String& in_frameId, const String& in_url, String* out_content, bool* out_base64Encoded) {

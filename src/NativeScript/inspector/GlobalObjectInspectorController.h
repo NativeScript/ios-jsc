@@ -26,14 +26,14 @@
 #ifndef GlobalObjectInspectorController_h
 #define GlobalObjectInspectorController_h
 
-#include "InspectorAgentRegistry.h"
-#include "InspectorEnvironment.h"
+#include <JavaScriptCore/InspectorAgentRegistry.h>
+#include <JavaScriptCore/InspectorEnvironment.h>
 #include <wtf/Forward.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/text/WTFString.h>
 
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-#include "AugmentableInspectorController.h"
+#include <JavaScriptCore/AugmentableInspectorController.h>
 #endif
 
 namespace Inspector {

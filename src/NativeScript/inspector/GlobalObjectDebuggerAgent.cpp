@@ -23,16 +23,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "config.h"
 #include "GlobalObjectDebuggerAgent.h"
 #include "SourceProviderManager.h"
-#include "ConsoleMessage.h"
-#include "InjectedScriptManager.h"
-#include "InspectorConsoleAgent.h"
-#include "JSGlobalObject.h"
-#include "ScriptArguments.h"
-#include "ScriptCallStack.h"
-#include "ScriptCallStackFactory.h"
+#include <JavaScriptCore/config.h>
+#include <JavaScriptCore/ConsoleMessage.h>
+#include <JavaScriptCore/InjectedScriptManager.h>
+#include <JavaScriptCore/inspector/agents/InspectorConsoleAgent.h>
+#include <JavaScriptCore/JSGlobalObject.h>
+#include <JavaScriptCore/ScriptArguments.h>
+#include <JavaScriptCore/ScriptCallStack.h>
+#include <JavaScriptCore/ScriptCallStackFactory.h>
 
 using namespace JSC;
 using namespace Inspector;
@@ -52,8 +52,8 @@ void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
     ResourceManager& resourceManager = ResourceManager::getInstance();
     WTF::HashMap<WTF::String, WTF::RefPtr<JSC::SourceProvider>>& sourceProviders = resourceManager.sourceProviders();
 
-    for (auto iterator = sourceProviders.begin(); iterator != sourceProviders.end(); ++iterator) {
-        m_globalObject->debugger()->sourceParsed(m_globalObject->globalExec(), iterator->value.get(), -1, WTF::emptyString());
+    for (auto resource : sourceProviders) {
+        m_globalObject->debugger()->sourceParsed(m_globalObject->globalExec(), resource.value.get(), -1, WTF::emptyString());
     }
 }
 
