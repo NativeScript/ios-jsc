@@ -21,14 +21,11 @@ WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResourc
 
 CachedResource::CachedResource() {}
 
-CachedResource::CachedResource(WTF::String url)
-    : m_content(WTF::emptyString()) {
-    m_url = url;
-
-    NSString* cachedResourcePath = (NSString*)url;
-    NSURL* cachedResourceUrl = [NSURL URLWithString:cachedResourcePath];
-
-    m_mimeType = WTF::String(NativeScript::mimeTypeByExtension([cachedResourceUrl pathExtension]));
+CachedResource::CachedResource(WTF::String bundlePath, WTF::String filePath)
+    : m_filePath(filePath)
+    , m_bundlePath(bundlePath)
+    , m_content(WTF::emptyString()) {
+    m_mimeType = WTF::String(NativeScript::mimeTypeByExtension([filePath pathExtension]));
     Inspector::Protocol::Page::ResourceType resourceType = Inspector::Protocol::Page::ResourceType::Other;
     if (!m_mimeType.isEmpty()) {
         resourceType = resourceTypeByMimeType(m_mimeType);
@@ -39,6 +36,14 @@ CachedResource::CachedResource(WTF::String url)
 
 bool CachedResource::hasTextContent() {
     return m_type == Inspector::Protocol::Page::ResourceType::Document || m_type == Inspector::Protocol::Page::ResourceType::Stylesheet || m_type == Inspector::Protocol::Page::ResourceType::Script || m_type == Inspector::Protocol::Page::ResourceType::XHR;
+}
+
+WTF::String CachedResource::displayName() {
+    if (m_displayName.isEmpty()) {
+        m_displayName = [NSString stringWithFormat:@"file:///app%@", [m_filePath substringFromIndex:[m_bundlePath length]]];
+    }
+
+    return m_displayName;
 }
 
 Inspector::Protocol::Page::ResourceType CachedResource::resourceTypeByMimeType(WTF::String mimeType) {
@@ -60,8 +65,7 @@ Inspector::Protocol::Page::ResourceType CachedResource::resourceTypeByMimeType(W
 
 WTF::String CachedResource::content(ErrorString& out_error) {
     if (m_content.isEmpty()) {
-        NSString* cachedResourcePath = (NSString*)m_url;
-        NSURL* cachedResourceUrl = [NSURL URLWithString:cachedResourcePath];
+        NSURL* cachedResourceUrl = [NSURL fileURLWithPath:m_filePath];
         bool out_base64Encoded = !hasTextContent();
         if (out_base64Encoded) {
             NSData* data = [[NSFileManager defaultManager] contentsAtPath:[cachedResourceUrl path]];

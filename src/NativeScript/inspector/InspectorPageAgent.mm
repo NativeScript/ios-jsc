@@ -118,7 +118,7 @@ void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, 
         if (out_error.isEmpty()) {
             int matchesCount = ContentSearchUtilities::countRegularExpressionMatches(regex, out_content);
             if (matchesCount) {
-                out_result->addItem(buildObjectForSearchResult(m_frameIdentifier, cachedResource.url(), matchesCount));
+                out_result->addItem(buildObjectForSearchResult(m_frameIdentifier, cachedResource.displayName(), matchesCount));
             }
         }
     }
@@ -196,10 +196,9 @@ WTF::HashMap<WTF::String, Inspector::CachedResource>& InspectorPageAgent::cached
             NSNumber* isDirectory;
             [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
             if (![isDirectory boolValue]) {
-                WTF::String absoluteString = WTF::String([file absoluteString]);
-                Inspector::CachedResource resource(absoluteString);
+                Inspector::CachedResource resource(bundlePath, [file path]);
 
-                cachedResources.add(absoluteString, resource);
+                cachedResources.add(resource.displayName(), resource);
             }
         }
     });
