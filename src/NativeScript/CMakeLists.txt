@@ -14,7 +14,6 @@ set(HEADER_FILES
     inspector/GlobalObjectInspectorController.h
     inspector/InspectorTimelineAgent.h
     inspector/InspectorPageAgent.h
-    inspector/InstrumentingAgents.h
     inspector/MimeTypeHelper.h
     Interop.h
     JSErrors.h
