@@ -113,6 +113,12 @@ private:
     reportFatalErrorBeforeShutdown(globalExec, Exception::create(*self->_runtime->_vm, toJS(globalExec, error)));
 }
 
+- (void)pause {
+    JSC::JSLockHolder lock(_runtime->_vm.get());
+
+    self->_inspectorController->pause();
+}
+
 - (void)dealloc {
     self->_inspectorController->disconnectFrontend(Inspector::DisconnectReason::InspectorDestroyed);
     [self->_runtime release];

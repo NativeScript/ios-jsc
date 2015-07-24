@@ -187,6 +187,7 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
       if (isWaitingForDebugger) {
         isWaitingForDebugger = NO;
         CFRunLoopStop(CFRunLoopGetMain());
+        [inspector pause];
       }
 
       NSArray *inspectorRunloopModes =
