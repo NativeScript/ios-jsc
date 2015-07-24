@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
     @autoreleasepool {
         NSString* applicationPath = [[NSBundle mainBundle] bundlePath];
 
+#ifndef NDEBUG
         NSString* libraryPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
         NSString* liveSyncPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
         NSString* appFolderPath = [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
@@ -26,6 +27,7 @@ int main(int argc, char* argv[]) {
         if (appContents.count > 0) {
             applicationPath = liveSyncPath;
         }
+#endif
 
         runtime = [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
 
