@@ -204,6 +204,7 @@ if(${BUILD_SHARED_LIBS})
         libz.dylib
         libc++.dylib
         "-framework UIKit"
+        "-framework MobileCoreServices"
     )
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
