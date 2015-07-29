@@ -30,8 +30,14 @@ public:
         return this->_wrappedObject;
     }
 
+    JSC::Structure* instanceStructure() const {
+        return this->_instanceStructure.get();
+    }
+
 private:
     id _wrappedObject;
+
+    JSC::WriteBarrier<JSC::Structure> _instanceStructure;
 
     AllocatedPlaceholder(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
@@ -40,8 +46,10 @@ private:
     void finishCreation(JSC::VM& vm, GlobalObject* globalObject, id wrappedObject, JSC::Structure* instanceStructure) {
         Base::finishCreation(vm);
         this->_wrappedObject = wrappedObject;
-        this->putDirect(vm, globalObject->instanceStructureIdentifier(), instanceStructure, JSC::ReadOnly | JSC::DontEnum | JSC::DontDelete);
+        this->_instanceStructure.set(vm, this, instanceStructure);
     }
+
+    static void visitChildren(JSCell*, JSC::SlotVisitor&);
 };
 }
 
