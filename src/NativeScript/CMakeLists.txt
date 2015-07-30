@@ -61,6 +61,7 @@ set(HEADER_FILES
     ObjC/ObjCWrapperObject.h
     ObjC/TNSArrayAdapter.h
     ObjC/TNSDictionaryAdapter.h
+    ObjC/TNSDataAdapter.h
     Runtime/JSWeakRefConstructor.h
     Runtime/JSWeakRefInstance.h
     Runtime/JSWeakRefPrototype.h
@@ -132,6 +133,7 @@ set(SOURCE_FILES
     ObjC/ObjCWrapperObject.mm
     ObjC/TNSArrayAdapter.mm
     ObjC/TNSDictionaryAdapter.mm
+    ObjC/TNSDataAdapter.mm
     Runtime/JSWeakRefConstructor.cpp
     Runtime/JSWeakRefInstance.cpp
     Runtime/JSWeakRefPrototype.cpp

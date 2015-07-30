@@ -81,8 +81,10 @@ var TerminalReporter = require('../jasmine-reporters/terminal_reporter').Termina
    */
   if (typeof window == "undefined" && typeof global == "object") {
     extend(global, jasmineInterface);
+    global.jasmine = jasmine;
   } else {
     extend(window, jasmineInterface);
+    window.jasmine = jasmine;
   }
 
   /**

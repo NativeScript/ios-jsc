@@ -37,6 +37,7 @@
 #include "FunctionReferenceConstructor.h"
 #include "FunctionReferenceTypeInstance.h"
 #include "FunctionReferenceTypeConstructor.h"
+#include "ObjCTypes.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -76,7 +77,12 @@ void* tryHandleofValue(const JSValue& value, bool* hasHandle) {
         handle = arrayBuffer->impl()->data();
     } else if (JSArrayBufferView* arrayBufferView = jsDynamicCast<JSArrayBufferView*>(value)) {
         *hasHandle = true;
-        handle = arrayBufferView->buffer()->data();
+        if (arrayBufferView->hasArrayBuffer()) {
+            handle = arrayBufferView->buffer()->data();
+        } else {
+            handle = arrayBufferView->vector();
+        }
+
     } else if (value.isNull()) {
         *hasHandle = true;
         handle = nullptr;
@@ -203,6 +209,23 @@ static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
     return JSValue::encode(jsNumber(size));
 }
 
+static EncodedJSValue JSC_HOST_CALL interopFuncBufferFromData(ExecState* execState) {
+    id object = toObject(execState, execState->argument(0));
+    if (execState->hadException()) {
+        return JSValue::encode(jsUndefined());
+    }
+
+    if ([object isKindOfClass:[NSData class]]) {
+        JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(), ArrayBuffer::createAdopted([object bytes], [object length], false));
+
+        // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
+        arrayBuffer->putDirect(execState->vm(), execState->propertyNames().homeObjectPrivateName, execState->argument(0));
+        return JSValue::encode(arrayBuffer);
+    }
+
+    return throwVMTypeError(execState, WTF::ASCIILiteral("Argument must be an NSData instance."));
+}
+
 void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     Base::finishCreation(vm);
 
@@ -229,6 +252,7 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("adopt")), 0, &interopFuncAdopt, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("handleof")), 0, &interopFuncHandleof, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("sizeof")), 0, &interopFuncSizeof, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("bufferFromData")), 1, &interopFuncBufferFromData, NoIntrinsic, ReadOnly | DontDelete | Attribute::Function);
 
     JSObject* types = constructEmptyObject(globalObject->globalExec());
     this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("types")), types, None);

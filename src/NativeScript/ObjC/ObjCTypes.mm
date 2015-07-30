@@ -20,6 +20,7 @@
 
 #import "TNSArrayAdapter.h"
 #import "TNSDictionaryAdapter.h"
+#import "TNSDataAdapter.h"
 
 using namespace JSC;
 
@@ -83,19 +84,6 @@ static WeakHandleOwner* weakHandleOwner() {
 
 namespace NativeScript {
 
-static NSData* toObject(ExecState* execState, ArrayBuffer* arrayBuffer) {
-    return [NSData dataWithBytes:arrayBuffer->data()
-                          length:arrayBuffer->byteLength()];
-}
-
-static NSData* toObject(ExecState* execState, JSArrayBuffer* arrayBuffer) {
-    return toObject(execState, arrayBuffer->impl());
-}
-
-static NSData* toObject(ExecState* execState, JSArrayBufferView* arrayBufferView) {
-    return toObject(execState, arrayBufferView->buffer());
-}
-
 id toObject(ExecState* execState, const JSValue& value) {
     if (value.inherits(ObjCWrapperObject::info())) {
         return jsCast<ObjCWrapperObject*>(value.asCell())->wrappedObject();
@@ -146,12 +134,9 @@ id toObject(ExecState* execState, const JSValue& value) {
         return [NSDate dateWithTimeIntervalSince1970:(value.toNumber(execState) / 1000)];
     }
 
-    if (value.inherits(JSArrayBuffer::info())) {
-        return toObject(execState, jsCast<JSArrayBuffer*>(value.asCell()));
-    }
-
-    if (value.inherits(JSArrayBufferView::info())) {
-        return toObject(execState, jsCast<JSArrayBufferView*>(value.asCell()));
+    if (value.inherits(JSArrayBuffer::info()) || value.inherits(JSArrayBufferView::info())) {
+        return [[[TNSDataAdapter alloc] initWithJSObject:asObject(value)
+                                               execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     bool hasHandle;
