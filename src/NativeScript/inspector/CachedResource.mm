@@ -5,6 +5,7 @@ namespace Inspector {
 WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResource::m_mimeTypeMap = {
     { "text/xml", Inspector::Protocol::Page::ResourceType::Document },
     { "text/plain", Inspector::Protocol::Page::ResourceType::Document },
+    { "application/xml", Inspector::Protocol::Page::ResourceType::Document },
     { "application/xhtml+xml", Inspector::Protocol::Page::ResourceType::Document },
     { "text/css", Inspector::Protocol::Page::ResourceType::Stylesheet },
     { "text/javascript", Inspector::Protocol::Page::ResourceType::Script },
@@ -26,7 +27,7 @@ CachedResource::CachedResource(WTF::String bundlePath, WTF::String filePath)
     , m_bundlePath(bundlePath)
     , m_content(WTF::emptyString()) {
     m_mimeType = WTF::String(NativeScript::mimeTypeByExtension([filePath pathExtension]));
-    Inspector::Protocol::Page::ResourceType resourceType = Inspector::Protocol::Page::ResourceType::Other;
+    Inspector::Protocol::Page::ResourceType resourceType = Inspector::Protocol::Page::ResourceType::Document;
     if (!m_mimeType.isEmpty()) {
         resourceType = resourceTypeByMimeType(m_mimeType);
     }

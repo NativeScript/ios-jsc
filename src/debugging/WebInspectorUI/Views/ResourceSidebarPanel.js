@@ -246,8 +246,11 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         if (!mainFrame)
             return;
 
-        this._mainFrameTreeElement = new WebInspector.FrameTreeElement(mainFrame);
+        this._mainFrameTreeElement = new WebInspector.FileSystemResourcesHelper(mainFrame);
+
         this.contentTreeOutline.insertChild(this._mainFrameTreeElement, 0);
+
+        this._mainFrameTreeElement.populate();
 
         function delayedWork()
         {
@@ -368,7 +371,7 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         if (WebInspector.debuggableType === WebInspector.DebuggableType.JavaScript)
             this.contentTreeOutline.element.classList.remove(WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName);
     }
-
+    
     _scopeBarSelectionDidChange(event)
     {
         this.updateFilter();

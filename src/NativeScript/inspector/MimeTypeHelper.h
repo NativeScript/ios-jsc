@@ -7,21 +7,25 @@
 namespace NativeScript {
 
 static WTF::String mimeTypeByExtension(WTF::String extension) {
-    // UTI for iOS doesn't recognize css extensions and returns a dynamic UTI without a Mime Type
-    if(WTF::equal(extension, "css")) {
-        return  WTF::ASCIILiteral("text/css");
+    if (extension.isEmpty()) {
+        return WTF::emptyString();
     }
-    
+
+    // UTI for iOS doesn't recognize css extensions and returns a dynamic UTI without a Mime Type
+    if (WTF::equal(extension, "css")) {
+        return WTF::ASCIILiteral("text/css");
+    }
+
     RetainPtr<CFStringRef> cfExtension = extension.createCFString();
 
     CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, cfExtension.get(), NULL);
-    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
-    
+    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType);
+
     WTF::String mimeType = WTF::String(MIMEType);
     CFRelease(MIMEType);
     CFRelease(UTI);
-    
-    return  mimeType;
+
+    return mimeType;
 }
 }
 
