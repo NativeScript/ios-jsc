@@ -1,5 +1,3 @@
-debugger;
-
 require('./CanvasViewController');
 require('./DetailViewController');
 require('./MasterViewController');

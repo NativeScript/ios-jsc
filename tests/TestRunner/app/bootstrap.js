@@ -1,8 +1,6 @@
 // Inform the test results runner that the runtime is up.
 console.log('Application Start!');
 
-debugger;
-
 require('./Infrastructure/timers');
 
 global.UNUSED = function (param) {
