@@ -56,7 +56,12 @@
                 throw new ModuleError(`Expected '${absolutePath}' to be a directory`);
             }
 
-            var mainFileName = isBootstrap ? "bootstrap.js" : "index.js";
+            var mainFileName;
+            if (isBootstrap && fileManager.fileExistsAtPathIsDirectory(NSString.pathWithComponents([applicationPath, USER_MODULES_ROOT, 'bootstrap.js']), null)) {
+                mainFileName = 'bootstrap.js';
+            } else {
+                mainFileName = 'index.js';
+            }
 
             var packageJsonPath = nsstr(absolutePath).stringByAppendingPathComponent("package.json");
             var packageJson = NSString.stringWithContentsOfFileEncodingError(packageJsonPath, NSUTF8StringEncoding, null);
