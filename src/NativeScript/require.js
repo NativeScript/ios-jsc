@@ -1,3 +1,10 @@
+/*
+ * THIS JAVASCRIPT FILE IS EMBEDED BY THE BUILD PROCESS.
+ *
+ * You can ignore this file and continue debugging.
+ * To correct errors, edit the source file at: https://github.com/NativeScript/ios-runtime/blob/master/src/NativeScript/require.js
+*/
+
 (function (applicationPath, createModuleFunction) {
     'use strict';
 
