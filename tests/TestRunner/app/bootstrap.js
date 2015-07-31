@@ -52,13 +52,14 @@ require('./Inheritance/TypeScriptTests');
 require('./MethodCallsTests');
 require('./FunctionsTests');
 require('./VersionDiffTests');
-require('./ApiTests');
 require('./ObjCConstructors');
 
 require('./MetadataTests');
 
 // Tests common for all runtimes.
 require('./shared');
+
+require('./ApiTests');
 
 execute();
 
