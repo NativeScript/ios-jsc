@@ -30,6 +30,8 @@
     var defaultPreviousPath = NSString.pathWithComponents([USER_MODULES_ROOT, 'index.js']).toString();
 
     var pathCache = new Map();
+    var modulesCache = new Map();
+
     function __findModule(moduleIdentifier, previousPath) {
         var isBootstrap = !previousPath;
         if (isBootstrap) {
@@ -111,10 +113,18 @@
         var fileName = moduleMetadata.path;
         var dirName = nsstr(moduleMetadata.path).stringByDeletingLastPathComponent.toString();
         module.filename = fileName;
-        moduleFunction(module.require, module, module.exports, dirName, fileName);
+
+        var hadError = true;
+        try {
+            moduleFunction(module.require, module, module.exports, dirName, fileName);
+            hadError = false;
+        } finally {
+            if (hadError) {
+               modulesCache.delete(moduleMetadata.bundlePath);
+            }
+        }
     }
 
-    var modulesCache = new Map();
     function __loadModule(moduleIdentifier, previousPath) {
         if (/\.js$/.test(moduleIdentifier)) {
             moduleIdentifier = moduleIdentifier.replace(/\.js$/, '');
