@@ -8,6 +8,10 @@ declare function UNUSED(param);
 
 declare var module;
 declare function NSStringFromClass(klass);
+declare function NSClassFromString(klassName);
+
+declare var interop;
+declare var jasmine;
 
 declare class NSObject {
     public static alloc();
@@ -105,6 +109,10 @@ class TSObject extends TNSDerivedInterface {
         return a;
     }
 
+    public static returnsConstructorMethod() {
+        return TSObject;
+    }
+
     public static ObjCExposedMethods = {
         'voidSelector': { returns: interop.types.void },
         'variadicSelector:x:': { returns: NSObject, params: [ NSString, interop.types.int32 ] }
@@ -156,6 +164,12 @@ class UnusedConstructor extends NSObject {
 describe(module.id, function () {
     afterEach(function () {
         TNSClearOutput();
+    });
+
+    it('should replace the TypeScript-generated constructor function', function () {
+        expect(interop.handleof(TSObject)).toEqual(jasmine.any(interop.Pointer));
+        expect(NSClassFromString(TSObject.name)).toBe(TSObject);
+        expect(TSObject.returnsConstructorMethod()).toBe(TSObject);
     });
 
     it('SimpleInheritance', function () {

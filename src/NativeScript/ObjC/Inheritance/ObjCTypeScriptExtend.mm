@@ -70,8 +70,19 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     }
 
     CallFrame* callFrame = execState->callerFrame();
-    // Replace the TypeScript constructor with ours - see Interpreter::dumpRegisters
-    callFrame->r(-3) = derivedConstructor;
+    for (Register* r = callFrame->registers(); r > callFrame->topOfFrame(); r--) {
+        if (r->unboxedCell() == typeScriptConstructor) {
+            *r = derivedConstructor;
+        }
+    }
+
+    JSScope* scope = callFrame->scope(callFrame->codeBlock()->scopeRegister().offset());
+    Identifier constructorName = Identifier::fromString(execState, name);
+    JSValue value = JSScope::resolve(execState, scope, constructorName);
+    if (value.isObject()) {
+        PutPropertySlot slot(value);
+        value.put(execState, constructorName, derivedConstructor, slot);
+    }
 
     // imp_implementationWithBlock calls block copy, class copy and initialize gets skipped
     __block Class derivedClass = derivedConstructor->klass();
