@@ -20,6 +20,8 @@ FOUNDATION_EXPORT NSString* const TNSInspectorRunLoopMode;
 
 - (void)reportFatalError:(JSValueRef)error __attribute__((noreturn));
 
+- (void)pause;
+
 @end
 
 typedef void (^TNSRuntimeInspectorMessageHandler)(NSString* message);

@@ -209,56 +209,6 @@ describe(module.id, function () {
         expect(propertyNames.length).toBeGreaterThan(4000);
     });
 
-    it("ApiIterator", function () {
-        var counter = 0;
-
-        Object.getOwnPropertyNames(global).forEach(function (x) {
-            // console.debug(x);
-
-            var symbol = global[x];
-            counter++;
-
-            if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
-                var klass = symbol;
-                expect(klass).toBeDefined();
-
-                // console.debug(klass);
-
-                Object.getOwnPropertyNames(klass).forEach(function (y) {
-                    if (klass.respondsToSelector(y)) {
-                        // console.debug(x, y);
-
-                        var method = klass[y];
-                        expect(method).toBeDefined();
-
-                        counter++;
-                    }
-                });
-
-                Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
-                    if (klass.instancesRespondToSelector(y)) {
-                        // console.debug(x, "proto", y);
-
-                        var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
-
-                        if (!property) {
-                            var method = klass.prototype[y];
-                            expect(method).toBeDefined();
-                        }
-
-                        counter++;
-                    }
-                });
-            }
-
-            if (counter % 100 === 0) {
-                __collect();
-            }
-        });
-
-        expect(counter).toBeGreaterThan(2900);
-    });
-
     it("NSObjectSuperClass", function () {
         expect(NSObject.superclass()).toBeNull();
         expect(NSObject.alloc().init().superclass).toBeNull();
@@ -432,39 +382,88 @@ describe(module.id, function () {
             expect(NSDate.dateWithTimeIntervalSinceReferenceDate(0).class()).toBe(NSDate);
         });
     }
-    
+
     function range(start, end, inclusive) {
         var mapper = (_, k) => start + k;
         if (end < start) {
             mapper = (_, k) => start - k;
         }
-        
+
         return Array.from({ length: Math.abs(start - end) + (inclusive ? 1 : 0) }, mapper);
     }
-    
+
     it("should be able to iterate over NSArray", function () {
         var expected = range(0, 256);
         var actual = new Array();
-        
+
         var array = NSArray.arrayWithArray(expected);
         for (var x of array) {
             actual.push(x);
         }
-        
+
         expect(actual).toEqual(expected);
-         
     });
-    
+
     it("should be able to iterate over NSEnumerator", function () {
         var expected = range(0, 256);
         var actual = new Array();
-        
+
         var array = NSArray.arrayWithArray(expected);
         for (var x of array.reverseObjectEnumerator()) {
             actual.push(x);
         }
         expected.reverse();
-        
+
         expect(actual).toEqual(expected);
-    })
+    });
+
+    it("ApiIterator", function () {
+        var counter = 0;
+
+        Object.getOwnPropertyNames(global).forEach(function (x) {
+            // console.debug(x);
+
+            var symbol = global[x];
+            counter++;
+
+            if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
+                var klass = symbol;
+                expect(klass).toBeDefined();
+
+                // console.debug(klass);
+
+                Object.getOwnPropertyNames(klass).forEach(function (y) {
+                    if (klass.respondsToSelector(y)) {
+                        // console.debug(x, y);
+
+                        var method = klass[y];
+                        expect(method).toBeDefined();
+
+                        counter++;
+                    }
+                });
+
+                Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
+                    if (klass.instancesRespondToSelector(y)) {
+                        // console.debug(x, "proto", y);
+
+                        var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
+
+                        if (!property) {
+                            var method = klass.prototype[y];
+                            expect(method).toBeDefined();
+                        }
+
+                        counter++;
+                    }
+                });
+            }
+
+            if (counter % 100 === 0) {
+                __collect();
+            }
+        });
+
+        expect(counter).toBeGreaterThan(2900);
+    });
 });

@@ -307,10 +307,13 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 //
 // Once we start grouping declarations by modules, this can be safely restored.
 void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
-    const GlobalTable* globalTable = MetaFile::instance()->globalTable();
-    for (Metadata::GlobalTable::iterator it = globalTable->begin(); it != globalTable->end(); it++) {
-        if ((*it)->isAvailable())
-            propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
+    if (!jsCast<GlobalObject*>(object)->hasDebugger()) {
+        const GlobalTable* globalTable = MetaFile::instance()->globalTable();
+        for (const Meta* meta : *globalTable) {
+            if (meta->isAvailable()) {
+                propertyNames.add(Identifier::fromString(execState, meta->jsName()));
+            }
+        }
     }
 
     Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);

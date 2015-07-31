@@ -1,8 +1,6 @@
 // Inform the test results runner that the runtime is up.
 console.log('Application Start!');
 
-debugger;
-
 require('./Infrastructure/timers');
 
 global.UNUSED = function (param) {
@@ -54,13 +52,14 @@ require('./Inheritance/TypeScriptTests');
 require('./MethodCallsTests');
 require('./FunctionsTests');
 require('./VersionDiffTests');
-require('./ApiTests');
 require('./ObjCConstructors');
 
 require('./MetadataTests');
 
 // Tests common for all runtimes.
 require('./shared');
+
+require('./ApiTests');
 
 execute();
 
