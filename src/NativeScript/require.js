@@ -27,12 +27,13 @@
     var CORE_MODULES_ROOT = nsstr('app/tns_modules');
 
     var isDirectory = new interop.Reference(interop.types.bool, false);
+    var defaultPreviousPath = NSString.pathWithComponents([USER_MODULES_ROOT, 'index.js']).toString();
 
     var pathCache = new Map();
     function __findModule(moduleIdentifier, previousPath) {
         var isBootstrap = !previousPath;
         if (isBootstrap) {
-            previousPath = NSString.pathWithComponents([USER_MODULES_ROOT, 'index.js']).toString();
+            previousPath = defaultPreviousPath;
         }
         var absolutePath;
         if (/^\.{1,2}\//.test(moduleIdentifier)) { // moduleIdentifier starts with ./ or ../
@@ -132,6 +133,8 @@
 
         return module;
     }
+
+    global.require = (moduleIdentifier) => __loadModule(moduleIdentifier, defaultPreviousPath).exports;
 
     return __loadModule;
 });
