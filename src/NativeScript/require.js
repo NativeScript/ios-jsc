@@ -43,10 +43,12 @@
             absolutePath = NSString.pathWithComponents([applicationPath, moduleDir, moduleIdentifier]);
         } else if (/^\//.test(moduleIdentifier)) { // moduleIdentifier starts with /
             absolutePath = NSString.pathWithComponents([moduleIdentifier]);
+        } else if (/^~\//.test(moduleIdentifier)) {
+            absolutePath = NSString.pathWithComponents([applicationPath, USER_MODULES_ROOT, moduleIdentifier.substr(2)]);
         } else {
-            moduleDir = CORE_MODULES_ROOT;
-            absolutePath = NSString.pathWithComponents([applicationPath, moduleDir, moduleIdentifier]);
+            absolutePath = NSString.pathWithComponents([applicationPath, CORE_MODULES_ROOT, moduleIdentifier]);
         }
+        absolutePath = nsstr(absolutePath).stringByStandardizingPath;
 
         var requestedPath = absolutePath;
         if (pathCache.has(requestedPath)) {
