@@ -69,22 +69,29 @@ static dispatch_source_t TNSCreateInspectorServer(
   dispatch_source_t listenSource =
       dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
 
-  dispatch_source_set_event_handler(listenSource, ^{
-      dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
-
-      TNSInspectorSendMessageBlock sender = ^(NSString *message) {
-          NSData *messageData =
-              [message dataUsingEncoding:NSUTF16LittleEndianStringEncoding];
-          uint32_t length = htonl(messageData.length);
-
-          NSMutableData *payload =
-              [NSMutableData dataWithBytes:&length length:sizeof(length)];
-          [payload appendData:messageData];
-
-          if (write(newSocket, payload.bytes, payload.length) == -1) {
-            CheckError(errno, connectedHandler);
-          }
-      };
+    dispatch_source_set_event_handler(listenSource, ^{
+        dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
+        
+        dispatch_io_t io = dispatch_io_create(DISPATCH_IO_STREAM, newSocket, queue, ^(int error) { CheckError(error, connectedHandler); });
+        
+        TNSInspectorSendMessageBlock sender = ^(NSString *message) {
+            
+            uint32_t length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
+            
+            void* buffer = malloc(length + sizeof(uint32_t));
+            
+            *(uint32_t*)buffer = htonl(length);
+            
+            [message getBytes:&buffer[sizeof(uint32_t)] maxLength:length usedLength:NULL encoding:NSUTF16LittleEndianStringEncoding options:0 range:NSMakeRange(0, message.length) remainingRange:NULL];
+            
+            dispatch_data_t data = dispatch_data_create(buffer, length + sizeof(uint32_t), queue, ^{
+                free(buffer);
+            });
+            
+            dispatch_io_write(io, 0, data, queue, ^(bool done, dispatch_data_t data, int error) {
+                CheckError(error, connectedHandler);
+            });
+        };
 
       __block TNSInspectorProtocolHandler handler =
           connectedHandler(sender, nil);
@@ -92,10 +99,6 @@ static dispatch_source_t TNSCreateInspectorServer(
         close(newSocket);
         return;
       }
-
-      dispatch_io_t io = dispatch_io_create(
-          DISPATCH_IO_STREAM, newSocket, queue,
-          ^(int error) { CheckError(error, connectedHandler); });
 
       __block dispatch_io_handler_t ioHandler =
           ^(bool done, dispatch_data_t data, int error) {
