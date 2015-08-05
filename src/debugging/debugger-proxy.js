@@ -42,7 +42,7 @@ server.on("connection", function(webSocket) {
 	deviceSocket.pipe(packets);
 	
 	packets.on("data", function (buffer) {
-		// console.log("DEVICE " + buffer.toString("utf8"));
+		//console.log("DEVICE " + buffer.toString("utf8"));
 		webSocket.send(buffer.toString("utf16le"), function (error) {
 			if (error) {
 				console.log("ERROR " + error);
@@ -52,7 +52,7 @@ server.on("connection", function(webSocket) {
 	});
 	
 	webSocket.on("message", function (message, flags) {
-		// console.log("FRONTEND " + message);
+		//console.log("FRONTEND " + message);
 		var length = Buffer.byteLength(message, "utf16le");
 		var payload = new Buffer(length + 4);
 		payload.writeInt32BE(length, 0);

@@ -79,7 +79,7 @@ static JSObject* constructFunction(
 
     ResourceManager& resourceManager = ResourceManager::getInstance();
     WTF::RefPtr<SourceProvider> sourceProvider = resourceManager.addSourceProvider(sourceURL, moduleBody);
-    SourceCode source = SourceCode(sourceProvider, position.m_line.oneBasedInt(), position.m_column.oneBasedInt());
+    SourceCode source(sourceProvider, position.m_line.oneBasedInt(), position.m_column.oneBasedInt());
     JSObject* exception = nullptr;
     FunctionExecutable* function = FunctionExecutable::fromGlobalCode(functionName, *exec, source, exception, -1);
     if (!function) {

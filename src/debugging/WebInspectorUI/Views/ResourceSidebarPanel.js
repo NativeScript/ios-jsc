@@ -246,7 +246,7 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         if (!mainFrame)
             return;
 
-        this._mainFrameTreeElement = new WebInspector.FileSystemResourcesHelper(mainFrame);
+        this._mainFrameTreeElement = new WebInspector.FileSystemRepresentationTreeElement(mainFrame);
 
         this.contentTreeOutline.insertChild(this._mainFrameTreeElement, 0);
 

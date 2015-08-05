@@ -1,4 +1,4 @@
-WebInspector.FileSystemResourcesHelper = class FileSystemResourcesHelper extends WebInspector.FolderTreeElement
+WebInspector.FileSystemRepresentationTreeElement = class FileSystemRepresentationTreeElement extends WebInspector.FolderTreeElement
 {
     constructor(mainFrame)
     {
@@ -13,14 +13,14 @@ WebInspector.FileSystemResourcesHelper = class FileSystemResourcesHelper extends
 
     populate() 
     {
-        for(var i = 0; i < this.resources.length; ++i) 
+        for(var resource of this.resources) 
         {
-            var path = this.resources[i].urlComponents.path;
+            var path = resource.urlComponents.path;
             var pathComponents = path.replace(/^\//g, "").split('/');
             var fileName = pathComponents[pathComponents.length - 1];
             var directoryPath = path.substring(0, path.lastIndexOf('/'));
             var parentFolderElement;
-            var resourceElement = new WebInspector.ResourceTreeElement(this.resources[i], null);            
+            var resourceElement = new WebInspector.ResourceTreeElement(resource, null);            
 
             if(this.foldersByPath.has(directoryPath)) {
                 parentFolderElement = this.foldersByPath.get(directoryPath);                
@@ -47,10 +47,10 @@ WebInspector.FileSystemResourcesHelper = class FileSystemResourcesHelper extends
         var currentPath = "";
         var nextPath = "";
         var parentFolderElement;
-        for(var i = 0; i < pathComponents.length; i++) {           
-            nextPath = currentPath + '/' + pathComponents[i];
+        for(var pathComponent of pathComponents) {
+            nextPath = currentPath + '/' + pathComponent;
              if(!this.foldersByPath.has(nextPath)) {                
-                parentFolderElement = new WebInspector.FolderTreeElement(pathComponents[i], "", [], null);
+                parentFolderElement = new WebInspector.FolderTreeElement(pathComponent, "", [], null);
 
                 var parentFolder = this.foldersByPath.get(currentPath);     
                 parentFolder.insertChild(parentFolderElement, insertionIndexForObjectInListSortedByFunction(parentFolderElement, parentFolder.children, this.compareChildTreeElements.bind(this)));      
