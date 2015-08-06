@@ -49,7 +49,7 @@ using namespace NativeScript;
 #endif
 
         JSLockHolder lock(*self->_vm);
-        self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
+        self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(self->_applicationPath, *self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
 
         // HACK: Temporary workaround to add inline functions to global object. Remove when they are added the proper way.
         evaluate(self->_globalObject->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)));

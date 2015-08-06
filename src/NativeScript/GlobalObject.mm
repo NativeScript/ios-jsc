@@ -91,9 +91,9 @@ Structure* GlobalObject::createStructure(VM& vm, JSValue prototype) {
     return Structure::create(vm, 0, prototype, TypeInfo(GlobalObjectType, GlobalObject::StructureFlags), GlobalObject::info());
 }
 
-GlobalObject* GlobalObject::create(VM& vm, Structure* structure) {
+GlobalObject* GlobalObject::create(WTF::String applicationPath, VM& vm, Structure* structure) {
     GlobalObject* object = new (NotNull, allocateCell<GlobalObject>(vm.heap)) GlobalObject(vm, structure);
-    object->finishCreation(vm);
+    object->finishCreation(applicationPath, vm);
     vm.heap.addFinalizer(object, destroy);
     return object;
 }
@@ -104,7 +104,7 @@ static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     return JSValue::encode(jsUndefined());
 }
 
-void GlobalObject::finishCreation(VM& vm) {
+void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     Base::finishCreation(vm);
 
     ExecState* globalExec = this->globalExec();
@@ -119,6 +119,7 @@ void GlobalObject::finishCreation(VM& vm) {
     console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profile")), 0, consoleProfileTimeline, NoIntrinsic, Attribute::Function);
     console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profileEnd")), 0, consoleProfileEndTimeline, NoIntrinsic, Attribute::Function);
 
+    this->_applicationPath = applicationPath;
     this->_objCMethodCallStructure.set(vm, this, ObjCMethodCall::createStructure(vm, this, this->functionPrototype()));
     this->_objCConstructorCallStructure.set(vm, this, ObjCConstructorCall::createStructure(vm, this, this->functionPrototype()));
     this->_objCBlockCallStructure.set(vm, this, ObjCBlockCall::createStructure(vm, this, this->functionPrototype()));

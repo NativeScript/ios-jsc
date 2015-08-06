@@ -28,7 +28,7 @@ public:
 
     friend class ObjCClassBuilder;
 
-    static GlobalObject* create(JSC::VM& vm, JSC::Structure* structure);
+    static GlobalObject* create(WTF::String applicationPath, JSC::VM& vm, JSC::Structure* structure);
 
     static const bool needsDestruction = false;
 
@@ -116,6 +116,10 @@ public:
         return _typeFactory.get();
     }
 
+    WTF::String applicationPath() const {
+        return _applicationPath;
+    }
+
     JSC::Structure* fastEnumerationIteratorStructure() const {
         return this->_fastEnumerationIteratorStructure.get();
     }
@@ -131,13 +135,15 @@ private:
 
     ~GlobalObject();
 
-    void finishCreation(JSC::VM& vm);
+    void finishCreation(WTF::String applicationPath, JSC::VM& vm);
 
     static void destroy(JSC::JSCell* cell);
 
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
 
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
+
+    WTF::String _applicationPath;
 
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;

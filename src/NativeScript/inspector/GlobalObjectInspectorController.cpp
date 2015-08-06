@@ -78,7 +78,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_injectedScriptManager.get(), m_globalObject);
     auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_injectedScriptManager.get());
     auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_injectedScriptManager.get(), m_globalObject, consoleAgent.get());
-    auto pageAgent = std::make_unique<InspectorPageAgent>();
+    auto pageAgent = std::make_unique<InspectorPageAgent>(m_globalObject);
     auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_globalObject);
 
     m_inspectorAgent = inspectorAgent.get();

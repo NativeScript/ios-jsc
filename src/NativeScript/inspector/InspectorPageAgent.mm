@@ -6,10 +6,11 @@
 #include <vector>
 
 namespace Inspector {
-InspectorPageAgent::InspectorPageAgent()
+InspectorPageAgent::InspectorPageAgent(NativeScript::GlobalObject& globalObject)
     : Inspector::InspectorAgentBase(WTF::ASCIILiteral("Page"))
     , m_frameIdentifier("NativeScriptMainFrameIdentifier")
-    , m_frameUrl("http://main.xml") {
+    , m_frameUrl("http://main.xml")
+    , m_globalObject(globalObject) {
 }
 
 void InspectorPageAgent::didCreateFrontendAndBackend(FrontendChannel* frontendChannel, BackendDispatcher* backendDispatcher) {
@@ -202,13 +203,14 @@ WTF::HashMap<WTF::String, Inspector::CachedResource>& InspectorPageAgent::cached
     static WTF::HashMap<WTF::String, Inspector::CachedResource> cachedResources;
 
     static std::once_flag flag;
-    std::call_once(flag, []() {
-        NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] bundlePath], @"app"];
+    std::call_once(flag, [this]() {
+        NSString* applicationPath = this->m_globalObject.applicationPath();
+        NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", applicationPath, @"app"];
         NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL URLWithString:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
 
         NSURL* file;
         NSError* error;
-        while ((file = [directoryEnumerator nextObject])) {
+        for (file in directoryEnumerator) {
             NSNumber* isDirectory;
             [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
             if (![isDirectory boolValue]) {

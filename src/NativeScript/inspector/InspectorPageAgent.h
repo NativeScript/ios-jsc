@@ -16,7 +16,7 @@ class InspectorPageAgent
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    InspectorPageAgent();
+    InspectorPageAgent(NativeScript::GlobalObject&);
     virtual void didCreateFrontendAndBackend(FrontendChannel*, BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(DisconnectReason) override;
 
@@ -50,6 +50,7 @@ public:
 private:
     const WTF::String m_frameIdentifier;
     const WTF::String m_frameUrl;
+    NativeScript::GlobalObject& m_globalObject;
     std::unique_ptr<PageFrontendDispatcher> m_frontendDispatcher;
     RefPtr<PageBackendDispatcher> m_backendDispatcher;
 
