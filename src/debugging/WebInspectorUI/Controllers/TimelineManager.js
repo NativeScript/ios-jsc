@@ -132,17 +132,17 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
 
     // Protected
 
-    capturingStarted()
+    capturingStarted(startTime)
     {
         if (this._isCapturing)
             return;
 
         this._isCapturing = true;
 
-        this.dispatchEventToListeners(WebInspector.TimelineManager.Event.CapturingStarted);
+        this.dispatchEventToListeners(WebInspector.TimelineManager.Event.CapturingStarted, {startTime});
     }
 
-    capturingStopped()
+    capturingStopped(endTime)
     {
         if (!this._isCapturing)
             return;
@@ -161,7 +161,7 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         this._isCapturingPageReload = false;
         this._autoCapturingMainResource = null;
 
-        this.dispatchEventToListeners(WebInspector.TimelineManager.Event.CapturingStopped);
+        this.dispatchEventToListeners(WebInspector.TimelineManager.Event.CapturingStopped, {endTime});
     }
 
     eventRecorded(recordPayload)

@@ -88,6 +88,8 @@ private:
 }
 
 - (void)dispatchMessage:(NSString*)message {
+    JSC::JSLockHolder lock(_runtime->_vm.get());
+
     self->_inspectorController->dispatchMessageFromFrontend(message);
 }
 

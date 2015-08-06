@@ -58,7 +58,7 @@ void InspectorTimelineAgent::start(ErrorString&, const int* in_maxCallStackDepth
         stopwatch->start();
 
     if (m_frontendDispatcher)
-        m_frontendDispatcher->recordingStarted();
+        m_frontendDispatcher->recordingStarted(timestamp());
 
     startProfiling(m_globalObject.globalExec(), WTF::emptyString(), stopwatch);
 
@@ -84,7 +84,7 @@ void InspectorTimelineAgent::stop(ErrorString&) {
     m_enabled = false;
 
     if (m_frontendDispatcher)
-        m_frontendDispatcher->recordingStopped();
+        m_frontendDispatcher->recordingStopped(timestamp());
 }
 
 void InspectorTimelineAgent::didCompleteRecordEntry(const TimelineRecordEntry& entry) {
