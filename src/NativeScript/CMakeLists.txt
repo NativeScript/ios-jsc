@@ -8,8 +8,13 @@ set(HEADER_FILES
     Calling/FFIFunctionCallback.h
     ConsoleMethodOverrides.h
     GlobalObject.h
-    InspectorTimelineAgent.h
-    InstrumentingAgents.h
+    inspector/SourceProviderManager.h
+    inspector/CachedResource.h
+    inspector/GlobalObjectDebuggerAgent.h
+    inspector/GlobalObjectInspectorController.h
+    inspector/InspectorTimelineAgent.h
+    inspector/InspectorPageAgent.h
+    inspector/MimeTypeHelper.h
     Interop.h
     JSErrors.h
     JSWarnings.h
@@ -83,7 +88,12 @@ set(SOURCE_FILES
     Calling/FFIFunctionCallback.cpp
     ConsoleMethodOverrides.cpp
     GlobalObject.mm
-    InspectorTimelineAgent.cpp
+    inspector/GlobalObjectDebuggerAgent.cpp
+    inspector/SourceProviderManager.cpp
+    inspector/GlobalObjectInspectorController.cpp
+    inspector/InspectorTimelineAgent.cpp
+    inspector/InspectorPageAgent.mm
+    inspector/CachedResource.mm
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp
@@ -194,6 +204,7 @@ if(${BUILD_SHARED_LIBS})
         libz.dylib
         libc++.dylib
         "-framework UIKit"
+        "-framework MobileCoreServices"
     )
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})

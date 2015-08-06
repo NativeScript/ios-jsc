@@ -8,12 +8,12 @@
 
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
 #include <JavaScriptCore/Debugger.h>
 
+#include "GlobalObjectInspectorController.h"
 #import "TNSRuntime+Inspector.h"
 #import "TNSRuntime+Private.h"
 #include "JSErrors.h"
@@ -57,20 +57,12 @@ private:
                                           messageHandler:messageHandler] autorelease];
 }
 
-- (void)flushSourceProviders {
-    if (JSC::Debugger* debugger = self->_globalObject->debugger()) {
-        for (SourceProvider* e : self->_sourceProviders) {
-            debugger->sourceParsed(self->_globalObject->globalExec(), e, -1, WTF::emptyString());
-        }
-    }
-}
-
 @end
 
 @implementation TNSRuntimeInspector {
     TNSRuntime* _runtime;
     std::unique_ptr<TNSRuntimeInspectorFrontendChannel> _frontendChannel;
-    Inspector::JSGlobalObjectInspectorController* _inspectorController;
+    GlobalObjectInspectorController* _inspectorController;
 }
 
 + (BOOL)logsToSystemConsole {
@@ -97,13 +89,6 @@ private:
 
 - (void)dispatchMessage:(NSString*)message {
     self->_inspectorController->dispatchMessageFromFrontend(message);
-
-    id json = [NSJSONSerialization JSONObjectWithData:[message dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
-    if ([json isKindOfClass:[NSDictionary class]]) {
-        if ([@"Debugger.enable" isEqual:[json valueForKey:@"method"]]) {
-            [self->_runtime flushSourceProviders];
-        }
-    }
 }
 
 - (void)reportFatalError:(JSValueRef)error {

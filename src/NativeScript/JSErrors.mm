@@ -8,7 +8,7 @@
 
 #include "JSErrors.h"
 
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
+#include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/APICast.h>
 #import "TNSRuntime+Private.h"
 #import "TNSRuntime+Inspector.h"

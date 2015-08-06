@@ -1,12 +1,12 @@
 #include "InspectorTimelineAgent.h"
 #include "TimelineRecordFactory.h"
 #include <JavaScriptCore/InspectorEnvironment.h>
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/profiler/LegacyProfiler.h>
+#include "GlobalObjectInspectorController.h"
 
 namespace Inspector {
 
-InspectorTimelineAgent::InspectorTimelineAgent(NativeScript::GlobalObject* globalObject)
+InspectorTimelineAgent::InspectorTimelineAgent(NativeScript::GlobalObject& globalObject)
     : Inspector::InspectorAgentBase(ASCIILiteral("Timeline"))
     , m_globalObject(globalObject)
     , m_consoleRecordEntry()
@@ -53,14 +53,14 @@ void InspectorTimelineAgent::start(ErrorString&, const int* in_maxCallStackDepth
     else
         m_maxCallStackDepth = 5;
 
-    PassRefPtr<Stopwatch> stopwatch = m_globalObject->inspectorController().executionStopwatch();
+    PassRefPtr<Stopwatch> stopwatch = m_globalObject.inspectorController().executionStopwatch();
     if (!stopwatch->isActive())
         stopwatch->start();
 
     if (m_frontendDispatcher)
         m_frontendDispatcher->recordingStarted();
 
-    startProfiling(m_globalObject->globalExec(), WTF::emptyString(), stopwatch);
+    startProfiling(m_globalObject.globalExec(), WTF::emptyString(), stopwatch);
 
     m_enabled = true;
 
@@ -71,13 +71,13 @@ void InspectorTimelineAgent::stop(ErrorString&) {
     if (!m_enabled)
         return;
 
-    RefPtr<JSC::Profile> profile = stopProfiling(m_globalObject->globalExec(), WTF::emptyString());
+    RefPtr<JSC::Profile> profile = stopProfiling(m_globalObject.globalExec(), WTF::emptyString());
     if (profile)
         TimelineRecordFactory::appendProfile(m_consoleRecordEntry.data.get(), profile.copyRef());
 
     didCompleteRecordEntry(m_consoleRecordEntry);
 
-    auto stopwatch = m_globalObject->inspectorController().executionStopwatch();
+    auto stopwatch = m_globalObject.inspectorController().executionStopwatch();
     if (stopwatch->isActive())
         stopwatch->stop();
 
@@ -95,11 +95,11 @@ void InspectorTimelineAgent::didCompleteRecordEntry(const TimelineRecordEntry& e
 }
 
 double InspectorTimelineAgent::timestamp() {
-    return m_globalObject->inspectorController().executionStopwatch()->elapsedTime();
+    return m_globalObject.inspectorController().executionStopwatch()->elapsedTime();
 }
 
 InspectorTimelineAgent::TimelineRecordEntry InspectorTimelineAgent::createRecordEntry(RefPtr<InspectorObject>&& data, TimelineRecordType type, bool captureCallStack) {
-    Ref<InspectorObject> record = TimelineRecordFactory::createGenericRecord(m_globalObject->globalExec(), timestamp(), captureCallStack ? m_maxCallStackDepth : 0);
+    Ref<InspectorObject> record = TimelineRecordFactory::createGenericRecord(m_globalObject.globalExec(), timestamp(), captureCallStack ? m_maxCallStackDepth : 0);
     return TimelineRecordEntry(WTF::move(record), WTF::move(data), InspectorArray::create(), type);
 }
 

@@ -13,11 +13,6 @@
 #include <objc/runtime.h>
 #include <map>
 
-namespace Inspector {
-class JSGlobalObjectInspectorController;
-class InstrumentingAgents;
-}
-
 namespace NativeScript {
 class ObjCConstructorBase;
 class ObjCProtocolWrapper;
@@ -25,6 +20,7 @@ class RecordConstructor;
 class Interop;
 class TypeFactory;
 class ObjCWrapperObject;
+class GlobalObjectInspectorController;
 
 class GlobalObject : public JSC::JSGlobalObject {
 public:
@@ -32,7 +28,7 @@ public:
 
     friend class ObjCClassBuilder;
 
-    static GlobalObject* create(JSC::VM& vm, JSC::Structure* structure);
+    static GlobalObject* create(WTF::String applicationPath, JSC::VM& vm, JSC::Structure* structure);
 
     static const bool needsDestruction = false;
 
@@ -112,16 +108,16 @@ public:
         return this->_typeScriptOriginalExtendsFunction.get();
     }
 
-    Inspector::JSGlobalObjectInspectorController& inspectorController() const {
+    GlobalObjectInspectorController& inspectorController() const {
         return *this->_inspectorController.get();
-    }
-
-    Inspector::InstrumentingAgents& instrumentingAgents() const {
-        return *this->_instrumentingAgents.get();
     }
 
     TypeFactory* typeFactory() const {
         return _typeFactory.get();
+    }
+
+    WTF::String applicationPath() const {
+        return _applicationPath;
     }
 
     JSC::Structure* fastEnumerationIteratorStructure() const {
@@ -139,14 +135,15 @@ private:
 
     ~GlobalObject();
 
-    void finishCreation(JSC::VM& vm);
+    void finishCreation(WTF::String applicationPath, JSC::VM& vm);
 
     static void destroy(JSC::JSCell* cell);
 
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
 
-    std::unique_ptr<Inspector::JSGlobalObjectInspectorController> _inspectorController;
-    std::unique_ptr<Inspector::InstrumentingAgents> _instrumentingAgents;
+    std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
+
+    WTF::String _applicationPath;
 
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;

@@ -10,7 +10,6 @@
 #include <string>
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <JavaScriptCore/FunctionConstructor.h>
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/Microtask.h>
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/StrongInlines.h>
@@ -18,7 +17,6 @@
 #include <JavaScriptCore/runtime/JSConsole.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 #include "ConsoleMethodOverrides.h"
-#include "InstrumentingAgents.h"
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCPrototype.h"
@@ -28,6 +26,7 @@
 #include "RecordConstructor.h"
 #include "RecordPrototypeFunctions.h"
 #include "Interop.h"
+#include "inspector/GlobalObjectInspectorController.h"
 #include "ObjCExtend.h"
 #include "ObjCTypeScriptExtend.h"
 #include "__extends.h"
@@ -92,9 +91,9 @@ Structure* GlobalObject::createStructure(VM& vm, JSValue prototype) {
     return Structure::create(vm, 0, prototype, TypeInfo(GlobalObjectType, GlobalObject::StructureFlags), GlobalObject::info());
 }
 
-GlobalObject* GlobalObject::create(VM& vm, Structure* structure) {
+GlobalObject* GlobalObject::create(WTF::String applicationPath, VM& vm, Structure* structure) {
     GlobalObject* object = new (NotNull, allocateCell<GlobalObject>(vm.heap)) GlobalObject(vm, structure);
-    object->finishCreation(vm);
+    object->finishCreation(applicationPath, vm);
     vm.heap.addFinalizer(object, destroy);
     return object;
 }
@@ -105,17 +104,12 @@ static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     return JSValue::encode(jsUndefined());
 }
 
-void GlobalObject::finishCreation(VM& vm) {
+void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     Base::finishCreation(vm);
 
     ExecState* globalExec = this->globalExec();
 
-    std::unique_ptr<Inspector::InspectorTimelineAgent> timelineAgent = std::make_unique<Inspector::InspectorTimelineAgent>(this);
-    this->_instrumentingAgents = std::make_unique<Inspector::InstrumentingAgents>();
-    this->_instrumentingAgents->setInspectorTimelineAgent(timelineAgent.get());
-
-    this->_inspectorController = std::make_unique<Inspector::JSGlobalObjectInspectorController>(*this);
-    this->_inspectorController->appendExtraAgent(WTF::move(timelineAgent));
+    this->_inspectorController = std::make_unique<GlobalObjectInspectorController>(*this);
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
 
@@ -125,6 +119,7 @@ void GlobalObject::finishCreation(VM& vm) {
     console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profile")), 0, consoleProfileTimeline, NoIntrinsic, Attribute::Function);
     console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profileEnd")), 0, consoleProfileEndTimeline, NoIntrinsic, Attribute::Function);
 
+    this->_applicationPath = applicationPath;
     this->_objCMethodCallStructure.set(vm, this, ObjCMethodCall::createStructure(vm, this, this->functionPrototype()));
     this->_objCConstructorCallStructure.set(vm, this, ObjCConstructorCall::createStructure(vm, this, this->functionPrototype()));
     this->_objCBlockCallStructure.set(vm, this, ObjCBlockCall::createStructure(vm, this, this->functionPrototype()));
