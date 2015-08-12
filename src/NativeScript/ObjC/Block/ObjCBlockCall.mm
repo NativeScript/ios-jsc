@@ -23,7 +23,7 @@ const ClassInfo ObjCBlockCall::s_info = { "ObjCBlockCall", &Base::s_info, 0, CRE
 
 void ObjCBlockCall::finishCreation(VM& vm, id block, ObjCBlockType* blockType) {
     Base::finishCreation(vm, WTF::emptyString());
-    this->_block = block;
+    this->_block = adoptNS(Block_copy(block));
 
     const WTF::Vector<JSCell*> parameterTypes = blockType->parameterTypes();
 
