@@ -44,7 +44,7 @@ fi
 echo "Stripping frameworks"
 cd "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
 
-for file in $(find . -type f -perm +111); do
+for file in $(find . -type f); do
   # Skip non-dynamic libraries
   if ! [[ "$(file "$file")" == *"dynamically linked shared library"* ]]; then
     continue
