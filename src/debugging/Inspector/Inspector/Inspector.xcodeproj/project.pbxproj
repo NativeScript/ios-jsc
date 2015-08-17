@@ -9,6 +9,16 @@
 /* Begin PBXBuildFile section */
 		5131D75A1B44217D000E1DA4 /* osx-debugger.icns in Resources */ = {isa = PBXBuildFile; fileRef = 5131D7591B44217D000E1DA4 /* osx-debugger.icns */; };
 		5131D75B1B44217D000E1DA4 /* osx-debugger.icns in Resources */ = {isa = PBXBuildFile; fileRef = 5131D7591B44217D000E1DA4 /* osx-debugger.icns */; };
+		5131F0E41B73AC070056C64D /* JavaScriptCore.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0DE1B73AC070056C64D /* JavaScriptCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5131F0E51B73AC070056C64D /* WebCore.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0DF1B73AC070056C64D /* WebCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5131F0E61B73AC070056C64D /* WebInspectorUI.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E01B73AC070056C64D /* WebInspectorUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5131F0E71B73AC070056C64D /* WebKit.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E11B73AC070056C64D /* WebKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5131F0E81B73AC070056C64D /* WebKit2.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E21B73AC070056C64D /* WebKit2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5131F0E91B73AC070056C64D /* WebKitLegacy.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E31B73AC070056C64D /* WebKitLegacy.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5131F0EA1B73AC210056C64D /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5131F0E11B73AC070056C64D /* WebKit.framework */; };
+		5131F0ED1B73B8C10056C64D /* InspectorFrontendHost.h in Sources */ = {isa = PBXBuildFile; fileRef = 5131F0EC1B73B8C10056C64D /* InspectorFrontendHost.h */; };
+		5131F0EF1B73B94E0056C64D /* InspectorFrontendHost.m in Sources */ = {isa = PBXBuildFile; fileRef = 5131F0EE1B73B94E0056C64D /* InspectorFrontendHost.m */; };
+		513F3D881B7E28E10010A515 /* Communication.m in Sources */ = {isa = PBXBuildFile; fileRef = 513F3D861B7E28E10010A515 /* Communication.m */; };
 		517E90E01B454B1600150FF6 /* NativeScript Inspector.app in Copy Files (1 item) */ = {isa = PBXBuildFile; fileRef = 51E6FCB71B42E25500FF4242 /* NativeScript Inspector.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		517E90F01B454D1500150FF6 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 517E90E71B454D1500150FF6 /* AppDelegate.m */; };
 		517E90F11B454D1500150FF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 517E90E81B454D1500150FF6 /* Assets.xcassets */; };
@@ -17,13 +27,8 @@
 		517E90F41B454D1500150FF6 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 517E90EC1B454D1500150FF6 /* Info.plist */; };
 		517E90F51B454D1500150FF6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 517E90ED1B454D1500150FF6 /* main.m */; };
 		517E90F61B454D1500150FF6 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 517E90EF1B454D1500150FF6 /* ViewController.m */; };
-		51E6FCCB1B42E28300FF4242 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51141E951B42C0E600E4BC67 /* WebKit.framework */; };
 		51F641931B2EFE080012D3BC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F641921B2EFE080012D3BC /* main.m */; };
 		51F641981B2EFE080012D3BC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 51F641971B2EFE080012D3BC /* Images.xcassets */; };
-		51F642821B31C2C80012D3BC /* JavaScriptCore.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 51F6427F1B31C2C80012D3BC /* JavaScriptCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		51F642831B31C2C80012D3BC /* WebCore.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 51F642801B31C2C80012D3BC /* WebCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		51F642841B31C2C80012D3BC /* WebKit.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 51F642811B31C2C80012D3BC /* WebKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		51F642861B31C3E50012D3BC /* WebKitLegacy.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 51F642851B31C3E50012D3BC /* WebKitLegacy.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,10 +48,12 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				51F642821B31C2C80012D3BC /* JavaScriptCore.framework in Embed Frameworks (6 items) (4 items) */,
-				51F642831B31C2C80012D3BC /* WebCore.framework in Embed Frameworks (6 items) (4 items) */,
-				51F642841B31C2C80012D3BC /* WebKit.framework in Embed Frameworks (6 items) (4 items) */,
-				51F642861B31C3E50012D3BC /* WebKitLegacy.framework in Embed Frameworks (6 items) (4 items) */,
+				5131F0E41B73AC070056C64D /* JavaScriptCore.framework in Embed Frameworks (6 items) (4 items) */,
+				5131F0E51B73AC070056C64D /* WebCore.framework in Embed Frameworks (6 items) (4 items) */,
+				5131F0E61B73AC070056C64D /* WebInspectorUI.framework in Embed Frameworks (6 items) (4 items) */,
+				5131F0E71B73AC070056C64D /* WebKit.framework in Embed Frameworks (6 items) (4 items) */,
+				5131F0E81B73AC070056C64D /* WebKit2.framework in Embed Frameworks (6 items) (4 items) */,
+				5131F0E91B73AC070056C64D /* WebKitLegacy.framework in Embed Frameworks (6 items) (4 items) */,
 			);
 			name = "Embed Frameworks (6 items) (4 items)";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -65,8 +72,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		51141E951B42C0E600E4BC67 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		51080F1E1B7DCA2D0004DE6E /* Communication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Communication.h; sourceTree = "<group>"; };
 		5131D7591B44217D000E1DA4 /* osx-debugger.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "osx-debugger.icns"; sourceTree = "<group>"; };
+		5131F0DE1B73AC070056C64D /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Frameworks/JavaScriptCore.framework; sourceTree = "<group>"; };
+		5131F0DF1B73AC070056C64D /* WebCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebCore.framework; path = Frameworks/WebCore.framework; sourceTree = "<group>"; };
+		5131F0E01B73AC070056C64D /* WebInspectorUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebInspectorUI.framework; path = Frameworks/WebInspectorUI.framework; sourceTree = "<group>"; };
+		5131F0E11B73AC070056C64D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Frameworks/WebKit.framework; sourceTree = "<group>"; };
+		5131F0E21B73AC070056C64D /* WebKit2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit2.framework; path = Frameworks/WebKit2.framework; sourceTree = "<group>"; };
+		5131F0E31B73AC070056C64D /* WebKitLegacy.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKitLegacy.framework; path = Frameworks/WebKitLegacy.framework; sourceTree = "<group>"; };
+		5131F0EB1B73B8580056C64D /* InspectorFrontendHostProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorFrontendHostProtocol.h; sourceTree = "<group>"; };
+		5131F0EC1B73B8C10056C64D /* InspectorFrontendHost.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorFrontendHost.h; sourceTree = "<group>"; };
+		5131F0EE1B73B94E0056C64D /* InspectorFrontendHost.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 4; path = InspectorFrontendHost.m; sourceTree = "<group>"; };
+		513F3D861B7E28E10010A515 /* Communication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Communication.m; sourceTree = "<group>"; };
 		517E90E61B454D1500150FF6 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		517E90E71B454D1500150FF6 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		517E90E81B454D1500150FF6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -75,16 +92,12 @@
 		517E90EC1B454D1500150FF6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		517E90ED1B454D1500150FF6 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		517E90EE1B454D1500150FF6 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		517E90EF1B454D1500150FF6 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		517E90EF1B454D1500150FF6 /* ViewController.m */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.objc; fileEncoding = 4; path = ViewController.m; sourceTree = "<group>"; };
 		51E6FCB71B42E25500FF4242 /* NativeScript Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NativeScript Inspector.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		51F6418A1B2EFE080012D3BC /* Inspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Inspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		51F6418E1B2EFE080012D3BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		51F641921B2EFE080012D3BC /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		51F641971B2EFE080012D3BC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		51F6427F1B31C2C80012D3BC /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Frameworks/JavaScriptCore.framework; sourceTree = "<group>"; };
-		51F642801B31C2C80012D3BC /* WebCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebCore.framework; path = Frameworks/WebCore.framework; sourceTree = "<group>"; };
-		51F642811B31C2C80012D3BC /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Frameworks/WebKit.framework; sourceTree = "<group>"; };
-		51F642851B31C3E50012D3BC /* WebKitLegacy.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKitLegacy.framework; path = Frameworks/WebKitLegacy.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,7 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				51E6FCCB1B42E28300FF4242 /* WebKit.framework in Frameworks */,
+				5131F0EA1B73AC210056C64D /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +131,11 @@
 				517E90ED1B454D1500150FF6 /* main.m */,
 				517E90EE1B454D1500150FF6 /* ViewController.h */,
 				517E90EF1B454D1500150FF6 /* ViewController.m */,
+				5131F0EB1B73B8580056C64D /* InspectorFrontendHostProtocol.h */,
+				5131F0EC1B73B8C10056C64D /* InspectorFrontendHost.h */,
+				5131F0EE1B73B94E0056C64D /* InspectorFrontendHost.m */,
+				51080F1E1B7DCA2D0004DE6E /* Communication.h */,
+				513F3D861B7E28E10010A515 /* Communication.m */,
 			);
 			path = "NativeScript Inspector";
 			sourceTree = "<group>";
@@ -125,11 +143,12 @@
 		51F641811B2EFE080012D3BC = {
 			isa = PBXGroup;
 			children = (
-				51141E951B42C0E600E4BC67 /* WebKit.framework */,
-				51F642851B31C3E50012D3BC /* WebKitLegacy.framework */,
-				51F6427F1B31C2C80012D3BC /* JavaScriptCore.framework */,
-				51F642801B31C2C80012D3BC /* WebCore.framework */,
-				51F642811B31C2C80012D3BC /* WebKit.framework */,
+				5131F0DE1B73AC070056C64D /* JavaScriptCore.framework */,
+				5131F0DF1B73AC070056C64D /* WebCore.framework */,
+				5131F0E01B73AC070056C64D /* WebInspectorUI.framework */,
+				5131F0E11B73AC070056C64D /* WebKit.framework */,
+				5131F0E21B73AC070056C64D /* WebKit2.framework */,
+				5131F0E31B73AC070056C64D /* WebKitLegacy.framework */,
 				51F6418C1B2EFE080012D3BC /* Inspector */,
 				517E90E51B454D1500150FF6 /* NativeScript Inspector */,
 				51F6418B1B2EFE080012D3BC /* Products */,
@@ -270,6 +289,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5131F0EF1B73B94E0056C64D /* InspectorFrontendHost.m in Sources */,
+				5131F0ED1B73B8C10056C64D /* InspectorFrontendHost.h in Sources */,
+				513F3D881B7E28E10010A515 /* Communication.m in Sources */,
 				517E90F61B454D1500150FF6 /* ViewController.m in Sources */,
 				517E90F51B454D1500150FF6 /* main.m in Sources */,
 				517E90F01B454D1500150FF6 /* AppDelegate.m in Sources */,
@@ -312,9 +334,10 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(PROJECT_DIR)/Frameworks\"";
 				INFOPLIST_FILE = "NativeScript Inspector/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.NativeScript.NativeScript-Inspector-Application";
+				PRODUCT_BUNDLE_IDENTIFIER = org.NativeScript.Inspector.WebKitHost;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -325,9 +348,10 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(PROJECT_DIR)/Frameworks\"";
 				INFOPLIST_FILE = "NativeScript Inspector/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "org.NativeScript.NativeScript-Inspector-Application";
+				PRODUCT_BUNDLE_IDENTIFIER = org.NativeScript.Inspector.WebKitHost;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
@@ -423,6 +447,7 @@
 				);
 				INFOPLIST_FILE = Inspector/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = org.NativeScript.Inspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = NO;
@@ -440,6 +465,7 @@
 				);
 				INFOPLIST_FILE = Inspector/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = org.NativeScript.Inspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = NO;
