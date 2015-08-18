@@ -75,7 +75,7 @@ typedef struct JSBlock {
     }
 
     static JSC::JSCell* getJSFunction(id block) {
-        JSBlock* jsBlock = static_cast<JSBlock*>(block);
+        JSBlock* jsBlock = reinterpret_cast<JSBlock*>(block);
         if (jsBlock->descriptor == &kJSBlockDescriptor) {
             return jsBlock->callback.get()->function();
         }
