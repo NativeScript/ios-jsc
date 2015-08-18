@@ -71,8 +71,10 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     IMP newRetain = imp_implementationWithBlock (^(id self) {
         if ([self retainCount] == 1) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
-                JSLockHolder lockHolder(globalObject->vm());
-                gcProtect(wrapper.value);
+                if (JSObject* object = wrapper.value) {
+                    JSLockHolder lockHolder(globalObject->vm());
+                    gcProtect(object);
+                }
             }
         }
 
@@ -84,8 +86,10 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     IMP newRelease = imp_implementationWithBlock (^(id self) {
         if ([self retainCount] == 2) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
-                JSLockHolder lockHolder(globalObject->vm());
-                gcUnprotect(wrapper.value);
+                if (JSObject* object = wrapper.value) {
+                    JSLockHolder lockHolder(globalObject->vm());
+                    gcUnprotect(object);
+                }
             }
         }
 
