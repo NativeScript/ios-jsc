@@ -43,7 +43,7 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 
 - (void)methodWithStructOutParameter:(TNSOStruct*)value {
     TNSLog([NSString stringWithFormat:@"%d %d %d", value->x, value->y, value->z]);
-    *value = (TNSOStruct) { 4, 5, 6 };
+    *value = (TNSOStruct){ 4, 5, 6 };
 }
 
 - (void)methodWithSimpleBlock:(void (^)(void))block {
@@ -71,6 +71,11 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 - (NSDate*)methodWithNSDate:(NSDate*)date {
     TNSLog(date.description);
     return date;
+}
+
+- (void (^)(void))methodWithBlock:(void (^)(void))block {
+    block();
+    return block;
 }
 
 - (NSArray*)methodWithNSArray:(NSArray*)array {

@@ -74,6 +74,14 @@ typedef struct JSBlock {
         block->callback.clear();
     }
 
+    static JSC::JSCell* getJSFunction(id block) {
+        JSBlock* jsBlock = static_cast<JSBlock*>(block);
+        if (jsBlock->descriptor == &kJSBlockDescriptor) {
+            return jsBlock->callback.get()->function();
+        }
+        return nullptr;
+    }
+
 } JSBlock;
 
 JSBlock::JSBlockDescriptor JSBlock::kJSBlockDescriptor = {
@@ -88,7 +96,13 @@ const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, 0, CRE
 JSValue ObjCBlockType::read(ExecState* execState, const void* buffer, JSCell* self) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ObjCBlockType* blockType = jsCast<ObjCBlockType*>(self);
-    return ObjCBlockCall::create(execState->vm(), globalObject->objCBlockCallStructure(), *static_cast<const id*>(buffer), blockType);
+    id block = *static_cast<const id*>(buffer);
+
+    if (JSValue objCBlockCallback = JSBlock::getJSFunction(block)) {
+        return objCBlockCallback;
+    }
+
+    return ObjCBlockCall::create(execState->vm(), globalObject->objCBlockCallStructure(), block, blockType);
 }
 
 void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
