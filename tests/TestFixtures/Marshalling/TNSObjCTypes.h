@@ -32,6 +32,7 @@ typedef int (^NumberReturner)(int, int, int);
 - (id)methodReturningBlockAsId:(int)number;
 
 - (NSDate*)methodWithNSDate:(NSDate*)date;
+- (void (^)(void))methodWithBlock:(void (^)(void))block;
 - (NSArray*)methodWithNSArray:(NSArray*)array;
 - (NSDictionary*)methodWithNSDictionary:(NSDictionary*)dictionary;
 - (NSData*)methodWithNSData:(NSData*)data;

@@ -110,6 +110,17 @@ describe(module.id, function () {
         expect(TNSGetOutput()).toBe('2001-09-09 01:46:40 +0000');
     });
 
+    it('javascript functions round trip through the native as blocks preserving equality', function() {
+        function f() {
+            TNSLog('called');
+        }
+
+        var returnBlock = TNSObjCTypes.alloc().init().methodWithBlock(f);
+
+        expect(returnBlock).toBe(f);
+        expect(TNSGetOutput()).toBe('called');
+    });
+
     it("should be possible to marshal a JavaScript Array exotic to NSArray", function () {
         var array = [1, [2, 'a'], NSObject];
         var result = TNSObjCTypes.alloc().init().methodWithNSArray(array);
@@ -142,9 +153,9 @@ describe(module.id, function () {
             arrayLike[i] = i;
             expected += String(i);
         }
-        
+
         TNSObjCTypes.alloc().init().methodWithNSArray(arrayLike);
-        
+
         expect(TNSGetOutput()).toBe(expected);
         TNSClearOutput();
     });
@@ -186,9 +197,9 @@ describe(module.id, function () {
 
     it("should be possible to wrap NSData in an ArrayBuffer", function () {
         var data = NSString.stringWithString("test").dataUsingEncoding(NSUTF8StringEncoding);
-        
+
         var buffer = interop.bufferFromData(data);
-        
+
         expect(buffer).toEqual(jasmine.any(ArrayBuffer));
         expect(interop.handleof(buffer)).toBe(data.bytes);
     })
@@ -204,10 +215,10 @@ describe(module.id, function () {
     it("NSNull", function () {
         expect(NSNull.null() instanceof NSObject).toBe(true);
     });
-         
+
     it("Initialize a class(NSTimer) whose init deallocates the result from alloc", function () {
        var actionCalled = false;
-       
+
        var JSObject = NSObject.extend({
            action: function () {
                actionCalled = true;
