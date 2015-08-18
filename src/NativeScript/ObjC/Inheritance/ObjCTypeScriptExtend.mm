@@ -28,8 +28,8 @@ static bool isPlainTypeScriptConstructor(JSFunction* typeScriptConstructor) {
     WTF::CString sourceUTF8 = typeScriptConstructor->sourceCode()->toString().simplifyWhiteSpace().utf8();
 
     NSArray* regularExpressions = @[
-        @"^\\{\\s?\\}$",
-        @"^\\{\\s?\\w+\\.apply\\(this,\\s?arguments\\);\\s?\\}$"
+        @"^\\(\\)\\s?\\{\\s?\\}$",
+        @"^\\(\\)\\s?\\{\\s?\\w+\\.apply\\(this,\\s?arguments\\);\\s?\\}$"
     ];
 
     NSUInteger index = [regularExpressions indexOfObjectPassingTest:^BOOL(id obj, NSUInteger idx, BOOL* stop) {
