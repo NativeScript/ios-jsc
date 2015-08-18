@@ -3,6 +3,7 @@
 
 ## Bug Fixes
 
+- [Add lib/iOS folder to framework search paths #266](https://github.com/NativeScript/ios-runtime/pull/266)
 - [Call Block_copy in ObjCBlockCall::finishCreation #264](https://github.com/NativeScript/ios-runtime/pull/264)
 
 1.2.1
