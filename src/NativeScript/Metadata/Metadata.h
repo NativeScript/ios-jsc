@@ -258,6 +258,8 @@ private:
 public:
     static MetaFile* instance();
 
+    static MetaFile* setInstance(void* metadataPtr);
+
     const GlobalTable* globalTable() const {
         return &this->_globalTable;
     }

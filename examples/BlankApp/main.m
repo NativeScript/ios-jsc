@@ -11,20 +11,22 @@ static NSString *toString(JSContextRef context, JSValueRef value) {
   return [NSString stringWithUTF8String:errorMessage];
 }
 
+extern char startOfMetadataSection __asm("section$start$__DATA$__TNSMetadata");
+
 int main(int argc, char *argv[]) {
   @autoreleasepool {
+    [TNSRuntime initializeMetadata:&startOfMetadataSection];
     TNSRuntime *runtime = [[TNSRuntime alloc]
         initWithApplicationPath:[NSBundle mainBundle].bundlePath];
     TNSRuntimeInspector.logsToSystemConsole = YES;
 
     NSError *error = nil;
-    NSString *script =
-        [NSString stringWithContentsOfFile:[[NSBundle mainBundle]
-                                               pathForResource:@"bootstrap"
-                                                        ofType:@"js"
-                                                   inDirectory:@"app"]
-                                  encoding:NSUTF8StringEncoding
-                                     error:&error];
+    NSString *script = [NSString stringWithContentsOfFile:
+                            [[NSBundle mainBundle] pathForResource:@"bootstrap"
+                                                            ofType:@"js"
+                                                       inDirectory:@"app"]
+                                                 encoding:NSUTF8StringEncoding
+                                                    error:&error];
 
     if (error) {
       NSLog(@"%@", error.localizedDescription);

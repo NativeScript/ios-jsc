@@ -17,6 +17,8 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 @property(nonatomic, retain) NSString* applicationPath;
 
++ (void)initializeMetadata:(void*)metadataPtr;
+
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath;
 
 - (JSGlobalContextRef)globalContext;

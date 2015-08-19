@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function generateMetadata {
-    local errorLog="$BUILT_PRODUCTS_DIR/metadata-generation-stderr-$1.txt"
+    local errorLog="$CONFIGURATION_BUILD_DIR/metadata-generation-stderr-$1.txt"
 
     ./objc-metadata-generator \
         -isysroot "$SDKROOT" \
@@ -12,8 +12,8 @@ function generateMetadata {
         -header-search-paths "$HEADER_SEARCH_PATHS" \
         -framework-search-paths "$FRAMEWORK_SEARCH_PATHS" \
         -enable-header-preprocessing-if-needed=true \
-        -output-bin "$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/metadata-$1.bin" \
-        -output-umbrella "$BUILT_PRODUCTS_DIR/umbrella-$1.h" \
+        -output-bin "$CONFIGURATION_BUILD_DIR/metadata-$1.bin" \
+        -output-umbrella "$CONFIGURATION_BUILD_DIR/umbrella-$1.h" \
         2> "$errorLog"
 
     if [ $? -ne 0 ]; then
