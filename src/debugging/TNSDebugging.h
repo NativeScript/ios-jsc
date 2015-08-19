@@ -76,7 +76,7 @@ static dispatch_source_t TNSCreateInspectorServer(
         
         TNSInspectorSendMessageBlock sender = ^(NSString *message) {
             
-            uint32_t length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
+            NSUInteger length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
             
             void* buffer = malloc(length + sizeof(uint32_t));
             
