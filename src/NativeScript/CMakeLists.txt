@@ -67,6 +67,7 @@ set(HEADER_FILES
     ObjC/TNSArrayAdapter.h
     ObjC/TNSDictionaryAdapter.h
     ObjC/TNSDataAdapter.h
+    ObjC/AllocatedPlaceholder.h
     Runtime/JSWeakRefConstructor.h
     Runtime/JSWeakRefInstance.h
     Runtime/JSWeakRefPrototype.h
@@ -79,7 +80,6 @@ set(HEADER_FILES
     TNSRuntime.h
     TypeFactory.h
     WeakHandleOwners.h
-    AllocatedPlaceholder.h
 )
 
 set(SOURCE_FILES
@@ -144,6 +144,7 @@ set(SOURCE_FILES
     ObjC/TNSArrayAdapter.mm
     ObjC/TNSDictionaryAdapter.mm
     ObjC/TNSDataAdapter.mm
+    ObjC/AllocatedPlaceholder.cpp
     Runtime/JSWeakRefConstructor.cpp
     Runtime/JSWeakRefInstance.cpp
     Runtime/JSWeakRefPrototype.cpp
@@ -153,7 +154,6 @@ set(SOURCE_FILES
     TNSRuntime+Inspector.mm
     TNSRuntime.mm
     TypeFactory.mm
-    AllocatedPlaceholder.cpp
 )
 
 set(NativeScript_PUBLIC_HEADERS
