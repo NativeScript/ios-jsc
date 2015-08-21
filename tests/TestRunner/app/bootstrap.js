@@ -6,11 +6,6 @@ require('./Infrastructure/timers');
 global.UNUSED = function (param) {
 };
 
-global.SYSTEM_VERSION_LESS_THAN = function (version) {
-    var systemVersion = NSString.stringWithString(UIDevice.currentDevice().systemVersion);
-    return systemVersion.compareOptions(version, NSStringCompareOptions.NSNumericSearch) === NSComparisonResult.NSOrderedAscending;
-};
-
 var args = NSProcessInfo.processInfo().arguments;
 var logjunit = args.containsObject("-logjunit");
 

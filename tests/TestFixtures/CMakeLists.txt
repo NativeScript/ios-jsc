@@ -3,34 +3,36 @@ set(HEADER_FILES
     TestFixtures.h
 
     Api/TNSApi.h
+    Api/TNSVersions.h
     Functions/TNSFunctions.h
+    Interfaces/TNSClassWithPlaceholder.h
     Interfaces/TNSConstructorResolution.h
     Interfaces/TNSInheritance.h
     Interfaces/TNSMethodCalls.h
-    Interfaces/TNSClassWithPlaceholder.h
     Marshalling/TNSFunctionPointers.h
     Marshalling/TNSObjCTypes.h
     Marshalling/TNSPrimitivePointers.h
     Marshalling/TNSPrimitives.h
     Marshalling/TNSRecords.h
-    TNSTestNativeCallbacks.h
     TNSTestCommon.h
+    TNSTestNativeCallbacks.h
 )
 
 set(SOURCE_FILES
     Api/TNSApi.m
+    Api/TNSVersions.m
     Functions/TNSFunctions.m
+    Interfaces/TNSClassWithPlaceholder.m
     Interfaces/TNSConstructorResolution.m
     Interfaces/TNSInheritance.m
     Interfaces/TNSMethodCalls.m
-    Interfaces/TNSClassWithPlaceholder.m
     Marshalling/TNSFunctionPointers.m
     Marshalling/TNSObjCTypes.m
     Marshalling/TNSPrimitivePointers.m
     Marshalling/TNSPrimitives.m
     Marshalling/TNSRecords.m
-    TNSTestNativeCallbacks.m
     TNSTestCommon.m
+    TNSTestNativeCallbacks.m
 )
 
 set_source_files_properties(Interfaces/TNSClassWithPlaceholder.m PROPERTIES COMPILE_FLAGS -fno-objc-arc)
