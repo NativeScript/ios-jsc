@@ -99,6 +99,11 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
     return data;
 }
 
+- (NSDecimalNumber*)methodWithNSDecimalNumber:(NSDecimalNumber*)number {
+    TNSLog([number stringValue]);
+    return number;
+}
+
 - (NSNumber*)methodWithNSCFBool {
     return @YES;
 }

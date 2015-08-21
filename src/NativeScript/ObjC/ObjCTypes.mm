@@ -171,7 +171,7 @@ JSValue toValue(ExecState* execState, id object, Class klass) {
         return jsBoolean([object boolValue]);
     }
 
-    if ([object isKindOfClass:[NSNumber class]]) {
+    if ([object isKindOfClass:[NSNumber class]] && ![object isKindOfClass:[NSDecimalNumber class]]) {
         return jsNumber([object doubleValue]);
     }
 
