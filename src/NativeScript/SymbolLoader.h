@@ -11,19 +11,25 @@
 
 #include <map>
 
+namespace Metadata {
+struct ModuleMeta;
+}
+
 namespace NativeScript {
+class SymbolResolver;
+
 class SymbolLoader {
 public:
     static SymbolLoader& instance();
 
-    void* loadFunctionSymbol(std::string libraryName, const char* symbolName);
-    void* loadDataSymbol(std::string libraryName, const char* symbolName);
-    bool ensureFramework(std::string frameworkName);
+    void* loadFunctionSymbol(const Metadata::ModuleMeta*, const char* symbolName);
+    void* loadDataSymbol(const Metadata::ModuleMeta*, const char* symbolName);
+    bool ensureModule(const Metadata::ModuleMeta*);
 
 private:
-    SymbolLoader();
+    SymbolResolver* resolveModule(const Metadata::ModuleMeta*);
 
-    std::map<const char*, WTF::RetainPtr<CFBundleRef>> _cache;
+    std::map<const Metadata::ModuleMeta*, std::unique_ptr<SymbolResolver>> _cache;
 };
 }
 

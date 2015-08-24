@@ -220,7 +220,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     case Interface: {
         Class klass = objc_getClass(symbolMeta->name());
         if (!klass) {
-            SymbolLoader::instance().ensureFramework(symbolMeta->topLevelModule()->getName());
+            SymbolLoader::instance().ensureModule(symbolMeta->topLevelModule());
             klass = objc_getClass(symbolMeta->name());
         }
 
@@ -233,7 +233,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     case ProtocolType: {
         Protocol* aProtocol = objc_getProtocol(symbolMeta->name());
         if (!aProtocol) {
-            SymbolLoader::instance().ensureFramework(symbolMeta->topLevelModule()->getName());
+            SymbolLoader::instance().ensureModule(symbolMeta->topLevelModule());
             aProtocol = objc_getProtocol(symbolMeta->name());
         }
 
@@ -253,7 +253,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         break;
     }
     case MetaType::Function: {
-        void* functionSymbol = SymbolLoader::instance().loadFunctionSymbol(symbolMeta->topLevelModule()->getName(), symbolMeta->name());
+        void* functionSymbol = SymbolLoader::instance().loadFunctionSymbol(symbolMeta->topLevelModule(), symbolMeta->name());
         if (functionSymbol) {
             const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
             const Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
@@ -265,7 +265,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     }
     case Var: {
         const VarMeta* varMeta = static_cast<const VarMeta*>(symbolMeta);
-        void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule()->getName(), varMeta->name());
+        void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule(), varMeta->name());
         if (varSymbol) {
             const Metadata::TypeEncoding* encoding = varMeta->encoding();
             JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding);
