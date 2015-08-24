@@ -204,6 +204,14 @@ describe(module.id, function () {
         expect(interop.handleof(buffer)).toBe(data.bytes);
     })
 
+    it("MethodWithNSDecimalNumber", function () {
+        expect(NSDecimalNumber.maximumDecimalNumber() instanceof NSDecimalNumber).toBe(true);
+
+        var returned = TNSObjCTypes.alloc().init().methodWithNSDecimalNumber(NSDecimalNumber.maximumDecimalNumber());
+        expect(returned.isEqualToNumber(NSDecimalNumber.maximumDecimalNumber())).toBe(true);
+        expect(TNSGetOutput()).toBe('3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+    });
+
     it("MethodWithNSCFBool", function () {
         expect(TNSObjCTypes.alloc().init().methodWithNSCFBool()).toBe(true);
     });
