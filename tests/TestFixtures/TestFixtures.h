@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 #import "Api/TNSApi.h"
+#import "Api/TNSVersions.h"
 
 #import "Functions/TNSFunctions.h"
 
