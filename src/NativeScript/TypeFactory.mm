@@ -271,11 +271,10 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
     ObjCPrototype* prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata);
 
-    CString klassNameCString = klassName.utf8();
-    Class klass = objc_getClass(klassNameCString.data());
+    Class klass = objc_getClass(metadata->name());
     if (!klass) {
         SymbolLoader::instance().ensureFramework(metadata->topLevelModule()->getName());
-        klass = objc_getClass(klassNameCString.data());
+        klass = objc_getClass(metadata->name());
     }
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
