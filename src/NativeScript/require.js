@@ -73,7 +73,11 @@
                 //console.debug("PACKAGE_FOUND: " + packageJsonPath);
 
                 try {
-                    mainFileName = JSON.parse(packageJson).main || mainFileName;
+                    var packageJsonMain = JSON.parse(packageJson).main;
+                    if (packageJsonMain && !/\.js$/.test(packageJsonMain)) {
+                        packageJsonMain += '.js';
+                    }
+                    mainFileName = packageJsonMain || mainFileName;
                 } catch (e) {
                     throw new ModuleError(`Error parsing package.json in '${absolutePath}' - ${e}`);
                 }
