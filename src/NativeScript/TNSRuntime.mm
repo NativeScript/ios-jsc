@@ -22,6 +22,7 @@
 #import "TNSRuntime.h"
 #import "TNSRuntime+Private.h"
 #include "JSErrors.h"
+#include "Metadata/Metadata.h"
 #include "inspector/SourceProviderManager.h"
 
 using namespace JSC;
@@ -33,6 +34,10 @@ using namespace NativeScript;
     if (self == [TNSRuntime self]) {
         initializeThreading();
     }
+}
+
++ (void)initializeMetadata:(void*)metadataPtr {
+    Metadata::MetaFile::setInstance(metadataPtr);
 }
 
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath {
@@ -144,7 +149,9 @@ static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
 - (void)dealloc {
     [self->_applicationPath release];
 #if PLATFORM(IOS)
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:UIApplicationDidReceiveMemoryWarningNotification
+                                                  object:nil];
 #endif
 
     {

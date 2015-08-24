@@ -1,8 +1,11 @@
 macro(GenerateMetadata _target)
     add_dependencies(${_target} MetadataGenerator)
     add_custom_command(TARGET ${_target}
-        POST_BUILD
+        PRE_BUILD
         COMMAND "${CMAKE_SOURCE_DIR}/build/scripts/metadata-generation-build-step.sh"
         WORKING_DIRECTORY "${MetadataGenerator_BINARY_DIR}/bin"
+    )
+    target_link_libraries(${_target}
+    	"-sectcreate __DATA __TNSMetadata $(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin"
     )
 endmacro()

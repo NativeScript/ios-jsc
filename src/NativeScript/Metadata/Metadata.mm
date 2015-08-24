@@ -207,8 +207,14 @@ void GlobalTable::iterator::findNext() {
     } while (this->_topLevelIndex < this->_globalTable->buckets.count);
 }
 
+static MetaFile* metaFileInstance(nullptr);
+
 MetaFile* MetaFile::instance() {
-    static MetaFile* instance(reinterpret_cast<MetaFile*>(loadFileInMemory((std::string("metadata-") + std::string(CURRENT_ARCH) + std::string(".bin")).c_str())));
-    return instance;
+    return metaFileInstance;
+}
+
+MetaFile* MetaFile::setInstance(void* metadataPtr) {
+    metaFileInstance = reinterpret_cast<MetaFile*>(metadataPtr);
+    return metaFileInstance;
 }
 }

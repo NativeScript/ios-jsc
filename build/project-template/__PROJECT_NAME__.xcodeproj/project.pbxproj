@@ -137,11 +137,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 858B843018CA22B800AB12DE /* Build configuration list for PBXNativeTarget "__PROJECT_NAME__" */;
 			buildPhases = (
+				C97FD7AC1ADE5369004DB2A4 /* Generate Metadata */,
 				858B83F218CA22B800AB12DE /* Sources */,
 				858B83F418CA22B800AB12DE /* Frameworks */,
 				858B842C18CA22B800AB12DE /* Resources */,
 				85F5BDFC1A9363BE006B9701 /* Embed Frameworks */,
-				C97FD7AC1ADE5369004DB2A4 /* Generate Metadata */,
 				CD3EAD351B05FF060042DBFC /* Strip Dynamic Framework Architectures */,
 			);
 			buildRules = (
@@ -358,6 +358,13 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/NativeScript/lib",
 				);
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-sectcreate",
+					__DATA,
+					__TNSMetadata,
+					"$(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin",
+				);
 				PRODUCT_NAME = __PROJECT_NAME__;
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;
@@ -387,6 +394,13 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/NativeScript/lib",
+				);
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-sectcreate",
+					__DATA,
+					__TNSMetadata,
+					"$(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin",
 				);
 				PRODUCT_NAME = __PROJECT_NAME__;
 				VALID_ARCHS = "armv7 arm64";
