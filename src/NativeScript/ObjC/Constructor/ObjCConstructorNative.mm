@@ -39,7 +39,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
     if (const MethodMeta* method = constructor->_metadata->staticMethod(propertyName.publicName())) {
-        SymbolLoader::instance().ensureFramework(method->topLevelModule()->getName());
+        SymbolLoader::instance().ensureModule(method->topLevelModule());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         ObjCMethodCall* call = ObjCMethodCall::create(execState->vm(), globalObject, globalObject->objCMethodCallStructure(), method);
