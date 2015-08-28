@@ -37,6 +37,10 @@ public:
         return this->_size;
     }
 
+    PointerInstance* pointer() const {
+        return this->_pointer.get();
+    }
+
 private:
     RecordInstance(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {

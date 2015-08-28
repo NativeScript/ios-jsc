@@ -43,6 +43,10 @@ public:
         return this->_pointer ? this->_pointer->data() : nullptr;
     }
 
+    PointerInstance* pointer() const {
+        return this->_pointer.get();
+    }
+
     JSC::JSCell* innerType() const {
         return this->_innerTypeCell.get();
     }
