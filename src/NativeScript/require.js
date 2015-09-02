@@ -55,7 +55,9 @@
             return pathCache.get(requestedPath);
         }
 
-        if (fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
+        var absoluteFilePath = nsstr(absolutePath).stringByAppendingPathExtension("js");
+        if (!fileManager.fileExistsAtPathIsDirectory(absoluteFilePath, isDirectory) &&
+            fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
             if (!isDirectory.value) {
                 throw new ModuleError(`Expected '${absolutePath}' to be a directory`);
             }
@@ -85,7 +87,7 @@
 
             absolutePath = nsstr(absolutePath).stringByAppendingPathComponent(mainFileName);
         } else {
-            absolutePath = nsstr(absolutePath).stringByAppendingPathExtension("js");
+            absolutePath = absoluteFilePath;
         }
         absolutePath = nsstr(absolutePath).stringByStandardizingPath;
 
