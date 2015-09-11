@@ -48,7 +48,7 @@ using namespace JSC;
     return toObject(self->_execState, self->_object.get()->get(self->_execState, index));
 }
 
-- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id [])buffer count:(NSUInteger)len {
+- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState*)state objects:(id[])buffer count:(NSUInteger)len {
     if (state->state == 0) { // uninitialized
         state->state = 1;
         state->mutationsPtr = reinterpret_cast<unsigned long*>(self);

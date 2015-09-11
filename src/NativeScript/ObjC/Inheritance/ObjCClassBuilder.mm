@@ -49,7 +49,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
     __block Class blockKlass = newKlass;
     IMP allocWithZone = findNotOverridenMethod(metaClass, @selector(allocWithZone:));
-    IMP newAllocWithZone = imp_implementationWithBlock (^(id self, NSZone * nsZone) {
+    IMP newAllocWithZone = imp_implementationWithBlock(^(id self, NSZone* nsZone) {
         id instance = allocWithZone(self, @selector(allocWithZone:), nsZone);
         VM& vm = globalObject->vm();
         JSLockHolder lockHolder(vm);
@@ -68,7 +68,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
 
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
-    IMP newRetain = imp_implementationWithBlock (^(id self) {
+    IMP newRetain = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 1) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 if (JSObject* object = wrapper.value) {
@@ -83,7 +83,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     class_addMethod(newKlass, @selector(retain), newRetain, "@@:");
 
     void (*release)(id, SEL) = (void (*)(id, SEL))findNotOverridenMethod(newKlass, @selector(release));
-    IMP newRelease = imp_implementationWithBlock (^(id self) {
+    IMP newRelease = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 2) {
             if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
                 if (JSObject* object = wrapper.value) {

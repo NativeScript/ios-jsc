@@ -22,7 +22,7 @@ using namespace JSC;
 #pragma mark objCInstancetype
 static JSValue objCInstancetype_read(ExecState* execState, const void* buffer, JSCell* self) {
     id value = *static_cast<const id*>(buffer);
-    
+
     Structure* structure;
 
     if (ObjCConstructorBase* constructor = jsDynamicCast<ObjCConstructorBase*>(execState->thisValue())) {

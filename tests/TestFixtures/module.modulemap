@@ -1,4 +1,4 @@
-module TNSTests {
+module NativeScriptTests {
   umbrella header "TestFixtures.h"
   export *
   module * { export * }

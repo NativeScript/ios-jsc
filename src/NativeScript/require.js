@@ -91,24 +91,24 @@
         }
         absolutePath = nsstr(absolutePath).stringByStandardizingPath;
 
-        if (fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
-            if (isDirectory.value) {
-                throw new ModuleError(`Expected '${absolutePath}' to be a file`);
-            }
-
-            //console.debug('FIND_MODULE:', moduleIdentifier, absolutePath);
-
-            var moduleMetadata = {
-                name: nsstr(moduleIdentifier).lastPathComponent,
-                path: absolutePath,
-                bundlePath: absolutePath.substr(applicationPath.length)
-            };
-
-            pathCache.set(requestedPath, moduleMetadata);
-            return moduleMetadata;
-        } else {
+        if (!fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
             throw new ModuleError(`Failed to find module '${moduleIdentifier}' relative to '${previousPath}'. Computed path: ${absolutePath}`);
         }
+
+        if (isDirectory.value) {
+            throw new ModuleError(`Expected '${absolutePath}' to be a file`);
+        }
+
+        //console.debug('FIND_MODULE:', moduleIdentifier, absolutePath);
+
+        var moduleMetadata = {
+            name: nsstr(moduleIdentifier).lastPathComponent,
+            path: absolutePath,
+            bundlePath: absolutePath.substr(applicationPath.length)
+        };
+
+        pathCache.set(requestedPath, moduleMetadata);
+        return moduleMetadata;
     }
 
     function __executeModule(moduleMetadata, module) {

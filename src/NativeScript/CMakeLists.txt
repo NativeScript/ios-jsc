@@ -8,13 +8,13 @@ set(HEADER_FILES
     Calling/FFIFunctionCallback.h
     ConsoleMethodOverrides.h
     GlobalObject.h
-    inspector/SourceProviderManager.h
     inspector/CachedResource.h
     inspector/GlobalObjectDebuggerAgent.h
     inspector/GlobalObjectInspectorController.h
-    inspector/InspectorTimelineAgent.h
     inspector/InspectorPageAgent.h
+    inspector/InspectorTimelineAgent.h
     inspector/MimeTypeHelper.h
+    inspector/SourceProviderManager.h
     Interop.h
     JSErrors.h
     JSWarnings.h
@@ -42,6 +42,7 @@ set(HEADER_FILES
     Marshalling/Reference/ReferenceTypeInstance.h
     Metadata/Metadata.h
     NativeScript.h
+    ObjC/AllocatedPlaceholder.h
     ObjC/Block/ObjCBlockCall.h
     ObjC/Block/ObjCBlockCallback.h
     ObjC/Block/ObjCBlockType.h
@@ -50,12 +51,12 @@ set(HEADER_FILES
     ObjC/Constructor/ObjCConstructorCall.h
     ObjC/Constructor/ObjCConstructorDerived.h
     ObjC/Constructor/ObjCConstructorNative.h
-    ObjC/Inheritance/ObjCClassBuilder.h
-    ObjC/Inheritance/ObjCExtend.h
-    ObjC/Inheritance/ObjCTypeScriptExtend.h
     ObjC/Enumeration/ObjCFastEnumerationIterator.h
     ObjC/Enumeration/ObjCFastEnumerationIteratorPrototype.h
     ObjC/Enumeration/TNSFastEnumerationAdapter.h
+    ObjC/Inheritance/ObjCClassBuilder.h
+    ObjC/Inheritance/ObjCExtend.h
+    ObjC/Inheritance/ObjCTypeScriptExtend.h
     ObjC/ObjCMethodCall.h
     ObjC/ObjCMethodCallback.h
     ObjC/ObjCPrimitiveTypes.h
@@ -65,9 +66,8 @@ set(HEADER_FILES
     ObjC/ObjCTypes.h
     ObjC/ObjCWrapperObject.h
     ObjC/TNSArrayAdapter.h
-    ObjC/TNSDictionaryAdapter.h
     ObjC/TNSDataAdapter.h
-    ObjC/AllocatedPlaceholder.h
+    ObjC/TNSDictionaryAdapter.h
     Runtime/JSWeakRefConstructor.h
     Runtime/JSWeakRefInstance.h
     Runtime/JSWeakRefPrototype.h
@@ -88,12 +88,12 @@ set(SOURCE_FILES
     Calling/FFIFunctionCallback.cpp
     ConsoleMethodOverrides.cpp
     GlobalObject.mm
-    inspector/GlobalObjectDebuggerAgent.cpp
-    inspector/SourceProviderManager.cpp
-    inspector/GlobalObjectInspectorController.cpp
-    inspector/InspectorTimelineAgent.cpp
-    inspector/InspectorPageAgent.mm
     inspector/CachedResource.mm
+    inspector/GlobalObjectDebuggerAgent.cpp
+    inspector/GlobalObjectInspectorController.cpp
+    inspector/InspectorPageAgent.mm
+    inspector/InspectorTimelineAgent.cpp
+    inspector/SourceProviderManager.cpp
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp
@@ -119,6 +119,7 @@ set(SOURCE_FILES
     Marshalling/Reference/ReferenceTypeConstructor.cpp
     Marshalling/Reference/ReferenceTypeInstance.cpp
     Metadata/Metadata.mm
+    ObjC/AllocatedPlaceholder.cpp
     ObjC/Block/ObjCBlockCall.mm
     ObjC/Block/ObjCBlockCallback.cpp
     ObjC/Block/ObjCBlockType.mm
@@ -127,12 +128,12 @@ set(SOURCE_FILES
     ObjC/Constructor/ObjCConstructorCall.mm
     ObjC/Constructor/ObjCConstructorDerived.cpp
     ObjC/Constructor/ObjCConstructorNative.mm
-    ObjC/Inheritance/ObjCClassBuilder.mm
-    ObjC/Inheritance/ObjCExtend.mm
-    ObjC/Inheritance/ObjCTypeScriptExtend.mm
     ObjC/Enumeration/ObjCFastEnumerationIterator.mm
     ObjC/Enumeration/ObjCFastEnumerationIteratorPrototype.mm
     ObjC/Enumeration/TNSFastEnumerationAdapter.mm
+    ObjC/Inheritance/ObjCClassBuilder.mm
+    ObjC/Inheritance/ObjCExtend.mm
+    ObjC/Inheritance/ObjCTypeScriptExtend.mm
     ObjC/ObjCMethodCall.mm
     ObjC/ObjCMethodCallback.mm
     ObjC/ObjCPrimitiveTypes.mm
@@ -142,9 +143,8 @@ set(SOURCE_FILES
     ObjC/ObjCTypes.mm
     ObjC/ObjCWrapperObject.mm
     ObjC/TNSArrayAdapter.mm
-    ObjC/TNSDictionaryAdapter.mm
     ObjC/TNSDataAdapter.mm
-    ObjC/AllocatedPlaceholder.cpp
+    ObjC/TNSDictionaryAdapter.mm
     Runtime/JSWeakRefConstructor.cpp
     Runtime/JSWeakRefInstance.cpp
     Runtime/JSWeakRefPrototype.cpp
@@ -158,18 +158,14 @@ set(SOURCE_FILES
 
 set(NativeScript_PUBLIC_HEADERS
     NativeScript.h
-    TNSRuntime.h
     TNSRuntime+Inspector.h
+    TNSRuntime.h
 )
 
 set(JSFILES
-    require.js
     __extends.js
     inlineFunctions.js
-)
-
-add_definitions(
-    -DCURRENT_ARCH="$(CURRENT_ARCH)"
+    require.js
 )
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_DIR}/include" "${WEBKIT_INCLUDE_DIRECTORIES}")
