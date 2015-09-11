@@ -22,6 +22,9 @@ using namespace JSC;
 #pragma mark objCInstancetype
 static JSValue objCInstancetype_read(ExecState* execState, const void* buffer, JSCell* self) {
     id value = *static_cast<const id*>(buffer);
+    if (value == nil) {
+        return jsNull();
+    }
 
     Structure* structure;
 
@@ -61,6 +64,10 @@ const FFITypeMethodTable objCInstancetypeTypeMethodTable = {
 #pragma mark objCProtocol
 static JSValue objCProtocol_read(ExecState* execState, const void* buffer, JSCell* self) {
     Protocol* aProtocol = *static_cast<Protocol* const*>(buffer);
+    if (aProtocol == nil) {
+        return jsNull();
+    }
+
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ObjCProtocolWrapper* protocolWrapper = globalObject->protocolWrapperFor(aProtocol);
     return protocolWrapper;
