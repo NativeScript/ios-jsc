@@ -355,13 +355,20 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     CString protocolName = protocol_getName(aProtocol);
     const Meta* meta = MetaFile::instance()->globalTable()->findMeta(protocolName.data());
     if (meta && meta->type() != MetaType::ProtocolType) {
-        protocolName = WTF::String::format("%sProtocol", protocolName.data()).utf8();
-        meta = MetaFile::instance()->globalTable()->findMeta(protocolName.data());
+        WTF::String newProtocolname = WTF::String::format("%sProtocol", protocolName.data());
+
+        size_t protocolIndex = 2;
+        while (objc_getProtocol(newProtocolname.utf8().data())) {
+            newProtocolname = WTF::String::format("%sProtocol%d", protocolName.data(), protocolIndex++);
+        }
+
+        meta = MetaFile::instance()->globalTable()->findMeta(newProtocolname.utf8().data());
     }
+    ASSERT(meta && meta->type() == MetaType::ProtocolType);
 
     ObjCProtocolWrapper* protocolWrapper = ObjCProtocolWrapper::create(this->vm(), ObjCProtocolWrapper::createStructure(this->vm(), this, this->objectPrototype()), static_cast<const ProtocolMeta*>(meta), aProtocol);
-    this->_objCProtocolWrappers.insert(std::pair<const Protocol*, Strong<ObjCProtocolWrapper>>(aProtocol, Strong<ObjCProtocolWrapper>(this->vm(), protocolWrapper)));
-    this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), protocolName.data()), protocolWrapper, DontDelete | ReadOnly);
+    this->_objCProtocolWrappers.insert({ aProtocol, Strong<ObjCProtocolWrapper>(this->vm(), protocolWrapper) });
+    this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, DontDelete | ReadOnly);
 
     return protocolWrapper;
 }
