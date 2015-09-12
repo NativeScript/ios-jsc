@@ -14,6 +14,7 @@
 		858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 858B833A18CA111C00AB12DE /* InfoPlist.strings */; };
 		CD1343101AF8E03800D3B65B /* libNativeScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD13430F1AF8E03800D3B65B /* libNativeScript.a */; };
 		CD45EE7C18DC2D5800FB50C0 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CD45EE7A18DC2D5800FB50C0 /* app */; };
+		CDF4743F1BA4855C0087EA85 /* build.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CDF4743E1BA4855C0087EA85 /* build.xcconfig */; settings = {ASSET_TAGS = (); }; };
 		F9161D911993C00300F9E5FD /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9161D901993C00300F9E5FD /* libc++.dylib */; };
 		F9161D931993C00B00F9E5FD /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9161D921993C00B00F9E5FD /* libz.dylib */; };
 		F9161D951993C01600F9E5FD /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F9161D941993C01600F9E5FD /* libicucore.dylib */; };
@@ -45,6 +46,7 @@
 		858B843318CA22B800AB12DE /* __PROJECT_NAME__.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = __PROJECT_NAME__.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD13430F1AF8E03800D3B65B /* libNativeScript.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libNativeScript.a; path = "../../dist/package 2/framework/NativeScript/lib/libNativeScript.a"; sourceTree = "<group>"; };
 		CD45EE7A18DC2D5800FB50C0 /* app */ = {isa = PBXFileReference; lastKnownFileType = folder; path = app; sourceTree = "<group>"; };
+		CDF4743E1BA4855C0087EA85 /* build.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = build.xcconfig; sourceTree = "<group>"; };
 		F9161D901993C00300F9E5FD /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
 		F9161D921993C00B00F9E5FD /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		F9161D941993C01600F9E5FD /* libicucore.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libicucore.dylib; path = usr/lib/libicucore.dylib; sourceTree = SDKROOT; };
@@ -115,6 +117,7 @@
 		858B833818CA111C00AB12DE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				CDF4743E1BA4855C0087EA85 /* build.xcconfig */,
 				858B833918CA111C00AB12DE /* __PROJECT_NAME__-Info.plist */,
 				858B833A18CA111C00AB12DE /* InfoPlist.strings */,
 				858B833D18CA111C00AB12DE /* main.m */,
@@ -185,6 +188,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDF4743F1BA4855C0087EA85 /* build.xcconfig in Resources */,
 				CD45EE7C18DC2D5800FB50C0 /* app in Resources */,
 				858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */,
 			);
@@ -332,6 +336,7 @@
 		};
 		858B843118CA22B800AB12DE /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CDF4743E1BA4855C0087EA85 /* build.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = NO;
@@ -374,6 +379,7 @@
 		};
 		858B843218CA22B800AB12DE /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CDF4743E1BA4855C0087EA85 /* build.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = NO;
