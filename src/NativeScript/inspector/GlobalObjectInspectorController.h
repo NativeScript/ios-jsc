@@ -28,6 +28,7 @@
 
 #include <JavaScriptCore/InspectorAgentRegistry.h>
 #include <JavaScriptCore/InspectorEnvironment.h>
+#include <JavaScriptCore/InspectorFrontendRouter.h>
 #include <wtf/Forward.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/text/WTFString.h>
@@ -80,7 +81,8 @@ public:
     ~GlobalObjectInspectorController();
 
     void connectFrontend(Inspector::FrontendChannel*, bool isAutomaticInspection);
-    void disconnectFrontend(Inspector::DisconnectReason);
+    void disconnectFrontend(Inspector::FrontendChannel*);
+    void disconnectAllFrontends();
     void dispatchMessageFromFrontend(const String&);
 
     void globalObjectDestroyed();
@@ -113,29 +115,36 @@ public:
     virtual Inspector::AugmentableInspectorControllerClient* augmentableInspectorControllerClient() const override { return m_augmentingClient; }
     virtual void setAugmentableInspectorControllerClient(Inspector::AugmentableInspectorControllerClient* client) override { m_augmentingClient = client; }
 
-    virtual Inspector::FrontendChannel* frontendChannel() const override { return m_frontendChannel; }
+    virtual const Inspector::FrontendRouter& frontendRouter() const override { return m_frontendRouter.get(); }
+    virtual Inspector::BackendDispatcher& backendDispatcher() override { return m_backendDispatcher.get(); }
+
     virtual void appendExtraAgent(std::unique_ptr<Inspector::InspectorAgentBase>) override;
 #endif
 
 private:
     void appendAPIBacktrace(Inspector::ScriptCallStack* callStack);
 
-    GlobalObject& m_globalObject;
     std::unique_ptr<Inspector::InjectedScriptManager> m_injectedScriptManager;
     std::unique_ptr<JSC::ConsoleClient> m_consoleClient;
-    Inspector::InspectorAgent* m_inspectorAgent;
-    Inspector::InspectorConsoleAgent* m_consoleAgent;
-    Inspector::InspectorDebuggerAgent* m_debuggerAgent;
-    Inspector::InspectorTimelineAgent* m_timelineAgent;
-    Inspector::AgentRegistry m_agents;
-    Inspector::FrontendChannel* m_frontendChannel;
-    RefPtr<Inspector::BackendDispatcher> m_backendDispatcher;
     Ref<WTF::Stopwatch> m_executionStopwatch;
-    bool m_includeNativeCallStackWithExceptions;
-    bool m_isAutomaticInspection;
+    Inspector::AgentRegistry m_agents;
+    Inspector::InspectorAgent* m_inspectorAgent { nullptr };
+    Inspector::InspectorConsoleAgent* m_consoleAgent { nullptr };
+    Inspector::InspectorDebuggerAgent* m_debuggerAgent { nullptr };
+    Inspector::InspectorTimelineAgent* m_timelineAgent { nullptr };
 
+    Ref<Inspector::FrontendRouter> m_frontendRouter;
+    Ref<Inspector::BackendDispatcher> m_backendDispatcher;
+
+    bool m_includeNativeCallStackWithExceptions { false };
+    bool m_isAutomaticInspection { false };
+          
+#if ENABLE(REMOTE_INSPECTOR)
+    JSC::JSGlobalObject& m_globalObject;
+#endif
+          
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-    Inspector::AugmentableInspectorControllerClient* m_augmentingClient;
+    Inspector::AugmentableInspectorControllerClient* m_augmentingClient { nullptr };
 #endif
 };
 

@@ -38,7 +38,7 @@ class GlobalObjectDebuggerAgent final : public Inspector::InspectorDebuggerAgent
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    GlobalObjectDebuggerAgent(Inspector::InjectedScriptManager*, JSC::JSGlobalObject&, Inspector::InspectorConsoleAgent*);
+    GlobalObjectDebuggerAgent(Inspector::JSAgentContext&, Inspector::InspectorConsoleAgent*);
     virtual ~GlobalObjectDebuggerAgent() {}
 
     virtual Inspector::JSGlobalObjectScriptDebugServer& scriptDebugServer() override { return m_scriptDebugServer; }
@@ -57,8 +57,8 @@ public:
 
 private:
     Inspector::JSGlobalObjectScriptDebugServer m_scriptDebugServer;
-    Inspector::InspectorConsoleAgent* m_consoleAgent;
-    NativeScript::GlobalObject* m_globalObject;
+    Inspector::InspectorConsoleAgent* m_consoleAgent { nullptr };
+    NativeScript::GlobalObject* m_globalObject { nullptr };
 };
 
 } // namespace Inspector

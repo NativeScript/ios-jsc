@@ -52,9 +52,9 @@ static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToNumber(ExecState* execStat
 void PointerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->add, 1, pointerProtoFuncAdd, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "subtract"), 1, pointerProtoFuncSubtract, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, pointerProtoFuncToString, NoIntrinsic, DontEnum | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "toNumber"), 0, pointerProtoFuncToNumber, NoIntrinsic, DontDelete | ReadOnly | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->add, 1, pointerProtoFuncAdd, NoIntrinsic, DontDelete | ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "subtract"), 1, pointerProtoFuncSubtract, NoIntrinsic, DontDelete | ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, pointerProtoFuncToString, NoIntrinsic, DontEnum);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "toNumber"), 0, pointerProtoFuncToNumber, NoIntrinsic, DontDelete | ReadOnly);
 }
 }

@@ -29,6 +29,8 @@ public:
         : _messageHandler(Block_copy(handler)) {
     }
 
+    virtual ConnectionType connectionType() const override { return ConnectionType::Local; };
+    
     virtual bool sendMessageToFrontend(const WTF::String& message) override {
         WTF::RetainPtr<CFStringRef> cfMessage = message.createCFString();
         this->_messageHandler([NSString stringWithString:(NSString*)cfMessage.get()]);
@@ -107,7 +109,7 @@ private:
 }
 
 - (void)dealloc {
-    self->_inspectorController->disconnectFrontend(Inspector::DisconnectReason::InspectorDestroyed);
+    self->_inspectorController->disconnectFrontend(_frontendChannel.get());
     [self->_runtime release];
     [super dealloc];
 }

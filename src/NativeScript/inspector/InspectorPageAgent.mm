@@ -9,16 +9,16 @@
 #include <vector>
 
 namespace Inspector {
-InspectorPageAgent::InspectorPageAgent(NativeScript::GlobalObject& globalObject)
+InspectorPageAgent::InspectorPageAgent(JSAgentContext& context)
     : Inspector::InspectorAgentBase(WTF::ASCIILiteral("Page"))
     , m_frameIdentifier("NativeScriptMainFrameIdentifier")
     , m_frameUrl("http://main.xml")
-    , m_globalObject(globalObject) {
+    , m_globalObject(JSC::jsCast<NativeScript::GlobalObject>(context.inspectedGlobalObject)) {
 }
 
-void InspectorPageAgent::didCreateFrontendAndBackend(FrontendChannel* frontendChannel, BackendDispatcher* backendDispatcher) {
-    m_frontendDispatcher = std::make_unique<PageFrontendDispatcher>(frontendChannel);
-    m_backendDispatcher = PageBackendDispatcher::create(backendDispatcher, this);
+void InspectorPageAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {
+    m_frontendDispatcher = std::make_unique<PageFrontendDispatcher>(*frontendRouter);
+    m_backendDispatcher = PageBackendDispatcher::create(*backendDispatcher, this);
 }
 
 void InspectorPageAgent::willDestroyFrontendAndBackend(DisconnectReason) {

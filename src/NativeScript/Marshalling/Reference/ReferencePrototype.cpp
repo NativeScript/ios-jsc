@@ -39,7 +39,7 @@ static EncodedJSValue JSC_HOST_CALL referenceProtoFuncToString(ExecState* execSt
 void ReferencePrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, referenceProtoFuncToString, NoIntrinsic, DontEnum | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, referenceProtoFuncToString, NoIntrinsic, DontEnum);
 
     PropertyDescriptor descriptor;
     descriptor.setEnumerable(true);

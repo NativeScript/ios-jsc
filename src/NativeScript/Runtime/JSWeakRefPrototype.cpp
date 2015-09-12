@@ -20,8 +20,8 @@ const ClassInfo JSWeakRefPrototype::s_info = { "WeakRef", &Base::s_info, 0, CREA
 void JSWeakRefPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->get, 0, weakRefProtoFuncGet, NoIntrinsic, DontEnum | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->clear, 0, weakRefProtoFuncClear, NoIntrinsic, DontEnum | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->get, 0, weakRefProtoFuncGet, NoIntrinsic, DontEnum);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->clear, 0, weakRefProtoFuncClear, NoIntrinsic, DontEnum);
 }
 
 static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncGet(ExecState* execState) {

@@ -13,12 +13,12 @@ namespace NativeScript {
 
 struct WeakImplHashTraits {
     static unsigned hash(JSC::WeakImpl* key) {
-        JSC::JSCell* cell = ((JSC::WeakImpl*)key)->jsValue().asCell();
+        JSC::JSCell* cell = key->cell();
         return WTF::DefaultHash<JSC::JSCell*>::Hash::hash(cell);
     }
     static bool equal(JSC::WeakImpl* a, JSC::WeakImpl* b) {
-        JSC::JSCell* cell1 = ((JSC::WeakImpl*)a)->jsValue().asCell();
-        JSC::JSCell* cell2 = ((JSC::WeakImpl*)b)->jsValue().asCell();
+        JSC::JSCell* cell1 = a->cell();
+        JSC::JSCell* cell2 = b->cell();
         return cell1 == cell2;
     }
     static const bool safeToCompareToEmptyOrDeleted = false;
@@ -78,8 +78,8 @@ public:
         : m_map(referenceTypesMap) {
     }
 
-    virtual void finalize(JSC::Handle<JSC::Unknown> handle, void* context) {
-        JSC::WeakImpl* weakValue = JSC::WeakImpl::asWeakImpl(handle.slot());
+    virtual void finalize(JSC::JSCell*& cell, void* context) override {
+        JSC::WeakImpl* weakValue = JSC::WeakImpl::asWeakImpl(&cell);
         m_map.remove(weakValue);
         JSC::WeakSet::deallocate(weakValue);
     }

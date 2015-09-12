@@ -42,22 +42,22 @@ ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, const Typ
 
 ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<JSCell*> parametersTypes) {
     WTF::Vector<JSC::WeakImpl*> weakParametersTypes;
-    weakParametersTypes.append(WeakSet::allocate(JSValue(returnType))); // add return value
+    weakParametersTypes.append(WeakSet::allocate(*returnType)); // add return value
     for (size_t i = 0; i < parametersTypes.size(); i++) {
-        weakParametersTypes.append(WeakSet::allocate(JSValue(parametersTypes[i])));
+        weakParametersTypes.append(WeakSet::allocate(*parametersTypes[i]));
     }
 
     if (this->_cacheObjCBlockType.contains(weakParametersTypes)) {
         WeakImpl* value = this->_cacheObjCBlockType.get(weakParametersTypes);
         if (value->state() == WeakImpl::State::Live) {
-            return static_cast<ObjCBlockType*>(value->jsValue().asCell());
+            return static_cast<ObjCBlockType*>(value->cell());
         } else {
             this->_cacheObjCBlockType.remove(weakParametersTypes);
         }
     }
 
     ObjCBlockType* result = ObjCBlockType::create(globalObject->vm(), this->_objCBlockTypeStructure.get(), returnType, parametersTypes);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    WeakImpl* resultWeak = WeakSet::allocate(*result);
     this->_cacheObjCBlockType.add(weakParametersTypes, resultWeak);
     return result;
 }
@@ -71,22 +71,22 @@ JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, cons
 
 FunctionReferenceTypeInstance* TypeFactory::getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<JSCell*> parametersTypes) {
     WTF::Vector<JSC::WeakImpl*> weakParametersTypes;
-    weakParametersTypes.append(WeakSet::allocate(JSValue(returnType))); // add return value
+    weakParametersTypes.append(WeakSet::allocate(*returnType)); // add return value
     for (size_t i = 0; i < parametersTypes.size(); i++) {
-        weakParametersTypes.append(WeakSet::allocate(JSValue(parametersTypes[i])));
+        weakParametersTypes.append(WeakSet::allocate(*parametersTypes[i]));
     }
 
     if (this->_cacheFunctionReferenceType.contains(weakParametersTypes)) {
         WeakImpl* value = this->_cacheFunctionReferenceType.get(weakParametersTypes);
         if (value->state() == WeakImpl::State::Live) {
-            return jsDynamicCast<FunctionReferenceTypeInstance*>(value->jsValue().asCell());
+            return jsDynamicCast<FunctionReferenceTypeInstance*>(value->cell());
         } else {
             this->_cacheFunctionReferenceType.remove(weakParametersTypes);
         }
     }
 
     FunctionReferenceTypeInstance* result = FunctionReferenceTypeInstance::create(globalObject->vm(), this->_functionReferenceTypeStructure.get(), returnType, parametersTypes);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    WeakImpl* resultWeak = WeakSet::allocate(*result);
     this->_cacheFunctionReferenceType.add(weakParametersTypes, resultWeak);
     return result;
 }
@@ -301,18 +301,18 @@ ObjCConstructorNative* TypeFactory::NSObjectConstructor(GlobalObject* globalObje
 }
 
 ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
-    WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
+    WeakImpl* innerWeak = WeakSet::allocate(*innerType);
     if (this->_cacheReferenceType.contains(innerWeak)) {
         WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
         if (value->state() == WeakImpl::State::Live) {
-            return static_cast<ReferenceTypeInstance*>(value->jsValue().asCell());
+            return static_cast<ReferenceTypeInstance*>(value->cell());
         } else {
             this->_cacheReferenceType.remove(innerWeak);
         }
     }
 
     ReferenceTypeInstance* result = ReferenceTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    WeakImpl* resultWeak = WeakSet::allocate(*result);
     this->_cacheReferenceType.add(innerWeak, resultWeak);
     return result;
 }
