@@ -23,7 +23,7 @@ WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResourc
 CachedResource::CachedResource() {}
 
 CachedResource::CachedResource(WTF::String bundlePath, WTF::String filePath)
-    : m_filePath(filePath)
+    : m_filePath([filePath stringByResolvingSymlinksInPath])
     , m_bundlePath(bundlePath)
     , m_content(WTF::emptyString()) {
     m_mimeType = WTF::String(NativeScript::mimeTypeByExtension([filePath pathExtension]));
