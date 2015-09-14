@@ -15,7 +15,7 @@ describe(module.id, function() {
     });
 
     it("Struct-Var", function() {
-        expect(new TNSStructVarConflict({ x: 3 }).x).toBe(3);
-        expect(TNSStructVarConflictVar).toBe(42);
+        expect(new TNSStructVarConflictStruct({ x: 3 }).x).toBe(3);
+        expect(TNSStructVarConflict).toBe(42);
     });
 });
