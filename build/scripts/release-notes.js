@@ -25,33 +25,11 @@ var issuesRequest = {
     }
 };
 
-var username, password;
-var milestones = {};
+var username = process.argv[2], 
+    password = process.argv[3],
+    milestones = {};
 
-getCredentials();
-
-function getCredentials() {
-
-    var rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    rl.on('SIGINT', function() {
-        // Ctrl-C
-        console.log("Canceled.");
-        process.exit(1);
-    });
-
-    rl.question("Username: ", function(usr) {
-        rl.close();
-        username = usr;
-        getPassword(function(pass) {
-            password = pass;
-            listMilestones();
-        });
-    })
-};
+listMilestones();
 
 function listMilestones() {
 
@@ -154,9 +132,7 @@ function createReleaseNotes(milestone) {
                 md += " - [" + i.title + " (#" + i.number + ")](" + i.html_url + ")\r\n";
             }
 
-            var currentLog = fs.readFileSync("../../CHANGELOG.md");
-            var newLog = md + currentLog;
-            fs.writeFileSync("../../CHANGELOG.md", newLog);
+            process.stdout.write(md);
         }
 
     }));
@@ -209,53 +185,3 @@ function gitHubResponse(f) {
         });
     }
 }
-
-function getPassword(callback) {
-    process.stdout.write("Password: ");
-
-    var stdin = process.stdin;
-    stdin.resume();
-    stdin.setRawMode(true);
-    stdin.resume();
-    stdin.setEncoding('utf8');
-
-    var password = '';
-    stdin.on('data', onStdinData);
-
-    function onStdinData(ch) {
-        ch = ch + "";
-
-        switch (ch) {
-        case "\n":
-        case "\r":
-        case "\u0004":
-            // They've finished typing their password
-            process.stdout.write('\n');
-            stdin.setRawMode(false);
-            stdin.pause();
-            callback(password);
-            stdin.removeListener('data', onStdinData);
-            break;
-        case "\u0003":
-            // Ctrl-C
-            console.log("Canceled.");
-            process.exit(1);
-            break;
-        case "\u007F":
-            // Backspace
-            if (password.length > 0) {
-                password = password.substring(0, password.length - 1);
-                process.stdout.write('*\033[<1>D');
-            } else {
-                process.stdout.write(' \033[<1>D');
-            }
-            break;
-        default:
-            // More passsword characters
-            process.stdout.write('*\033[<1>D');
-            password += ch;
-            break;
-        }
-    }
-}
-
