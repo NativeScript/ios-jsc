@@ -9,6 +9,8 @@ set(HEADER_FILES
     Calling/FFIFunctionCallback.h
     GlobalObject.h
     inspector/CachedResource.h
+    inspector/DomainBackendDispatcher.h
+    inspector/DomainInspectorAgent.h
     inspector/GlobalObjectConsoleClient.h
     inspector/GlobalObjectDebuggerAgent.h
     inspector/GlobalObjectInspectorController.h
@@ -90,6 +92,8 @@ set(SOURCE_FILES
     Calling/FFIFunctionCallback.cpp
     GlobalObject.mm
     inspector/CachedResource.mm
+    inspector/DomainBackendDispatcher.cpp
+    inspector/DomainInspectorAgent.cpp
     inspector/GlobalObjectConsoleClient.cpp
     inspector/GlobalObjectDebuggerAgent.cpp
     inspector/GlobalObjectInspectorController.cpp
