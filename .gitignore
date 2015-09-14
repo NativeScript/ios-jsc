@@ -36,12 +36,8 @@ node_modules/
 /cmake-build
 /build.log
 /dist/
-/lib/
 /junit-result.xml
 /build-stats.csv
 
 # CLion
 .idea
-
-# Package Base Project
-/build/project-template/__PROJECT_NAME__.xcodeproj/project.xcworkspace
