@@ -86,7 +86,7 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
                 Exception* exception = execState->exception();
                 execState->clearException();
                 memset(retValue, 0, methodCallback->_returnType.ffiType->size);
-                NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:@{ @"TNSJavaScriptError": NativeScript::toObject(execState, exception->value()) }];
+                NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:@{ @"TNSJavaScriptError" : NativeScript::toObject(execState, exception->value()) }];
 
                 NSError**** outErrorPtr = reinterpret_cast<NSError****>(argValues + (methodCallback->parametersCount() + methodCallback->_initialArgumentIndex - 1));
                 if (**outErrorPtr) {

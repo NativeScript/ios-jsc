@@ -21,12 +21,12 @@ int main(int argc, char *argv[]) {
     TNSRuntimeInspector.logsToSystemConsole = YES;
 
     NSError *error = nil;
-    NSString *script = [NSString stringWithContentsOfFile:
-                            [[NSBundle mainBundle] pathForResource:@"bootstrap"
-                                                            ofType:@"js"
-                                                       inDirectory:@"app"]
-                                                 encoding:NSUTF8StringEncoding
-                                                    error:&error];
+    NSString *script = [NSString
+        stringWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"index"
+                                                                 ofType:@"js"
+                                                            inDirectory:@"app"]
+                        encoding:NSUTF8StringEncoding
+                           error:&error];
 
     if (error) {
       NSLog(@"%@", error.localizedDescription);
@@ -36,8 +36,7 @@ int main(int argc, char *argv[]) {
     JSValueRef errorRef = NULL;
 
     JSStringRef scriptRef = JSStringCreateWithUTF8CString(script.UTF8String);
-    JSStringRef sourceURLRef =
-        JSStringCreateWithUTF8CString("app/bootstrap.js");
+    JSStringRef sourceURLRef = JSStringCreateWithUTF8CString("app/index.js");
     JSObjectRef globalObjectRef =
         JSContextGetGlobalObject(runtime.globalContext);
     JSEvaluateScript(runtime.globalContext, scriptRef, globalObjectRef,

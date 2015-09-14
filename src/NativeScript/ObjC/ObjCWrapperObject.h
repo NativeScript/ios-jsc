@@ -1,6 +1,6 @@
 //
 //  ObjCWrapperObject.h
-//  WrapperObject
+//  NativeScript
 //
 //  Created by Yavor Georgiev on 17.07.14.
 //  Copyright (c) 2014 г. Telerik. All rights reserved.

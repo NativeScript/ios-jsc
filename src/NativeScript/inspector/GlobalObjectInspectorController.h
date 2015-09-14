@@ -69,7 +69,7 @@ class GlobalObjectInspectorController final
       ,
       public Inspector::AugmentableInspectorController
 #endif
-{
+      {
     WTF_MAKE_NONCOPYABLE(GlobalObjectInspectorController);
     WTF_MAKE_FAST_ALLOCATED;
 

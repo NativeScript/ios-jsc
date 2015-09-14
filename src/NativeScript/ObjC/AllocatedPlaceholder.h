@@ -3,7 +3,7 @@
 //  NativeScript
 //
 //  Created by Ivan Buhov on 7/9/15.
-//
+//  Copyright (c) 2015 Telerik. All rights reserved.
 //
 
 #ifndef __NativeScript__AllocatedPlaceholder__

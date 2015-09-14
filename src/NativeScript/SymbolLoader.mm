@@ -120,7 +120,7 @@ SymbolResolver* SymbolLoader::resolveModule(const Metadata::ModuleMeta* module) 
                 WTF::dataLogF("NativeScript loaded library %s\n", libraryPath.UTF8String);
                 resolver = std::make_unique<DlSymbolResolver>(library);
             } else if (const char* libraryError = dlerror()) {
-                WTF::dataLogF("NativeScript could not load library%s, error: %s\n", libraryPath.UTF8String, libraryError);
+                WTF::dataLogF("NativeScript could not load library %s, error: %s\n", libraryPath.UTF8String, libraryError);
             }
         }
     }

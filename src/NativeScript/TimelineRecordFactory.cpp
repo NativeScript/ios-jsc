@@ -22,8 +22,7 @@ Ref<InspectorObject> TimelineRecordFactory::createConsoleProfileData(const Strin
     return WTF::move(data);
 }
 
-static Ref<Protocol::Timeline::CPUProfileNodeAggregateCallInfo> buildAggregateCallInfoInspectorObject(const JSC::ProfileNode* node)
-{
+static Ref<Protocol::Timeline::CPUProfileNodeAggregateCallInfo> buildAggregateCallInfoInspectorObject(const JSC::ProfileNode* node) {
     double startTime = node->calls()[0].startTime();
     double endTime = node->calls().last().startTime() + node->calls().last().elapsedTime();
 
@@ -39,12 +38,11 @@ static Ref<Protocol::Timeline::CPUProfileNodeAggregateCallInfo> buildAggregateCa
         .release();
 }
 
-static Ref<Protocol::Timeline::CPUProfileNode> buildInspectorObject(const JSC::ProfileNode* node)
-{
+static Ref<Protocol::Timeline::CPUProfileNode> buildInspectorObject(const JSC::ProfileNode* node) {
     auto result = Protocol::Timeline::CPUProfileNode::create()
-        .setId(node->id())
-        .setCallInfo(buildAggregateCallInfoInspectorObject(node))
-        .release();
+                      .setId(node->id())
+                      .setCallInfo(buildAggregateCallInfoInspectorObject(node))
+                      .release();
 
     if (!node->functionName().isEmpty())
         result->setFunctionName(node->functionName());

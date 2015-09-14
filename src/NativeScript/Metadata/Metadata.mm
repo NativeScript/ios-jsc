@@ -1,5 +1,5 @@
 //
-//  Metadata.cpp
+//  Metadata.mm
 //  NativeScript
 //
 //  Created by Ivan Buhov on 8/1/14.
@@ -13,20 +13,6 @@
 namespace Metadata {
 
 using namespace std;
-
-void* loadFileInMemory(const char* filePath) {
-    const char* path = [[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:[NSString stringWithUTF8String:filePath]] UTF8String];
-    int fd = open(path, O_RDONLY);
-    if (fd == -1) {
-        perror("Could not load metadata file");
-        exit(1);
-    }
-    struct stat fileStat;
-    fstat(fd, &fileStat);
-    void* file = mmap(NULL, (size_t)fileStat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    close(fd);
-    return file;
-}
 
 /**
  * \brief Gets the system version of the current device.
@@ -47,13 +33,13 @@ static UInt8 getSystemVersion() {
     return iosVersion;
 }
 
-bool startsWith(const char* pre, const char* str) {
+static bool startsWith(const char* pre, const char* str) {
     size_t lenpre = strlen(pre),
            lenstr = strlen(str);
     return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
 }
 
-int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated, size_t length) {
+static int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated, size_t length) {
     int result = strncmp(nullTerminated, notNullTerminated, length);
     return (result == 0) ? strlen(nullTerminated) - length : result;
 }

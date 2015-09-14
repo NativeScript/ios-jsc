@@ -16,7 +16,7 @@
 
 namespace Metadata {
 
-static const int MetaTypeMask = 7; // 0000 0111
+static const int MetaTypeMask = 0b00000111;
 
 // Bit indices in flags section
 enum MetaFlags {
@@ -165,7 +165,7 @@ struct Array {
         int left = 0, right = count - 1, mid;
         while (left <= right) {
             mid = (right + left) / 2;
-            const T& current = (*this)[mid]; //this[mid];
+            const T& current = (*this)[mid];
             int comparisonResult = comparer(current);
             if (comparisonResult < 0) {
                 left = mid + 1;
@@ -289,10 +289,10 @@ struct PtrTo {
         return valuePtr();
     }
     PtrTo<T> add(int value) const {
-        return PtrTo<T>{ .offset = this->offset + value * sizeof(T) };
+        return PtrTo<T>{.offset = this->offset + value * sizeof(T) };
     }
     PtrTo<T> addBytes(int bytes) const {
-        return PtrTo<T>{ .offset = this->offset + bytes };
+        return PtrTo<T>{.offset = this->offset + bytes };
     }
     template <typename V>
     PtrTo<V>& castTo() const {
