@@ -11,6 +11,7 @@
 #include <JavaScriptCore/ObjectConstructor.h>
 #include "ObjCConstructorDerived.h"
 #include "ObjCClassBuilder.h"
+#include "JSErrors.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -100,20 +101,10 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
         JSValue exposedMethods = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCExposedMethods"));
 
         classBuilder->implementProtocols(globalExec, implementedProtocols);
-        if (globalExec->hadException()) {
-            Exception* exception = globalExec->exception();
-            globalExec->clearException();
-            jsCast<GlobalObject*>(globalExec->lexicalGlobalObject())->inspectorController().reportAPIException(globalExec, exception);
-            WTFCrash();
-        }
+        reportErrorIfAny(globalExec);
 
         classBuilder->addInstanceMembers(globalExec, instanceMethods, exposedMethods);
-        if (globalExec->hadException()) {
-            Exception* exception = globalExec->exception();
-            globalExec->clearException();
-            jsCast<GlobalObject*>(globalExec->lexicalGlobalObject())->inspectorController().reportAPIException(globalExec, exception);
-            WTFCrash();
-        }
+        reportErrorIfAny(globalExec);
 
         classBuilder.reset();
     });
