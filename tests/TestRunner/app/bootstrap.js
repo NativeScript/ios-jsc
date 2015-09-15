@@ -55,6 +55,7 @@ require('./MetadataTests');
 require('./shared');
 
 require('./ApiTests');
+require('./DeclarationConflicts');
 
 execute();
 

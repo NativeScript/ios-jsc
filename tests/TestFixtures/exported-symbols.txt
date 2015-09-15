@@ -101,3 +101,5 @@ TNSConstant10_2Plus
 TNSConstant10_3Plus
 TNSConstant10_4Plus
 TNSConstant10_5Plus
+TNSStructFunctionConflict
+TNSStructVarConflict
