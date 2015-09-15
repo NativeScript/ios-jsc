@@ -9,6 +9,8 @@
 #include "ReferenceConstructor.h"
 #include "ReferencePrototype.h"
 #include "ReferenceInstance.h"
+#include "ReferenceTypeInstance.h"
+#include "RecordInstance.h"
 #include "Interop.h"
 
 namespace NativeScript {
@@ -27,32 +29,46 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ReferenceInstance* result;
 
-    if (execState->argumentCount() == 2) {
-        JSValue type = execState->uncheckedArgument(0);
-        JSValue value = execState->uncheckedArgument(1);
+    JSValue maybeType = execState->argument(0);
+    const FFITypeMethodTable* ffiTypeMethodTable;
+    if (tryGetFFITypeMethodTable(maybeType, &ffiTypeMethodTable)) {
+        void* handle = nullptr;
+        bool adopted = true;
 
-        const FFITypeMethodTable* ffiTypeMethodTable;
-        if (!tryGetFFITypeMethodTable(type, &ffiTypeMethodTable)) {
-            return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
-        }
+        if (execState->argumentCount() == 2) {
+            JSValue value = execState->uncheckedArgument(1);
+            if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(value)) {
+                handle = pointer->data();
+                adopted = pointer->isAdopted();
+            } else if (RecordInstance* record = jsDynamicCast<RecordInstance*>(value)) {
+                handle = record->pointer()->data();
+                adopted = record->pointer()->isAdopted();
+            } else if (ReferenceInstance* reference = jsDynamicCast<ReferenceInstance*>(value)) {
+                if (maybeType.inherits(ReferenceTypeInstance::info())) {
+                    // do nothing, this is a reference to reference
+                } else if (PointerInstance* pointer = reference->pointer()) {
+                    handle = pointer->data();
+                    adopted = pointer->isAdopted();
+                } else {
+                    value = reference->get(execState, execState->propertyNames().value);
+                }
+            }
 
-        bool hasHandle;
-        void* handle = tryHandleofValue(value, &hasHandle);
-        PointerInstance* pointer;
-        if (hasHandle) {
-            pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), handle));
+            if (!handle) {
+                handle = calloc(ffiTypeMethodTable->ffiType->size, 1);
+                ffiTypeMethodTable->write(execState, value, handle, maybeType.asCell());
+            }
         } else {
             handle = calloc(ffiTypeMethodTable->ffiType->size, 1);
-            pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), handle));
-            pointer->setAdopted(true);
-
-            ffiTypeMethodTable->write(execState, value, handle, type.asCell());
         }
 
-        result = ReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->referenceInstanceStructure(), type.asCell(), pointer);
+        PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), handle));
+        pointer->setAdopted(adopted);
+        result = ReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->referenceInstanceStructure(), maybeType.asCell(), pointer);
+    } else if (execState->argumentCount() == 2) {
+        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
     } else {
-        const JSValue value = execState->argument(0);
-        result = ReferenceInstance::create(execState->vm(), globalObject->interop()->referenceInstanceStructure(), value);
+        result = ReferenceInstance::create(execState->vm(), globalObject->interop()->referenceInstanceStructure(), maybeType);
     }
 
     return JSValue::encode(result);
