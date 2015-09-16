@@ -1,18 +1,21 @@
 #import <Foundation/Foundation.h>
 #import "InspectorFrontendHostProtocol.h"
+#import "Communication.h"
 @import AppKit;
 
-@interface InspectorFrontendHost : NSObject <InspectorFrontendHostProtocol>
+@interface InspectorFrontendHost : NSObject <InspectorFrontendHostProtocol> {
+    communication_channel communication_channel;
+    InspectorErrorHandler error_handler;
+}
 
-@property dispatch_io_t channel;
-@property NSResponder *responder;
-
-- (NSString *)platform;
-- (NSString *)localizedStringsURL;
-- (NSString *)debuggableType;
+- (NSString*)platform;
+- (NSString*)localizedStringsURL;
+- (NSString*)debuggableType;
+- (void)connect:(NSString*)socketPath readHandler:(InspectorReadHandler)read_handler errorHandler:(InspectorErrorHandler)errorHandler;
+- (void)disconnect;
 - (void)loaded;
 - (void)bringToFront;
-- (void)sendMessageToBackend:(NSString *)message;
+- (void)sendMessageToBackend:(NSString*)message;
 - (void)inspectedURLChanged;
 
 @end

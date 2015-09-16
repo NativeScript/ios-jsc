@@ -2,91 +2,81 @@
 @import AppKit;
 @import WebKit;
 @import JavaScriptCore;
-//#import <WebKit/WebPreferencesPrivate.h>
 #import "InspectorFrontendHost.h"
 #import "Communication.h"
 
 @implementation ViewController
 
 - (void)viewDidLoad {
-  [super viewDidLoad];
+    [super viewDidLoad];
 
-  NSArray *arguments = [[NSProcessInfo processInfo] arguments];
-  WebView *webView = (WebView *)self.view;
-  //    [[WebPreferences standardPreferences] setDeveloperExtrasEnabled:YES];
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationShouldReopen:) name:@"org.NativeScriptInspector.ApplicationShouldHandleReopen" object:nil];
 
-  self->frontendHost = [[InspectorFrontendHost alloc] init];
-  self->frontendHost.responder = self.view;
+    self->frontendHost = [[InspectorFrontendHost alloc] init];
+    [self setupWebView];
 
-  JSContext *context = webView.mainFrame.javaScriptContext;
-  context[@"WebInspector"] = [JSValue valueWithNewObjectInContext:context];
-  context[@"WebInspector"][@"dontLocalizeUserInterface"] = @(true);
+    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+    NSString* socket_path = @"";
 
-  context[@"InspectorFrontendHost"] = self->frontendHost;
-  webView.mainFrameURL = (NSString *)arguments[1];
+    if (arguments.count >= 4) {
+        socket_path = arguments[3];
+    }
+
+    [self connect:socket_path];
 }
 
-- (void)awakeFromNib {
-  [super awakeFromNib];
+- (void)applicationShouldReopen:(NSNotification*)notification {
+    [self->frontendHost disconnect];
+    self.view = [[WebView alloc] initWithFrame:self.view.frame];
+    [self setupWebView];
 
-  [[NSDistributedNotificationCenter defaultCenter]
-      addObserver:self
-         selector:@selector(applicationShouldReopen:)
-             name:@"org.NativeScriptInspector.ApplicationShouldHandleReopen"
-           object:nil];
+    NSString* title = [notification.userInfo valueForKey:@"project_name"];
+    [self update:title];
+
+    NSString* socket_path = [notification.userInfo valueForKey:@"socket_path"];
+    [self connect:socket_path];
 }
 
-- (void)applicationShouldReopen:(NSNotification *)notification {
-  NSString *title = [notification.userInfo valueForKey:@"project_name"];
-  [self update:title];
+- (void)setupWebView {
+    WebView* webView = (WebView*)self.view;
 
-  WebView *webView = (WebView *)self.view;
-  [webView reload:self];
+    JSContext* context = webView.mainFrame.javaScriptContext;
 
-  NSString *socket_path = [notification.userInfo valueForKey:@"socket_path"];
-  [self connect:socket_path];
+    context[@"InspectorFrontendHost"] = self->frontendHost;
+    context[@"WebInspector"] = [JSValue valueWithNewObjectInContext:context];
+    context[@"WebInspector"][@"dontLocalizeUserInterface"] = @(true);
+
+    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+    webView.mainFrameURL = (NSString*)arguments[1];
 }
 
 - (void)viewWillAppear {
-  [super viewWillAppear];
+    [super viewWillAppear];
 
-  NSArray *arguments = [[NSProcessInfo processInfo] arguments];
-  NSString *socket_path;
+    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
 
-  if (arguments.count == 4) {
-    socket_path = arguments[3];
-  }
-
-  [self connect:socket_path];
-
-  [self update:(NSString *)arguments[2]];
-  self.view.window.titlebarAppearsTransparent = YES;
+    [self update:(NSString*)arguments[2]];
+    self.view.window.titlebarAppearsTransparent = YES;
 }
 
-- (void)update:(NSString *)title {
-  self.view.window.title =
-      [NSString stringWithFormat:@"NativeScript Inspector - %@", title];
+- (void)update:(NSString*)title {
+    self.view.window.title = [NSString stringWithFormat:@"NativeScript Inspector - %@", title];
 }
 
-- (void)connect:(NSString *)socket_path {
-  InspectorReadHandler read_handler = ^(dispatch_data_t data) {
-    NSString *payload =
-        [[NSString alloc] initWithData:(NSData *)data
-                              encoding:NSUTF16LittleEndianStringEncoding];
+- (void)connect:(NSString*)socket_path {
+    InspectorReadHandler read_handler = ^(dispatch_data_t data) {
+      NSString* payload = [[NSString alloc] initWithData:(NSData*)data encoding:NSUTF16LittleEndianStringEncoding];
 
-    WebView *webView = (WebView *)self.view;
-    [webView.mainFrame.javaScriptContext[@"InspectorBackend"]
-         invokeMethod:@"dispatch"
-        withArguments:@[ payload ]];
-  };
+      WebView* webView = (WebView*)self.view;
+      [webView.mainFrame.javaScriptContext[@"InspectorBackend"] invokeMethod:@"dispatch" withArguments:@[ payload ]];
+    };
 
-  InspectorErrorHandler error_handler = ^(NSError *error) {
-    [self.view presentError:error];
-    self->frontendHost.channel = nil;
-  };
+    InspectorErrorHandler error_handler = ^(NSError* error) {
+      [self->frontendHost disconnect];
+      [self.view presentError:error];
+    };
 
-  self->frontendHost.channel = setup_communication_channel(
-      [socket_path UTF8String], read_handler, error_handler);
+    [self->frontendHost connect:socket_path readHandler:read_handler errorHandler:error_handler];
 }
 
 @end

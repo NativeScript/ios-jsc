@@ -7,16 +7,29 @@
 - (void)bringToFront {
 }
 
-- (NSString *)platform {
-  return @"mac";
+- (NSString*)platform {
+    return @"mac";
 }
 
-- (NSString *)localizedStringsURL {
-  return @"";
+- (NSString*)localizedStringsURL {
+    return @"";
 }
 
-- (NSString *)debuggableType {
-  return @"web";
+- (NSString*)debuggableType {
+    return @"web";
+}
+
+- (void)connect:(NSString*)socketPath readHandler:(InspectorReadHandler)read_handler errorHandler:(InspectorErrorHandler)errorHandler {
+    self->error_handler = errorHandler;
+    self->communication_channel = setup_communication_channel([socketPath UTF8String], read_handler, errorHandler);
+}
+
+- (void)disconnect {
+    if (self->communication_channel.connected) {
+        self->communication_channel.connected = NO;
+        self->error_handler = nil;
+        disconnect(self->communication_channel);
+    }
 }
 
 - (void)loaded {
@@ -25,28 +38,15 @@
 - (void)inspectedURLChanged {
 }
 
-- (void)sendMessageToBackend:(NSString *)message {
+- (void)sendMessageToBackend:(NSString*)message {
+    if (self->communication_channel.connected) {
+        uint32_t length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
 
-  if (self.channel) {
-    uint32_t length =
-        [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
-    InspectorWriteHandler write_handler = ^(void *buffer) {
-      [message getBytes:&buffer[sizeof(uint32_t)]
-               maxLength:length
-              usedLength:NULL
-                encoding:NSUTF16LittleEndianStringEncoding
-                 options:0
-                   range:NSMakeRange(0, message.length)
-          remainingRange:NULL];
-    };
+        void* buffer = malloc(length);
+        [message getBytes:buffer maxLength:length usedLength:NULL encoding:NSUTF16LittleEndianStringEncoding options:0 range:NSMakeRange(0, message.length) remainingRange:NULL];
 
-    InspectorErrorHandler error_handler = ^(NSError *error) {
-      [self.responder presentError:error];
-      self.channel = nil;
-    };
-
-    send_message(self.channel, length, write_handler, error_handler);
-  }
+        send_message(self->communication_channel, length, buffer, self->error_handler);
+    }
 }
 
 @end
