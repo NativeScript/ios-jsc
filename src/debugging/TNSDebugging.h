@@ -114,6 +114,7 @@ static dispatch_source_t TNSCreateInspectorServer(
           }
 
           uint32_t length = ntohl(*(uint32_t *)bytes);
+          dispatch_io_set_low_water(io, length);
           dispatch_io_read(io, 0, length, queue,
                            ^(bool done, dispatch_data_t data, int error) {
               if (!CheckError(error, handler)) {

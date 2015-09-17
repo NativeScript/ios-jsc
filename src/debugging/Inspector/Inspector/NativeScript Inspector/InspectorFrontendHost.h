@@ -4,8 +4,7 @@
 @import AppKit;
 
 @interface InspectorFrontendHost : NSObject <InspectorFrontendHostProtocol> {
-    communication_channel communication_channel;
-    InspectorErrorHandler error_handler;
+    TNSCommunicationChannel* communication_channel;
 }
 
 - (NSString*)platform;

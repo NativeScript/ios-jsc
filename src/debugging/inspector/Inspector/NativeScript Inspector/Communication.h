@@ -10,16 +10,6 @@
 #import <string.h>
 #import <notify.h>
 
-struct communication_channel {
-    BOOL connected;
-    dispatch_fd_t socket;
-    __unsafe_unretained dispatch_io_t io_channel;
-};
-
-typedef struct communication_channel communication_channel;
-typedef void (^InspectorReadHandler)(dispatch_data_t data);
-typedef void (^InspectorErrorHandler)(NSError* error);
-
 #define CheckError(retval, handler)                             \
     ({                                                          \
         typeof(retval) errorCode = retval;                      \
@@ -35,9 +25,16 @@ typedef void (^InspectorErrorHandler)(NSError* error);
         success;                                                \
     })
 
-communication_channel setup_communication_channel(char* socket_path, InspectorReadHandler read_handler, InspectorErrorHandler error_handler);
+typedef void (^InspectorReadHandler)(dispatch_data_t data);
+typedef void (^InspectorErrorHandler)(NSError* error);
 
-void disconnect(communication_channel);
-void send_message(communication_channel communication_channel, uint32_t length, void* message, InspectorErrorHandler error_handler);
+@interface TNSCommunicationChannel : NSObject
+@property(nonatomic) dispatch_fd_t socket;
+@property(nonatomic, strong) dispatch_io_t ioChannel;
+
+- (instancetype)initWithSocketPath:(NSString*)socketPath readHandler:(InspectorReadHandler)readHandler errorHandler:(InspectorErrorHandler)errorHandler;
+- (void)sendMessage:(uint32_t)length message:(void*)message;
+
+@end
 
 #endif /* Communication_h */

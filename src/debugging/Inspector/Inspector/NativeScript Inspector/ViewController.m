@@ -3,7 +3,6 @@
 @import WebKit;
 @import JavaScriptCore;
 #import "InspectorFrontendHost.h"
-#import "Communication.h"
 
 @implementation ViewController
 
