@@ -21,6 +21,10 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath;
 
+- (void)scheduleInRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode;
+
+- (void)removeFromRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode;
+
 - (JSGlobalContextRef)globalContext;
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier;

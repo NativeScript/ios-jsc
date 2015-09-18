@@ -374,9 +374,14 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
 }
 
 void GlobalObject::queueTaskToEventLoop(const JSGlobalObject* globalObject, WTF::PassRefPtr<Microtask> task) {
-    CFRunLoopPerformBlock(CFRunLoopGetCurrent(), kCFRunLoopCommonModes, ^{
+    auto global = jsCast<const GlobalObject*>(globalObject);
+    CFRunLoopRef runLoop = global->_microtaskRunLoop.get() ?: CFRunLoopGetCurrent();
+    CFTypeRef mode = global->_microtaskRunLoopMode.get() ?: kCFRunLoopCommonModes;
+
+    CFRunLoopPerformBlock(runLoop, mode, ^{
       JSLockHolder lock(globalObject->vm());
       task->run(const_cast<JSGlobalObject*>(globalObject)->globalExec());
     });
+    CFRunLoopWakeUp(runLoop);
 }
 }

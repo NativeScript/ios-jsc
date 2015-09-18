@@ -38,6 +38,8 @@ int main(int argc, char *argv[]) {
 #endif
     [TNSRuntime initializeMetadata:&startOfMetadataSection];
     runtime = [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
+    [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
+                       forMode:NSRunLoopCommonModes];
 
 #ifndef NDEBUG
     [TNSRuntimeInspector setLogsToSystemConsole:YES];
