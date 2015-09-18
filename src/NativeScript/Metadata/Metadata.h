@@ -51,7 +51,6 @@ enum MemberType {
 };
 
 enum BinaryTypeEncodingType : Byte {
-    UnknownEncoding,
     VoidEncoding,
     BoolEncoding,
     ShortEncoding,
@@ -72,7 +71,6 @@ enum BinaryTypeEncodingType : Byte {
     InterfaceDeclarationReference,
     StructDeclarationReference,
     UnionDeclarationReference,
-    InterfaceDeclarationEncoding, // NSString* -> DeclarationReference, NSString -> InterfaceDeclaration
     PointerEncoding,
     VaListEncoding,
     SelectorEncoding,
@@ -289,10 +287,10 @@ struct PtrTo {
         return valuePtr();
     }
     PtrTo<T> add(int value) const {
-        return PtrTo<T>{.offset = this->offset + value * sizeof(T) };
+        return PtrTo<T>{ .offset = this->offset + value * sizeof(T) };
     }
     PtrTo<T> addBytes(int bytes) const {
-        return PtrTo<T>{.offset = this->offset + bytes };
+        return PtrTo<T>{ .offset = this->offset + bytes };
     }
     template <typename V>
     PtrTo<V>& castTo() const {

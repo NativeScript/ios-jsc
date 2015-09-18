@@ -96,9 +96,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
         return constructor;
     }
 
-    ffi_type* ffiType = new ffi_type({.size = 0,
-                                      .alignment = 0,
-                                      .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({ .size = 0,
+                                       .alignment = 0,
+                                       .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -141,9 +141,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
 }
 
 RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
-    ffi_type* ffiType = new ffi_type({.size = 0,
-                                      .alignment = 0,
-                                      .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({ .size = 0,
+                                       .alignment = 0,
+                                       .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -224,7 +224,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
             }
         }
 
-        delete[] ffiType -> elements;
+        delete[] ffiType->elements;
         ffiType->elements = new ffi_type* [flattenedFfiTypes.size() + 1];
         memcpy(ffiType->elements, flattenedFfiTypes.data(), flattenedFfiTypes.size() * sizeof(ffi_type*));
         ffiType->elements[flattenedFfiTypes.size()] = nullptr;
@@ -321,8 +321,6 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     JSC::JSCell* result = nullptr;
 
     switch (typeEncoding->type) {
-    case BinaryTypeEncodingType::UnknownEncoding:
-        ASSERT_NOT_REACHED();
     case BinaryTypeEncodingType::VoidEncoding:
         result = this->_voidType.get();
         break;
