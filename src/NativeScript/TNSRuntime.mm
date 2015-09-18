@@ -63,6 +63,14 @@ using namespace NativeScript;
     return self;
 }
 
+- (void)scheduleInRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
+    self->_globalObject->setMicrotaskRunLoopAndMode([runLoop getCFRunLoop], mode);
+}
+
+- (void)removeFromRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
+    self->_globalObject->setMicrotaskRunLoopAndMode(nullptr, nullptr);
+}
+
 - (JSGlobalContextRef)globalContext {
     return toGlobalRef(self->_globalObject->globalExec());
 }

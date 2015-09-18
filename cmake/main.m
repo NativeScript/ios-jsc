@@ -12,6 +12,8 @@ int main(int argc, char *argv[]) {
     [TNSRuntime initializeMetadata:&startOfMetadataSection];
     runtime = [[TNSRuntime alloc]
         initWithApplicationPath:[NSBundle mainBundle].bundlePath];
+    [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
+                       forMode:NSRunLoopCommonModes];
     TNSRuntimeInspector.logsToSystemConsole = YES;
 
 #ifndef NDEBUG

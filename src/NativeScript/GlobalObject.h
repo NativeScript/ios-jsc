@@ -124,6 +124,11 @@ public:
         return this->_fastEnumerationIteratorStructure.get();
     }
 
+    void setMicrotaskRunLoopAndMode(CFRunLoopRef runLoop, CFTypeRef mode) {
+        this->_microtaskRunLoop = runLoop;
+        this->_microtaskRunLoopMode = mode;
+    }
+
 #if defined(__LP64__) && __LP64__
     JSC::WeakGCMap<const void*, ObjCWrapperObject>& taggedPointers() {
         return this->_taggedPointers;
@@ -144,6 +149,9 @@ private:
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 
     WTF::String _applicationPath;
+
+    WTF::RetainPtr<CFRunLoopRef> _microtaskRunLoop;
+    WTF::RetainPtr<CFTypeRef> _microtaskRunLoopMode;
 
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;

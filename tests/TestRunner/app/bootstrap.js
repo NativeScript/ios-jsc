@@ -57,6 +57,8 @@ require('./shared');
 require('./ApiTests');
 require('./DeclarationConflicts');
 
+require('./Promises');
+
 execute();
 
 UIApplicationMain(0, null, null, null);
