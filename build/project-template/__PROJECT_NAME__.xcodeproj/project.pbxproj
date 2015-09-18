@@ -209,7 +209,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/metadataGenerator/bin\"\nbash metadata-generation-build-step.sh";
+			shellScript = "cd \"$SRCROOT/metadataGenerator/bin\"\n./metadata-generation-build-step";
 			showEnvVarsInLog = 0;
 		};
 		CD3EAD351B05FF060042DBFC /* Strip Dynamic Framework Architectures */ = {

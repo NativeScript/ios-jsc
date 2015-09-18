@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+import shlex
+
+def env(envName): return os.environ[envName]
+
+def envOrNone(envName): return os.environ.get(envName)
+
+def envOrEmpty(envName):
+    result = envOrNone(envName)
+    if result == None:
+        return ""
+    return result
+
+# process environment variables
+conf_build_dir = env("CONFIGURATION_BUILD_DIR")
+sdk_root = env("SDKROOT")
+deployment_target = env("IPHONEOS_DEPLOYMENT_TARGET")
+std = env("GCC_C_LANGUAGE_STANDARD")
+header_search_paths = envOrEmpty("HEADER_SEARCH_PATHS")
+header_search_paths_parsed = map((lambda s: "-I" + s), shlex.split(header_search_paths))
+framework_search_paths = envOrEmpty("FRAMEWORK_SEARCH_PATHS")
+framework_search_paths_parsed = map((lambda s: "-F" + s), shlex.split(framework_search_paths))
+other_cflags = envOrEmpty("OTHER_CFLAGS")
+other_cflags_parsed = shlex.split(other_cflags)
+preprocessor_defs = envOrEmpty("GCC_PREPROCESSOR_DEFINITIONS")
+preprocessor_defs_parsed = map((lambda s: "-D" + s), shlex.split(preprocessor_defs, '\''))
+typescript_output_folder = envOrNone("TNS_TYPESCRIPT_DECLARATIONS_PATH")
+yaml_output_folder = envOrNone("TNS_DEBUG_METADATA_PATH")
+
+def generateMetadata(arch):
+    # metadata generator arguments
+    generatorCall = ["./objc-metadata-generator", 
+        "-enable-header-preprocessing-if-needed",
+        "-output-bin", "{}/metadata-{}.bin".format(conf_build_dir, arch),
+        "-output-umbrella", "{}/umbrella-{}.h".format(conf_build_dir, arch) ]
+    # optionally add typescript otput folder
+    if typescript_output_folder != None:
+        currnet_typescript_output_folder = typescript_output_folder + "-" + arch
+        generatorCall.extend(["-output-typescript", currnet_typescript_output_folder])
+        print("Generating TypeScript declarations in: \"{}\"".format(currnet_typescript_output_folder))
+    # optionally add yaml otput folder
+    if yaml_output_folder != None:
+        current_yaml_output_folder = yaml_output_folder + "-" + arch
+        generatorCall.extend(["-output-yaml", current_yaml_output_folder])
+        print("Generating debug metadata in: \"{}\"".format(current_yaml_output_folder))
+
+    # clang arguments
+    generatorCall.extend(["Xclang",
+        "-isysroot", sdk_root,
+        "-arch", arch,
+        "-miphoneos-version-min=" + deployment_target,
+        "-target", "arm-apple-darwin",
+        "-std=" + std ])
+    
+    generatorCall.extend(header_search_paths_parsed) # HEADER_SEARCH_PATHS
+    generatorCall.extend(framework_search_paths_parsed) # FRAMEWORK_SEARCH_PATHS
+    generatorCall.extend(other_cflags_parsed) # OTHER_CFLAGS
+    generatorCall.extend(preprocessor_defs_parsed) # GCC_PREPROCESSOR_DEFINITIONS
+    
+    childProcess = subprocess.Popen(generatorCall, stderr=subprocess.PIPE)
+    sys.stdout.flush()
+    error_stream_content = childProcess.communicate()[1]
+
+    # save error stream content to file
+    error_log_file = "{}/metadata-generation-stderr-{}.txt".format(conf_build_dir, arch)
+    error_file = open(error_log_file, "w")
+    error_file.write(error_stream_content)
+    error_file.close()
+
+    if childProcess.returncode != 0:
+        print(error_stream_content)
+        sys.exit(1)
+
+
+for arch in env("ARCHS").split():
+    print("Generating metadata for " + arch)
+    generateMetadata(arch)

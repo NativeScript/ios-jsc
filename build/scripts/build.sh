@@ -55,7 +55,7 @@ echo "Building objc-metadata-generator..."
 xcodebuild -configuration Release -target MetadataGenerator  >> "$WORKSPACE/build.log" 2>&1
 echo "Packaging objc-metadata-generator..."
 cp -R "$WORKSPACE/cmake-build/metadataGenerator" "$WORKSPACE/dist/"
-cp "$WORKSPACE/build/scripts/metadata-generation-build-step.sh" "$WORKSPACE/dist/metadataGenerator/bin/"
+cp "$WORKSPACE/build/scripts/metadata-generation-build-step" "$WORKSPACE/dist/metadataGenerator/bin/"
 
 echo "Building Gameraww..."
 xcodebuild -configuration Release -sdk iphoneos -target Gameraww  >> "$WORKSPACE/build.log" 2>&1

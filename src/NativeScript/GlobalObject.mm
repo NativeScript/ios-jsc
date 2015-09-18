@@ -324,7 +324,7 @@ ObjCConstructorBase* GlobalObject::constructorFor(Class klass, Class fallback) {
     }
 
     const Meta* meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
-    while (!meta) {
+    while (!(meta && meta->type() == MetaType::Interface)) {
         klass = class_getSuperclass(klass);
         meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
     }
