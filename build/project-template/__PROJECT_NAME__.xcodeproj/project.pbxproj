@@ -260,6 +260,7 @@
 /* Begin XCBuildConfiguration section */
 		858B835818CA111C00AB12DE /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CDF4743E1BA4855C0087EA85 /* build.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD)";
@@ -298,6 +299,7 @@
 		};
 		858B835918CA111C00AB12DE /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CDF4743E1BA4855C0087EA85 /* build.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD)";
@@ -334,7 +336,6 @@
 		};
 		858B843118CA22B800AB12DE /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CDF4743E1BA4855C0087EA85 /* build.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = NO;
@@ -377,7 +378,6 @@
 		};
 		858B843218CA22B800AB12DE /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CDF4743E1BA4855C0087EA85 /* build.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_MODULES = NO;
