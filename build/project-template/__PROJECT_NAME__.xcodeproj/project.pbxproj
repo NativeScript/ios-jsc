@@ -365,7 +365,7 @@
 					"$(PROJECT_DIR)/NativeScript/lib",
 				);
 				OTHER_LDFLAGS = (
-					"-ObjC",
+					"$(inherited)",
 					"-sectcreate",
 					__DATA,
 					__TNSMetadata,
@@ -404,7 +404,7 @@
 					"$(PROJECT_DIR)/NativeScript/lib",
 				);
 				OTHER_LDFLAGS = (
-					"-ObjC",
+					"$(inherited)",
 					"-sectcreate",
 					__DATA,
 					__TNSMetadata,
