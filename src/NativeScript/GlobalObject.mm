@@ -226,7 +226,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 
         if (klass) {
             symbolWrapper = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName());
-            globalObject->_objCConstructors.insert(std::pair<Class, Strong<ObjCConstructorBase>>(klass, Strong<ObjCConstructorBase>(vm, jsCast<ObjCConstructorBase*>(symbolWrapper))));
+            globalObject->_objCConstructors.insert({ klass, Strong<ObjCConstructorBase>(vm, jsCast<ObjCConstructorBase*>(symbolWrapper)) });
         }
         break;
     }
@@ -239,8 +239,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 
         symbolWrapper = ObjCProtocolWrapper::create(vm, ObjCProtocolWrapper::createStructure(vm, globalObject, globalObject->objectPrototype()), static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
         if (aProtocol) {
-            auto pair = std::pair<const Protocol*, Strong<ObjCProtocolWrapper>>(aProtocol, Strong<ObjCProtocolWrapper>(vm, jsCast<ObjCProtocolWrapper*>(symbolWrapper)));
-            globalObject->_objCProtocolWrappers.insert(pair);
+            globalObject->_objCProtocolWrappers.insert({ aProtocol, Strong<ObjCProtocolWrapper>(vm, jsCast<ObjCProtocolWrapper*>(symbolWrapper)) });
         }
         break;
     }
@@ -339,7 +338,7 @@ ObjCConstructorBase* GlobalObject::constructorFor(Class klass, Class fallback) {
     }
 
     ObjCConstructorNative* constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, meta->jsName());
-    this->_objCConstructors.insert(std::pair<Class, Strong<ObjCConstructorBase>>(klass, Strong<ObjCConstructorBase>(this->vm(), constructor)));
+    this->_objCConstructors.insert({ klass, Strong<ObjCConstructorBase>(this->vm(), constructor) });
     this->putDirect(this->vm(), Identifier::fromString(this->globalExec(), class_getName(klass)), constructor);
     return constructor;
 }

@@ -476,7 +476,7 @@ ObjCConstructorDerived* ObjCClassBuilder::build(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     objc_registerClassPair(klass);
-    globalObject->_objCConstructors.insert(std::pair<Class, Strong<ObjCConstructorBase>>(klass, Strong<ObjCConstructorBase>(execState->vm(), this->_constructor.get())));
+    globalObject->_objCConstructors.insert({ klass, Strong<ObjCConstructorBase>(execState->vm(), this->_constructor.get()) });
     attachDerivedMachinery(globalObject, klass, this->_baseConstructor->get(execState, globalObject->vm().propertyNames->prototype));
 
     return this->_constructor.get();
