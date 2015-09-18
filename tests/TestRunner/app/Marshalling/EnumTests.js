@@ -53,5 +53,10 @@ describe(module.id, function () {
     it("EnumWithoutCommonPrefix", function () {
         expect(CLAuthorizationStatus.kCLAuthorizationStatusRestricted).toBe(1);
     });
-    
+
+    it("UIKit enums", function () {
+        expect(UIPageViewControllerNavigationOrientation.Horizontal).toBe(0);
+        expect(UIPageViewControllerTransitionStyle.Scroll).toBe(1);
+        expect(UIPageViewControllerNavigationDirection.Forward).toBe(0);
+    });
 });
