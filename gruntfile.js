@@ -4,7 +4,7 @@ var util = require('util');
 var path = require('path');
 var shell = require('shelljs/global');
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
     var srcDir = ".";
 
     // build outputs
@@ -29,7 +29,7 @@ module.exports = function (grunt) {
         return baseVersion + "-" + buildVersion;
     };
 
-    var updatePackageVersion = function (content, srcPath) {
+    var updatePackageVersion = function(content, srcPath) {
         var contentAsObject = JSON.parse(content);
 
         contentAsObject.version = getPackageVersion(contentAsObject.version);
@@ -52,36 +52,77 @@ module.exports = function (grunt) {
         },
         mkdir: {
             outPackage: {
-                options: { create: [outPackageDir] }
+                options: {
+                    create: [outPackageDir]
+                }
             },
-            outPackageFramework : {
-                options: { create: [outPackageFrameworkDir] }
-            },
-        },
-        exec: {
-            npmPackPackage: {
-                cmd: "npm pack ./package",
-                cwd: outDistDir
+            outPackageFramework: {
+                options: {
+                    create: [outPackageFrameworkDir]
+                }
             }
         },
         copy: {
             packageComponents: {
-                files: [
-                    { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript", "NativeScript/**"], dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, cwd: "<%= outDistDir %>", src: ["NativeScript.framework", "NativeScript.framework/**"], dest: "<%= outPackageFrameworkDir %>" },
-                    { expand: true, cwd: "<%= srcDir %>/src/debugging", src: "TNSDebugging.h", dest: "<%= outPackageFrameworkDir %>/__PROJECT_NAME__" },
-                    { expand: true, cwd: "<%= srcDir %>/src/debugging/WebInspectorUI", src: "**", dest: "<%= outPackageDir %>/WebInspectorUI/Safari" },
-                    { expand: true, cwd: "<%= srcDir %>/build/inspector/", src: "NativeScript Inspector.zip", dest: "<%= outPackageDir %>/WebInspectorUI/" },
-                    { expand: true, cwd: "<%= outDistDir %>/metadataGenerator", src: "**", dest: "<%= outPackageFrameworkDir %>/metadataGenerator" },
-                    { expand: true, cwd: "<%= srcDir %>/build/project-template", src: "**", dest: "<%= outPackageFrameworkDir %>" }
-                ],
+                files: [{
+                    cwd: "<%= outDistDir %>",
+                    src: ["NativeScript", "NativeScript/**"],
+                    dest: "<%= outPackageFrameworkDir %>/internal",
+                    expand: true
+                }, {
+                    cwd: "<%= outDistDir %>",
+                    src: ["NativeScript.framework", "NativeScript.framework/**"],
+                    dest: "<%= outPackageFrameworkDir %>/internal/NativeScript/Frameworks",
+                    expand: true
+                }, {
+                    cwd: "<%= srcDir %>/src/debugging",
+                    src: "TNSDebugging.h",
+                    dest: "<%= outPackageFrameworkDir %>/internal",
+                    expand: true
+                }, {
+                    cwd: "<%= srcDir %>/src/debugging/WebInspectorUI",
+                    src: "**",
+                    dest: "<%= outPackageDir %>/WebInspectorUI/Safari",
+                    expand: true
+                }, {
+                    cwd: "<%= srcDir %>/build/inspector/",
+                    src: "NativeScript Inspector.zip",
+                    dest: "<%= outPackageDir %>/WebInspectorUI/",
+                    expand: true
+                }, {
+                    cwd: "<%= outDistDir %>/metadataGenerator",
+                    src: "**",
+                    dest: "<%= outPackageFrameworkDir %>/internal/metadata-generator",
+                    expand: true
+                }, {
+                    cwd: "<%= srcDir %>/build/project-template",
+                    src: "**",
+                    dest: "<%= outPackageFrameworkDir %>",
+                    expand: true
+                }],
                 options: {
                     mode: true
                 }
             },
-            packageJson: { expand: true, src: "<%= srcDir %>/package.json", dest: outPackageDir, options: { process: updatePackageVersion } }
+            packageJson: {
+                expand: true,
+                src: "<%= srcDir %>/package.json",
+                dest: outPackageDir,
+                options: {
+                    process: updatePackageVersion
+                }
+            }
         },
         shell: {
+            npmPackPackage: {
+                command: "npm pack ./package",
+                options: {
+                    execOptions: {
+                        cwd: outDistDir
+                    }
+                }
+            },
+
             NativeScript: {
                 command: './build/scripts/build.sh',
                 options: {
@@ -96,29 +137,28 @@ module.exports = function (grunt) {
                 options: {
                     callback: assignGitSHA
                 }
-            },
+            }
         },
         modify_json: {
             file: {
-              expand: true,
-              cwd: outPackageDir,
-              src: ['package.json'],
-              options: {
-                  add: true,
-                  fields: {
-                      "scripts": { "postinstall": "unzip './WebInspectorUI/NativeScript Inspector.zip' -d ./WebInspectorUI" }
-                  }
-              }
-          }
-
-          
-        }        
+                expand: true,
+                cwd: outPackageDir,
+                src: ['package.json'],
+                options: {
+                    add: true,
+                    fields: {
+                        "scripts": {
+                            "postinstall": "unzip './WebInspectorUI/NativeScript Inspector.zip' -d ./WebInspectorUI"
+                        }
+                    }
+                }
+            }
+        }
     });
 
     grunt.loadNpmTasks("grunt-contrib-clean");
     grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-mkdir");
-    grunt.loadNpmTasks("grunt-exec");
     grunt.loadNpmTasks("grunt-shell");
     grunt.loadNpmTasks("grunt-modify-json");
 
@@ -134,6 +174,6 @@ module.exports = function (grunt) {
         "shell:getGitSHA",
         "copy:packageJson",
         "modify_json",
-        "exec:npmPackPackage"
+        "shell:npmPackPackage"
     ]);
 };

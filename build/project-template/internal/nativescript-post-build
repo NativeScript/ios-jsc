@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+pushd "$SRCROOT/internal"
+./strip-dynamic-framework-architectures.sh
+popd
