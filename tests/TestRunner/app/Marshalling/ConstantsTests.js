@@ -11,6 +11,10 @@ describe(module.id, function () {
         expect(TNSConstant).toBe(TNSConstant);
         expect(TNSConstant).toBe("TNSConstant");
     });
+         
+    it("CompileTimeConstant", function () {
+        expect(kCGFontIndexMax).toBe(65534);
+    });
 
 // TODO
 //    it("ChangeConstantValue", function () {
