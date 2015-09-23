@@ -1,12 +1,10 @@
 //
-//  main.m
-//  __PROJECT_NAME__
-//
+// Any changes in this file will be removed after you update your platform!
 //
 
 #include <Foundation/Foundation.h>
 #include <JavaScriptCore/JavaScriptCore.h>
-#include <NativeScript.h>
+#include "NativeScript.h"
 
 #ifndef NDEBUG
 #include "TNSDebugging.h"
@@ -20,9 +18,8 @@ int main(int argc, char *argv[]) {
     NSString *applicationPath = [[NSBundle mainBundle] bundlePath];
 
 #ifndef NDEBUG
-    NSString *libraryPath =
-        [NSSearchPathForDirectoriesInDomains(
-             NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
+    NSString *libraryPath = [NSSearchPathForDirectoriesInDomains(
+        NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
     NSString *liveSyncPath =
         [NSString pathWithComponents:
                       @[ libraryPath, @"Application Support", @"LiveSync" ]];
@@ -36,6 +33,7 @@ int main(int argc, char *argv[]) {
       applicationPath = liveSyncPath;
     }
 #endif
+
     [TNSRuntime initializeMetadata:&startOfMetadataSection];
     runtime = [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
     [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
