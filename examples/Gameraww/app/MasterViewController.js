@@ -33,7 +33,7 @@ var JSMasterViewController = UITableViewController.extend({
     },
     prepareForSegueSender: function (segue, sender) {
         if (segue.identifier == "showDetail") {
-            var item = this.items[this.tableView.indexPathForSelectedRow().row];
+            var item = this.items[this.tableView.indexPathForSelectedRow.row];
             segue.destinationViewController.item = item;
         } else if (segue.identifier == "showCanvas") {
             segue.destinationViewController.items = this.items;
