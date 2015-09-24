@@ -40,7 +40,6 @@ yaml_output_folder = env_or_none("TNS_DEBUG_METADATA_PATH")
 def generate_metadata(arch):
     # metadata generator arguments
     generator_call = ["./objc-metadata-generator",
-                      "-enable-header-preprocessing-if-needed",
                       "-output-bin", "{}/metadata-{}.bin".format(conf_build_dir, arch),
                       "-output-umbrella", "{}/umbrella-{}.h".format(conf_build_dir, arch)]
 
