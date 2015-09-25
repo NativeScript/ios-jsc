@@ -4,10 +4,10 @@
 
 #include <Foundation/Foundation.h>
 #include <JavaScriptCore/JavaScriptCore.h>
-#include "NativeScript.h"
+#include <NativeScript.h>
 
 #ifndef NDEBUG
-#include "TNSDebugging.h"
+#include <TNSDebugging.h>
 #endif
 
 TNSRuntime *runtime = nil;
