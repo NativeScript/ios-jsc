@@ -10,6 +10,7 @@ set(HEADER_FILES
     ConsoleMethodOverrides.h
     GlobalObject.h
     inspector/CachedResource.h
+    inspector/GlobalObjectConsoleClient.h
     inspector/GlobalObjectDebuggerAgent.h
     inspector/GlobalObjectInspectorController.h
     inspector/InspectorPageAgent.h
@@ -91,6 +92,7 @@ set(SOURCE_FILES
     ConsoleMethodOverrides.cpp
     GlobalObject.mm
     inspector/CachedResource.mm
+    inspector/GlobalObjectConsoleClient.cpp
     inspector/GlobalObjectDebuggerAgent.cpp
     inspector/GlobalObjectInspectorController.cpp
     inspector/InspectorPageAgent.mm
