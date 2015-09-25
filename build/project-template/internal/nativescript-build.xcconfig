@@ -1,7 +1,8 @@
 // * NativeScript build related flags
-HEADER_SEARCH_PATHS = $(inherited) $(SRCROOT)/internal/NativeScript/include
-OTHER_LDFLAGS = $(inherited) -ObjC -sectcreate __DATA __TNSMetadata $(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin -lNativeScript -L$(SRCROOT)/internal/NativeScript/lib -licucore -lz -lc++ -framework Foundation -framework UIKit -framework CoreGraphics -framework MobileCoreServices
-FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/../../lib/iOS
+// * Add [sdk=*] after each one to avoid conflict with CocoaPods flags
+HEADER_SEARCH_PATHS[sdk=*] = $(inherited) $(SRCROOT)/internal/NativeScript/include
+OTHER_LDFLAGS[sdk=*] = $(inherited) -ObjC -sectcreate __DATA __TNSMetadata $(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin -lNativeScript -L$(SRCROOT)/internal/NativeScript/lib -licucore -lz -lc++ -framework Foundation -framework UIKit -framework CoreGraphics -framework MobileCoreServices
+FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) $(SRCROOT)/../../lib/iOS
 
 // * Uncomment this setting to generate TypeScript declarations for the iOS SDK and all linked libraries.
 // * They will be generated on each build, so you can find them after running "tns build ios" in "YOUR_APP/platforms/ios".
