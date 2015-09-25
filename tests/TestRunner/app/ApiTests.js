@@ -423,6 +423,11 @@ describe(module.id, function () {
         Object.getOwnPropertyNames(global).forEach(function (x) {
             // console.debug(x);
 
+            // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
+            if(x == "kCFAllocatorUseContext") {
+                return;
+            }
+
             var symbol = global[x];
             counter++;
 
