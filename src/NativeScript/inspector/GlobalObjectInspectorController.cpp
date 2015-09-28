@@ -84,6 +84,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_inspectorAgent = inspectorAgent.get();
     m_debuggerAgent = debuggerAgent.get();
     m_consoleAgent = consoleAgent.get();
+    m_timelineAgent = timelineAgent.get();
     m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent);
 
     runtimeAgent->setScriptDebugServer(&debuggerAgent->scriptDebugServer());

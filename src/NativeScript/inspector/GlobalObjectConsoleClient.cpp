@@ -4,6 +4,8 @@
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
+#include "InspectorTimelineAgent.h"
+#include "GlobalObjectInspectorController.h"
 
 namespace NativeScript {
 #if !LOG_DISABLED
@@ -38,12 +40,22 @@ void GlobalObjectConsoleClient::count(JSC::ExecState* exec, RefPtr<Inspector::Sc
     m_consoleAgent->count(exec, arguments);
 }
 
-void GlobalObjectConsoleClient::profile(JSC::ExecState*, const String&) {
-    // FIXME: support |console.profile| for JSContexts. <https://webkit.org/b/136466>
+void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String&) {
+    NativeScript::GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
+    if (timelineAgent) {
+        Inspector::ErrorString unused;
+        timelineAgent->start(unused, nullptr);
+    }
 }
 
-void GlobalObjectConsoleClient::profileEnd(JSC::ExecState*, const String&) {
-    // FIXME: support |console.profile| for JSContexts. <https://webkit.org/b/136466>
+void GlobalObjectConsoleClient::profileEnd(JSC::ExecState* execState, const String&) {
+    NativeScript::GlobalObject* globalObject = JSC::jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
+    if (timelineAgent) {
+        Inspector::ErrorString unused;
+        timelineAgent->stop(unused);
+    }
 }
 
 void GlobalObjectConsoleClient::time(JSC::ExecState*, const String& title) {

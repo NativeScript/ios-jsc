@@ -7,7 +7,6 @@ set(HEADER_FILES
     Calling/FFICallbackInlines.h
     Calling/FFIFunctionCall.h
     Calling/FFIFunctionCallback.h
-    ConsoleMethodOverrides.h
     GlobalObject.h
     inspector/CachedResource.h
     inspector/GlobalObjectConsoleClient.h
@@ -89,7 +88,6 @@ set(SOURCE_FILES
     Calling/FFICallPrototype.cpp
     Calling/FFIFunctionCall.mm
     Calling/FFIFunctionCallback.cpp
-    ConsoleMethodOverrides.cpp
     GlobalObject.mm
     inspector/CachedResource.mm
     inspector/GlobalObjectConsoleClient.cpp
