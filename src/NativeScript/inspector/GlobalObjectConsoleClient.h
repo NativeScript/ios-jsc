@@ -29,6 +29,7 @@ protected:
 private:
     void warnUnimplemented(const String& method);
     void internalAddMessage(MessageType, MessageLevel, JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&);
+    WTF::String getDirMessage(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&);
 
     Inspector::InspectorConsoleAgent* m_consoleAgent;
 };

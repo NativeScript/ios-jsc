@@ -4,6 +4,7 @@
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
+#include <JavaScriptCore/ScriptValue.h>
 #include "InspectorTimelineAgent.h"
 #include "GlobalObjectInspectorController.h"
 
@@ -28,8 +29,14 @@ GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsole
 }
 
 void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
-    if (GlobalObjectConsoleClient::logToSystemConsole())
-        ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
+    if (GlobalObjectConsoleClient::logToSystemConsole()) {
+        if (type == JSC::MessageType::Dir) {
+            WTF::String message = this->getDirMessage(exec, arguments);
+            ConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, MessageType::Dir, MessageLevel::Log, message, WTF::emptyString(), 0, 0);
+        } else {
+            ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
+        }
+    }
 
     String message;
     arguments->getFirstArgumentAsString(message);
@@ -75,5 +82,32 @@ void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, RefPtr<Inspector::Scr
 void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {
     String message = method + " is currently ignored in JavaScript context inspection.";
     m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message, nullptr, nullptr));
+}
+
+WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>& arguments) {
+    JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
+    StringBuilder output;
+    output.append(argumentValue.toWTFString(exec).utf8().data());
+
+    if (argumentValue.isObject()) {
+        output.append("\n{ ");
+
+        JSC::JSObject* jsObject = argumentValue.getObject();
+        JSC::PropertyNameArray propertyNames(exec);
+        JSC::EnumerationMode mode;
+        jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
+
+        for (size_t i = 0; i < propertyNames.size(); ++i) {
+            if (i)
+                output.append(",\n");
+            const JSC::PropertyName& propertyName = propertyNames[i];
+            JSC::JSValue value = argumentValue.get(exec, propertyName);
+            output.append(WTF::String::format("%s: %s", propertyName.uid()->utf8().data(), value.toWTFString(exec).utf8().data()));
+        }
+
+        output.append(" }");
+    }
+
+    return output.toString();
 }
 }
