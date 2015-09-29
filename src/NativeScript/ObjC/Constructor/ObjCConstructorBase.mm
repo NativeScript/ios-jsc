@@ -170,7 +170,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
 
         CallData callData;
         CallType callType = initializer->methodTable()->getCallData(initializer, callData);
-        return JSValue::encode(call(execState, initializer, callType, callData, initializer, execState));
+        return JSValue::encode(call(execState, initializer, callType, callData, constructor, execState));
     }
 }
 

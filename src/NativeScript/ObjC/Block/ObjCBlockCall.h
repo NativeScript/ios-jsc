@@ -51,9 +51,7 @@ private:
 
     void finishCreation(JSC::VM&, id block, ObjCBlockType*);
 
-    FFI_DERIVED_MEMBERS;
-
-    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
+    static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
 
     WTF::RetainPtr<id> _block;
 };

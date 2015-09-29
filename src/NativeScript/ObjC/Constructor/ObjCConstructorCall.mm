@@ -27,29 +27,19 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
     const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);
 
-    Base::initializeFFI(vm, returnType, parametersTypes, 2);
+    Base::initializeFFI(vm, { &preInvocation, &postInvocation }, returnType, parametersTypes, 2);
     this->_selector = metadata->selector();
 }
 
-EncodedJSValue ObjCConstructorCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
-    id instance = [this->_klass alloc];
-    this->setArgument(buffer, 0, instance);
-    this->setArgument(buffer, 1, this->selector());
-    this->executeFFICall(execState, buffer, FFI_FN(&objc_msgSend));
-
-    id resultObject = *static_cast<id*>(this->getReturn(buffer));
-    Structure* instancesStructure = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->constructorFor(this->_klass)->instancesStructure();
-    JSValue value = toValue(execState, resultObject, ^{ return instancesStructure; });
-
-    // wrapping the object retains it, we need to balance the +1 from alloc-ing it
-    [resultObject release];
-
-    return JSValue::encode(value);
+void ObjCConstructorCall::preInvocation(FFICall* callee, ExecState*, FFICall::Invocation& invocation) {
+    ObjCConstructorCall* call = jsCast<ObjCConstructorCall*>(callee);
+    invocation.setArgument(0, [call->_klass alloc]);
+    invocation.setArgument(1, call->selector());
+    invocation.function = reinterpret_cast<void*>(&objc_msgSend);
 }
 
-CallType ObjCConstructorCall::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &Base::executeCall<ObjCConstructorCall>;
-    return CallTypeHost;
+void ObjCConstructorCall::postInvocation(FFICall* callee, ExecState*, FFICall::Invocation& invocation) {
+    [invocation.getResult<id>() release];
 }
 
 bool ObjCConstructorCall::canInvoke(ExecState* execState) const {

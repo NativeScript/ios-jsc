@@ -13,7 +13,7 @@
 #include <typeindex>
 #include <vector>
 #include <map>
-#include <stack>
+#include <wtf/Deque.h>
 #include <string>
 #include <WTF/ThreadSpecific.h>
 
@@ -31,8 +31,8 @@ protected:
 
     ReleasePoolBase() = default;
 
-    static std::stack<Item>& releasePools() {
-        static auto pools = new WTF::ThreadSpecific<std::stack<Item>>();
+    static WTF::Deque<Item>& releasePools() {
+        static auto pools = new WTF::ThreadSpecific<WTF::Deque<Item>>();
         return **pools;
     }
 };
@@ -44,11 +44,11 @@ class ReleasePool : ReleasePoolBase {
 
 public:
     static void releaseSoon(T&& item) {
-        ASSERT(!releasePools().empty());
+        ASSERT(!releasePools().isEmpty());
 
         ReleasePool<T>* pool = nullptr;
 
-        Item& poolsMap = releasePools().top();
+        Item& poolsMap = releasePools().last();
         std::string key(__PRETTY_FUNCTION__);
 
         auto iter = poolsMap.find(key);
@@ -75,21 +75,37 @@ private:
 class ReleasePoolHolder {
 public:
     ReleasePoolHolder() {
-        ReleasePoolBase::releasePools().emplace();
+        ReleasePoolBase::releasePools().append(ReleasePoolBase::Item());
+    }
+
+    ReleasePoolBase::Item relinquish() {
+        auto& releasePools = ReleasePoolBase::releasePools();
+        ASSERT(!_didRelinquish);
+        ASSERT(!releasePools.isEmpty());
+
+        _didRelinquish = true;
+        return releasePools.takeLast();
     }
 
     void drain() {
-        ASSERT(!ReleasePoolBase::releasePools().empty());
-        auto& poolsMap = ReleasePoolBase::releasePools().top();
-        for (auto& pair : poolsMap) {
-            pair.second->drain();
+        if (LIKELY(!_didRelinquish)) {
+            ASSERT(!ReleasePoolBase::releasePools().isEmpty());
+            auto& poolsMap = ReleasePoolBase::releasePools().last();
+            for (auto& pair : poolsMap) {
+                pair.second->drain();
+            }
         }
     }
 
     ~ReleasePoolHolder() {
-        ASSERT(!ReleasePoolBase::releasePools().empty());
-        ReleasePoolBase::releasePools().pop();
+        if (LIKELY(!_didRelinquish)) {
+            ASSERT(!ReleasePoolBase::releasePools().isEmpty());
+            ReleasePoolBase::releasePools().removeLast();
+        }
     }
+
+private:
+    bool _didRelinquish;
 };
 }
 

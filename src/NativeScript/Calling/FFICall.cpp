@@ -8,14 +8,19 @@
 
 #include "FFICall.h"
 #include <malloc/malloc.h>
+#include <JavaScriptCore/JSPromiseDeferred.h>
+#include <JavaScriptCore/StrongInlines.h>
+#include <dispatch/dispatch.h>
 
 namespace NativeScript {
 using namespace JSC;
 
 const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, 0, CREATE_METHOD_TABLE(FFICall) };
 
-void FFICall::initializeFFI(VM& vm, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
+void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
     ASSERT(this->methodTable()->destroy != FFICall::destroy);
+
+    this->_invocationHooks = hooks;
 
     this->_initialArgumentIndex = initialArgumentIndex;
 
@@ -72,24 +77,102 @@ void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(ffiCall->_parameterTypesCells.begin(), ffiCall->_parameterTypesCells.end());
 }
 
-void FFICall::preCall(ExecState* execState, uint8_t* buffer) {
-    if (!this->_argumentCountValidator(this, execState)) {
-        WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\". ", execState->argumentCount(), this->parametersCount());
-        execState->vm().throwException(execState, createError(execState, message));
-        return;
+CallType FFICall::getCallData(JSCell*, CallData& callData) {
+    callData.native.function = &call;
+    return CallTypeHost;
+}
+
+EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
+    FFICall* callee = jsCast<FFICall*>(execState->callee());
+    Invocation invocation(callee);
+    ReleasePoolHolder releasePoolHolder;
+
+    callee->preCall(execState, invocation);
+    callee->_invocationHooks.pre(callee, execState, invocation);
+    if (execState->hadException()) {
+        return JSValue::encode(execState->exception());
     }
 
-    // TODO: Check if arguments can be converted
+    {
+        JSLock::DropAllLocks locksDropper(execState);
+        ffi_call(callee->_cif, FFI_FN(invocation.function), invocation._buffer + callee->_returnOffset, reinterpret_cast<void**>(invocation._buffer + callee->_argsArrayOffset));
+    }
 
-    for (unsigned i = 0; i < execState->argumentCount(); i++) {
-        JSValue argument = execState->uncheckedArgument(i);
-        void* argumentBuffer = reinterpret_cast<void**>(buffer + this->_argsArrayOffset)[i + this->_initialArgumentIndex];
-        JSCell* parameterType = this->_parameterTypesCells[i].get();
-        this->_parameterTypes[i].write(execState, argument, argumentBuffer, parameterType);
+    JSValue result = callee->_returnType.read(execState, invocation._buffer + callee->_returnOffset, callee->_returnTypeCell.get());
 
-        if (execState->hadException()) {
-            return;
+    if (InvocationHook post = callee->_invocationHooks.post) {
+        post(callee, execState, invocation);
+    }
+
+    return JSValue::encode(result);
+}
+
+JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList& arguments) {
+    __block std::unique_ptr<Invocation> invocation(new Invocation(this));
+    ReleasePoolHolder releasePoolHolder;
+
+    Register* fakeCallFrame = new Register[JSStack::CallFrameHeaderSize + execState->argumentCount() + 1];
+    ExecState* fakeExecState = ExecState::create(fakeCallFrame);
+    fakeExecState->init(nullptr, nullptr, CallFrame::noCaller(), arguments.size() + 1, this);
+    fakeExecState->setThisValue(thisValue);
+    fakeExecState->setCallerFrame(execState->callerFrame());
+    for (size_t i = 0; i < arguments.size(); i++) {
+        fakeExecState->setArgument(i, arguments.at(i));
+    }
+    ASSERT(fakeExecState->argumentCount() == arguments.size());
+
+    {
+        TopCallFrameSetter frameSetter(execState->vm(), fakeExecState);
+        this->preCall(fakeExecState, *invocation);
+        this->_invocationHooks.pre(this, fakeExecState, *invocation);
+        if (Exception* exception = fakeExecState->exception()) {
+            delete fakeCallFrame;
+            return exception;
         }
     }
+
+    JSPromiseDeferred* deferred = JSPromiseDeferred::create(execState, execState->lexicalGlobalObject());
+    auto* releasePool = new ReleasePoolBase::Item(std::move(releasePoolHolder.relinquish()));
+    __block Strong<FFICall> callee(execState->vm(), this);
+
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        ffi_call(callee->_cif, FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
+
+        JSLockHolder lockHolder(fakeExecState);
+        // we no longer have a valid caller on the stack, what with being async and all
+        fakeExecState->setCallerFrame(CallFrame::noCaller());
+
+        JSValue result;
+        {
+            TopCallFrameSetter frameSetter(fakeExecState->vm(), fakeExecState);
+            result = _returnType.read(fakeExecState, invocation->_buffer + _returnOffset, _returnTypeCell.get());
+
+            if (InvocationHook post = _invocationHooks.post) {
+                post(this, fakeExecState, *invocation);
+            }
+        }
+
+        if (Exception* exception = fakeExecState->exception()) {
+            fakeExecState->clearException();
+            CallData rejectCallData;
+            CallType rejectCallType = JSC::getCallData(deferred->reject(), rejectCallData);
+
+            MarkedArgumentBuffer rejectArguments;
+            rejectArguments.append(exception->value());
+            JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->reject(), rejectCallType, rejectCallData, jsUndefined(), rejectArguments);
+        } else {
+            CallData resolveCallData;
+            CallType resolveCallType = JSC::getCallData(deferred->resolve(), resolveCallData);
+
+            MarkedArgumentBuffer resolveArguments;
+            resolveArguments.append(result);
+            JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->resolve(), resolveCallType, resolveCallData, jsUndefined(), resolveArguments);
+        }
+
+        delete fakeCallFrame;
+        delete releasePool;
+    });
+
+    return deferred->promise();
 }
 }

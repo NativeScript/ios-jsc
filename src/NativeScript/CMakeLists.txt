@@ -2,6 +2,7 @@ set(HEADER_FILES
     NativeScript-Prefix.h
 
     Calling/FFICall.h
+    Calling/FFICallPrototype.h
     Calling/FFICallback.h
     Calling/FFICallbackInlines.h
     Calling/FFIFunctionCall.h
@@ -84,6 +85,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
     Calling/FFICall.cpp
+    Calling/FFICallPrototype.cpp
     Calling/FFIFunctionCall.mm
     Calling/FFIFunctionCallback.cpp
     ConsoleMethodOverrides.cpp

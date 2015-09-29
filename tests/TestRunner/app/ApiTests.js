@@ -417,6 +417,29 @@ describe(module.id, function () {
         expect(actual).toEqual(expected);
     });
 
+    describe("async", function () {
+        it("should work", function (done) {
+            var str = NSString.alloc();
+            str.initWithString.async(str, ["test"])
+                .then(value => expect(value.toString()).toEqual("test"))
+                .then(done);
+        });
+        
+        it("should throw errors in the argument marshalling phase", function () {
+            var str = NSString.alloc();
+            expect(() => str.initWithString.async(str, [])).toThrow();
+        });
+        
+        it("should reject the returned promise if an error is raised in the result marshalling phase", function (done) {
+            var api = TNSApi.new();
+            api.methodError.async(api, [1])
+            .catch(error => {
+                expect(error).toEqual(jasmine.any(NSError));
+                done();
+            });
+        });
+    });
+
     it("ApiIterator", function () {
         var counter = 0;
 

@@ -18,23 +18,17 @@ void FFIFunctionCall::finishCreation(VM& vm, const void* functionPointer, const 
     Base::finishCreation(vm, name);
     this->_functionPointer = functionPointer;
     this->_retainsReturnedCocoaObjects = retainsReturnedCocoaObjects;
-    Base::initializeFFI(vm, returnType, parameterTypes);
+    Base::initializeFFI(vm, { &preInvocation, &postInvocation }, returnType, parameterTypes);
 }
 
-EncodedJSValue FFIFunctionCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
-    this->executeFFICall(execState, buffer, FFI_FN(this->_functionPointer));
+void FFIFunctionCall::preInvocation(FFICall* callee, ExecState*, FFICall::Invocation& invocation) {
+    invocation.function = const_cast<void*>(jsCast<FFIFunctionCall*>(callee)->functionPointer());
+}
 
-    JSValue result = this->postCall(execState, buffer);
-    if (this->retainsReturnedCocoaObjects()) {
-        id returnValue = *static_cast<id*>(this->getReturn(buffer));
-        [returnValue release];
+void FFIFunctionCall::postInvocation(FFICall* callee, ExecState*, FFICall::Invocation& invocation) {
+    FFIFunctionCall* call = jsCast<FFIFunctionCall*>(callee);
+    if (call->retainsReturnedCocoaObjects()) {
+        [invocation.getResult<id>() release];
     }
-
-    return JSValue::encode(result);
-}
-
-CallType FFIFunctionCall::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &Base::executeCall<FFIFunctionCall>;
-    return CallTypeHost;
 }
 }
