@@ -15,6 +15,23 @@ static bool sLogToSystemConsole = true;
 static bool sLogToSystemConsole = false;
 #endif
 
+static void appendURLAndPosition(StringBuilder& builder, const String& url, unsigned lineNumber, unsigned columnNumber) {
+    if (url.isEmpty())
+        return;
+
+    builder.append(url);
+
+    if (lineNumber > 0) {
+        builder.append(':');
+        builder.appendNumber(lineNumber);
+    }
+
+    if (columnNumber > 0) {
+        builder.append(':');
+        builder.appendNumber(columnNumber);
+    }
+}
+
 bool GlobalObjectConsoleClient::logToSystemConsole() {
     return sLogToSystemConsole;
 }
@@ -30,9 +47,8 @@ GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsole
 
 void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
     if (GlobalObjectConsoleClient::logToSystemConsole()) {
-        if (type == JSC::MessageType::Dir) {
-            WTF::String message = this->getDirMessage(exec, arguments);
-            ConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, MessageType::Dir, MessageLevel::Log, message, WTF::emptyString(), 0, 0);
+        if (type != JSC::MessageType::Trace) {
+            this->printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
         } else {
             ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
         }
@@ -41,6 +57,30 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
     String message;
     arguments->getFirstArgumentAsString(message);
     m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::move(arguments), exec));
+}
+
+void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource source, MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
+    RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
+    const Inspector::ScriptCallFrame& lastCaller = callStack->at(0);
+
+    StringBuilder builder;
+
+    if (!lastCaller.sourceURL().isEmpty()) {
+        appendURLAndPosition(builder, lastCaller.sourceURL(), lastCaller.lineNumber(), lastCaller.columnNumber());
+        builder.appendLiteral(": ");
+    }
+
+    if (type == JSC::MessageType::Dir) {
+        builder.append(this->getDirMessage(exec, arguments));
+    } else {
+        for (size_t i = 0; i < arguments->argumentCount(); ++i) {
+            String argAsString = arguments->argumentAt(i).toString(arguments->globalState());
+            builder.append(' ');
+            builder.append(argAsString);
+        }
+    }
+
+    ConsoleClient::printConsoleMessage(source, type, level, builder.toString(), WTF::emptyString(), 0, 0);
 }
 
 void GlobalObjectConsoleClient::count(JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
@@ -87,25 +127,23 @@ void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {
 WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>& arguments) {
     JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
     StringBuilder output;
-    output.append(argumentValue.toWTFString(exec).utf8().data());
+    output.append(argumentValue.toWTFString(exec));
 
     if (argumentValue.isObject()) {
-        output.append("\n{ ");
+        output.append("\n");
 
         JSC::JSObject* jsObject = argumentValue.getObject();
         JSC::PropertyNameArray propertyNames(exec);
         JSC::EnumerationMode mode;
         jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
 
-        for (size_t i = 0; i < propertyNames.size(); ++i) {
-            if (i)
-                output.append(",\n");
-            const JSC::PropertyName& propertyName = propertyNames[i];
+        for (JSC::PropertyName propertyName : propertyNames) {
             JSC::JSValue value = argumentValue.get(exec, propertyName);
-            output.append(WTF::String::format("%s: %s", propertyName.uid()->utf8().data(), value.toWTFString(exec).utf8().data()));
+            output.append(WTF::String(propertyName.uid()));
+            output.append(": ");
+            output.append(value.toWTFString(exec));
+            output.append("\n");
         }
-
-        output.append(" }");
     }
 
     return output.toString();

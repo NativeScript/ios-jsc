@@ -27,6 +27,7 @@ protected:
     virtual void timeStamp(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) override;
 
 private:
+    void printConsoleMessageWithArguments(MessageSource, MessageType, MessageLevel, JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&);
     void warnUnimplemented(const String& method);
     void internalAddMessage(MessageType, MessageLevel, JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&);
     WTF::String getDirMessage(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&);
