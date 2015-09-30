@@ -194,6 +194,7 @@ if(${BUILD_SHARED_LIBS})
         INSTALL_NAME_DIR "@executable_path/Frameworks"
         XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
         MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
+        XCODE_ATTRIBUTE_CLANG_DEBUG_INFORMATION_LEVEL[variant=RelWithDebInfo] "line-tables-only"
     )
     target_link_libraries(NativeScript
         ${WEBKIT_LIBRARIES}
