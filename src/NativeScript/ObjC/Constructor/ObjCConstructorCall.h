@@ -49,9 +49,8 @@ private:
 
     void finishCreation(JSC::VM&, GlobalObject*, Class, const Metadata::MethodMeta*);
 
-    FFI_DERIVED_MEMBERS;
-
-    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
+    static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
+    static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
 
     static void destroy(JSC::JSCell* cell) {
         JSC::jsCast<ObjCConstructorCall*>(cell)->~ObjCConstructorCall();

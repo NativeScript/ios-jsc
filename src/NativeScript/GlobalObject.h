@@ -21,6 +21,7 @@ class Interop;
 class TypeFactory;
 class ObjCWrapperObject;
 class GlobalObjectInspectorController;
+class FFICallPrototype;
 
 class GlobalObject : public JSC::JSGlobalObject {
 public:
@@ -47,6 +48,10 @@ public:
 #endif
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
+
+    FFICallPrototype* ffiCallPrototype() const {
+        return this->_ffiCallPrototype.get();
+    }
 
     JSC::Structure* objCMethodCallStructure() const {
         return this->_objCMethodCallStructure.get();
@@ -153,6 +158,7 @@ private:
     WTF::RetainPtr<CFRunLoopRef> _microtaskRunLoop;
     WTF::RetainPtr<CFTypeRef> _microtaskRunLoopMode;
 
+    JSC::WriteBarrier<FFICallPrototype> _ffiCallPrototype;
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;
     JSC::WriteBarrier<JSC::Structure> _objCBlockCallStructure;

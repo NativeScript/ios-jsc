@@ -45,6 +45,7 @@
 #include "ObjCFastEnumerationIteratorPrototype.h"
 #include "AllocatedPlaceholder.h"
 #include "ObjCTypes.h"
+#include "FFICallPrototype.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -120,10 +121,12 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profileEnd")), 0, consoleProfileEndTimeline, NoIntrinsic, Attribute::Function);
 
     this->_applicationPath = applicationPath;
-    this->_objCMethodCallStructure.set(vm, this, ObjCMethodCall::createStructure(vm, this, this->functionPrototype()));
+
+    this->_ffiCallPrototype.set(vm, this, FFICallPrototype::create(vm, this, FFICallPrototype::createStructure(vm, this, this->functionPrototype())));
+    this->_objCMethodCallStructure.set(vm, this, ObjCMethodCall::createStructure(vm, this, this->ffiCallPrototype()));
     this->_objCConstructorCallStructure.set(vm, this, ObjCConstructorCall::createStructure(vm, this, this->functionPrototype()));
-    this->_objCBlockCallStructure.set(vm, this, ObjCBlockCall::createStructure(vm, this, this->functionPrototype()));
-    this->_ffiFunctionCallStructure.set(vm, this, FFIFunctionCall::createStructure(vm, this, this->functionPrototype()));
+    this->_objCBlockCallStructure.set(vm, this, ObjCBlockCall::createStructure(vm, this, this->ffiCallPrototype()));
+    this->_ffiFunctionCallStructure.set(vm, this, FFIFunctionCall::createStructure(vm, this, this->ffiCallPrototype()));
     this->_objCBlockCallbackStructure.set(vm, this, ObjCBlockCallback::createStructure(vm, this, jsNull()));
     this->_objCMethodCallbackStructure.set(vm, this, ObjCMethodCallback::createStructure(vm, this, jsNull()));
     this->_ffiFunctionCallbackStructure.set(vm, this, FFIFunctionCallback::createStructure(vm, this, jsNull()));
@@ -177,6 +180,7 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_interop);
     visitor.append(&globalObject->_typeFactory);
     visitor.append(&globalObject->_typeScriptOriginalExtendsFunction);
+    visitor.append(&globalObject->_ffiCallPrototype);
     visitor.append(&globalObject->_objCMethodCallStructure);
     visitor.append(&globalObject->_objCConstructorCallStructure);
     visitor.append(&globalObject->_objCBlockCallStructure);

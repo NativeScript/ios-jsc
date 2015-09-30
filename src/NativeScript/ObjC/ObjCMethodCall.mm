@@ -13,6 +13,7 @@
 #include "TypeFactory.h"
 #include "Metadata.h"
 #include "AllocatedPlaceholder.h"
+#include "ReleasePool.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -27,7 +28,7 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings);
     const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);
 
-    Base::initializeFFI(vm, returnTypeCell, parameterTypesCells, 2);
+    Base::initializeFFI(vm, { &preInvocation, &postInvocation }, returnTypeCell, parameterTypesCells, 2);
     this->_retainsReturnedCocoaObjects = metadata->ownsReturnedCocoaObject();
     this->_isInitializer = metadata->isInitializer();
     this->_hasErrorOutParameter = metadata->hasErrorOutParameter();
@@ -69,51 +70,51 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     this->setSelector(metadata->selector());
 }
 
-EncodedJSValue ObjCMethodCall::derivedExecuteCall(ExecState* execState, uint8_t* buffer) {
+void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
+    ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
     id target = NativeScript::toObject(execState, execState->thisValue());
     Class targetClass = object_getClass(target);
 
-    NSError* outError = nil;
-    if (this->_hasErrorOutParameter) {
-        if (this->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
-            this->setArgument(buffer, this->_argsCount - 1, &outError);
-        }
+    if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
+        std::vector<NSError*> outError = { nil };
+        invocation.setArgument(call->_argsCount - 1, outError.data());
+        ReleasePool<decltype(outError)>::releaseSoon(std::move(outError));
     }
 
     if (class_conformsToProtocol(targetClass, @protocol(TNSDerivedClass))) {
-        objc_super super = { target, class_getSuperclass(targetClass) };
+        std::unique_ptr<objc_super> super = std::make_unique<objc_super>();
+        super->receiver = target;
+        super->super_class = class_getSuperclass(targetClass);
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
-        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super.super_class), NSStringFromSelector(this->selector()));
+        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super->super_class), NSStringFromSelector(this->selector()));
 #endif
-        this->setArgument(buffer, 0, &super);
-        this->setArgument(buffer, 1, this->_selector);
-        this->executeFFICall(execState, buffer, FFI_FN(this->_msgSendSuper));
+        invocation.setArgument(0, super.get());
+        invocation.setArgument(1, call->_selector);
+        invocation.function = call->_msgSendSuper;
+        ReleasePool<decltype(super)>::releaseSoon(std::move(super));
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(targetClass);
         NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(this->selector()));
 #endif
-        this->setArgument(buffer, 0, target);
-        this->setArgument(buffer, 1, this->_selector);
-        this->executeFFICall(execState, buffer, FFI_FN(this->_msgSend));
+        invocation.setArgument(0, target);
+        invocation.setArgument(1, call->_selector);
+        invocation.function = call->_msgSend;
+    }
     }
 
-    JSValue result = this->postCall(execState, buffer);
+    void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
+        ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
 
-    if (this->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo() == AllocatedPlaceholder::info() && this->_isInitializer)) {
-        id returnValue = *static_cast<id*>(this->getReturn(buffer));
-        [returnValue release];
+        if (call->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo() == AllocatedPlaceholder::info() && call->_isInitializer)) {
+            [invocation.getResult<id>() release];
+        }
+
+        if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
+            if (NSError* error = *invocation.getArgument<NSError**>(call->_argsCount - 1)) {
+                execState->vm().throwException(execState, toValue(execState, error));
+            }
+        }
     }
-
-    if (outError) {
-        return throwVMError(execState, toValue(execState, outError));
-    }
-    return JSValue::encode(result);
-}
-
-CallType ObjCMethodCall::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &Base::executeCall<ObjCMethodCall>;
-    return CallTypeHost;
-}
 }

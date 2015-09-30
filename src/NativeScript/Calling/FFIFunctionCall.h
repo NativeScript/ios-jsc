@@ -47,13 +47,12 @@ private:
 
     void finishCreation(JSC::VM&, const void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects);
 
-    FFI_DERIVED_MEMBERS;
-
-    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
-
     static void destroy(JSC::JSCell* cell) {
         JSC::jsCast<FFIFunctionCall*>(cell)->~FFIFunctionCall();
     }
+
+    static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
+    static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
 
     const void* _functionPointer;
 
