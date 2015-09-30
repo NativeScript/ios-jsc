@@ -15,11 +15,6 @@ RefPtr<JSC::SourceProvider> ResourceManager::addSourceProvider(WTF::String url, 
 }
 
 WTF::String ResourceManager::constructFunctionContent(WTF::String moduleBody) {
-    StringBuilder builder;
-    builder.append("{function anonymous(require, module, exports, __dirname, __filename) {");
-    builder.append(moduleBody);
-    builder.append("\n}}");
-
-    return builder.toString();
+    return String::format("{function anonymous(require, module, exports, __dirname, __filename) { %s \n}}", moduleBody.utf8().data());
 }
 }
