@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(NativeScript)
 
-set(CMAKE_XCODE_ATTRIBUTE_SUPPORTED_PLATFORMS "macosx iphoneos iphonesimulator")
+set(CMAKE_XCODE_ATTRIBUTE_SUPPORTED_PLATFORMS "iphoneos iphonesimulator macosx")
 set(CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator;-macosx")
 set(CMAKE_XCODE_ATTRIBUTE_ENABLE_BITCODE "NO")
 set(CMAKE_OSX_SYSROOT $(PLATFORM_NAME))
@@ -27,6 +27,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG=1")
 
 option(BUILD_SHARED_LIBS "Build NativeScript as a Cocoa Framework" OFF)
 option(EMBED_STATIC_DEPENDENCIES "Embed JavaScriptCore and libffi in the NativeScript static library" OFF)
+option(GENERATE_DEBUG_SYMBOLS "Toggle generating debug symbols" ON)
+option(BUILD_ONLY_ACTIVE_ARCH "Toggle building for all architectures" ON)
 
 include(src/WebKit.cmake)
 include(src/MetadataGenerator.cmake)
