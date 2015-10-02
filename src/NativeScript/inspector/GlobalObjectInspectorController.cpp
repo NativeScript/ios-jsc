@@ -37,13 +37,13 @@
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/JSGlobalObjectConsoleAgent.h>
-#include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/JSGlobalObjectRuntimeAgent.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <wtf/Stopwatch.h>
 #include "GlobalObjectDebuggerAgent.h"
+#include "GlobalObjectConsoleClient.h"
 #include "InspectorPageAgent.h"
 #include "InspectorTimelineAgent.h"
 
@@ -84,7 +84,8 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_inspectorAgent = inspectorAgent.get();
     m_debuggerAgent = debuggerAgent.get();
     m_consoleAgent = consoleAgent.get();
-    m_consoleClient = std::make_unique<JSGlobalObjectConsoleClient>(m_consoleAgent);
+    m_timelineAgent = timelineAgent.get();
+    m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent);
 
     runtimeAgent->setScriptDebugServer(&debuggerAgent->scriptDebugServer());
 
@@ -204,7 +205,7 @@ void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Except
     String errorMessage = exception->value().toString(exec)->value(exec);
     exec->clearException();
 
-    if (JSGlobalObjectConsoleClient::logToSystemConsole()) {
+    if (GlobalObjectConsoleClient::logToSystemConsole()) {
         if (callStack->size()) {
             const ScriptCallFrame& callFrame = callStack->at(0);
             ConsoleClient::printConsoleMessage(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callFrame.sourceURL(), callFrame.lineNumber(), callFrame.columnNumber());

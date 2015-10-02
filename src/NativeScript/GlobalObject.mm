@@ -16,7 +16,6 @@
 #include <JavaScriptCore/JSGlobalObjectFunctions.h>
 #include <JavaScriptCore/runtime/JSConsole.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
-#include "ConsoleMethodOverrides.h"
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCPrototype.h"
@@ -113,12 +112,6 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     this->_inspectorController = std::make_unique<GlobalObjectInspectorController>(*this);
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
-
-    // JSGlobalObjectConsoleClient is final and there is no way to inherit from it and provide custom implementation for profile and profileEnd
-    // So instead we change console.profile and console.profileEnd functions implementation with ours that would call our Timeline Agent
-    JSC::JSConsole* console = jsCast<JSC::JSConsole*>(this->getDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("console"))));
-    console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profile")), 0, consoleProfileTimeline, NoIntrinsic, Attribute::Function);
-    console->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("profileEnd")), 0, consoleProfileEndTimeline, NoIntrinsic, Attribute::Function);
 
     this->_applicationPath = applicationPath;
 
