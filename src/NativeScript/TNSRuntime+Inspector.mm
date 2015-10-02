@@ -8,7 +8,6 @@
 
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
-#include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
 #include <JavaScriptCore/Debugger.h>
@@ -17,6 +16,7 @@
 #import "TNSRuntime+Inspector.h"
 #import "TNSRuntime+Private.h"
 #include "JSErrors.h"
+#include "GlobalObjectConsoleClient.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -66,11 +66,11 @@ private:
 }
 
 + (BOOL)logsToSystemConsole {
-    return Inspector::JSGlobalObjectConsoleClient::logToSystemConsole();
+    return GlobalObjectConsoleClient::logToSystemConsole();
 }
 
 + (void)setLogsToSystemConsole:(BOOL)shouldLog {
-    Inspector::JSGlobalObjectConsoleClient::setLogToSystemConsole(shouldLog);
+    GlobalObjectConsoleClient::setLogToSystemConsole(shouldLog);
 }
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime

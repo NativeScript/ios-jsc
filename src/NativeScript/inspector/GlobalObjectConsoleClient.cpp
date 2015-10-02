@@ -71,7 +71,8 @@ void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource s
     }
 
     if (type == JSC::MessageType::Dir) {
-        builder.append(this->getDirMessage(exec, arguments));
+        JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
+        builder.append(this->getDirMessage(exec, argumentValue));
     } else {
         for (size_t i = 0; i < arguments->argumentCount(); ++i) {
             String argAsString = arguments->argumentAt(i).toString(arguments->globalState());
@@ -124,21 +125,20 @@ void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {
     m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message, nullptr, nullptr));
 }
 
-WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>& arguments) {
-    JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
+WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::JSValue argument) {
     StringBuilder output;
-    output.append(argumentValue.toWTFString(exec));
+    output.append(argument.toWTFString(exec));
 
-    if (argumentValue.isObject()) {
+    if (argument.isObject()) {
         output.append("\n");
 
-        JSC::JSObject* jsObject = argumentValue.getObject();
+        JSC::JSObject* jsObject = argument.getObject();
         JSC::PropertyNameArray propertyNames(exec);
         JSC::EnumerationMode mode;
         jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
 
         for (JSC::PropertyName propertyName : propertyNames) {
-            JSC::JSValue value = argumentValue.get(exec, propertyName);
+            JSC::JSValue value = argument.get(exec, propertyName);
             output.append(WTF::String(propertyName.uid()));
             output.append(": ");
             output.append(value.toWTFString(exec));
