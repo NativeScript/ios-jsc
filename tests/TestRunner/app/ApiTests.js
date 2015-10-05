@@ -424,12 +424,12 @@ describe(module.id, function () {
                 .then(value => expect(value.toString()).toEqual("test"))
                 .then(done);
         });
-        
+
         it("should throw errors in the argument marshalling phase", function () {
             var str = NSString.alloc();
             expect(() => str.initWithString.async(str, [])).toThrow();
         });
-        
+
         it("should reject the returned promise if an error is raised in the result marshalling phase", function (done) {
             var api = TNSApi.new();
             api.methodError.async(api, [1])
@@ -440,6 +440,12 @@ describe(module.id, function () {
         });
     });
 
+    it("should distinguish between undefined and unavailable variables", function () {
+        expect(function() {
+            global.TNSUnavailableConstant;
+        }).toThrowError(ReferenceError, /TNSUnavailableConstant/);
+    });
+
     it("ApiIterator", function () {
         var counter = 0;
 
@@ -447,12 +453,21 @@ describe(module.id, function () {
             // console.debug(x);
 
             // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
-            if(x == "kCFAllocatorUseContext") {
+            if (x == "kCFAllocatorUseContext") {
                 return;
             }
 
-            var symbol = global[x];
             counter++;
+
+            try {
+                var symbol = global[x];
+            } catch (e) {
+                if (e instanceof ReferenceError) {
+                    return;
+                }
+
+                throw e;
+            }
 
             if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
                 var klass = symbol;
