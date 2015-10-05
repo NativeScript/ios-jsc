@@ -286,13 +286,17 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     }
     }
 
-    if (symbolWrapper) {
-        object->putDirectWithoutTransition(vm, propertyName, symbolWrapper);
-        propertySlot.setValue(object, None, symbolWrapper);
+    if (!symbolWrapper) {
+        WTF::String errorMessage = WTF::String::format("Metadata for \"%s.%s\" found but symbol not available at runtime.",
+                                                       symbolMeta->topLevelModule()->getName(), symbolMeta->name(), symbolMeta->name());
+        throwVMError(execState, createReferenceError(execState, errorMessage));
+        propertySlot.setValue(object, None, jsUndefined());
         return true;
     }
 
-    return false;
+    object->putDirectWithoutTransition(vm, propertyName, symbolWrapper);
+    propertySlot.setValue(object, None, symbolWrapper);
+    return true;
 }
 
 #ifdef DEBUG
