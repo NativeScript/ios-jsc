@@ -24,6 +24,8 @@ enum {
 
 extern NSString* const TNSConstant;
 
+extern NSString* const TNSUnavailableConstant;
+
 void functionThrowsException();
 
 @interface TNSApi : NSObject
