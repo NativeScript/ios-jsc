@@ -451,6 +451,20 @@ describe(module.id, function () {
         expect(TNSMutableObjectGet() instanceof NSObject).toBe(true);
     });
 
+    it("returns retained", function () {
+        expect(functionReturnsNSRetained().retainCount()).toBe(1);
+        expect(functionReturnsCFRetained().retainCount()).toBe(1);
+        expect(functionImplicitCreateNSObject().retainCount()).toBe(1);
+
+        var obj = functionExplicitCreateNSObject();
+        expect(obj.retainCount()).toBe(2);
+        CFRelease(obj);
+
+        expect(TNSReturnsRetained.methodReturnsNSRetained().retainCount()).toBe(1);
+        expect(TNSReturnsRetained.methodReturnsCFRetained().retainCount()).toBe(1);
+        expect(TNSReturnsRetained.newNSObjectMethod().retainCount()).toBe(1);
+    });
+
     it("ApiIterator", function () {
         var counter = 0;
 
