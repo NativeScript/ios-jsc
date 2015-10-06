@@ -100,6 +100,8 @@ TNSFunctionWithCreateCFTypeRefReturn
 TNSFunctionWithSimpleCFTypeRefReturn
 TNSGetOutput
 TNSLog
+TNSMutableObjectGet
+TNSObjectGet
 TNSSaveResults
 TNSStructFunctionConflict
 TNSStructVarConflict

@@ -3,6 +3,7 @@ set(HEADER_FILES
     TestFixtures.h
 
     Api/TNSApi.h
+    Api/TNSBridgedTypes.h
     Api/TNSDeclarationConflicts.h
     Api/TNSVersions.h
     Functions/TNSFunctions.h
@@ -21,6 +22,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
     Api/TNSApi.m
+    Api/TNSBridgedTypes.m
     Api/TNSDeclarationConflicts.m
     Api/TNSVersions.m
     Functions/TNSFunctions.m
