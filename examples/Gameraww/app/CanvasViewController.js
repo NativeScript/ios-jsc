@@ -18,7 +18,10 @@ var JSCanvasViewController = UICollectionViewController.extend({
 
         var item = this.items[indexPath.item];
 
-        utils.imageViewLoadFromURL(imageView, item["thumbnail"]);
+        utils.fetch(item["thumbnail"])
+             .then(data => UIImage.imageWithData.async(UIImage, [data]))
+             .then(image => imageView.image = image)
+             .catch(error => console.error(error));
 
         return cell;
     },

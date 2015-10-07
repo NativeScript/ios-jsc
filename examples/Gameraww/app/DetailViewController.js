@@ -12,13 +12,18 @@ var JSDetailViewController = UIViewController.extend({
             url += ".jpg";
         }
 
-        var self = this;
-        utils.imageViewLoadFromURL(this.imageView(), url, function (error) {
-            self.activityIndicator().stopAnimating();
-            self.toggleTopBarVisibility();
-        });
+        utils.fetch(url)
+             .then(data => UIImage.imageWithData.async(UIImage, [data]))
+             .then(this.setImage.bind(this))
+             .catch(error => console.error(error));
 
         UIViewController.prototype.viewWillAppear.call(this, animated);
+    },
+
+    setImage: function (image) {
+        this.imageView().image = image;
+        this.activityIndicator().stopAnimating();
+        this.toggleTopBarVisibility();
     },
 
     prefersStatusBarHidden: function () {

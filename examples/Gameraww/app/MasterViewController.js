@@ -53,33 +53,28 @@ var JSMasterViewController = UITableViewController.extend({
         detailTextLabel.text = dateFormatter.stringFromDate(created);
 
         var imageView = cell.contentView.viewWithTag(3);
+        utils.fetch(item["thumbnail"])
+             .then(data => UIImage.imageWithData.async(UIImage, [data]))
+             .then(image => imageView.image = image)
+             .catch(error => console.error(error));
 
-        utils.imageViewLoadFromURL(imageView, item["thumbnail"]);
         return cell;
     },
     tableViewHeightForRowAtIndexPath: function (tableView, indexPath) {
         return 44;
     },
     loadData: function () {
-        var urlSession = utils.getURLSession();
         var self = this;
-        var dataTask = urlSession.dataTaskWithURLCompletionHandler(NSURL.URLWithString("http://www.reddit.com/r/aww.json?limit=500"), (function (data, response, error) {
-            if (error) {
-                console.error(error.localizedDescription);
-            } else {
-                var jsonString = NSString.alloc().initWithDataEncoding(data, NSUTF8StringEncoding).toString();
-                var json = JSON.parse(jsonString);
-                self.items = json.data.children.map(function (child) {
-                    return child["data"];
-                });
+        utils.fetch("http://www.reddit.com/r/aww.json?limit=500")
+             .then(data => {
+                 var jsonString = NSString.alloc().initWithDataEncoding(data, NSUTF8StringEncoding).toString();
+                 var json = JSON.parse(jsonString);
+                 self.items = json.data.children.map(child => child.data);
 
-                self.tableView.reloadData();
-            }
-            __collect();
-            self.refreshControl.endRefreshing();
-        }));
-        dataTask.resume();
-        urlSession.finishTasksAndInvalidate();
+                 self.tableView.reloadData();
+                 self.refreshControl.endRefreshing();
+             })
+             .catch(error => console.error(error));
     }
 }, {
     name: "JSMasterViewController",

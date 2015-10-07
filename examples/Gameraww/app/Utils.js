@@ -2,26 +2,21 @@ function getURLSession() {
     return NSURLSession.sessionWithConfigurationDelegateDelegateQueue(NSURLSessionConfiguration.defaultSessionConfiguration(), null, NSOperationQueue.mainQueue());
 }
 
-function imageViewLoadFromURL(imageView, path, completionHandler) {
+function fetch(path) {
     var url = NSURL.URLWithString(path);
-    var session = getURLSession();
-    var dataTask = session.dataTaskWithURLCompletionHandler(url, function (data, response, error) {
-        if (error) {
-            console.error(error.localizedDescription);
-        } else {
-            var image = UIImage.imageWithData(data);
-            if (image) {
-                imageView.image = image;
+    return new Promise((resolve, reject) => {
+        var session = getURLSession();
+        var dataTask = session.dataTaskWithURLCompletionHandler(url, function (data, response, error) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(data);
             }
-        }
-
-        if (completionHandler) {
-            completionHandler(error);
-        }
+        });
+        dataTask.resume();
+        session.finishTasksAndInvalidate();
     });
-    dataTask.resume();
-    session.finishTasksAndInvalidate();
 }
 
 exports.getURLSession = getURLSession;
-exports.imageViewLoadFromURL = imageViewLoadFromURL;
+exports.fetch = fetch;
