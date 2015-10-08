@@ -5,6 +5,7 @@ set(HEADER_FILES
     Api/TNSApi.h
     Api/TNSBridgedTypes.h
     Api/TNSDeclarationConflicts.h
+    Api/TNSReturnsRetained.h
     Api/TNSVersions.h
     Functions/TNSFunctions.h
     Interfaces/TNSClassWithPlaceholder.h
@@ -24,6 +25,7 @@ set(SOURCE_FILES
     Api/TNSApi.m
     Api/TNSBridgedTypes.m
     Api/TNSDeclarationConflicts.m
+    Api/TNSReturnsRetained.m
     Api/TNSVersions.m
     Functions/TNSFunctions.m
     Interfaces/TNSClassWithPlaceholder.m
@@ -39,9 +41,13 @@ set(SOURCE_FILES
     TNSTestNativeCallbacks.m
 )
 
-set_source_files_properties(Interfaces/TNSClassWithPlaceholder.m PROPERTIES COMPILE_FLAGS -fno-objc-arc)
+set_source_files_properties(
+    Api/TNSReturnsRetained.m
+    Interfaces/TNSClassWithPlaceholder.m
+    PROPERTIES COMPILE_FLAGS -fno-objc-arc
+)
 
-add_library(TestFixtures STATIC ${HEADER_FILES} ${SOURCE_FILES})
+add_library(TestFixtures STATIC ${HEADER_FILES} ${SOURCE_FILES} exported-symbols.txt)
 
 set_target_properties(TestFixtures PROPERTIES COMPILE_FLAGS "
     -fobjc-arc

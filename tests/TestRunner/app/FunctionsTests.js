@@ -17,6 +17,5 @@ describe(module.id, function () {
         expect(CFBagGetCount(bag)).toBe(2);
         expect(CFBagGetCountOfValue(bag, a)).toBe(1);
         expect(CFBagContainsValue(bag, a)).toBe(true);
-        CFRelease(bag);
     });
 });
