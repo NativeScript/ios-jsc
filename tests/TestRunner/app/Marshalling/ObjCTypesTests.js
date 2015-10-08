@@ -11,7 +11,7 @@ describe(module.id, function () {
     });
 
     it("FunctionWithSimpleCFTypeRefReturn", function () {
-        expect(NSString(TNSFunctionWithSimpleCFTypeRefReturn()).toString()).toBe('test');
+        expect(TNSFunctionWithSimpleCFTypeRefReturn()).toBe('test');
     });
 
     it("OutParameter", function () {

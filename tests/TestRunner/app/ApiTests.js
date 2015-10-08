@@ -446,6 +446,11 @@ describe(module.id, function () {
         }).toThrowError(ReferenceError, /TNSUnavailableConstant/);
     });
 
+    it("bridged types", function () {
+        expect(TNSObjectGet() instanceof NSObject).toBe(true);
+        expect(TNSMutableObjectGet() instanceof NSObject).toBe(true);
+    });
+
     it("ApiIterator", function () {
         var counter = 0;
 
