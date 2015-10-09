@@ -49,6 +49,7 @@ functionWithULongPtr
 functionWithUnichar
 functionWithUShort
 functionWithUShortPtr
+TNSBridgedGet
 TNSClearOutput
 TNSConstant
 TNSConstant10_0Plus
@@ -104,8 +105,8 @@ TNSFunctionWithCreateCFTypeRefReturn
 TNSFunctionWithSimpleCFTypeRefReturn
 TNSGetOutput
 TNSLog
-TNSMutableObjectGet
-TNSObjectGet
+TNSMutableBridgedGet
+TNSRelatedGet
 TNSSaveResults
 TNSStructFunctionConflict
 TNSStructVarConflict

@@ -447,8 +447,9 @@ describe(module.id, function () {
     });
 
     it("bridged types", function () {
-        expect(TNSObjectGet() instanceof NSObject).toBe(true);
-        expect(TNSMutableObjectGet() instanceof NSObject).toBe(true);
+        expect(TNSBridgedGet() instanceof NSObject).toBe(true);
+        expect(TNSMutableBridgedGet() instanceof NSObject).toBe(true);
+        expect(TNSRelatedGet() instanceof NSObject).toBe(true);
     });
 
     it("returns retained", function () {

@@ -42,6 +42,7 @@ set(SOURCE_FILES
 )
 
 set_source_files_properties(
+    Api/TNSBridgedTypes.m
     Api/TNSReturnsRetained.m
     Interfaces/TNSClassWithPlaceholder.m
     PROPERTIES COMPILE_FLAGS -fno-objc-arc
