@@ -34,6 +34,10 @@
 - (void)inspectedURLChanged {
 }
 
+- (void)startWindowDrag {
+    
+}
+
 - (void)sendMessageToBackend:(NSString*)message {
     if (self->communication_channel) {
         uint32_t length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
