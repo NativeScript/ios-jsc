@@ -8,18 +8,26 @@
 
 #import "TNSBridgedTypes.h"
 
-TNSObjectRef TNSObjectGet() {
+TNSBridgedTypeRef TNSBridgedGet() {
     static NSObject* object;
     if (!object) {
         object = [[NSObject alloc] init];
     }
-    return (__bridge TNSObjectRef)(object);
+    return (void*)(object);
 }
 
-TNSMutableObjectRef TNSMutableObjectGet() {
+TNSMutableBridgedTypeRef TNSMutableBridgedGet() {
     static NSObject* object;
     if (!object) {
         object = [[NSObject alloc] init];
     }
-    return (__bridge TNSMutableObjectRef)(object);
+    return (void*)(object);
+}
+
+TNSRelatedTypeRef TNSRelatedGet() {
+    static NSObject* object;
+    if (!object) {
+        object = [[NSObject alloc] init];
+    }
+    return (void*)(object);
 }
