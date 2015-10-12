@@ -10,5 +10,6 @@
 - (void)bringToFront;
 - (void)sendMessageToBackend:(NSString *)message;
 - (void)inspectedURLChanged;
+- (void)startWindowDrag;
 
 @end
