@@ -2,26 +2,31 @@
 @import AppKit;
 @import WebKit;
 @import JavaScriptCore;
+#import <WebKit/WebPreferencesPrivate.h>
 #import "InspectorFrontendHost.h"
 
-@implementation ViewController
+@implementation ViewController {
+    NSString* _mainFileName;
+    NSString* _projectName;
+    NSString* _socketPath;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+    self->_mainFileName = arguments[1];
+    self->_projectName = arguments[2];
+    if (arguments.count >= 4) {
+        self->_socketPath = arguments[3];
+    }
 
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationShouldReopen:) name:@"org.NativeScriptInspector.ApplicationShouldHandleReopen" object:nil];
 
     self->frontendHost = [[InspectorFrontendHost alloc] init];
     [self setupWebView];
 
-    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
-    NSString* socket_path = @"";
-
-    if (arguments.count >= 4) {
-        socket_path = arguments[3];
-    }
-
-    [self connect:socket_path];
+    [self connect:self->_socketPath];
 }
 
 - (void)applicationShouldReopen:(NSNotification*)notification {
@@ -29,33 +34,50 @@
     self.view = [[WebView alloc] initWithFrame:self.view.frame];
     [self setupWebView];
 
-    NSString* title = [notification.userInfo valueForKey:@"project_name"];
-    [self update:title];
+    self->_projectName = [notification.userInfo valueForKey:@"project_name"];
+    [self update:self->_projectName];
 
-    NSString* socket_path = [notification.userInfo valueForKey:@"socket_path"];
-    [self connect:socket_path];
+    self->_socketPath= [notification.userInfo valueForKey:@"socket_path"];
+    [self connect:self->_socketPath];
 }
 
 - (void)setupWebView {
     WebView* webView = (WebView*)self.view;
 
-    JSContext* context = webView.mainFrame.javaScriptContext;
+    // Breakpoints are saved in window.localStorage so make them sandboxed per application
+    NSString* applicationSupportPath = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES)[0];
+    NSString* appName = [[NSBundle mainBundle].infoDictionary objectForKey:(NSString*)kCFBundleNameKey];
+    NSString* localStoragePath = [NSString pathWithComponents:@[applicationSupportPath, appName, @"Local Storage", self->_projectName]];
+    [webView.preferences _setLocalStorageDatabasePath:localStoragePath];
+#ifndef NDEBUG
+    NSLog(@"Local storage: %@", webView.preferences._localStorageDatabasePath);
+#endif
 
+    JSContext* context = webView.mainFrame.javaScriptContext;
     context[@"InspectorFrontendHost"] = self->frontendHost;
     context[@"WebInspector"] = [JSValue valueWithNewObjectInContext:context];
     context[@"WebInspector"][@"dontLocalizeUserInterface"] = @(true);
 
-    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
-    webView.mainFrameURL = (NSString*)arguments[1];
+    webView.mainFrameURL = self->_mainFileName;
 }
 
 - (void)viewWillAppear {
     [super viewWillAppear];
 
-    NSArray* arguments = [[NSProcessInfo processInfo] arguments];
-
-    [self update:(NSString*)arguments[2]];
+    [self update:self->_projectName];
     self.view.window.titlebarAppearsTransparent = YES;
+}
+
+- (void)viewWillDisappear {
+    [super viewWillDisappear];
+
+    // Breakpoints are saved on pagehide event, which for some reason is not triggered when the app closes
+    WebView* webView = (WebView*)self.view;
+    [webView stringByEvaluatingJavaScriptFromString:
+     @"var e = document.createEvent('Event');"
+     @"e.initEvent('pagehide', false, false);"
+     @"window.dispatchEvent(e);"
+     ];
 }
 
 - (void)update:(NSString*)title {
