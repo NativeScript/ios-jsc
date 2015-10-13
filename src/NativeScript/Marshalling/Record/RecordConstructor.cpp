@@ -108,22 +108,26 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
     } else {
         memset(buffer, 0, ffiType->size);
 
-        JSObject* object = jsCast<JSObject*>(value.asCell());
+        if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
+            const WTF::Vector<RecordField*> fields = jsCast<RecordPrototype*>(constructor->get(execState, execState->vm().propertyNames->prototype))->fields();
+            for (RecordField* field : fields) {
+                Identifier propertyName = Identifier::fromString(execState, field->fieldName());
+                if (object->hasProperty(execState, propertyName)) {
+                    JSValue fieldValue = object->get(execState, propertyName);
+                    if (execState->hadException()) {
+                        return;
+                    }
 
-        const WTF::Vector<RecordField*> fields = jsCast<RecordPrototype*>(constructor->get(execState, execState->vm().propertyNames->prototype))->fields();
-        for (RecordField* field : fields) {
-            Identifier propertyName = Identifier::fromString(execState, field->fieldName());
-            if (object->hasProperty(execState, propertyName)) {
-                JSValue fieldValue = object->get(execState, propertyName);
-                if (execState->hadException()) {
-                    return;
-                }
-
-                field->ffiTypeMethodTable().write(execState, fieldValue, reinterpret_cast<void*>(reinterpret_cast<char*>(buffer) + field->offset()), field->fieldType());
-                if (execState->hadException()) {
-                    return;
+                    field->ffiTypeMethodTable().write(execState, fieldValue, reinterpret_cast<void*>(reinterpret_cast<char*>(buffer) + field->offset()), field->fieldType());
+                    if (execState->hadException()) {
+                        return;
+                    }
                 }
             }
+        } else if (!value.isUndefinedOrNull()) {
+            JSValue exception = createError(execState, WTF::String::format("Could not marshall \"%s\" to \"%s\" type.", value.toWTFString(execState).utf8().data(), constructor->name(execState).utf8().data()));
+            throwVMError(execState, exception);
+            return;
         }
     }
 }

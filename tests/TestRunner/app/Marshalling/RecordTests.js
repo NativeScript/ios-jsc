@@ -97,6 +97,12 @@ describe(module.id, function () {
         expect(result.y).toBe(object.y);
     });
 
+    it("InvalidStruct", function () {
+        expect(function() {
+            TNSTestNativeCallbacks.recordsSimpleStruct(3);
+        }).toThrowError(/marshall.*TNSSimpleStruct/);
+    });
+
     // TODO
     // it("StructWithArray", function() {
     //     var object = {
