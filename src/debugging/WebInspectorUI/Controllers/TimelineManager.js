@@ -119,7 +119,12 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
 
         // NOTE: Always stop immediately instead of waiting for a Timeline.recordingStopped event.
         // This way the UI feels as responsive to a stop as possible.
-        this.capturingStopped();
+
+        // NOTE: stopCapturing is called when the stop recording button is pressed. capturingStopped cleans the timelines state, 
+        // so when we pass the recorded item from backend
+        // the timelines state is invalid and the recorded object is not logged. 
+        // capturingStopped is called from the backend so we could safely remove it here
+        //this.capturingStopped();
     }
 
     unloadRecording()
@@ -226,8 +231,8 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
     {
         // Called from WebInspector.PageObserver.
 
-        if (isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
-            WebInspector.frameResourceManager.mainFrame.markLoadEvent(this.activeRecording.computeElapsedTime(timestamp));
+        // if (isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
+        //     WebInspector.frameResourceManager.mainFrame.markLoadEvent(this.activeRecording.computeElapsedTime(timestamp));
     }
 
     // Private
@@ -491,8 +496,8 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         this._activeRecording.addRecord(record);
 
         // Only worry about dead time after the load event.
-        if (!isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
-            this._resetAutoRecordingDeadTimeTimeout();
+        // if (!isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
+        //     this._resetAutoRecordingDeadTimeTimeout();
     }
 
     _startAutoCapturing(event)
