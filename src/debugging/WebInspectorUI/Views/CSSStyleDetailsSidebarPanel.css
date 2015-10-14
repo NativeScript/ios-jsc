@@ -23,17 +23,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.sidebar > .panel.details.css-style > .navigation-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    align-content: center;
-}
-
 .sidebar > .panel.details.css-style > .content {
     position: absolute;
-    top: 29px;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
@@ -47,8 +39,8 @@
 }
 
 .sidebar > .panel.details.css-style > .content > .pseudo-classes {
-    padding: 10px;
-    border-bottom: 1px solid rgb(179, 179, 179);
+    padding: 6px 10px;
+    border-bottom: 1px solid hsl(0, 0%, 70%);
 
     display: flex;
     flex-flow: row wrap;
@@ -63,7 +55,7 @@
 }
 
 .sidebar > .panel.details.css-style > .content > .pseudo-classes > .group > label {
-    color: rgb(96, 96, 96);
+    color: hsl(0, 0%, 37%);
     text-shadow: white 0 1px 0;
 
     margin: 0 5px;
@@ -73,22 +65,44 @@
     white-space: nowrap;
 }
 
-.sidebar > .panel.details.css-style > .content.has-filter-bar + .filter-bar {
+.sidebar > .panel.details.css-style > .content + .options-container {
+    display: flex;
+    align-items: center;
     position: absolute;
     bottom: 0;
     width: 100%;
+    height: 29px;
     background-color: white;
-    border-top: 1px solid rgb(179, 179, 179);
+    border-top: 1px solid hsl(0, 0%, 70%);
 }
 
-.sidebar > .panel.details.css-style > .content:not(.has-filter-bar) + .filter-bar {
+.sidebar > .panel.details.css-style > .content:not(.supports-new-rule, .has-filter-bar) + .options-container {
+    display: none;
+}
+
+.sidebar > .panel.details.css-style > .content + .options-container > .new-rule {
+    width: 15px;
+    min-width: 15px;
+    height: 15px;
+    margin-left: 6px;
+    content: url(../Images/Plus15.svg);
+    opacity: 0.7;
+}
+
+.sidebar > .panel.details.css-style > .content + .options-container > .filter-bar {
+    width: -webkit-fill-available;
+    background-color: transparent;
+}
+
+.sidebar > .panel.details.css-style > .content:not(.supports-new-rule) + .options-container > .new-rule,
+.sidebar > .panel.details.css-style > .content:not(.has-filter-bar) + .options-container > .filter-bar {
     display: none;
 }
 
 .sidebar > .panel.details.css-style > .content.filter-in-progress .filter-matching {
     display: inline;
-    background-color: rgba(235, 215, 38, 0.5);
-    border-bottom: 1px solid rgb(237, 202, 71);
+    background-color: hsla(53, 83%, 53%, 0.5);
+    border-bottom: 1px solid hsl(47, 82%, 60%);
     opacity: 1;
 }
 
@@ -104,7 +118,7 @@
 .sidebar > .panel.details.css-style > .content.filter-in-progress .style-declaration-section:not(.filter-section-has-label) {
     margin-top: 0;
     border-top: none;
-    border-bottom: 1px solid rgb(179, 179, 179);
+    border-bottom: 1px solid hsl(0, 0%, 70%);
 }
 
 .sidebar > .panel.details.css-style > .content.filter-in-progress .style-declaration-section > .header > .selector > .filter-matching {

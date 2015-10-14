@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,21 +23,48 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.CookieStorageContentView = function(representedObject)
+WebInspector.CookieStorageContentView = class CookieStorageContentView extends WebInspector.ContentView
 {
-    WebInspector.ContentView.call(this, representedObject);
+    constructor(representedObject)
+    {
+        super(representedObject);
 
-    this.element.classList.add("cookie-storage");
+        this.element.classList.add("cookie-storage");
 
-    this.update();
-};
+        this._refreshButtonNavigationItem = new WebInspector.ButtonNavigationItem("cookie-storage-refresh", WebInspector.UIString("Refresh"), "Images/ReloadFull.svg", 13, 13);
+        this._refreshButtonNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._refreshButtonClicked, this);
 
-WebInspector.CookieStorageContentView.prototype = {
-    constructor: WebInspector.CookieStorageContentView,
+        this.update();
+    }
+
+    // Static
+
+    static cookieMatchesResourceURL(cookie, resourceURL)
+    {
+        var parsedURL = parseURL(resourceURL);
+        if (!parsedURL || !WebInspector.CookieStorageContentView.cookieDomainMatchesResourceDomain(cookie.domain, parsedURL.host))
+            return false;
+
+        return (parsedURL.path.startsWith(cookie.path)
+            && (!cookie.port || parsedURL.port === cookie.port)
+            && (!cookie.secure || parsedURL.scheme === "https"));
+    }
+
+    static cookieDomainMatchesResourceDomain(cookieDomain, resourceDomain)
+    {
+        if (cookieDomain.charAt(0) !== ".")
+            return resourceDomain === cookieDomain;
+        return !!resourceDomain.match(new RegExp("^([^\\.]+\\.)?" + cookieDomain.substring(1).escapeForRegExp() + "$"), "i");
+    }
 
     // Public
 
-    update: function()
+    get navigationItems()
+    {
+        return [this._refreshButtonNavigationItem];
+    }
+
+    update()
     {
         function callback(error, cookies)
         {
@@ -49,30 +76,30 @@ WebInspector.CookieStorageContentView.prototype = {
         }
 
         PageAgent.getCookies(callback.bind(this));
-    },
+    }
 
-    updateLayout: function()
+    updateLayout()
     {
         if (this._dataGrid)
             this._dataGrid.updateLayout();
-    },
+    }
 
-    saveToCookie: function(cookie)
+    saveToCookie(cookie)
     {
         cookie.type = WebInspector.ContentViewCookieType.CookieStorage;
         cookie.host = this.representedObject.host;
-    },
+    }
 
     get scrollableElements()
     {
         if (!this._dataGrid)
             return [];
         return [this._dataGrid.scrollContainer];
-    },
+    }
 
     // Private
 
-    _rebuildTable: function()
+    _rebuildTable()
     {
         // FIXME: If there are no cookies, do we want to show an empty datagrid, or do something like the old
         // inspector and show some text saying there are no cookies?
@@ -147,9 +174,9 @@ WebInspector.CookieStorageContentView.prototype = {
         }
 
         this._dataGrid.sortColumnIdentifier = "name";
-    },
+    }
 
-    _filterCookies: function(cookies)
+    _filterCookies(cookies)
     {
         var filteredCookies = [];
         var resourcesForDomain = [];
@@ -172,7 +199,7 @@ WebInspector.CookieStorageContentView.prototype = {
 
         for (var i = 0; i < cookies.length; ++i) {
             for (var j = 0; j < resourcesForDomain.length; ++j) {
-                if (WebInspector.cookieMatchesResourceURL(cookies[i], resourcesForDomain[j])) {
+                if (WebInspector.CookieStorageContentView.cookieMatchesResourceURL(cookies[i], resourcesForDomain[j])) {
                     filteredCookies.push(cookies[i]);
                     break;
                 }
@@ -180,9 +207,9 @@ WebInspector.CookieStorageContentView.prototype = {
         }
 
         return filteredCookies;
-    },
+    }
 
-    _sortDataGrid: function()
+    _sortDataGrid()
     {
         function localeCompare(field, nodeA, nodeB)
         {
@@ -220,42 +247,25 @@ WebInspector.CookieStorageContentView.prototype = {
 
         console.assert(comparator);
         this._dataGrid.sortNodes(comparator);
-    },
+    }
 
-    _deleteCallback: function(node)
+    _deleteCallback(node)
     {
         if (!node || !node.cookie)
             return;
 
         var cookie = node.cookie;
         var cookieURL = (cookie.secure ? "https://" : "http://") + cookie.domain + cookie.path;
-
-        // COMPATIBILITY (iOS 6): PageAgent.deleteCookie used to take 'domain', now takes 'url'. Send both.
-        PageAgent.deleteCookie.invoke({cookieName: cookie.name, domain: cookie.domain, url: cookieURL});
+        PageAgent.deleteCookie(cookie.name, cookieURL);
 
         this.update();
     }
+
+    _refreshButtonClicked(event)
+    {
+        this.update();
+    }
 };
-
-WebInspector.CookieStorageContentView.prototype.__proto__ = WebInspector.ContentView.prototype;
-
-WebInspector.cookieMatchesResourceURL = function(cookie, resourceURL)
-{
-    var parsedURL = parseURL(resourceURL);
-    if (!parsedURL || !WebInspector.cookieDomainMatchesResourceDomain(cookie.domain, parsedURL.host))
-        return false;
-
-    return (parsedURL.path.startsWith(cookie.path)
-        && (!cookie.port || parsedURL.port === cookie.port)
-        && (!cookie.secure || parsedURL.scheme === "https"));
-}
-
-WebInspector.cookieDomainMatchesResourceDomain = function(cookieDomain, resourceDomain)
-{
-    if (cookieDomain.charAt(0) !== ".")
-        return resourceDomain === cookieDomain;
-    return !!resourceDomain.match(new RegExp("^([^\\.]+\\.)?" + cookieDomain.substring(1).escapeForRegExp() + "$"), "i");
-}
 
 WebInspector.CookieType = {
     Request: 0,

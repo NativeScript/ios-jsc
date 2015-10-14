@@ -39,32 +39,33 @@ WebInspector.CSSCompletions = class CSSCompletions
         this._longhands = {};
         this._shorthands = {};
 
-        for (var i = 0; i < properties.length; ++i) {
-            // COMPATIBILITY (iOS 6): This used to be an array of strings,
-            // now it contains objects with a 'name' property. Support both here.
-            var property = properties[i];
-            if (typeof property === "string") {
-                this._values.push(property);
-                continue;
-            }
+        // The `properties` parameter can be either a list of objects with 'name' / 'longhand'
+        // properties when initialized from the protocol for CSSCompletions.cssNameCompletions.
+        // Or it may just a list of strings when quickly initialized for other completion purposes.
+        if (properties.length && typeof properties[0] === "string")
+            this._values = this._values.concat(properties);
+        else {
+            for (var property of properties) {
+                var propertyName = property.name;
+                console.assert(propertyName);
 
-            var propertyName = property.name;
-            this._values.push(propertyName);
+                this._values.push(propertyName);
 
-            var longhands = property.longhands;
-            if (longhands) {
-                this._longhands[propertyName] = longhands;
+                var longhands = property.longhands;
+                if (longhands) {
+                    this._longhands[propertyName] = longhands;
 
-                for (var j = 0; j < longhands.length; ++j) {
-                    var longhandName = longhands[j];
+                    for (var j = 0; j < longhands.length; ++j) {
+                        var longhandName = longhands[j];
 
-                    var shorthands = this._shorthands[longhandName];
-                    if (!shorthands) {
-                        shorthands = [];
-                        this._shorthands[longhandName] = shorthands;
+                        var shorthands = this._shorthands[longhandName];
+                        if (!shorthands) {
+                            shorthands = [];
+                            this._shorthands[longhandName] = shorthands;
+                        }
+
+                        shorthands.push(propertyName);
                     }
-
-                    shorthands.push(propertyName);
                 }
             }
         }
@@ -76,7 +77,7 @@ WebInspector.CSSCompletions = class CSSCompletions
 
     // Static
 
-    static requestCSSNameCompletions()
+    static requestCSSCompletions()
     {
         if (WebInspector.CSSCompletions.cssNameCompletions)
             return;
@@ -115,15 +116,8 @@ WebInspector.CSSCompletions = class CSSCompletions
                 valueKeywordsForCodeMirror[codeMirrorPropertyName] = true;
             }
 
-            for (var i = 0; i < names.length; ++i) {
-                // COMPATIBILITY (iOS 6): This used to be an array of strings,
-                // now it contains objects with a 'name' property. Support both here.
-                var property = names[i];
-                if (typeof property === "string")
-                    collectPropertyNameForCodeMirror(property);
-                else
-                    collectPropertyNameForCodeMirror(property.name);
-            }
+            for (var property of names)
+                collectPropertyNameForCodeMirror(property.name);
 
             for (var propertyName in WebInspector.CSSKeywordCompletions._propertyKeywordMap) {
                 var keywords = WebInspector.CSSKeywordCompletions._propertyKeywordMap[propertyName];
@@ -158,8 +152,22 @@ WebInspector.CSSCompletions = class CSSCompletions
             updateCodeMirrorCSSMode("text/x-scss");
         }
 
-        if (window.CSSAgent)
+        function fontFamilyNamesCallback(error, fontFamilyNames)
+        {
+            if (error)
+                return;
+
+            WebInspector.CSSKeywordCompletions.addPropertyCompletionValues("font-family", fontFamilyNames);
+            WebInspector.CSSKeywordCompletions.addPropertyCompletionValues("font", fontFamilyNames);
+        }
+
+        if (window.CSSAgent) {
             CSSAgent.getSupportedCSSProperties(propertyNamesCallback);
+
+            // COMPATIBILITY (iOS 9): CSS.getSupportedSystemFontFamilyNames did not exist.
+            if (CSSAgent.getSupportedSystemFontFamilyNames)
+                CSSAgent.getSupportedSystemFontFamilyNames(fontFamilyNamesCallback);
+        }
     }
 
     // Public

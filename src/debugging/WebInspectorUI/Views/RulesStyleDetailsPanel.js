@@ -27,7 +27,7 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
 {
     constructor(delegate)
     {
-        super(delegate, "rules", "rules", WebInspector.UIString("Rules"));
+        super(delegate, "rules", "rules", WebInspector.UIString("Styles \u2014 Rules"));
 
         this._sections = [];
         this._previousFocusedSection = null;
@@ -41,6 +41,8 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
         this._emptyFilterResultsMessage.classList.add("no-filter-results-message");
         this._emptyFilterResultsMessage.textContent = WebInspector.UIString("No Results Found");
         this._emptyFilterResultsElement.appendChild(this._emptyFilterResultsMessage);
+
+        this._boundRemoveSectionWithActiveEditor = this._removeSectionWithActiveEditor.bind(this);
     }
 
     // Public
@@ -54,11 +56,37 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
             return;
         }
 
+        if (!this._forceSignificantChange) {
+            this._sectionWithActiveEditor = null;
+            for (var section of this._sections) {
+                if (!section.editorActive)
+                    continue;
+
+                this._sectionWithActiveEditor = section;
+                break;
+            }
+
+            if (this._sectionWithActiveEditor) {
+                this._sectionWithActiveEditor.addEventListener(WebInspector.CSSStyleDeclarationSection.Event.Blurred, this._boundRemoveSectionWithActiveEditor);
+                return;
+            }
+        }
+
         var newSections = [];
         var newDOMFragment = document.createDocumentFragment();
 
         var previousMediaList = [];
         var previousSection = null;
+
+        var pseudoElements = this.nodeStyles.pseudoElements;
+        var pseudoElementsStyle = [];
+        for (var pseudoIdentifier in pseudoElements)
+            pseudoElementsStyle = pseudoElementsStyle.concat(pseudoElements[pseudoIdentifier].orderedStyles);
+
+        var orderedPseudoStyles = uniqueOrderedStyles(pseudoElementsStyle);
+        // Reverse the array to allow ensure that splicing the array will not mess with the order.
+        if (orderedPseudoStyles.length)
+            orderedPseudoStyles.reverse();
 
         function mediaListsEqual(a, b)
         {
@@ -86,17 +114,6 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
             }
 
             return true;
-        }
-
-        function filteredMediaList(mediaList)
-        {
-            if (!mediaList)
-                return [];
-
-            // Exclude the basic "screen" query since it's very common and just clutters things.
-            return mediaList.filter(function(media) {
-                return media.text !== "screen";
-            });
         }
 
         function uniqueOrderedStyles(orderedStyles)
@@ -136,7 +153,7 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
             } else
                 section.refresh();
 
-            if (this._focusNextNewInspectorRule && style.ownerRule && style.ownerRule.type === WebInspector.CSSRule.Type.Inspector) {
+            if (this._focusNextNewInspectorRule && style.ownerRule && style.ownerRule.type === WebInspector.CSSStyleSheet.Type.Inspector) {
                 this._previousFocusedSection = section;
                 delete this._focusNextNewInspectorRule;
             }
@@ -150,52 +167,12 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
             previousSection = section;
         }
 
-        function addNewRuleButton()
+        function insertMediaOrInheritanceLabel(style)
         {
-            if (previousSection)
+            if (previousSection && previousSection.style.type === WebInspector.CSSStyleDeclaration.Type.Inline)
                 previousSection.lastInGroup = true;
 
-            if (!this.nodeStyles.node.isInShadowTree()) {
-                var newRuleButton = document.createElement("div");
-                newRuleButton.className = "new-rule";
-                newRuleButton.addEventListener("click", this._newRuleClicked.bind(this));
-
-                newRuleButton.appendChild(document.createElement("img"));
-                newRuleButton.appendChild(document.createTextNode(WebInspector.UIString("New Rule")));
-
-                newDOMFragment.appendChild(newRuleButton);
-            }
-
-            addedNewRuleButton = true;
-        }
-
-        var pseudoElements = this.nodeStyles.pseudoElements;
-        var pseudoElementsStyle = [];
-
-        for (var pseudoIdentifier in pseudoElements)
-            pseudoElementsStyle = pseudoElementsStyle.concat(pseudoElements[pseudoIdentifier].orderedStyles);
-
-        var orderedPseudoStyles = uniqueOrderedStyles(pseudoElementsStyle);
-        var pseudoElementSelectors = [];
-
-        for (var style of orderedPseudoStyles)
-            pseudoElementSelectors.push({ style, selectorText: style.ownerRule.selectorText.replace(/:{1,2}[\w-]+\s*/, " ").trimRight() });
-
-        // Reverse the array to allow ensure that splicing the array will not mess with the order.
-        if (pseudoElementSelectors.length)
-            pseudoElementSelectors.reverse();
-
-        var addedNewRuleButton = false;
-        this._ruleMediaAndInherticanceList = [];
-
-        var orderedStyles = uniqueOrderedStyles(this.nodeStyles.orderedStyles);
-        for (var i = 0; i < orderedStyles.length; ++i) {
-            var style = orderedStyles[i];
-
             var hasMediaOrInherited = [];
-
-            if (style.type === WebInspector.CSSStyleDeclaration.Type.Rule && !addedNewRuleButton)
-                addNewRuleButton.call(this);
 
             if (previousSection && previousSection.style.node !== style.node) {
                 previousSection.lastInGroup = true;
@@ -213,7 +190,7 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
             }
 
             // Only include the media list if it is different from the previous media list shown.
-            var currentMediaList = filteredMediaList(style.ownerRule && style.ownerRule.mediaList);
+            var currentMediaList = (style.ownerRule && style.ownerRule.mediaList) || [];
             if (!mediaListsEqual(previousMediaList, currentMediaList)) {
                 previousMediaList = currentMediaList;
 
@@ -222,21 +199,16 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
                 if (previousSection)
                     previousSection.lastInGroup = true;
 
-                for (var j = 0; j < currentMediaList.length; ++j) {
-                    var media = currentMediaList[j];
-
+                for (var media of currentMediaList) {
                     var prefixElement = document.createElement("strong");
                     prefixElement.textContent = WebInspector.UIString("Media: ");
 
                     var mediaLabel = document.createElement("div");
                     mediaLabel.className = "label";
-                    mediaLabel.appendChild(prefixElement);
-                    mediaLabel.appendChild(document.createTextNode(media.text));
+                    mediaLabel.append(prefixElement, media.text);
 
-                    if (media.sourceCodeLocation) {
-                        mediaLabel.appendChild(document.createTextNode(" \u2014 "));
-                        mediaLabel.appendChild(WebInspector.createSourceCodeLocationLink(media.sourceCodeLocation, true));
-                    }
+                    if (media.sourceCodeLocation)
+                        mediaLabel.append(" \u2014 ", WebInspector.createSourceCodeLocationLink(media.sourceCodeLocation, true));
 
                     newDOMFragment.appendChild(mediaLabel);
 
@@ -253,8 +225,7 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
 
                     var mediaLabel = document.createElement("div");
                     mediaLabel.className = "label";
-                    mediaLabel.appendChild(prefixElement);
-                    mediaLabel.appendChild(document.createTextNode("all"));
+                    mediaLabel.append(prefixElement, "all");
 
                     newDOMFragment.appendChild(mediaLabel);
                     hasMediaOrInherited.push(mediaLabel);
@@ -262,36 +233,53 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
             }
 
             this._ruleMediaAndInherticanceList.push(hasMediaOrInherited);
+        }
 
-            if (pseudoElementSelectors.length && style.ownerRule) {
-                for (var j = pseudoElementSelectors.length - 1; j >= 0; --j) {
-                    var pseudoElement = pseudoElementSelectors[j];
+        function insertAllMatchingPseudoStyles(force)
+        {
+            if (!orderedPseudoStyles.length)
+                return;
 
-                    if (style.ownerRule.type === WebInspector.CSSRule.Type.UserAgent || style.inerhited
-                    || (pseudoElement.lastMatchingSelector && pseudoElement.lastMatchingSelector !== style.ownerRule.selectorText)) {
-                        appendStyleSection.call(this, pseudoElement.style);
-                        pseudoElementSelectors.splice(j, 1);
-                        this._ruleMediaAndInherticanceList.push(hasMediaOrInherited);
-
-                        continue;
-                    }
-
-                    if (style.ownerRule.selectorText.includes(pseudoElement.selectorText))
-                        pseudoElement.lastMatchingSelector = style.ownerRule.selectorText;
+            if (force) {
+                for (var j = orderedPseudoStyles.length - 1; j >= 0; --j) {
+                    var pseudoStyle = orderedPseudoStyles[j];
+                    insertMediaOrInheritanceLabel.call(this, pseudoStyle);
+                    appendStyleSection.call(this, pseudoStyle);
                 }
+                orderedPseudoStyles = [];
             }
 
+            if (!previousSection)
+                return;
+
+            var ownerRule = previousSection.style.ownerRule;
+            if (!ownerRule)
+                return;
+
+            for (var j = orderedPseudoStyles.length - 1; j >= 0; --j) {
+                var pseudoStyle = orderedPseudoStyles[j];
+                if (!pseudoStyle.ownerRule.selectorIsGreater(ownerRule.mostSpecificSelector))
+                    continue;
+
+                insertMediaOrInheritanceLabel.call(this, pseudoStyle);
+                appendStyleSection.call(this, pseudoStyle);
+                ownerRule = pseudoStyle.ownerRule;
+                orderedPseudoStyles.splice(j, 1);
+            }
+        }
+
+        this._ruleMediaAndInherticanceList = [];
+        var orderedStyles = uniqueOrderedStyles(this.nodeStyles.orderedStyles);
+        for (var style of orderedStyles) {
+            var isUserAgentStyle = style.ownerRule && style.ownerRule.type === WebInspector.CSSStyleSheet.Type.UserAgent;
+            insertAllMatchingPseudoStyles.call(this, isUserAgentStyle || style.inerhited);
+
+            insertMediaOrInheritanceLabel.call(this, style);
             appendStyleSection.call(this, style);
         }
 
         // Just in case there are any pseudo-selectors left that haven't been added.
-        if (pseudoElementSelectors.length) {
-            for (var i = pseudoElementSelectors.length - 1; i >= 0; --i)
-                appendStyleSection.call(this, pseudoElementSelectors[i].style);
-        }
-
-        if (!addedNewRuleButton)
-            addNewRuleButton.call(this);
+        insertAllMatchingPseudoStyles.call(this, true);
 
         if (previousSection)
             previousSection.lastInGroup = true;
@@ -389,6 +377,20 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
         this.element.classList.toggle("filter-non-matching", !matchFound);
     }
 
+    cssStyleDeclarationSectionFocusNextNewInspectorRule()
+    {
+        this._focusNextNewInspectorRule = true;
+    }
+
+    newRuleButtonClicked()
+    {
+        if (this.nodeStyles.node.isInShadowTree())
+            return;
+
+        this._focusNextNewInspectorRule = true;
+        this.nodeStyles.addEmptyRule();
+    }
+
     // Protected
 
     shown()
@@ -437,9 +439,9 @@ WebInspector.RulesStyleDetailsPanel = class RulesStyleDetailsPanel extends WebIn
 
     // Private
 
-    _newRuleClicked(event)
+    _removeSectionWithActiveEditor(event)
     {
-        this._focusNextNewInspectorRule = true;
-        this.nodeStyles.addEmptyRule();
+        this._sectionWithActiveEditor.removeEventListener(WebInspector.CSSStyleDeclarationSection.Event.Blurred, this._boundRemoveSectionWithActiveEditor);
+        this.refresh(true);
     }
 };

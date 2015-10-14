@@ -97,6 +97,8 @@ WebInspector.BoxModelDetailsSectionRow = class BoxModelDetailsSectionRow extends
             else
                 element.classList.remove("active");
         }
+
+        this.element.classList.toggle("hovered", showHighlight);
     }
 
     _updateMetrics()
@@ -216,10 +218,7 @@ WebInspector.BoxModelDetailsSectionRow = class BoxModelDetailsSectionRow extends
             if (name === "content") {
                 var widthElement = createContentAreaWidthElement.call(this, style);
                 var heightElement = createContentAreaHeightElement.call(this, style);
-
-                boxElement.appendChild(widthElement);
-                boxElement.appendChild(document.createTextNode(" \u00D7 "));
-                boxElement.appendChild(heightElement);
+                boxElement.append(widthElement, " \u00D7 ", heightElement);
             } else {
                 var suffix = (name === "border" ? "-width" : "");
 
@@ -293,7 +292,7 @@ WebInspector.BoxModelDetailsSectionRow = class BoxModelDetailsSectionRow extends
         // Make the new number and constrain it to a precision of 6, this matches numbers the engine returns.
         // Use the Number constructor to forget the fixed precision, so 1.100000 will print as 1.1.
         var result = Number((number + changeAmount).toFixed(6));
-        if (!String(result).match(WebInspector.BoxModelDetailsSectionRow.CSSNumberRegex))
+        if (!String(result).match(WebInspector.EditingSupport.NumberRegex))
             return null;
 
         return result;
@@ -315,10 +314,10 @@ WebInspector.BoxModelDetailsSectionRow = class BoxModelDetailsSectionRow extends
             return;
 
         var originalValue = element.textContent;
-        var wordRange = selectionRange.startContainer.rangeOfWord(selectionRange.startOffset, WebInspector.BoxModelDetailsSectionRow.StyleValueDelimiters, element);
+        var wordRange = selectionRange.startContainer.rangeOfWord(selectionRange.startOffset, WebInspector.EditingSupport.StyleValueDelimiters, element);
         var wordString = wordRange.toString();
 
-        var matches = /(.*?)(-?(?:\d+(?:\.\d+)?|\.\d+))(.*)/.exec(wordString);
+        var matches = WebInspector.EditingSupport.NumberRegex.exec(wordString);
         var replacementString;
         if (matches && matches.length) {
             var prefix = matches[1];
@@ -440,6 +439,3 @@ WebInspector.BoxModelDetailsSectionRow = class BoxModelDetailsSectionRow extends
         this._applyUserInput(element, userInput, previousContent, context, true);
     }
 };
-
-WebInspector.BoxModelDetailsSectionRow.StyleValueDelimiters = " \xA0\t\n\"':;,/()";
-WebInspector.BoxModelDetailsSectionRow.CSSNumberRegex = /^(-?(?:\d+(?:\.\d+)?|\.\d+))$/;

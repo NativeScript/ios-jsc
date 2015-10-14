@@ -172,18 +172,7 @@ if (!window.InspectorFrontendHost) {
         }
     };
 
-    InspectorFrontendHost = new WebInspector.InspectorFrontendHostStub();
-    
-    var host;
-    if (window.location.hash) {
-        host = window.location.hash.substring(1, window.location.hash.length);
-    } else if (window.location.protocol == "http:" || window.location.protocol == "https:") {
-        host = window.location.hostname + ":8080"
-    } else {
-        host = "localhost:8080";
-    }
-
-    InspectorFrontendHost.initializeWebSocket("ws://" + host + "/");
+    InspectorFrontendHost = new WebInspector.InspectorFrontendHostStub;
 
     WebInspector.dontLocalizeUserInterface = true;
 }

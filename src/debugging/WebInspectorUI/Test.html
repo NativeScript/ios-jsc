@@ -29,18 +29,26 @@
     <!--
     These resources should match the order and groups used in Main.html.
     -->
+    <script src="External/CodeMirror/codemirror.js"></script>
+    <script src="External/CodeMirror/css.js"></script>
+    <script src="External/CodeMirror/htmlmixed.js"></script>
+    <script src="External/CodeMirror/javascript.js"></script>
+    <script src="External/Esprima/esprima.js"></script>
+
     <script src="Base/WebInspector.js"></script>
     <script src="Base/Object.js"></script>
 
-    <script src="Base/Test.js"></script>
+    <script src="Test/TestHarness.js"></script>
+    <script src="Test/FrontendTestHarness.js"></script>
+    <script src="Test/TestSuite.js"></script>
+
+    <script src="Test/Test.js"></script>
 
     <script src="Base/DOMUtilities.js"></script>
     <script src="Base/EventListener.js"></script>
     <script src="Base/EventListenerSet.js"></script>
     <script src="Base/URLUtilities.js"></script>
     <script src="Base/Utilities.js"></script>
-
-    <script src="External/Esprima/esprima.js"></script>
 
     <script src="Protocol/InspectorBackend.js"></script>
     <script src="Protocol/InspectorFrontendAPI.js"></script>
@@ -71,6 +79,7 @@
     <script src="Models/Breakpoint.js"></script>
     <script src="Models/CSSCompletions.js"></script>
     <script src="Models/CSSKeywordCompletions.js"></script>
+    <script src="Models/CSSMedia.js"></script>
     <script src="Models/CSSProperty.js"></script>
     <script src="Models/CSSRule.js"></script>
     <script src="Models/CSSSelector.js"></script>
@@ -140,8 +149,22 @@
     <script src="Controllers/StorageManager.js"></script>
     <script src="Controllers/TimelineManager.js"></script>
 
+    <script src="Controllers/Formatter.js"></script>
+    <script src="Controllers/FormatterContentBuilder.js"></script>
+    <script src="Views/CodeMirrorAdditions.js"></script>
+    <script src="Views/CodeMirrorFormatters.js"></script>
+
     <script type="text/javascript">
         WebInspector.loaded();
+
+        // Debug logging is synchronous on the test page.
+        InspectorTest.forceDebugLogging = false;
+
+        // Tee all TestHarness commands to stderr from within the Inspector.
+        InspectorTest.dumpActivityToSystemConsole = false;
+
+        // Best used in combination with dumpActivityToSystemConsole.
+        InspectorBackend.dumpInspectorProtocolMessages = false;
     </script>
 </head>
 <body>

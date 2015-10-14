@@ -43,6 +43,9 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
         this._pendingProperties = [];
         this._propertyNameMap = {};
 
+        this._initialText = text;
+        this._hasModifiedInitialText = false;
+
         this.update(text, properties, styleSheetTextRange, true);
     }
 
@@ -183,7 +186,30 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
         if (this._text === text)
             return;
 
+        let trimmedText = text.trim();
+        if (this._text === trimmedText)
+            return;
+
+        if (!trimmedText.length || this._type === WebInspector.CSSStyleDeclaration.Type.Inline)
+            text = trimmedText;
+
+        let modified = text !== this._initialText;
+        if (modified !== this._hasModifiedInitialText) {
+            this._hasModifiedInitialText = modified;
+            this.dispatchEventToListeners(WebInspector.CSSStyleDeclaration.Event.InitialTextModified);
+        }
+
         this._nodeStyles.changeStyleText(this, text);
+    }
+
+    resetText()
+    {
+        this.text = this._initialText;
+    }
+
+    get modified()
+    {
+        return this._hasModifiedInitialText;
     }
 
     get properties()
@@ -211,6 +237,20 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
     get styleSheetTextRange()
     {
         return this._styleSheetTextRange;
+    }
+
+    get mediaList()
+    {
+        if (this._ownerRule)
+            return this._ownerRule.mediaList;
+        return [];
+    }
+
+    get selectorText()
+    {
+        if (this._ownerRule)
+            return this._ownerRule.selectorText;
+        return this._node.appropriateSelectorFor(true);
     }
 
     propertyForName(name, dontCreateIfMissing)
@@ -260,6 +300,38 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
         return newProperty;
     }
 
+    generateCSSRuleString()
+    {
+        // FIXME: <rdar://problem/10593948> Provide a way to change the tab width in the Web Inspector
+        const indentation = "    ";
+        let styleText = "";
+        let mediaList = this.mediaList;
+        let mediaQueriesCount = mediaList.length;
+        for (let i = mediaQueriesCount - 1; i >= 0; --i)
+            styleText += indentation.repeat(mediaQueriesCount - i - 1) + "@media " + mediaList[i].text + " {\n";
+
+        styleText += indentation.repeat(mediaQueriesCount) + this.selectorText + " {\n";
+
+        for (let property of this._properties) {
+            if (property.anonymous)
+                continue;
+
+            styleText += indentation.repeat(mediaQueriesCount + 1) + property.text.trim();
+
+            if (!styleText.endsWith(";"))
+                styleText += ";";
+
+            styleText += "\n";
+        }
+
+        for (let i = mediaQueriesCount; i > 0; --i)
+            styleText += indentation.repeat(i) + "}\n";
+
+        styleText += "}";
+
+        return styleText;
+    }
+
     // Protected
 
     get nodeStyles()
@@ -269,7 +341,8 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
 };
 
 WebInspector.CSSStyleDeclaration.Event = {
-    PropertiesChanged: "css-style-declaration-properties-changed"
+    PropertiesChanged: "css-style-declaration-properties-changed",
+    InitialTextModified: "css-style-declaration-initial-text-modified"
 };
 
 WebInspector.CSSStyleDeclaration.Type = {

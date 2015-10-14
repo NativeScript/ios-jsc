@@ -113,7 +113,7 @@ WebInspector.BreakpointActionView = class BreakpointActionView extends WebInspec
 
     _appendActionButtonClicked(event)
     {
-        var newAction = this._action.breakpoint.createAction(WebInspector.Breakpoint.DefaultBreakpointActionType, this._action);
+        var newAction = this._action.breakpoint.createAction(this._action.type, this._action);
         this._delegate.breakpointActionViewAppendActionView(this, newAction);
     }
 
@@ -161,6 +161,8 @@ WebInspector.BreakpointActionView = class BreakpointActionView extends WebInspec
             this._codeMirror.on("viewportChange", this._codeMirrorViewportChanged.bind(this));
             this._codeMirror.on("blur", this._codeMirrorBlurred.bind(this));
 
+            this._codeMirrorViewport = {from: null, to: null};
+
             var completionController = new WebInspector.CodeMirrorCompletionController(this._codeMirror);
             completionController.addExtendedCompletionProvider("javascript", WebInspector.javaScriptRuntimeCompletionProvider);
 
@@ -192,16 +194,16 @@ WebInspector.BreakpointActionView = class BreakpointActionView extends WebInspec
     _codeMirrorBlurred(event)
     {
         // Throw away the expression if it's just whitespace.
-        var data = (this._codeMirror.getValue() || "").trim();
-
-        if (!data.length)
-            this._removeAction();
-        else
-            this._action.data = data;
+        this._action.data = (this._codeMirror.getValue() || "").trim();
     }
 
-    _codeMirrorViewportChanged(event)
+    _codeMirrorViewportChanged(event, from, to)
     {
+        if (this._codeMirrorViewport.from === from && this._codeMirrorViewport.to === to)
+            return;
+
+        this._codeMirrorViewport.from = from;
+        this._codeMirrorViewport.to = to;
         this._delegate.breakpointActionViewResized(this);
     }
 };

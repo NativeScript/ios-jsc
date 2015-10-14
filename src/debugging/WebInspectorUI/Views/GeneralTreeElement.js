@@ -188,7 +188,6 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
 
         this._status = x || "";
         this._updateStatusElement();
-        this.didChange();
     }
 
     get filterableData()
@@ -250,7 +249,7 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
     {
         if (this._boundContextMenuEventHandler) {
             this._listItemNode.removeEventListener("contextmenu", this._boundContextMenuEventHandler);
-            delete this._boundContextMenuEventHandler;
+            this._boundContextMenuEventHandler = null;
         }
     }
 
@@ -342,21 +341,26 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
         }
 
         // Set a default tooltip if there isn't a custom one already assigned.
-        if (!this.tooltip && !this._tooltipHandledSeparately) {
-            console.assert(this._listItemNode);
+        if (!this.tooltip && !this._tooltipHandledSeparately)
+            this._updateTitleTooltip();
+    }
 
-            // Get the textContent for the elements since they can contain other nodes,
-            // and the tool tip only cares about the text.
-            var mainTitleText = this._mainTitleElement.textContent;
-            var subtitleText = this._subtitleElement ? this._subtitleElement.textContent : "";
+    _updateTitleTooltip()
+    {
+        console.assert(this._listItemNode);
+        if (!this._listItemNode)
+            return;
 
-            if (mainTitleText && subtitleText)
-                this._listItemNode.title = mainTitleText + (this._small && !this._twoLine ? " \u2014 " : "\n") + subtitleText;
-            else if (mainTitleText)
-                this._listItemNode.title = mainTitleText;
-            else
-                this._listItemNode.title = subtitleText;
-        }
+        // Get the textContent for the elements since they can contain other nodes,
+        // and the tool tip only cares about the text.
+        let mainTitleText = this._mainTitleElement.textContent;
+        let subtitleText = this._subtitleElement ? this._subtitleElement.textContent : "";
+        if (mainTitleText && subtitleText)
+            this._listItemNode.title = mainTitleText + (this._small && !this._twoLine ? " \u2014 " : "\n") + subtitleText;
+        else if (mainTitleText)
+            this._listItemNode.title = mainTitleText;
+        else
+            this._listItemNode.title = subtitleText;
     }
 
     _updateStatusElement()
