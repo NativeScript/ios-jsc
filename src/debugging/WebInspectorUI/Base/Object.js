@@ -95,7 +95,7 @@ WebInspector.Object = class WebInspectorObject
         if (!listeners.length)
             delete this._listeners[eventType];
 
-        if (!Object.keys(this._listeners).length)
+        if (!window.Object.keys(this._listeners).length)
             delete this._listeners;
     }
 
