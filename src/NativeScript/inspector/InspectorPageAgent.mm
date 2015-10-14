@@ -13,7 +13,7 @@ InspectorPageAgent::InspectorPageAgent(JSAgentContext& context)
     : Inspector::InspectorAgentBase(WTF::ASCIILiteral("Page"))
     , m_frameIdentifier("NativeScriptMainFrameIdentifier")
     , m_frameUrl("http://main.xml")
-    , m_globalObject(JSC::jsCast<NativeScript::GlobalObject>(context.inspectedGlobalObject)) {
+    , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
 }
 
 void InspectorPageAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {

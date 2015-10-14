@@ -74,7 +74,7 @@ const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0,
 
 const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &allowsAccessFrom, &supportsProfiling, &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, 0, 0, 0, 0 };
+const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &allowsAccessFrom, &supportsProfiling, &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, 0, 0, 0, 0, 0 };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
     : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable)

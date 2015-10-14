@@ -138,10 +138,8 @@ private:
 
     bool m_includeNativeCallStackWithExceptions { false };
     bool m_isAutomaticInspection { false };
-          
-#if ENABLE(REMOTE_INSPECTOR)
-    JSC::JSGlobalObject& m_globalObject;
-#endif
+
+    GlobalObject& m_globalObject;
           
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
     Inspector::AugmentableInspectorControllerClient* m_augmentingClient { nullptr };

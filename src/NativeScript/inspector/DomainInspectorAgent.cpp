@@ -8,7 +8,7 @@ DomainInspectorAgent::DomainInspectorAgent(GlobalObject& globalObject, WTF::Stri
     , m_globalObject(globalObject)
     , m_constructorFunction(m_globalObject.vm(), constructorFunction) {}
 
-void DomainInspectorAgent::didCreateFrontendAndBackend(Inspector::FrontendChannel*, Inspector::BackendDispatcher* backendDispatcher) {
+void DomainInspectorAgent::didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher* backendDispatcher) {
     m_backendDispatcher = backendDispatcher;
 
     this->m_domainBackendDispatcher = DomainBackendDispatcher::create(this->domainName(), m_constructorFunction.get(), m_backendDispatcher, m_globalObject);

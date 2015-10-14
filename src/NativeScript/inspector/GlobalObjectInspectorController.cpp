@@ -79,10 +79,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     , m_executionStopwatch(Stopwatch::create())
     , m_frontendRouter(FrontendRouter::create())
     , m_backendDispatcher(BackendDispatcher::create(m_frontendRouter.copyRef()))
-#if ENABLE(REMOTE_INSPECTOR)
     , m_globalObject(globalObject)
-    
-#endif
 {
     AgentContext baseContext = {
         *this,
@@ -97,7 +94,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     };
     
     
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 0, &registerDispatcher, NoIntrinsic, DontEnum | Attribute::Function);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 0, &registerDispatcher, NoIntrinsic, DontEnum);
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(context);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(context);

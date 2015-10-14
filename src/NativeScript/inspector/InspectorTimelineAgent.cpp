@@ -8,7 +8,7 @@ namespace Inspector {
 
 InspectorTimelineAgent::InspectorTimelineAgent(JSAgentContext& context)
     : Inspector::InspectorAgentBase(ASCIILiteral("Timeline"))
-    , m_globalObject(JSC::jsCast<NativeScript::GlobalObject>(context.inspectedGlobalObject))
+    , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject))
     , m_consoleRecordEntry()
     , m_maxCallStackDepth(5)
     , m_enabled(false) {
