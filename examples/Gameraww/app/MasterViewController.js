@@ -56,7 +56,7 @@ var JSMasterViewController = UITableViewController.extend({
         utils.fetch(item["thumbnail"])
              .then(data => UIImage.imageWithData.async(UIImage, [data]))
              .then(image => imageView.image = image)
-             .catch(error => console.error(error));
+             .catch(error => console.error(error.toString()));
 
         return cell;
     },

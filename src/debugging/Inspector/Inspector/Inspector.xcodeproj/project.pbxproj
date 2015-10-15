@@ -230,7 +230,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0630;
-				ORGANIZATIONNAME = "Kristina Koeva";
+				ORGANIZATIONNAME = Telerik;
 				TargetAttributes = {
 					51E6FCB61B42E25500FF4242 = {
 						CreatedOnToolsVersion = 7.0;
