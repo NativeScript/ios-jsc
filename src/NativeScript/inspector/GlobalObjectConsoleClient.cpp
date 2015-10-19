@@ -76,7 +76,9 @@ void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource s
     } else {
         for (size_t i = 0; i < arguments->argumentCount(); ++i) {
             String argAsString = arguments->argumentAt(i).toString(arguments->globalState());
-            builder.append(' ');
+            if (i > 0) {
+                builder.append(' ');
+            }
             builder.append(argAsString);
         }
     }
