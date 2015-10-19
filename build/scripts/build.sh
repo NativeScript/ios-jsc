@@ -4,7 +4,7 @@ set -e
 
 WORKSPACE=`pwd`
 
-CMAKE_FLAGS="-G Xcode -DCMAKE_INSTALL_PREFIX=$WORKSPACE/dist"
+CMAKE_FLAGS="-G Xcode"
 
 mkdir -p "$WORKSPACE/cmake-build"
 cd "$WORKSPACE/cmake-build"
@@ -14,17 +14,25 @@ rm -f CMakeCache.txt
 echo -e "\tConfiguring..."
 cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON > "$WORKSPACE/build.log" 2>&1
 echo -e "\tiPhoneOS..."
-xcodebuild -configuration Release -sdk iphoneos -target NativeScript >> "$WORKSPACE/build.log" 2>&1
+xcodebuild -configuration RelWithDebInfo -sdk iphoneos -target NativeScript >> "$WORKSPACE/build.log" 2>&1
 echo -e "\tiPhoneSimulator..."
-xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript >> "$WORKSPACE/build.log" 2>&1
+xcodebuild -configuration RelWithDebInfo -sdk iphonesimulator -target NativeScript >> "$WORKSPACE/build.log" 2>&1
 
 echo "Packaging NativeScript.framework..."
 mkdir -p "$WORKSPACE/dist"
-cp -r "$WORKSPACE/cmake-build/src/NativeScript/Release-iphoneos/NativeScript.framework" "$WORKSPACE/dist"
+cp -r "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework" "$WORKSPACE/dist"
 rm "$WORKSPACE/dist/NativeScript.framework/NativeScript"
 lipo -create -output "$WORKSPACE/dist/NativeScript.framework/NativeScript" \
-    "$WORKSPACE/cmake-build/src/NativeScript/Release-iphonesimulator/NativeScript.framework/NativeScript" \
-    "$WORKSPACE/cmake-build/src/NativeScript/Release-iphoneos/NativeScript.framework/NativeScript" \
+    "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphonesimulator/NativeScript.framework/NativeScript" \
+    "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework/NativeScript" \
+         >> "$WORKSPACE/build.log" 2>&1
+strip -S "$WORKSPACE/dist/NativeScript.framework/NativeScript"
+
+cp -r "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework.dSYM" "$WORKSPACE/dist"
+rm "$WORKSPACE/dist/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript"
+lipo -create -output "$WORKSPACE/dist/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript" \
+    "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphonesimulator/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript" \
+    "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript" \
          >> "$WORKSPACE/build.log" 2>&1
 
 echo "Building libNativeScript..."

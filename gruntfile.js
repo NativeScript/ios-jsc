@@ -75,6 +75,11 @@ module.exports = function(grunt) {
                     dest: "<%= outPackageFrameworkDir %>/internal/NativeScript/Frameworks",
                     expand: true
                 }, {
+                    cwd: "<%= outDistDir %>",
+                    src: ["NativeScript.framework.dsym", "NativeScript.framework.dsym/**"],
+                    dest: "<%= outPackageFrameworkDir %>/internal/NativeScript/Frameworks",
+                    expand: true
+                }, {
                     cwd: "<%= srcDir %>/src/debugging",
                     src: "TNSDebugging.h",
                     dest: "<%= outPackageFrameworkDir %>/internal",
