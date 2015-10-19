@@ -84,6 +84,11 @@ TNSNestedStruct* functionWithStructPtr(TNSNestedStruct* x) {
     return x;
 }
 
+void functionWithOutStructPtr(TNSSimpleStruct* str) {
+    str->x = 2;
+    str->y = 3;
+}
+
 void functionWithIntIncompleteArray(int x[]) {
     for (int i = 0; x[i]; i++) {
         TNSLog([NSString stringWithFormat:@"%d", x[i]]);

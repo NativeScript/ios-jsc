@@ -23,6 +23,7 @@ long long* functionWithLongLongPtr(long long* x);
 float* functionWithFloatPtr(float* x);
 double* functionWithDoublePtr(double* x);
 TNSNestedStruct* functionWithStructPtr(TNSNestedStruct* x);
+void functionWithOutStructPtr(TNSSimpleStruct* str);
 
 void* functionWithIdPointer(void* x);
 

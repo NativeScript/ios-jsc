@@ -119,6 +119,12 @@ describe(module.id, function () {
         expect(TNSGetOutput()).toBe('1 2 3 4');
     });
 
+    it("functionWithOutStructPtr", function () {
+        var strRef = new interop.Reference();
+        functionWithOutStructPtr(strRef);
+        expect(TNSSimpleStruct.equals(strRef.value, {x: 2, y: 3}));
+    });
+
     it("CString1", function () {
         expect(NSString.stringWithUTF8String(functionWithCharPtr('test')).toString()).toBe('test');
     });
@@ -229,77 +235,77 @@ describe(module.id, function () {
 
         expect(array.firstObject).toBe(object);
     });
-    
+
     describe("ReferenceConstructor", function () {
         it("should accept empty arguments", function () {
             var reference = new interop.Reference();
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
         });
-        
+
         it("should accept a single value argument", function () {
             var value = "value";
-            
+
             var reference = new interop.Reference(value);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(reference.value).toBe(value);
         });
-        
+
         it("should accept a single type argument", function () {
             var reference = new interop.Reference(interop.types.bool);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(interop.handleof(reference)).toEqual(jasmine.any(interop.Pointer));
         });
-        
+
         it("should accept type and value arguments", function () {
             var value = NSObject.alloc().init();
             var reference = new interop.Reference(NSObject, value);
             var buffer = interop.handleof(reference);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(reference.value).toBe(value);
             expect(buffer).toEqual(jasmine.any(interop.Pointer));
         });
-        
+
         it("should accept type and pointer arguments", function () {
             var pointer = interop.alloc(1);
             var reference = new interop.Reference(interop.types.bool, pointer);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(interop.handleof(reference)).toBe(pointer);
         });
-        
+
         it("should accept type and record arguments", function () {
             var record = new CGPoint();
             var reference = new interop.Reference(CGPoint, record);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(interop.handleof(reference)).toBe(interop.handleof(record));
         });
-        
+
         it("should accept type and pointer-backed reference arguments", function () {
             var ref = new interop.Reference(interop.types.bool);
             var reference = new interop.Reference(interop.types.bool, ref);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(interop.handleof(reference)).toBe(interop.handleof(ref));
         });
-        
+
         it("should accept type and uninitialized reference arguments", function () {
             var ref = new interop.Reference(123);
             var reference = new interop.Reference(interop.types.int8, ref);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(ref.value).toEqual(reference.value);
         });
-        
+
         it("should accept reference type and reference arguments", function () {
             var ref = new interop.Reference(interop.types.bool);
             var reference = new interop.Reference(new interop.types.ReferenceType(interop.types.bool), ref);
-            
-            expect(reference).toEqual(jasmine.any(interop.Reference)); 
+
+            expect(reference).toEqual(jasmine.any(interop.Reference));
             expect(interop.handleof(reference.value)).toBe(interop.handleof(ref));
         });
     });

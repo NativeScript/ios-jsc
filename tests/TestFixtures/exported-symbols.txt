@@ -32,6 +32,7 @@ functionWithLongLongPtr
 functionWithLongPtr
 functionWithNull
 functionWithNullPointer
+functionWithOutStructPtr
 functionWithProtocol
 functionWithSelector
 functionWithShort
