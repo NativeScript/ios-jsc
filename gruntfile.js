@@ -148,7 +148,7 @@ module.exports = function(grunt) {
                     add: true,
                     fields: {
                         "scripts": {
-                            "postinstall": "unzip './WebInspectorUI/NativeScript Inspector.zip' -d ./WebInspectorUI"
+                            "postinstall": "unzip -o './WebInspectorUI/NativeScript Inspector.zip' -d ./WebInspectorUI"
                         }
                     }
                 }
