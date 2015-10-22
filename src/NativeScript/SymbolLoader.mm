@@ -114,7 +114,7 @@ SymbolResolver* SymbolLoader::resolveModule(const Metadata::ModuleMeta* module) 
         if (module->isSystem()) {
             // NSObject is in /usr/lib/libobjc.dylib, so we get that
             NSString* libsPath = [[NSBundle bundleForClass:[NSObject class]] bundlePath];
-            NSString* libraryPath = [NSString stringWithFormat:@"%@/%s.dylib", libsPath, module->libraries->first()->value().getName()];
+            NSString* libraryPath = [NSString stringWithFormat:@"%@/lib%s.dylib", libsPath, module->libraries->first()->value().getName()];
 
             if (void* library = dlopen(libraryPath.UTF8String, RTLD_LAZY | RTLD_LOCAL)) {
                 WTF::dataLogF("NativeScript loaded library %s\n", libraryPath.UTF8String);
