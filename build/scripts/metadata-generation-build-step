@@ -79,6 +79,7 @@ def generate_metadata(arch):
     error_file.close()
 
     if child_process.returncode != 0:
+        print("Error: Unable to generate metadata for {}.".format(arch))
         print(error_stream_content)
         sys.exit(1)
 
