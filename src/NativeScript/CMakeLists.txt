@@ -2,9 +2,9 @@ set(HEADER_FILES
     NativeScript-Prefix.h
 
     Calling/FFICall.h
-    Calling/FFICallPrototype.h
     Calling/FFICallback.h
     Calling/FFICallbackInlines.h
+    Calling/FFICallPrototype.h
     Calling/FFIFunctionCall.h
     Calling/FFIFunctionCallback.h
     GlobalObject.h
@@ -71,6 +71,9 @@ set(HEADER_FILES
     ObjC/TNSArrayAdapter.h
     ObjC/TNSDataAdapter.h
     ObjC/TNSDictionaryAdapter.h
+    ObjC/Unmanaged/UnmanagedInstance.h
+    ObjC/Unmanaged/UnmanagedPrototype.h
+    ObjC/Unmanaged/UnmanagedType.h
     Runtime/JSWeakRefConstructor.h
     Runtime/JSWeakRefInstance.h
     Runtime/JSWeakRefPrototype.h
@@ -151,6 +154,9 @@ set(SOURCE_FILES
     ObjC/TNSArrayAdapter.mm
     ObjC/TNSDataAdapter.mm
     ObjC/TNSDictionaryAdapter.mm
+    ObjC/Unmanaged/UnmanagedInstance.cpp
+    ObjC/Unmanaged/UnmanagedPrototype.mm
+    ObjC/Unmanaged/UnmanagedType.cpp
     Runtime/JSWeakRefConstructor.cpp
     Runtime/JSWeakRefInstance.cpp
     Runtime/JSWeakRefPrototype.cpp

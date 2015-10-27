@@ -1,9 +1,10 @@
 CFArrayCreateWithString
 functionExplicitCreateNSObject
-functionImplicitCreateNSObject
+functionImplicitCreate
 functionReturningFunctionPtrAsVoidPtr
 functionReturnsCFRetained
 functionReturnsNSRetained
+functionReturnsUnmanaged
 functionWhichReturnsSimpleFunctionPointer
 functionWith_BoolPtr
 functionWith_VoidPtr

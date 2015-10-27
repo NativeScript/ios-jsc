@@ -10,7 +10,7 @@ id functionReturnsNSRetained() NS_RETURNS_RETAINED;
 id functionReturnsCFRetained() CF_RETURNS_RETAINED;
 
 CF_IMPLICIT_BRIDGING_ENABLED
-id functionImplicitCreateNSObject();
+CFTypeRef functionImplicitCreate();
 CF_IMPLICIT_BRIDGING_DISABLED
 
 id functionExplicitCreateNSObject();

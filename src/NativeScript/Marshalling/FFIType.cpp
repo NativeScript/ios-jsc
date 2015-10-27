@@ -14,6 +14,7 @@
 #include "ObjCBlockType.h"
 #include "FunctionReferenceTypeInstance.h"
 #include "PointerConstructor.h"
+#include "UnmanagedType.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -57,6 +58,11 @@ bool tryGetFFITypeMethodTable(JSValue value, const FFITypeMethodTable** methodTa
     }
 
     if (PointerConstructor* object = jsDynamicCast<PointerConstructor*>(cell)) {
+        *methodTable = &object->ffiTypeMethodTable();
+        return true;
+    }
+
+    if (UnmanagedType* object = jsDynamicCast<UnmanagedType*>(cell)) {
         *methodTable = &object->ffiTypeMethodTable();
         return true;
     }

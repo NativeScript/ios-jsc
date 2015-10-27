@@ -14,7 +14,7 @@ id functionReturnsNSRetained() {
 id functionReturnsCFRetained() {
     return [[NSObject alloc] init];
 }
-id functionImplicitCreateNSObject() {
+CFTypeRef functionImplicitCreate() {
     return [[NSObject alloc] init];
 }
 id functionExplicitCreateNSObject() {

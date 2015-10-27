@@ -454,7 +454,7 @@ describe(module.id, function () {
     it("returns retained", function () {
         expect(functionReturnsNSRetained().retainCount()).toBe(1);
         expect(functionReturnsCFRetained().retainCount()).toBe(1);
-        expect(functionImplicitCreateNSObject().retainCount()).toBe(1);
+        expect(functionImplicitCreate().retainCount()).toBe(1);
 
         var obj = functionExplicitCreateNSObject();
         expect(obj.retainCount()).toBe(2);
@@ -463,6 +463,22 @@ describe(module.id, function () {
         expect(TNSReturnsRetained.methodReturnsNSRetained().retainCount()).toBe(1);
         expect(TNSReturnsRetained.methodReturnsCFRetained().retainCount()).toBe(1);
         expect(TNSReturnsRetained.newNSObjectMethod().retainCount()).toBe(1);
+    });
+
+    it("unmanaged", function () {
+        var unmanaged = functionReturnsUnmanaged();
+        expect('takeRetainedValue' in unmanaged).toBe(true);
+        expect('takeUnretainedValue' in unmanaged).toBe(true);
+        expect(functionReturnsUnmanaged().takeRetainedValue().retainCount()).toBe(1);
+       
+        var value = functionReturnsUnmanaged().takeUnretainedValue();
+        expect(value.retainCount()).toBe(2);
+        CFRelease(value);
+
+        unmanaged.takeRetainedValue();
+        expect(function() {
+            unmanaged.takeUnretainedValue();
+        }).toThrow();
     });
 
     it("ApiIterator", function () {
