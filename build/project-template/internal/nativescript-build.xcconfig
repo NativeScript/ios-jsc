@@ -1,14 +1,16 @@
 // * NativeScript build related flags
 // * Add [sdk=*] after each one to avoid conflict with CocoaPods flags
-HEADER_SEARCH_PATHS[sdk=*] = $(inherited) $(SRCROOT)/internal $(SRCROOT)/internal/NativeScript/include
-OTHER_LDFLAGS[sdk=*] = $(inherited) -ObjC -sectcreate __DATA __TNSMetadata $(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin -lNativeScript -L$(SRCROOT)/internal/NativeScript/lib -licucore -lz -lc++ -framework Foundation -framework UIKit -framework CoreGraphics -framework MobileCoreServices
-FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) $(SRCROOT)/../../lib/iOS
+HEADER_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/internal" "$(SRCROOT)/internal/NativeScript/include"
+OTHER_LDFLAGS[sdk=*] = $(inherited) -ObjC -sectcreate __DATA __TNSMetadata "$(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin" -lNativeScript -L"$(SRCROOT)/internal/NativeScript/lib" -licucore -lz -lc++ -framework Foundation -framework UIKit -framework CoreGraphics -framework MobileCoreServices
+
+// We need to add CONFIGURATION_BUILD_DIR here so that we can explicitly quote-escape any paths in it, because the implicitly added path by Xcode is not always escaped
+FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/../../lib/iOS" "$(CONFIGURATION_BUILD_DIR)"
 
 // * Uncomment this setting to generate TypeScript declarations for the iOS SDK and all linked libraries.
 // * They will be generated on each build, so you can find them after running "tns build ios" in "YOUR_APP/platforms/ios".
-// TNS_TYPESCRIPT_DECLARATIONS_PATH = $SRCROOT/typescript-declarations
+// TNS_TYPESCRIPT_DECLARATIONS_PATH = "$(SRCROOT)/typescript-declarations"
 
 // * Uncomment this setting to generate human readable metadata for the iOS SDK and all linked libraries.
 // * You can learn more about NativeScript metadata in the docs: http://docs.nativescript.org/runtimes/ios/Overview#metadata
 // * It will be generated on each build, so you can find it after running "tns build ios" in "YOUR_APP/platforms/ios".
-// TNS_DEBUG_METADATA_PATH = $SRCROOT/debug-metadata
+// TNS_DEBUG_METADATA_PATH = "$(SRCROOT)/debug-metadata"
