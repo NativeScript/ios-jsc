@@ -6,7 +6,7 @@ function(CreateNativeScriptApp _target _main _plist _resources)
 
     target_link_libraries(${_target}
         "-framework CoreGraphics"
-        "-framework UIKit"
+        "-framework UIKit"        
         "-framework MobileCoreServices"
         NativeScript
     )
@@ -31,7 +31,7 @@ function(CreateNativeScriptApp _target _main _plist _resources)
         XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "7.0"
         XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES"
         XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD "gnu99"
-        XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Debug] "dwarf"
+        XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Debug] "DWARF"
     )
 
     include(SetActiveArchitectures)
