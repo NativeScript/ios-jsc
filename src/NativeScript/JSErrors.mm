@@ -1,5 +1,5 @@
 //
-//  JSErrors.cpp
+//  JSErrors.mm
 //  NativeScript
 //
 //  Created by Jason Zhekov on 2/26/15.
