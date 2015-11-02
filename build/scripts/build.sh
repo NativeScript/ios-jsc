@@ -4,18 +4,19 @@ set -e
 
 WORKSPACE=`pwd`
 
-CMAKE_FLAGS="-G Xcode -DCMAKE_INSTALL_PREFIX=$WORKSPACE/dist"
+CMAKE_FLAGS="-G Xcode"
 
+rm -f build.log
 mkdir -p "$WORKSPACE/cmake-build"
 cd "$WORKSPACE/cmake-build"
 
 echo "Building NativeScript.framework..."
 rm -f CMakeCache.txt
 echo -e "\tConfiguring..."
-cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON > "$WORKSPACE/build.log" 2>&1
-echo -e "\tiPhoneOS..."
+cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON >> "$WORKSPACE/build.log" 2>&1
+echo -e "\tiPhoneOS Release..."
 xcodebuild -configuration Release -sdk iphoneos -target NativeScript >> "$WORKSPACE/build.log" 2>&1
-echo -e "\tiPhoneSimulator..."
+echo -e "\tiPhoneSimulator Release..."
 xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript >> "$WORKSPACE/build.log" 2>&1
 
 echo "Packaging NativeScript.framework..."
@@ -30,17 +31,25 @@ lipo -create -output "$WORKSPACE/dist/NativeScript.framework/NativeScript" \
 echo "Building libNativeScript..."
 rm -f CMakeCache.txt
 echo -e "\tConfiguring..."
-cmake .. $CMAKE_FLAGS -DEMBED_STATIC_DEPENDENCIES=ON  >> "$WORKSPACE/build.log"
-echo -e "\tiPhoneOS..."
+cmake .. $CMAKE_FLAGS -DEMBED_STATIC_DEPENDENCIES=ON -DGENERATE_DEBUG_SYMBOLS=NO -DBUILD_ONLY_ACTIVE_ARCH=NO  >> "$WORKSPACE/build.log"
+echo -e "\tiPhoneOS Release..."
 xcodebuild -configuration Release -sdk iphoneos -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
-echo -e "\tiPhoneSimulator..."
+echo -e "\tiPhoneSimulator Release..."
 xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
+echo -e "\tiPhoneOS Debug..."
+xcodebuild -configuration Debug -sdk iphoneos -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
+echo -e "\tiPhoneSimulator Debug..."
+xcodebuild -configuration Debug -sdk iphonesimulator -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
 
 echo "Packaging libNativeScript..."
 mkdir -p "$WORKSPACE/dist/NativeScript/lib"
-lipo -create -output "$WORKSPACE/dist/NativeScript/lib/libNativeScript.a" \
+lipo -create -output "$WORKSPACE/dist/NativeScript/lib/libNativeScript-Release.a" \
     "$WORKSPACE/cmake-build/src/NativeScript/Release-iphonesimulator/libNativeScript.a" \
     "$WORKSPACE/cmake-build/src/NativeScript/Release-iphoneos/libNativeScript.a" \
+         >> "$WORKSPACE/build.log" 2>&1
+lipo -create -output "$WORKSPACE/dist/NativeScript/lib/libNativeScript-Debug.a" \
+    "$WORKSPACE/cmake-build/src/NativeScript/Debug-iphonesimulator/libNativeScript.a" \
+    "$WORKSPACE/cmake-build/src/NativeScript/Debug-iphoneos/libNativeScript.a" \
          >> "$WORKSPACE/build.log" 2>&1
 
 mkdir -p "$WORKSPACE/dist/NativeScript/include"

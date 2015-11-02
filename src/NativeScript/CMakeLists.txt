@@ -217,6 +217,10 @@ elseif(${EMBED_STATIC_DEPENDENCIES})
     )
 endif()
 
+set_target_properties(NativeScript PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS NO)
+set_target_properties(NativeScript PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS[variant=Debug] ${GENERATE_DEBUG_SYMBOLS})
+set_target_properties(NativeScript PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS[variant=RelWithDebInfo] ${GENERATE_DEBUG_SYMBOLS})
+
 include(EmbedResourceInHeader)
 foreach(_jsfile ${JSFILES})
     EmbedResourceInHeader(NativeScript ${_jsfile})
