@@ -66,8 +66,11 @@ describe("Constructing Objective-C classes with new operator", function () {
 
         var obj3 = NSObject.new();
         expect(obj3.retainCount()).toBe(1);
+
+        var obj4 = NSObject.alloc().init();
+        expect(obj4.retainCount()).toBe(1);
     });
-         
+
     it('initializerResolving', function () {
         var arr = new NSArray([1, 2, 3]);
         expect(arr.objectAtIndex(0)).toBe(1);
