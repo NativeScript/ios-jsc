@@ -102,19 +102,19 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
         invocation.setArgument(1, call->_selector);
         invocation.function = call->_msgSend;
     }
+}
+
+void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
+    ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
+
+    if (call->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo() == AllocatedPlaceholder::info() && call->_isInitializer)) {
+        [invocation.getResult<id>() release];
     }
 
-    void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
-        ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
-
-        if (call->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo() == AllocatedPlaceholder::info() && call->_isInitializer)) {
-            [invocation.getResult<id>() release];
-        }
-
-        if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
-            if (NSError* error = *invocation.getArgument<NSError**>(call->_argsCount - 1)) {
-                execState->vm().throwException(execState, toValue(execState, error));
-            }
+    if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
+        if (NSError* error = *invocation.getArgument<NSError**>(call->_argsCount - 1)) {
+            execState->vm().throwException(execState, toValue(execState, error));
         }
     }
+}
 }
