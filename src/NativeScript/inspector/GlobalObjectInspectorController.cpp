@@ -46,6 +46,7 @@
 #include "GlobalObjectConsoleClient.h"
 #include "InspectorPageAgent.h"
 #include "InspectorTimelineAgent.h"
+#include "DomainInspectorAgent.h"
 
 #include <cxxabi.h>
 #if OS(DARWIN) || (OS(LINUX) && !PLATFORM(GTK))
@@ -62,6 +63,15 @@ using namespace JSC;
 using namespace Inspector;
 
 namespace NativeScript {
+JSC::EncodedJSValue registerDispatcher(JSC::ExecState* execState) {
+    NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+    WTF::String domainIdentifier = execState->argument(0).toWTFString(execState);
+    JSCell* constructorFunction = execState->argument(1).asCell();
+
+    globalObject->inspectorController().registerDomainDispatcher(domainIdentifier, constructorFunction);
+
+    return JSValue::encode(jsUndefined());
+}
 
 GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& globalObject)
     : m_globalObject(globalObject)
@@ -74,6 +84,9 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     , m_augmentingClient(nullptr)
 #endif
 {
+
+    m_globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 0, &registerDispatcher, NoIntrinsic, DontEnum | Attribute::Function);
+
     auto inspectorAgent = std::make_unique<InspectorAgent>(*this);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_injectedScriptManager.get(), m_globalObject);
     auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_injectedScriptManager.get());
@@ -101,6 +114,12 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
 
 GlobalObjectInspectorController::~GlobalObjectInspectorController() {
     m_agents.discardAgents();
+}
+
+void GlobalObjectInspectorController::registerDomainDispatcher(WTF::String domainIdentifier, JSC::JSCell* constructorFunction) {
+    std::unique_ptr<DomainInspectorAgent> domainInspectorAgent = std::make_unique<DomainInspectorAgent>(m_globalObject, domainIdentifier, constructorFunction);
+
+    appendExtraAgent(WTF::move(domainInspectorAgent));
 }
 
 void GlobalObjectInspectorController::globalObjectDestroyed() {

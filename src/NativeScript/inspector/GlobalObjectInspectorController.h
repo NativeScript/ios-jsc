@@ -63,6 +63,8 @@ class JSValue;
 
 namespace NativeScript {
 
+JSC::EncodedJSValue JSC_HOST_CALL registerDispatcher(JSC::ExecState* execState);
+
 class GlobalObjectInspectorController final
     : public Inspector::InspectorEnvironment
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
@@ -82,6 +84,7 @@ public:
     void dispatchMessageFromFrontend(const String&);
 
     void globalObjectDestroyed();
+    void registerDomainDispatcher(WTF::String domainIdentifier, JSC::JSCell* constructorFunction);
 
     bool includesNativeCallStackWhenReportingExceptions() const { return m_includeNativeCallStackWithExceptions; }
     void setIncludesNativeCallStackWhenReportingExceptions(bool includesNativeCallStack) { m_includeNativeCallStackWithExceptions = includesNativeCallStack; }
