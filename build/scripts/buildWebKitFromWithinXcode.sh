@@ -1,3 +1,3 @@
-#!/bin/sh
+#!/bin/bash
 
-xcodebuild -target JavaScriptCore -sdk "$SDKROOT" -configuration $CONFIGURATION ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=$ONLY_ACTIVE_ARCH
+xcodebuild -target JavaScriptCore -sdk "$SDKROOT" -configuration $CONFIGURATION ARCHS="$ARCHS" ONLY_ACTIVE_ARCH=$ONLY_ACTIVE_ARCH $DEPLOYMENT_TARGET_SETTING_NAME=${!DEPLOYMENT_TARGET_CLANG_ENV_NAME}

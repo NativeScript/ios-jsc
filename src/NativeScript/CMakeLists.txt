@@ -187,7 +187,6 @@ set_target_properties(NativeScript PROPERTIES
         -Werror -Wall -Wextra -Wcast-align -Wformat-security -Wmissing-format-attribute -Wpointer-arith -Wundef -Wwrite-strings
         -Wno-shorten-64-to-32 -Wno-bool-conversion -Wno-unused-parameter
     "
-    XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "7.0"
 )
 
 if(${BUILD_SHARED_LIBS})
