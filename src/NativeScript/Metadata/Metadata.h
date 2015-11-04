@@ -22,6 +22,7 @@ static const int MetaTypeMask = 0b00000111;
 enum MetaFlags {
     HasName = 7,
     // IsIosAppExtensionAvailable = 6, the flag exists in metadata generator but we never use it in the runtime
+    FunctionReturnsUnmanaged = 3,
     FunctionIsVariadic = 5,
     FunctionOwnsReturnedCocoaObject = 4,
     MethodIsInitializer = 1,
@@ -537,6 +538,10 @@ public:
 
     bool ownsReturnedCocoaObject() const {
         return this->flag(MetaFlags::FunctionOwnsReturnedCocoaObject);
+    }
+
+    bool returnsUnmanaged() const {
+        return this->flag(MetaFlags::FunctionReturnsUnmanaged);
     }
 };
 

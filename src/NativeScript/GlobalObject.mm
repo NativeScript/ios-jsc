@@ -45,6 +45,7 @@
 #include "AllocatedPlaceholder.h"
 #include "ObjCTypes.h"
 #include "FFICallPrototype.h"
+#include "UnmanagedType.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -137,6 +138,10 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     auto fastEnumerationIteratorPrototype = ObjCFastEnumerationIteratorPrototype::create(vm, this, ObjCFastEnumerationIteratorPrototype::createStructure(vm, this, this->objectPrototype()));
     this->_fastEnumerationIteratorStructure.set(vm, this, ObjCFastEnumerationIterator::createStructure(vm, this, fastEnumerationIteratorPrototype));
 
+    JSC::Structure* unmanagedPrototypeStructure = UnmanagedPrototype::createStructure(vm, this, this->objectPrototype());
+    UnmanagedPrototype* unmanagedPrototype = UnmanagedPrototype::create(vm, this, unmanagedPrototypeStructure);
+    this->_unmanagedInstanceStructure.set(vm, this, UnmanagedInstance::createStructure(this, unmanagedPrototype));
+
     this->_interopIdentifier = Identifier::fromString(&vm, Interop::info()->className);
     this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())));
 
@@ -183,6 +188,7 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_ffiFunctionCallbackStructure);
     visitor.append(&globalObject->_recordFieldGetterStructure);
     visitor.append(&globalObject->_recordFieldSetterStructure);
+    visitor.append(&globalObject->_unmanagedInstanceStructure);
     visitor.append(&globalObject->_weakRefConstructorStructure);
     visitor.append(&globalObject->_weakRefPrototypeStructure);
     visitor.append(&globalObject->_weakRefInstanceStructure);
@@ -255,6 +261,12 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
             const Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
             JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr);
             const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1);
+
+            if (functionMeta->returnsUnmanaged()) {
+                JSC::Structure* unmanagedStructure = UnmanagedType::createStructure(vm, globalObject, jsNull());
+                returnType = UnmanagedType::create(vm, returnType, unmanagedStructure);
+            }
+
             symbolWrapper = FFIFunctionCall::create(vm, globalObject->ffiFunctionCallStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
         }
         break;

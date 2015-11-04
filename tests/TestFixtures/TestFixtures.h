@@ -11,6 +11,7 @@
 #import "Api/TNSApi.h"
 #import "Api/TNSDeclarationConflicts.h"
 #import "Api/TNSReturnsRetained.h"
+#import "Api/TNSReturnsUnmanaged.h"
 #import "Api/TNSVersions.h"
 #import "Api/TNSBridgedTypes.h"
 

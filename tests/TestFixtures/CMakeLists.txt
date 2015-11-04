@@ -6,6 +6,7 @@ set(HEADER_FILES
     Api/TNSBridgedTypes.h
     Api/TNSDeclarationConflicts.h
     Api/TNSReturnsRetained.h
+    Api/TNSReturnsUnmanaged.h
     Api/TNSVersions.h
     Functions/TNSFunctions.h
     Interfaces/TNSClassWithPlaceholder.h
@@ -26,6 +27,7 @@ set(SOURCE_FILES
     Api/TNSBridgedTypes.m
     Api/TNSDeclarationConflicts.m
     Api/TNSReturnsRetained.m
+    Api/TNSReturnsUnmanaged.m
     Api/TNSVersions.m
     Functions/TNSFunctions.m
     Interfaces/TNSClassWithPlaceholder.m

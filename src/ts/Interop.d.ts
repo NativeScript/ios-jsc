@@ -184,4 +184,26 @@ declare module interop {
          */
         equals(left: T, right: T): boolean;
     }
+
+    /** A type for propagating an unmanaged object reference.
+     * When you use this type, you become partially responsible for
+     * keeping the object alive.
+     */
+    interface Unmanaged<T> {
+      /**
+       * Get the value of this unmanaged reference as a managed
+       * reference and consume an unbalanced retain of it.
+       * This is useful when a function returns an unmanaged reference
+       * and you know that you're responsible for releasing the result.
+       */
+      takeRetainedValue(): T;
+
+      /**
+       * Get the value of this unmanaged reference as a managed
+       * reference without consuming an unbalanced retain of it.
+       * This is useful when a function returns an unmanaged reference
+       * and you know that you're not responsible for releasing the result.
+       */
+      takeUnretainedValue(): T;
+    }
 }

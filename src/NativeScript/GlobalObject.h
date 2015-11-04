@@ -109,6 +109,10 @@ public:
         return this->_weakRefInstanceStructure.get();
     }
 
+    JSC::Structure* unmanagedInstanceStructure() const {
+        return this->_unmanagedInstanceStructure.get();
+    }
+
     JSC::JSFunction* typeScriptOriginalExtendsFunction() const {
         return this->_typeScriptOriginalExtendsFunction.get();
     }
@@ -183,6 +187,8 @@ private:
     JSC::WriteBarrier<JSC::Structure> _weakRefConstructorStructure;
     JSC::WriteBarrier<JSC::Structure> _weakRefPrototypeStructure;
     JSC::WriteBarrier<JSC::Structure> _weakRefInstanceStructure;
+
+    JSC::WriteBarrier<JSC::Structure> _unmanagedInstanceStructure;
 
     std::map<Class, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
 

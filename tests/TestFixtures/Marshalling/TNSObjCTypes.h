@@ -13,8 +13,9 @@ typedef struct TNSOStruct {
 } TNSOStruct;
 
 void TNSFunctionWithCFTypeRefArgument(CFTypeRef x);
-CFTypeRef TNSFunctionWithSimpleCFTypeRefReturn();
-CFTypeRef TNSFunctionWithCreateCFTypeRefReturn();
+
+CFTypeRef TNSFunctionWithSimpleCFTypeRefReturn() CF_RETURNS_NOT_RETAINED;
+CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() CF_RETURNS_RETAINED;
 
 typedef int (^NumberReturner)(int, int, int);
 

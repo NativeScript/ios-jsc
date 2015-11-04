@@ -14,14 +14,11 @@ void TNSFunctionWithCFTypeRefArgument(CFTypeRef x) {
 }
 
 CFTypeRef TNSFunctionWithSimpleCFTypeRefReturn() {
-    NSString* str = @"test";
-    return (__bridge CFTypeRef)(str);
+    return CFSTR("test");
 }
 
 CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
-    NSString* str = @"test";
-    CFBridgingRetain(str);
-    return (__bridge CFTypeRef)(str);
+    return CFStringCreateWithCString(kCFAllocatorDefault, "test", kCFStringEncodingUTF8);
 }
 
 @implementation TNSObjCTypes
