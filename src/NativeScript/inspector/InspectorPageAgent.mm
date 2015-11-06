@@ -1,7 +1,9 @@
 #include "InspectorPageAgent.h"
 #include "CachedResource.h"
+#include "GlobalObjectInspectorController.h"
 #include <JavaScriptCore/inspector/ContentSearchUtilities.h>
 #include <JavaScriptCore/yarr/RegularExpression.h>
+#include <JavaScriptCore/Completion.h>
 #include <map>
 #include <vector>
 
@@ -38,7 +40,13 @@ void InspectorPageAgent::removeScriptToEvaluateOnLoad(ErrorString&, const String
 }
 
 void InspectorPageAgent::reload(ErrorString&, const bool* in_ignoreCache, const String* in_scriptToEvaluateOnLoad) {
-    ASSERT_NOT_REACHED();
+    JSC::SourceCode sourceCode = JSC::makeSource(WTF::ASCIILiteral("if(typeof global.__onLiveSync === 'function') { global.__onLiveSync(); }"));
+    WTF::NakedPtr<JSC::Exception> exception;
+
+    JSC::evaluate(this->m_globalObject.globalExec(), sourceCode, JSC::JSValue(), exception);
+    if (exception) {
+        this->m_globalObject.inspectorController().reportAPIException(this->m_globalObject.globalExec(), exception);
+    }
 }
 
 void InspectorPageAgent::navigate(ErrorString&, const String& in_url) {
