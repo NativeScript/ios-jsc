@@ -7,13 +7,13 @@ describe(module.id, function () {
         expect(NSRangeException).toBe('NSRangeException');
     });
 
-    it("ConstantsEqulality", function () {
+    it("ConstantsEquality", function () {
         expect(TNSConstant).toBe(TNSConstant);
         expect(TNSConstant).toBe("TNSConstant");
     });
-         
+
     it("CompileTimeConstant", function () {
-        expect(kCGFontIndexMax).toBe(65534);
+        expect(TNSStaticConstant).toBe(-42);
     });
 
 // TODO

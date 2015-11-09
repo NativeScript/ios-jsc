@@ -470,7 +470,7 @@ describe(module.id, function () {
         expect('takeRetainedValue' in unmanaged).toBe(true);
         expect('takeUnretainedValue' in unmanaged).toBe(true);
         expect(functionReturnsUnmanaged().takeRetainedValue().retainCount()).toBe(1);
-       
+
         var value = functionReturnsUnmanaged().takeUnretainedValue();
         expect(value.retainCount()).toBe(2);
         CFRelease(value);

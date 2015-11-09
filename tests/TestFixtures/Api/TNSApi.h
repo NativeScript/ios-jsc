@@ -26,6 +26,8 @@ extern NSString* const TNSConstant;
 
 extern NSString* const TNSUnavailableConstant;
 
+static const NSInteger TNSStaticConstant = -42;
+
 void functionThrowsException();
 
 @interface TNSApi : NSObject
