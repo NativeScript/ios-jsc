@@ -4,6 +4,7 @@
 #include <JavaScriptCore/inspector/ContentSearchUtilities.h>
 #include <JavaScriptCore/yarr/RegularExpression.h>
 #include <JavaScriptCore/Completion.h>
+#include <JavaScriptCore/Exception.h>
 #include <map>
 #include <vector>
 
@@ -40,12 +41,20 @@ void InspectorPageAgent::removeScriptToEvaluateOnLoad(ErrorString&, const String
 }
 
 void InspectorPageAgent::reload(ErrorString&, const bool* in_ignoreCache, const String* in_scriptToEvaluateOnLoad) {
-    JSC::SourceCode sourceCode = JSC::makeSource(WTF::ASCIILiteral("if(typeof global.__onLiveSync === 'function') { global.__onLiveSync(); }"));
+    JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&m_globalObject.vm(), "__onLiveSync"));
+    JSC::CallData callData;
+    JSC::CallType callType = getCallData(liveSyncCallback, callData);
+    if (callType == JSC::CallType::CallTypeNone) {
+        JSC::JSValue error = JSC::createError(m_globalObject.globalExec(), "global.__onLiveSync is not a function.");
+        m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), JSC::Exception::create(m_globalObject.globalExec()->vm(), error));
+        return;
+    }
+    
     WTF::NakedPtr<JSC::Exception> exception;
-
-    JSC::evaluate(this->m_globalObject.globalExec(), sourceCode, JSC::JSValue(), exception);
+    JSC::MarkedArgumentBuffer liveSyncArguments;
+    call(m_globalObject.globalExec(), liveSyncCallback, callType, callData, JSC::jsUndefined(), liveSyncArguments, exception);
     if (exception) {
-        this->m_globalObject.inspectorController().reportAPIException(this->m_globalObject.globalExec(), exception);
+        m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), exception);
     }
 }
 
