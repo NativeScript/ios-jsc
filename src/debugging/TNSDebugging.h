@@ -69,29 +69,38 @@ static dispatch_source_t TNSCreateInspectorServer(
   dispatch_source_t listenSource =
       dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
 
-    dispatch_source_set_event_handler(listenSource, ^{
-        dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
-        
-        dispatch_io_t io = dispatch_io_create(DISPATCH_IO_STREAM, newSocket, queue, ^(int error) { CheckError(error, connectedHandler); });
-        
-        TNSInspectorSendMessageBlock sender = ^(NSString *message) {
-            
-            NSUInteger length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
-            
-            void* buffer = malloc(length + sizeof(uint32_t));
-            
-            *(uint32_t*)buffer = htonl(length);
-            
-            [message getBytes:&buffer[sizeof(uint32_t)] maxLength:length usedLength:NULL encoding:NSUTF16LittleEndianStringEncoding options:0 range:NSMakeRange(0, message.length) remainingRange:NULL];
-            
-            dispatch_data_t data = dispatch_data_create(buffer, length + sizeof(uint32_t), queue, ^{
-                free(buffer);
-            });
-            
-            dispatch_io_write(io, 0, data, queue, ^(bool done, dispatch_data_t data, int error) {
-                CheckError(error, connectedHandler);
-            });
-        };
+  dispatch_source_set_event_handler(listenSource, ^{
+      dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
+
+      dispatch_io_t io = dispatch_io_create(
+          DISPATCH_IO_STREAM, newSocket, queue,
+          ^(int error) { CheckError(error, connectedHandler); });
+
+      TNSInspectorSendMessageBlock sender = ^(NSString *message) {
+
+          NSUInteger length = [message
+              lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
+
+          void *buffer = malloc(length + sizeof(uint32_t));
+
+          *(uint32_t *)buffer = htonl(length);
+
+          [message getBytes:&buffer[sizeof(uint32_t)]
+                   maxLength:length
+                  usedLength:NULL
+                    encoding:NSUTF16LittleEndianStringEncoding
+                     options:0
+                       range:NSMakeRange(0, message.length)
+              remainingRange:NULL];
+
+          dispatch_data_t data = dispatch_data_create(
+              buffer, length + sizeof(uint32_t), queue, ^{ free(buffer); });
+
+          dispatch_io_write(io, 0, data, queue,
+                            ^(bool done, dispatch_data_t data, int error) {
+              CheckError(error, connectedHandler);
+          });
+      };
 
       __block TNSInspectorProtocolHandler handler =
           connectedHandler(sender, nil);
@@ -142,7 +151,8 @@ static dispatch_source_t TNSCreateInspectorServer(
 }
 
 static void TNSObjectiveCUncaughtExceptionHandler(NSException *exception) {
-  JSStringRef exceptionMessage = JSStringCreateWithUTF8CString(exception.description.UTF8String);
+  JSStringRef exceptionMessage =
+      JSStringCreateWithUTF8CString(exception.description.UTF8String);
 
   JSValueRef errorArguments[] = {
       JSValueMakeString(runtime.globalContext, exceptionMessage)};
@@ -162,10 +172,22 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
       NSSetUncaughtExceptionHandler(NULL);
   };
 
-  [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillResignActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) { notify_post(NOTIFICATION("ApplicationWillResignActive")); }];
-    
-  [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) { notify_post(NOTIFICATION("ApplicationDidBecomeActive")); }];
-    
+  [[NSNotificationCenter defaultCenter]
+      addObserverForName:UIApplicationWillResignActiveNotification
+                  object:nil
+                   queue:[NSOperationQueue mainQueue]
+              usingBlock:^(NSNotification *note) {
+                  notify_post(NOTIFICATION("ApplicationWillResignActive"));
+              }];
+
+  [[NSNotificationCenter defaultCenter]
+      addObserverForName:UIApplicationDidBecomeActiveNotification
+                  object:nil
+                   queue:[NSOperationQueue mainQueue]
+              usingBlock:^(NSNotification *note) {
+                  notify_post(NOTIFICATION("ApplicationDidBecomeActive"));
+              }];
+
   TNSInspectorFrontendConnectedHandler connectionHandler =
       ^TNSInspectorProtocolHandler(
           TNSInspectorSendMessageBlock sendMessageToFrontend, NSError *error) {
@@ -190,16 +212,16 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
 
       if (isWaitingForDebugger) {
         isWaitingForDebugger = NO;
-          
+
         CFRunLoopRef runloop = CFRunLoopGetMain();
         CFRunLoopPerformBlock(runloop,
-                              (__bridge CFTypeRef)(NSRunLoopCommonModes),
-                              ^{
-                                    // If we pause right away the debugger messages that are send are not handled because the frontend is not yet initialized
-                                    CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
-                                    
-                                    [inspector pause];
-                               });
+                              (__bridge CFTypeRef)(NSRunLoopCommonModes), ^{
+            // If we pause right away the debugger messages that are send are
+            // not handled because the frontend is not yet initialized
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
+
+            [inspector pause];
+        });
         CFRunLoopWakeUp(runloop);
         CFRunLoopStop(runloop);
       }
