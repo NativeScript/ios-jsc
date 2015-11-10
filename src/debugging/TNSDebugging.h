@@ -54,6 +54,9 @@ static dispatch_source_t TNSCreateInspectorServer(
   dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
 
   dispatch_fd_t listenSocket = socket(PF_INET, SOCK_STREAM, 0);
+  int so_reuseaddr = 1;
+  setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr,
+             sizeof(so_reuseaddr));
   struct sockaddr_in addr = {
       sizeof(addr), AF_INET, htons(18181), {INADDR_ANY}, {0}};
   if (!CheckError(
