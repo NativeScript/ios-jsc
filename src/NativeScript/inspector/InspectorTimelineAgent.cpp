@@ -6,9 +6,9 @@
 
 namespace Inspector {
 
-InspectorTimelineAgent::InspectorTimelineAgent(NativeScript::GlobalObject& globalObject)
+InspectorTimelineAgent::InspectorTimelineAgent(JSAgentContext& context)
     : Inspector::InspectorAgentBase(ASCIILiteral("Timeline"))
-    , m_globalObject(globalObject)
+    , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject))
     , m_consoleRecordEntry()
     , m_maxCallStackDepth(5)
     , m_enabled(false) {
@@ -23,9 +23,9 @@ void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {
     m_frontendDispatcher->eventRecorded(WTF::move(recordChecked));
 }
 
-void InspectorTimelineAgent::didCreateFrontendAndBackend(FrontendChannel* frontendChannel, BackendDispatcher* backendDispatcher) {
-    m_frontendDispatcher = std::make_unique<TimelineFrontendDispatcher>(frontendChannel);
-    m_backendDispatcher = TimelineBackendDispatcher::create(backendDispatcher, this);
+void InspectorTimelineAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {
+    m_frontendDispatcher = std::make_unique<TimelineFrontendDispatcher>(*frontendRouter);
+    m_backendDispatcher = TimelineBackendDispatcher::create(*backendDispatcher, this);
 }
 
 void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {

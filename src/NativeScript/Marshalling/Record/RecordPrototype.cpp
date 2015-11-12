@@ -47,8 +47,8 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) 
 void RecordPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, recordProtoFuncToString, NoIntrinsic, DontEnum | Attribute::Function);
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toJSON, 0, recordProtoFuncToJSON, NoIntrinsic, DontEnum | Attribute::Function);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, recordProtoFuncToString, NoIntrinsic, DontEnum);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toJSON, 0, recordProtoFuncToJSON, NoIntrinsic, DontEnum);
 }
 
 void RecordPrototype::visitChildren(JSCell* cell, SlotVisitor& visitor) {

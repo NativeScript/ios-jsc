@@ -89,7 +89,7 @@ WebInspector.Popover = class Popover extends WebInspector.Object
             this._update(true);
     }
 
-    update()
+    update(shouldAnimate = true)
     {
         if (!this.visible)
             return;
@@ -97,7 +97,7 @@ WebInspector.Popover = class Popover extends WebInspector.Object
         var previouslyFocusedElement = document.activeElement;
 
         this._contentNeedsUpdate = true;
-        this._update(true);
+        this._update(shouldAnimate);
 
         if (previouslyFocusedElement)
             previouslyFocusedElement.focus();
@@ -151,7 +151,7 @@ WebInspector.Popover = class Popover extends WebInspector.Object
         switch (event.type) {
         case "mousedown":
         case "scroll":
-            if (!this._element.contains(event.target))
+            if (!this._element.contains(event.target) && !event.target.enclosingNodeOrSelfWithClass(WebInspector.Popover.IgnoreAutoDismissClassName))
                 this.dismiss();
             break;
         case "transitionend":
@@ -193,7 +193,7 @@ WebInspector.Popover = class Popover extends WebInspector.Object
                 this._element.classList.remove(this._cssClassNameForEdge());
 
             // Add the content in place of the wrapper to get the raw metrics.
-            this._element.replaceChild(this._content, this._container);
+            this._container.replaceWith(this._content);
 
             // Get the ideal size for the popover to fit its content.
             var popoverBounds = this._element.getBoundingClientRect();
@@ -280,7 +280,7 @@ WebInspector.Popover = class Popover extends WebInspector.Object
         // Wrap the content in the container so that it's located correctly.
         if (this._contentNeedsUpdate) {
             this._container.textContent = "";
-            this._element.replaceChild(this._container, this._content);
+            this._content.replaceWith(this._container);
             this._container.appendChild(this._content);
         }
 
@@ -314,7 +314,7 @@ WebInspector.Popover = class Popover extends WebInspector.Object
         var startTime = Date.now();
         var duration = 350;
         var epsilon = 1 / (200 * duration);
-        var spline = new WebInspector.UnitBezier(0.25, 0.1, 0.25, 1);
+        var spline = new WebInspector.CubicBezier(0.25, 0.1, 0.25, 1);
 
         var fromFrame = this._frame.copy();
         var fromAnchor = this._anchorPoint.copy();
@@ -555,3 +555,4 @@ WebInspector.Popover.ShadowPadding = 5;
 WebInspector.Popover.ContentPadding = 5;
 WebInspector.Popover.AnchorSize = new WebInspector.Size(22, 11);
 WebInspector.Popover.ShadowEdgeInsets = new WebInspector.EdgeInsets(WebInspector.Popover.ShadowPadding);
+WebInspector.Popover.IgnoreAutoDismissClassName = "popover-ignore-auto-dismiss";

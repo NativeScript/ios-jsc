@@ -25,7 +25,7 @@
 using namespace JSC;
 
 class TNSValueWrapperWeakHandleOwner : public WeakHandleOwner {
-    virtual void finalize(Handle<Unknown> handle, void* context) {
+    virtual void finalize(Handle<Unknown> handle, void* context) override {
         [reinterpret_cast<TNSValueWrapper*>(context) detach];
 
         WeakSet::deallocate(WeakImpl::asWeakImpl(handle.slot()));

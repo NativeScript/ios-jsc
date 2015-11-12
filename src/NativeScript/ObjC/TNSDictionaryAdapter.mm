@@ -109,7 +109,7 @@ using namespace NativeScript;
         return map->size(self->_execState);
     }
 
-    PropertyNameArray properties(self->_execState);
+    PropertyNameArray properties(self->_execState, PropertyNameMode::Strings);
     object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return properties.size();
 }
@@ -138,7 +138,7 @@ using namespace NativeScript;
         return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMap:map execState:self->_execState] autorelease];
     }
 
-    PropertyNameArray properties(self->_execState);
+    PropertyNameArray properties(self->_execState, PropertyNameMode::Strings);
     object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return [[[TNSDictionaryAdapterObjectKeysEnumerator alloc] initWithProperties:properties.releaseData()] autorelease];
 }

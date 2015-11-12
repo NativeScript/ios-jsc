@@ -350,7 +350,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 }
 
 void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instanceMethods, JSValue exposedMethods) {
-    PropertyNameArray prototypeKeys(execState);
+    PropertyNameArray prototypeKeys(execState, PropertyNameMode::Strings);
     instanceMethods->methodTable()->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, EnumerationMode());
 
     for (Identifier key : prototypeKeys) {
@@ -388,7 +388,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
     }
 
     if (exposedMethods.isObject()) {
-        PropertyNameArray exposedMethodsKeys(execState);
+        PropertyNameArray exposedMethodsKeys(execState, PropertyNameMode::Strings);
         JSObject* exposedMethodsObject = exposedMethods.toObject(execState);
         exposedMethodsObject->methodTable()->getOwnPropertyNames(exposedMethodsObject, execState, exposedMethodsKeys, EnumerationMode());
 
@@ -445,7 +445,7 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
 }
 
 void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMethods) {
-    PropertyNameArray keys(execState);
+    PropertyNameArray keys(execState, PropertyNameMode::Strings);
     staticMethods->methodTable()->getOwnPropertyNames(staticMethods, execState, keys, EnumerationMode());
 
     for (Identifier key : keys) {

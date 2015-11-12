@@ -51,6 +51,7 @@ WebInspector.CodeMirrorCompletionController = class CodeMirrorCompletionControll
             "Right": this._handleRightOrEnterKey.bind(this),
             "Esc": this._handleEscapeKey.bind(this),
             "Enter": this._handleRightOrEnterKey.bind(this),
+            "Cmd-Enter": this._handleCommandEnterKey.bind(this),
             "Tab": this._handleTabKey.bind(this),
             "Cmd-A": this._handleHideKey.bind(this),
             "Cmd-Z": this._handleHideKey.bind(this),
@@ -245,6 +246,15 @@ WebInspector.CodeMirrorCompletionController = class CodeMirrorCompletionControll
         this._notifyCompletionsHiddenIfNeededTimeout = setTimeout(notify.bind(this), WebInspector.CodeMirrorCompletionController.CompletionsHiddenDelay);
     }
 
+    _createCompletionHintMarker(position, text)
+    {
+        var container = document.createElement("span");
+        container.classList.add(WebInspector.CodeMirrorCompletionController.CompletionHintStyleClassName);
+        container.textContent = text;
+
+        this._completionHintMarker = this._codeMirror.setUniqueBookmark(position, {widget: container, insertLeft: true});
+    }
+
     _applyCompletionHint(completionText)
     {
         console.assert(completionText);
@@ -261,15 +271,9 @@ WebInspector.CodeMirrorCompletionController = class CodeMirrorCompletionControll
 
             var from = {line: this._lineNumber, ch: this._startOffset};
             var cursor = {line: this._lineNumber, ch: this._endOffset};
-            var to = {line: this._lineNumber, ch: this._startOffset + replacementText.length};
+            var currentText = this._codeMirror.getRange(from, cursor);
 
-            this._codeMirror.replaceRange(replacementText, from, cursor, WebInspector.CodeMirrorCompletionController.CompletionOrigin);
-            this._removeLastChangeFromHistory();
-
-            this._codeMirror.setCursor(cursor);
-
-            if (cursor.ch !== to.ch)
-                this._completionHintMarker = this._codeMirror.markText(cursor, to, {className: WebInspector.CodeMirrorCompletionController.CompletionHintStyleClassName});
+            this._createCompletionHintMarker(cursor, replacementText.replace(currentText, ""));
         }
 
         this._ignoreChange = true;
@@ -336,17 +340,21 @@ WebInspector.CodeMirrorCompletionController = class CodeMirrorCompletionControll
 
         this._notifyCompletionsHiddenSoon();
 
+        function clearMarker(marker)
+        {
+            if (!marker)
+                return;
+
+            var range = marker.find();
+            if (range)
+                marker.clear();
+
+            return null;
+        }
+
         function update()
         {
-            var range = this._completionHintMarker.find();
-            if (range) {
-                this._completionHintMarker.clear();
-
-                this._codeMirror.replaceRange("", range.from, range.to, WebInspector.CodeMirrorCompletionController.DeleteCompletionOrigin);
-                this._removeLastChangeFromHistory();
-            }
-
-            this._completionHintMarker = null;
+            this._completionHintMarker = clearMarker(this._completionHintMarker);
 
             if (dontRestorePrefix)
                 return;
@@ -714,6 +722,19 @@ WebInspector.CodeMirrorCompletionController = class CodeMirrorCompletionControll
             return;
 
         this._commitCompletionHint();
+    }
+
+    _handleCommandEnterKey(codeMirror)
+    {
+        const modeName = codeMirror.getMode().name;
+        if (modeName !== "javascript" && modeName !== "htmlmixed")
+            return CodeMirror.Pass;
+
+        const selectedText = codeMirror.getSelection();
+        if (!selectedText)
+            return CodeMirror.Pass;
+
+        WebInspector.consoleLogViewController.consolePromptTextCommitted(null, selectedText);
     }
 
     _handleEscapeKey(codeMirror)

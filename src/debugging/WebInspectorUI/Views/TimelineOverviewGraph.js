@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Apple Inc. All rights reserved.
+ * Copyright (C) 2014, 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,55 +23,53 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.TimelineOverviewGraph = function(timeline)
+WebInspector.TimelineOverviewGraph = class TimelineOverviewGraph extends WebInspector.Object
 {
-    if (this.constructor === WebInspector.TimelineOverviewGraph) {
-        // When instantiated directly return an instance of a type-based concrete subclass.
+    constructor(timelineOverview)
+    {
+        super();
 
-        console.assert(timeline && timeline instanceof WebInspector.Timeline);
+        this.element = document.createElement("div");
+        this.element.classList.add("timeline-overview-graph");
+
+        this._zeroTime = 0;
+        this._startTime = 0;
+        this._endTime = 5;
+        this._currentTime = 0;
+        this._timelineOverview = timelineOverview;
+        this._selectedRecord = null;
+        this._selectedRecordChanged = false;
+        this._scheduledLayoutUpdateIdentifier = 0;
+        this._scheduledSelectedRecordLayoutUpdateIdentifier = 0;
+    }
+
+    // Public
+
+    static createForTimeline(timeline, timelineOverview)
+    {
+        console.assert(timeline instanceof WebInspector.Timeline, timeline);
+        console.assert(timelineOverview instanceof WebInspector.TimelineOverview, timelineOverview);
 
         var timelineType = timeline.type;
         if (timelineType === WebInspector.TimelineRecord.Type.Network)
-            return new WebInspector.NetworkTimelineOverviewGraph(timeline);
+            return new WebInspector.NetworkTimelineOverviewGraph(timeline, timelineOverview);
 
         if (timelineType === WebInspector.TimelineRecord.Type.Layout)
-            return new WebInspector.LayoutTimelineOverviewGraph(timeline);
+            return new WebInspector.LayoutTimelineOverviewGraph(timeline, timelineOverview);
 
         if (timelineType === WebInspector.TimelineRecord.Type.Script)
-            return new WebInspector.ScriptTimelineOverviewGraph(timeline);
+            return new WebInspector.ScriptTimelineOverviewGraph(timeline, timelineOverview);
 
         if (timelineType === WebInspector.TimelineRecord.Type.RenderingFrame)
-            return new WebInspector.RenderingFrameTimelineOverviewGraph(timeline);
+            return new WebInspector.RenderingFrameTimelineOverviewGraph(timeline, timelineOverview);
 
-        throw Error("Can't make a graph for an unknown timeline.");
+        throw new Error("Can't make a graph for an unknown timeline.");
     }
-
-    // Concrete object instantiation.
-    console.assert(this.constructor !== WebInspector.TimelineOverviewGraph && this instanceof WebInspector.TimelineOverviewGraph);
-
-    // FIXME: Convert this to a WebInspector.Object subclass, and call super().
-    // WebInspector.Object.call(this);
-
-    this.element = document.createElement("div");
-    this.element.classList.add("timeline-overview-graph");
-
-    this._zeroTime = 0;
-    this._startTime = 0;
-    this._endTime = 5;
-    this._currentTime = 0;
-    this._timelineOverview = null;
-};
-
-WebInspector.TimelineOverviewGraph.prototype = {
-    constructor: WebInspector.TimelineOverviewGraph,
-    __proto__: WebInspector.Object.prototype,
-
-    // Public
 
     get zeroTime()
     {
         return this._zeroTime;
-    },
+    }
 
     set zeroTime(x)
     {
@@ -81,12 +79,12 @@ WebInspector.TimelineOverviewGraph.prototype = {
         this._zeroTime = x || 0;
 
         this.needsLayout();
-    },
+    }
 
     get startTime()
     {
         return this._startTime;
-    },
+    }
 
     set startTime(x)
     {
@@ -96,12 +94,12 @@ WebInspector.TimelineOverviewGraph.prototype = {
         this._startTime = x || 0;
 
         this.needsLayout();
-    },
+    }
 
     get endTime()
     {
         return this._endTime;
-    },
+    }
 
     set endTime(x)
     {
@@ -111,12 +109,12 @@ WebInspector.TimelineOverviewGraph.prototype = {
         this._endTime = x || 0;
 
         this.needsLayout();
-    },
+    }
 
     get currentTime()
     {
         return this._currentTime;
-    },
+    }
 
     set currentTime(x)
     {
@@ -129,59 +127,75 @@ WebInspector.TimelineOverviewGraph.prototype = {
 
         if ((this._startTime <= oldCurrentTime && oldCurrentTime <= this._endTime) || (this._startTime <= this._currentTime && this._currentTime <= this._endTime))
             this.needsLayout();
-    },
+    }
 
     get timelineOverview()
     {
         return this._timelineOverview;
-    },
-
-    set timelineOverview(x)
-    {
-        this._timelineOverview = x;
-    },
+    }
 
     get visible()
     {
         return this._visible;
-    },
+    }
 
-    shown: function()
+    get selectedRecord()
+    {
+        return this._selectedRecord;
+    }
+
+    set selectedRecord(x)
+    {
+        if (this._selectedRecord === x)
+            return;
+
+        this._selectedRecord = x;
+        this._selectedRecordChanged = true;
+
+        this._needsSelectedRecordLayout();
+    }
+
+    shown()
     {
         this._visible = true;
         this.updateLayout();
-    },
+    }
 
-    hidden: function()
+    hidden()
     {
         this._visible = false;
-    },
+    }
 
-    reset: function()
+    reset()
     {
         // Implemented by sub-classes if needed.
-    },
+    }
 
-    updateLayout: function()
+    recordWasFiltered(record, filtered)
+    {
+        // Implemented by sub-classes if needed.
+    }
+
+    updateLayout()
     {
         if (this._scheduledLayoutUpdateIdentifier) {
             cancelAnimationFrame(this._scheduledLayoutUpdateIdentifier);
-            delete this._scheduledLayoutUpdateIdentifier;
+            this._scheduledLayoutUpdateIdentifier = 0;
         }
 
         // Implemented by sub-classes if needed.
-    },
+    }
 
-    updateLayoutIfNeeded: function()
+    updateLayoutIfNeeded()
     {
         if (!this._scheduledLayoutUpdateIdentifier)
             return;
         this.updateLayout();
-    },
+    }
 
     // Protected
 
-    needsLayout: function()
+    needsLayout()
     {
         if (!this._visible)
             return;
@@ -191,4 +205,44 @@ WebInspector.TimelineOverviewGraph.prototype = {
 
         this._scheduledLayoutUpdateIdentifier = requestAnimationFrame(this.updateLayout.bind(this));
     }
+
+    dispatchSelectedRecordChangedEvent()
+    {
+        if (!this._selectedRecordChanged)
+            return;
+
+        this._selectedRecordChanged = false;
+
+        this.dispatchEventToListeners(WebInspector.TimelineOverviewGraph.Event.RecordSelected, {record: this.selectedRecord});
+    }
+
+    updateSelectedRecord()
+    {
+        // Implemented by sub-classes if needed.
+    }
+
+    // Private
+
+    _needsSelectedRecordLayout()
+    {
+        // If layout is scheduled, abort since the selected record will be updated when layout happens.
+        if (this._scheduledLayoutUpdateIdentifier)
+            return;
+
+        if (this._scheduledSelectedRecordLayoutUpdateIdentifier)
+            return;
+
+        function update()
+        {
+            this._scheduledSelectedRecordLayoutUpdateIdentifier = 0;
+
+            this.updateSelectedRecord();
+        }
+
+        this._scheduledSelectedRecordLayoutUpdateIdentifier = requestAnimationFrame(update.bind(this));
+    }
+};
+
+WebInspector.TimelineOverviewGraph.Event = {
+    RecordSelected: "timeline-overview-graph-record-selected"
 };

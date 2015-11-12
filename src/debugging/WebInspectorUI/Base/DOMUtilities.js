@@ -92,7 +92,7 @@ WebInspector.linkifyNodeReference = function(node)
     var displayName = WebInspector.displayNameForNode(node);
 
     var link = document.createElement("span");
-    link.appendChild(document.createTextNode(displayName));
+    link.append(displayName);
     link.setAttribute("role", "link");
     link.className = "node-link";
     link.title = displayName;
@@ -103,3 +103,8 @@ WebInspector.linkifyNodeReference = function(node)
 
     return link;
 };
+
+function createSVGElement(tagName)
+{
+    return document.createElementNS("http://www.w3.org/2000/svg", tagName);
+}

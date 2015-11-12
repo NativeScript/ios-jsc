@@ -14,7 +14,7 @@ using namespace JSC;
 static EncodedJSValue JSC_HOST_CALL dispatchMessage(ExecState* execState) {
     NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
 
-    globalObject->inspectorController().frontendChannel()->sendMessageToFrontend(execState->argument(0).toWTFString(execState));
+    globalObject->inspectorController().frontendRouter().sendResponse(execState->argument(0).toWTFString(execState));
 
     return JSValue::encode(jsUndefined());
 }
@@ -51,7 +51,7 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
 
     JSValue functionValue = m_domainDispatcher->get(globalExec, Identifier::fromString(&m_globalObject.vm(), method));
     if (functionValue.isUndefined()) {
-        m_backendDispatcher->reportProtocolError(&callId, Inspector::BackendDispatcher::InvalidRequest, WTF::String::format("No implementation for method %s found", method.utf8().data()));
+        m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::InvalidRequest, WTF::String::format("No implementation for method %s found", method.utf8().data()));
         return;
     }
 
@@ -71,16 +71,16 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
     if (!resultMessage.isEmpty()) {
         RefPtr<Inspector::InspectorValue> parsedMessage;
         if (!Inspector::InspectorValue::parseJSON(resultMessage, parsedMessage)) {
-            m_backendDispatcher->reportProtocolError(&callId, Inspector::BackendDispatcher::ParseError, ASCIILiteral("Message must be in JSON format"));
+            m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::ParseError, ASCIILiteral("Message must be in JSON format"));
             return;
         }
 
         if (!parsedMessage->asObject(messageObject)) {
-            m_backendDispatcher->reportProtocolError(&callId, Inspector::BackendDispatcher::InvalidRequest, ASCIILiteral("Message must be a JSONified object"));
+            m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::InvalidRequest, ASCIILiteral("Message must be a JSONified object"));
             return;
         }
     }
 
-    m_backendDispatcher->sendResponse(callId, WTF::move(messageObject), error);
+    m_backendDispatcher->sendResponse(callId, WTF::move(messageObject));
 }
 }

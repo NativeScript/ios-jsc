@@ -13,7 +13,7 @@ class DomainInspectorAgent : public Inspector::InspectorAgentBase {
 public:
     DomainInspectorAgent(GlobalObject&, WTF::String domainName, JSC::JSCell* constructorFunction);
 
-    virtual void didCreateFrontendAndBackend(Inspector::FrontendChannel*, Inspector::BackendDispatcher*) override;
+    virtual void didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(Inspector::DisconnectReason) override;
 
 private:

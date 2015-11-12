@@ -55,13 +55,6 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
         WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
 
         this.contentTreeOutline.onselect = this._treeElementSelected.bind(this);
-
-        // This seems like a leftover 
-        // https://github.com/WebKit/webkit/commit/2f9488b09b9e9290c1a1261b78eb507016afe97a splits SearchSidebarPanel from the ResourceSidebarPanel
-        // and this logic seems to be part of the ResourceSidebarPanel
-        // Furthermore there is no _resourcesContentTreeOutline nowhere in the WebInspectorUI content, or webkit content
-        // if (WebInspector.debuggableType === WebInspector.DebuggableType.JavaScript)
-        //     this._resourcesContentTreeOutline.element.classList.add(WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName);
     }
 
     // Public
@@ -275,7 +268,7 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
         }
 
         if (window.DOMAgent)
-            WebInspector.domTreeManager.requestDocument();
+            WebInspector.domTreeManager.requestDocument(function(){});
 
         if (window.PageAgent)
             PageAgent.searchInResources(searchQuery, isCaseSensitive, isRegex, resourcesCallback.bind(this));

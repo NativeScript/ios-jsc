@@ -33,6 +33,8 @@ WebInspector.TabBarItem = class TabBarItem extends WebInspector.Object
 
         this._element = document.createElement("div");
         this._element.classList.add(WebInspector.TabBarItem.StyleClassName);
+        this._element.setAttribute("role", "tab");
+        this._element.tabIndex = 0;
         if (pinned)
             this._element.classList.add("pinned");
         this._element[WebInspector.TabBarItem.ElementReferenceSymbol] = this;
@@ -100,6 +102,11 @@ WebInspector.TabBarItem = class TabBarItem extends WebInspector.Object
     set selected(selected)
     {
         this._element.classList.toggle("selected", selected);
+
+        if (selected)
+            this._element.setAttribute("aria-selected", "true");
+        else
+            this._element.removeAttribute("aria-selected");
     }
 
     get disabled()
@@ -112,14 +119,14 @@ WebInspector.TabBarItem = class TabBarItem extends WebInspector.Object
         this._element.classList.toggle("disabled", disabled);
     }
 
-    get hideCloseButton()
+    get isDefaultTab()
     {
-        return this._element.classList.contains("hide-close-button");
+        return this._element.classList.contains("default-tab");
     }
 
-    set hideCloseButton(hide)
+    set isDefaultTab(isDefaultTab)
     {
-        this._element.classList.toggle("hide-close-button", hide);
+        this._element.classList.toggle("default-tab", isDefaultTab);
     }
 
     get pinned()

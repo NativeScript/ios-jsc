@@ -135,7 +135,7 @@ WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::
         output.append("\n");
 
         JSC::JSObject* jsObject = argument.getObject();
-        JSC::PropertyNameArray propertyNames(exec);
+        JSC::PropertyNameArray propertyNames(exec, JSC::PropertyNameMode::Strings);
         JSC::EnumerationMode mode;
         jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
 

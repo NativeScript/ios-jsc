@@ -99,23 +99,23 @@
 }
 
 .text-editor > .CodeMirror .execution-line {
-    background-color: rgb(217, 234, 208) !important;
+    background-color: hsl(99, 38%, 86%) !important;
 }
 
 .text-editor > .CodeMirror .highlighted {
-    -webkit-animation: "text-editor-highlight-fadeout" 2s;
+    animation: "text-editor-highlight-fadeout" 2s;
 }
 
-@-webkit-keyframes text-editor-highlight-fadeout {
+@keyframes text-editor-highlight-fadeout {
     from { background-color: highlight; }
 }
 
 .text-editor > .CodeMirror .hovered-expression-highlight {
-    -webkit-animation: "text-editor-hovered-expression-highlight-fadeout" 2s;
-    background-color: rgba(0, 0, 0, 0.1);
+    animation: "text-editor-hovered-expression-highlight-fadeout" 2s;
+    background-color: hsla(0, 0%, 0%, 0.1);
 }
 
-@-webkit-keyframes text-editor-hovered-expression-highlight-fadeout {
+@keyframes text-editor-hovered-expression-highlight-fadeout {
     from { background-color: highlight; }
-    to { background-color: rgba(0, 0, 0, 0.1); }
+    to { background-color: hsla(0, 0%, 0%, 0.1); }
 }

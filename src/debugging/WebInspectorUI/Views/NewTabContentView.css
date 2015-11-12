@@ -29,7 +29,7 @@
     justify-content: center;
     align-content: center;
 
-    background-color: rgb(246, 246, 246);
+    background-color: hsl(0, 0%, 96%);
 
     padding: 10px;
 
@@ -50,7 +50,7 @@
 
 .new-tab.tab.content-view > .tab-item.disabled {
     opacity: 0.5;
-    -webkit-filter: brightness(90%);
+    filter: brightness(90%);
 }
 
 .new-tab.tab.content-view > .tab-item > .box {
@@ -60,14 +60,18 @@
     padding: 15px;
     border-radius: 5px;
 
-    background-color: rgb(210, 210, 210);
-    box-shadow: rgba(0, 0, 0, 0.33) 0 1px 6px;
+    background-color: hsl(0, 0%, 82%);
+    box-shadow: hsla(0, 0%, 0%, 0.33) 0 1px 6px;
 
     display: block;
 }
 
+.new-tab.tab.content-view > .tab-item:not(.disabled):hover > .box {
+    filter: brightness(90%);
+}
+
 .new-tab.tab.content-view > .tab-item:not(.disabled):active > .box {
-    -webkit-filter: brightness(90%);
+    filter: brightness(75%);
 }
 
 .new-tab.tab.content-view > .tab-item > .box > img {

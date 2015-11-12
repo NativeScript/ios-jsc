@@ -16,8 +16,8 @@ class InspectorPageAgent
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    InspectorPageAgent(NativeScript::GlobalObject&);
-    virtual void didCreateFrontendAndBackend(FrontendChannel*, BackendDispatcher*) override;
+    InspectorPageAgent(JSAgentContext&);
+    virtual void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(DisconnectReason) override;
 
     virtual void enable(ErrorString&) override;

@@ -99,7 +99,7 @@ WebInspector.ScriptTimelineRecord = class ScriptTimelineRecord extends WebInspec
             var type = isProgramCode ? WebInspector.ProfileNode.Type.Program : WebInspector.ProfileNode.Type.Function;
             var functionName = !isProgramCode && !isAnonymousFunction && nodePayload.functionName !== "(unknown)" ? nodePayload.functionName : null;
 
-            // COMPATIBILITY (iOS8): Timeline.CPUProfileNodes used to include an array of complete
+            // COMPATIBILITY (iOS 8): Timeline.CPUProfileNodes used to include an array of complete
             // call information instead of the aggregated "callInfo" data.
             var calls = null;
             if ("calls" in nodePayload) {
@@ -181,6 +181,9 @@ WebInspector.ScriptTimelineRecord.EventType.displayName = function(eventType, de
         nameMap.set("addsourcebuffer", "Add Source Buffer");
         nameMap.set("addstream", "Add Stream");
         nameMap.set("addtrack", "Add Track");
+        nameMap.set("animationend", "Animation End");
+        nameMap.set("animationiteration", "Animation Iteration");
+        nameMap.set("animationstart", "Animation Start");
         nameMap.set("audioend", "Audio End");
         nameMap.set("audioprocess", "Audio Process");
         nameMap.set("audiostart", "Audio Start");

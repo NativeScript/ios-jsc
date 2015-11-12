@@ -55,6 +55,17 @@ WebInspector.Object = class Object
         listeners.push({thisObject, listener});
     }
 
+    static singleFireEventListener(eventType, listener, thisObject)
+    {
+        let wrappedCallback = () => {
+            this.removeEventListener(eventType, wrappedCallback, null);
+            listener.apply(thisObject, arguments);
+        };
+
+        this.addEventListener(eventType, wrappedCallback, null);
+        return wrappedCallback;
+    }
+
     static removeEventListener(eventType, listener, thisObject)
     {
         eventType = eventType || null;
@@ -100,12 +111,28 @@ WebInspector.Object = class Object
         return true;
     }
 
+    // This should only be used within regression tests to detect leaks.
+    static retainedObjectsWithPrototype(proto)
+    {
+        let results = new Set;
+        for (let eventType in this._listeners) {
+            let recordsForEvent = this._listeners[eventType];
+            for (let listener of recordsForEvent) {
+                if (listener.thisObject instanceof proto)
+                    results.add(listener.thisObject);
+            }
+        }
+        return results;
+    }
+
     // Public
 
     addEventListener() { return WebInspector.Object.addEventListener.apply(this, arguments); }
+    singleFireEventListener() { return WebInspector.Object.singleFireEventListener.apply(this, arguments); }
     removeEventListener() { return WebInspector.Object.removeEventListener.apply(this, arguments); }
     removeAllListeners() { return WebInspector.Object.removeAllListeners.apply(this, arguments); }
     hasEventListeners() { return WebInspector.Object.hasEventListeners.apply(this, arguments); }
+    retainedObjectsWithPrototype() { return WebInspector.Object.retainedObjectsWithPrototype.apply(this, arguments); }
 
     dispatchEventToListeners(eventType, eventData)
     {
@@ -145,21 +172,6 @@ WebInspector.Object = class Object
         }
 
         return event.defaultPrevented;
-    }
-};
-
-// FIXME: Uses arguments.callee, so it cannot be in the class.
-WebInspector.Object.deprecatedAddConstructorFunctions = function(subclassConstructor)
-{
-    // Copies the relevant functions to the subclass constructor.
-    var list = ["addEventListener", "removeEventListener", "removeAllListeners", "hasEventListeners"];
-    for (var property of list) {
-        var value = WebInspector.Object[property];
-        if (typeof value !== "function")
-            continue;
-        if (value === arguments.callee)
-            continue;
-        subclassConstructor[property] = value;
     }
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,44 +23,49 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.popover .edit-breakpoint-popover-content {
-    width: 420px;
-    padding: 5px 15px;
+.details-section.watch-expressions .options > * {
+    float: right;
+    margin-top: 1px;
+    margin-left: 5px;
+    height: 13px;
 }
 
-.popover .edit-breakpoint-popover-content.wide {
-    width: 460px;
+.details-section.watch-expressions .options > *:active {
+    opacity: 0.7;
 }
 
-.popover .edit-breakpoint-popover-content > label.toggle {
-    color: black;
-    font-weight: bold;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.details-section.watch-expressions .options > .watch-expression-add {
+    content: url(../Images/Plus13.svg);
 }
 
-.popover .edit-breakpoint-popover-content > table {
-    width: 100%;
+.details-section.watch-expressions .options > .watch-expression-clear {
+    content: url(../Images/NavigationItemTrash.svg);
 }
 
-.popover .edit-breakpoint-popover-content > table > tr > th {
-    color: rgb(89, 89, 89);
-    font-weight: bold;
-    text-align: right;
-    width: 1px; /* Shrink to fit. */
-    vertical-align: top;
-    line-height: 23px;
+.details-section.watch-expressions .options > .watch-expression-refresh {
+    content: url(../Images/ReloadFull.svg);
 }
 
-.popover .edit-breakpoint-popover-content > table > tr > td {
-    padding-left: 5px;
+.popover .watch-expression {
+    padding: 5px;
+    margin: 2px;
 }
 
-#edit-breakpoint-popover-condition {
-    width: 100%;
+.watch-expression-editor {
+    width: 200px;
+    margin-top: 5px;
+    padding: 4px 0 2px 0;
+    -webkit-appearance: textfield;
+    border: 1px solid hsl(0, 0%, 78%);
+    background: white;
 }
 
-#edit-breakpoint-popoover-auto-continue {
-    margin-left: 0;
-    margin-right: 4px;
+.watch-expression-editor > .CodeMirror {
+    width: calc(100% - 2px);
+    height: auto;
+}
+
+.watch-expression-editor > .CodeMirror-scroll {
+    width: calc(100% - 2px);
+    overflow: hidden;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, 2015 Apple Inc. All rights reserved.
+ * Copyright (C) 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,26 +23,40 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.MetricsStyleDetailsPanel = class MetricsStyleDetailsPanel extends WebInspector.StyleDetailsPanel
-{
-    constructor(delegate)
-    {
-        super(delegate, "metrics", "metrics", WebInspector.UIString("Metrics"));
+.error-object {
+    display: inline-block;
+}
 
-        this._boxModelDiagramRow = new WebInspector.BoxModelDetailsSectionRow;
+.error-object > .formatted-error::before {
+    display: inline-block;
+    vertical-align: baseline;
+    margin-bottom: -2px;
+    margin-right: 2px;
+    width: 13px;
+    height: 13px;
+    background-image: -webkit-canvas(navigation-sidebar-panel-disclosure-triangle-closed-normal);
+    background-size: 13px 13px;
+    background-repeat: no-repeat;
+    background-position: center;
+    content: "";
+}
 
-        var boxModelGroup = new WebInspector.DetailsSectionGroup([this._boxModelDiagramRow]);
-        var boxModelSection = new WebInspector.DetailsSection("style-box-model", WebInspector.UIString("Box Model"), [boxModelGroup]);
+.error-object.expanded > .formatted-error::before {
+    background-image: -webkit-canvas(navigation-sidebar-panel-disclosure-triangle-open-normal);
+}
 
-        this.element.appendChild(boxModelSection.element);
-    }
+.error-object-link-container {
+    color: hsla(0, 0%, 0%, 0.2);
+}
 
-    // Public
+.error-object.expanded > .formatted-error > .error-object-link-container {
+    display: none;
+}
 
-    refresh()
-    {
-        this._boxModelDiagramRow.nodeStyles = this.nodeStyles;
+.error-object:not(.expanded) .error-object-outline {
+    display: none;
+}
 
-        super.refresh();
-    }
-};
+.error-object-outline {
+    padding-left: 16px
+}

@@ -37,6 +37,9 @@ if (!window.Symbol) {
     }
 }
 
+// Never localize user interface
+WebInspector.dontLocalizeUserInterface = true;
+
 if (!window.InspectorFrontendHost) {
     WebInspector.InspectorFrontendHostStub = function()
     {
@@ -172,8 +175,8 @@ if (!window.InspectorFrontendHost) {
         }
     };
 
-    InspectorFrontendHost = new WebInspector.InspectorFrontendHostStub();
-    
+    InspectorFrontendHost = new WebInspector.InspectorFrontendHostStub;
+
     var host;
     if (window.location.hash) {
         host = window.location.hash.substring(1, window.location.hash.length);
@@ -184,6 +187,4 @@ if (!window.InspectorFrontendHost) {
     }
 
     InspectorFrontendHost.initializeWebSocket("ws://" + host + "/");
-
-    WebInspector.dontLocalizeUserInterface = true;
 }

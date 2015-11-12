@@ -23,11 +23,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-body.web .toolbar.collapsed .dashboard.default > .item.resourcesCount {
+body.web .toolbar.collapsed .dashboard.default > :matches(.resourcesSize, .time, .logs) {
     display: none;
 }
 
-body.javascript .toolbar .dashboard.default > .item.resourcesCount {
+body.javascript .toolbar .dashboard.default > :matches(.resourcesCount, .resourcesSize, .time) {
     display: none;
 }
 
@@ -51,14 +51,20 @@ body.javascript .toolbar .dashboard.default > .item.resourcesCount {
 
     border-radius: 4px;
     border: 1px solid transparent;
+
+    font-family: -apple-system-monospaced-numbers, sans-serif;
+}
+
+.toolbar .dashboard.default > :matches(.time, .resourcesSize) {
+    min-width: 70px;
 }
 
 .toolbar .dashboard.default > .item.enabled:hover {
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid hsla(0, 0%, 0%, 0.1);
 }
 
 .toolbar .dashboard.default > .item.enabled:active {
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid hsla(0, 0%, 0%, 0.2);
 }
 
 .toolbar .dashboard.default > .item > * {
@@ -85,24 +91,32 @@ body.javascript .toolbar .dashboard.default > .item.resourcesCount {
     display: flex;
     flex: 1;
 
-    color: rgba(0, 0, 0, 0.2);
+    color: hsla(0, 0%, 0%, 0.2);
     padding-left: 2px;
 }
 
 .toolbar .dashboard.default > .item.enabled > div {
-    color: rgba(0, 0, 0, 0.7);
+    color: hsla(0, 0%, 0%, 0.7);
 }
 
 .toolbar .dashboard.default > .item.enabled:hover > div {
-    color: rgba(0, 0, 0, 0.85);
+    color: hsla(0, 0%, 0%, 0.85);
 }
 
 .toolbar .dashboard.default > .resourcesCount > img {
     content: url(../Images/Resources.svg);
 }
 
+.toolbar .dashboard.default > .time > img {
+    content: url(../Images/Time.svg);
+}
+
 .toolbar .dashboard.default > .logs > img {
     content: url(../Images/Logs.svg);
+}
+
+.toolbar .dashboard.default > .resourcesSize > img {
+    content: url(../Images/Weight.svg);
 }
 
 .toolbar .dashboard.default > .errors > img {
@@ -119,11 +133,11 @@ body.javascript .toolbar .dashboard.default > .item.resourcesCount {
 }
 
 .toolbar .dashboard.default > .errors.enabled > div {
-    color: rgba(201, 55, 57, 0.9);
+    color: hsla(359, 57%, 50%, 0.9);
 }
 
 .toolbar .dashboard.default > .errors.enabled:hover > div {
-    color: rgb(201, 55, 57);
+    color: hsl(359, 57%, 50%);
 }
 
 .toolbar .dashboard.default > .issues > img {
@@ -140,21 +154,21 @@ body.javascript .toolbar .dashboard.default > .item.resourcesCount {
 }
 
 .toolbar .dashboard.default > .issues.enabled > div {
-    color: rgba(224, 164, 4, 0.9);
+    color: hsla(43, 96%, 44%, 0.9);
 }
 
 .toolbar .dashboard.default > .issues.enabled:hover > div {
-    color: rgb(224, 164, 4);
+    color: hsl(43, 96%, 44%);
 }
 
 /* Styles for the pulsing animated state of console items */
 
 .toolbar .dashboard.default > .item.pulsing {
-    -webkit-animation-name: console-item-pulse;
-    -webkit-animation-duration: 0.75s;
+    animation-name: console-item-pulse;
+    animation-duration: 0.75s;
 }
 
-@-webkit-keyframes console-item-pulse {
+@keyframes console-item-pulse {
     50% { opacity: 0.6; }
 }
 

@@ -33,6 +33,8 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
         WebInspector.Frame.addEventListener(WebInspector.Frame.Event.ResourceWasAdded, this._resourceWasAdded, this);
 
+        this._persistentNetworkTimeline = new WebInspector.NetworkTimeline;
+
         this._isCapturing = false;
         this._isCapturingPageReload = false;
         this._autoCapturingMainResource = null;
@@ -62,9 +64,24 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         return this._activeRecording;
     }
 
+    get persistentNetworkTimeline()
+    {
+        return this._persistentNetworkTimeline;
+    }
+
     get recordings()
     {
         return this._recordings.slice();
+    }
+
+    get autoCaptureOnPageLoad()
+    {
+        return this._autoCaptureOnPageLoad;
+    }
+
+    set autoCaptureOnPageLoad(autoCapture)
+    {
+        this._autoCaptureOnPageLoad = autoCapture;
     }
 
     isCapturing()
@@ -149,12 +166,12 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
 
         if (this._stopCapturingTimeout) {
             clearTimeout(this._stopCapturingTimeout);
-            delete this._stopCapturingTimeout;
+            this._stopCapturingTimeout = undefined;
         }
 
         if (this._deadTimeTimeout) {
             clearTimeout(this._deadTimeTimeout);
-            delete this._deadTimeTimeout;
+            this._deadTimeTimeout = undefined;
         }
 
         this._isCapturing = false;
@@ -171,10 +188,41 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         if (!this._isCapturing)
             return;
 
-        var records = this._processNestedRecords(recordPayload);
-        records.forEach(function(currentValue) {
-            this._addRecord(currentValue);
-        }.bind(this));
+        var records = [];
+
+        // Iterate over the records tree using a stack. Doing this recursively has
+        // been known to cause a call stack overflow. https://webkit.org/b/79106
+        var stack = [{array: [recordPayload], parent: null, parentRecord: null, index: 0}];
+        while (stack.length) {
+            var entry = stack.lastValue;
+            var recordPayloads = entry.array;
+
+            if (entry.index < recordPayloads.length) {
+                var recordPayload = recordPayloads[entry.index];
+                var record = this._processEvent(recordPayload, entry.parent);
+                if (record) {
+                    record.parent = entry.parentRecord;
+                    records.push(record);
+                    if (entry.parentRecord)
+                        entry.parentRecord.children.push(record);
+                }
+
+                if (recordPayload.children && recordPayload.children.length)
+                    stack.push({array: recordPayload.children, parent: recordPayload, parentRecord: record || entry.parentRecord, index: 0});
+                ++entry.index;
+            } else
+                stack.pop();
+        }
+
+        for (var record of records) {
+            if (record.type === WebInspector.TimelineRecord.Type.RenderingFrame) {
+                if (!record.children.length)
+                    continue;
+                record.setupFrameIndex();
+            }
+
+            this._addRecord(record);
+        }
     }
 
     // Protected
@@ -188,37 +236,6 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
     }
 
     // Private
-
-    _processNestedRecords(childRecordPayloads, parentRecordPayload)
-    {
-        // Convert to a single item array if needed.
-        if (!(childRecordPayloads instanceof Array))
-            childRecordPayloads = [childRecordPayloads];
-
-        var records = [];
-
-        // Iterate over the records tree using a stack. Doing this recursively has
-        // been known to cause a call stack overflow. https://webkit.org/b/79106
-        var stack = [{array: childRecordPayloads, parent: parentRecordPayload || null, index: 0}];
-        while (stack.length) {
-            var entry = stack.lastValue;
-            var recordPayloads = entry.array;
-
-            if (entry.index < recordPayloads.length) {
-                var recordPayload = recordPayloads[entry.index];
-                var record = this._processEvent(recordPayload, entry.parent);
-                if (record)
-                    records.push(record);
-
-                if (recordPayload.children)
-                    stack.push({array: recordPayload.children, parent: recordPayload, index: 0});
-                ++entry.index;
-            } else
-                stack.pop();
-        }
-
-        return records;
-    }
 
     _processRecord(recordPayload, parentRecordPayload)
     {
@@ -256,38 +273,21 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
 
         case TimelineAgent.EventType.Layout:
             var layoutRecordType = sourceCodeLocation ? WebInspector.LayoutTimelineRecord.EventType.ForcedLayout : WebInspector.LayoutTimelineRecord.EventType.Layout;
-
-            // COMPATIBILITY (iOS 6): Layout records did not contain area properties. This is not exposed via a quad "root".
-            var quad = recordPayload.data.root ? new WebInspector.Quad(recordPayload.data.root) : null;
-            if (quad)
-                return new WebInspector.LayoutTimelineRecord(layoutRecordType, startTime, endTime, callFrames, sourceCodeLocation, quad.points[0].x, quad.points[0].y, quad.width, quad.height, quad);
-            else
-                return new WebInspector.LayoutTimelineRecord(layoutRecordType, startTime, endTime, callFrames, sourceCodeLocation);
+            var quad = new WebInspector.Quad(recordPayload.data.root);
+            return new WebInspector.LayoutTimelineRecord(layoutRecordType, startTime, endTime, callFrames, sourceCodeLocation, quad);
 
         case TimelineAgent.EventType.Paint:
-            // COMPATIBILITY (iOS 6): Paint records data contained x, y, width, height properties. This became a quad "clip".
-            var quad = recordPayload.data.clip ? new WebInspector.Quad(recordPayload.data.clip) : null;
-            var duringComposite = recordPayload.__duringComposite || false;
-            if (quad)
-                return new WebInspector.LayoutTimelineRecord(WebInspector.LayoutTimelineRecord.EventType.Paint, startTime, endTime, callFrames, sourceCodeLocation, null, null, quad.width, quad.height, quad, duringComposite);
-            else
-                return new WebInspector.LayoutTimelineRecord(WebInspector.LayoutTimelineRecord.EventType.Paint, startTime, endTime, callFrames, sourceCodeLocation, recordPayload.data.x, recordPayload.data.y, recordPayload.data.width, recordPayload.data.height, null, duringComposite);
+            var quad = new WebInspector.Quad(recordPayload.data.clip);
+            return new WebInspector.LayoutTimelineRecord(WebInspector.LayoutTimelineRecord.EventType.Paint, startTime, endTime, callFrames, sourceCodeLocation, quad);
 
         case TimelineAgent.EventType.Composite:
-            recordPayload.children.forEach(function(childRecordPayload) {
-                console.assert(childRecordPayload.type === TimelineAgent.EventType.Paint, childRecordPayload.type);
-                childRecordPayload.__duringComposite = true;
-            });
             return new WebInspector.LayoutTimelineRecord(WebInspector.LayoutTimelineRecord.EventType.Composite, startTime, endTime, callFrames, sourceCodeLocation);
 
         case TimelineAgent.EventType.RenderingFrame:
-            if (!recordPayload.children)
+            if (!recordPayload.children || !recordPayload.children.length)
                 return null;
 
-            var children = this._processNestedRecords(recordPayload.children, recordPayload);
-            if (!children.length)
-                return null;
-            return new WebInspector.RenderingFrameTimelineRecord(startTime, endTime, children);
+            return new WebInspector.RenderingFrameTimelineRecord(startTime, endTime);
 
         case TimelineAgent.EventType.EvaluateScript:
             if (!sourceCodeLocation) {
@@ -496,12 +496,15 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         this._activeRecording.addRecord(record);
 
         // Only worry about dead time after the load event.
-        if (!isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
-            this._resetAutoRecordingDeadTimeTimeout();
+        // if (!isNaN(WebInspector.frameResourceManager.mainFrame.loadEventTimestamp))
+        //     this._resetAutoRecordingDeadTimeTimeout();
     }
 
     _startAutoCapturing(event)
     {
+        if (!this._autoCaptureOnPageLoad)
+            return false;
+
         if (!event.target.isMainFrame() || (this._isCapturing && !this._autoCapturingMainResource))
             return false;
 
@@ -554,6 +557,14 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
 
     _mainResourceDidChange(event)
     {
+        if (event.target.isMainFrame())
+            this._persistentNetworkTimeline.reset();
+
+        var mainResource = event.target.mainResource;
+        var record = new WebInspector.ResourceTimelineRecord(mainResource);
+        if (!isNaN(record.startTime))
+            this._persistentNetworkTimeline.addRecord(record);
+
         // Ignore resource events when there isn't a main frame yet. Those events are triggered by
         // loading the cached resources when the inspector opens, and they do not have timing information.
         if (!WebInspector.frameResourceManager.mainFrame)
@@ -565,15 +576,18 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         if (!this._isCapturing)
             return;
 
-        var mainResource = event.target.mainResource;
         if (mainResource === this._autoCapturingMainResource)
             return;
 
-        this._addRecord(new WebInspector.ResourceTimelineRecord(mainResource));
+        this._addRecord(record);
     }
 
     _resourceWasAdded(event)
     {
+        var record = new WebInspector.ResourceTimelineRecord(event.data.resource);
+        if (!isNaN(record.startTime))
+            this._persistentNetworkTimeline.addRecord(record);
+
         // Ignore resource events when there isn't a main frame yet. Those events are triggered by
         // loading the cached resources when the inspector opens, and they do not have timing information.
         if (!WebInspector.frameResourceManager.mainFrame)
@@ -582,7 +596,7 @@ WebInspector.TimelineManager = class TimelineManager extends WebInspector.Object
         if (!this._isCapturing)
             return;
 
-        this._addRecord(new WebInspector.ResourceTimelineRecord(event.data.resource));
+        this._addRecord(record);
     }
 };
 

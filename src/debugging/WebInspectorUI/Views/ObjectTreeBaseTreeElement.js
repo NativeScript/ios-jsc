@@ -161,7 +161,7 @@ WebInspector.ObjectTreeBaseTreeElement = class ObjectTreeBaseTreeElement extends
             return;
 
         var text = WebInspector.UIString("Selected Symbol");
-        WebInspector.consoleLogViewController.appendImmediateExecutionWithResult(text, symbol);
+        WebInspector.consoleLogViewController.appendImmediateExecutionWithResult(text, symbol, true);
     }
 
     _logValue(value)
@@ -177,16 +177,25 @@ WebInspector.ObjectTreeBaseTreeElement = class ObjectTreeBaseTreeElement extends
         if (!isImpossible)
             WebInspector.quickConsole.prompt.pushHistoryItem(text);
 
-        WebInspector.consoleLogViewController.appendImmediateExecutionWithResult(text, resolvedValue);
+        WebInspector.consoleLogViewController.appendImmediateExecutionWithResult(text, resolvedValue, isImpossible);
     }
 
     _contextMenuHandler(event)
     {
-        var resolvedValue = this.resolvedValue();
-        if (!resolvedValue)
-            return;
-
         var contextMenu = new WebInspector.ContextMenu(event);
+
+        if (typeof this.treeOutline.objectTreeElementAddContextMenuItems === "function") {
+            this.treeOutline.objectTreeElementAddContextMenuItems(this, contextMenu);
+            if (!contextMenu.isEmpty())
+                contextMenu.appendSeparator();
+        }             
+
+        var resolvedValue = this.resolvedValue();
+        if (!resolvedValue) {
+            if (!contextMenu.isEmpty())
+                contextMenu.show();
+            return;
+        }
 
         if (this._property && this._property.symbol)
             contextMenu.appendItem(WebInspector.UIString("Log Symbol"), this._logSymbolProperty.bind(this));
@@ -223,7 +232,7 @@ WebInspector.ObjectTreeBaseTreeElement = class ObjectTreeBaseTreeElement extends
                             return;
 
                         var sourceCodeLocation = sourceCode.createSourceCodeLocation(location.lineNumber, location.columnNumber || 0);
-                        WebInspector.showSourceCodeLocation(sourceCodeLocation, true);
+                        WebInspector.showSourceCodeLocation(sourceCodeLocation);
                     });
                 });
             }
@@ -235,6 +244,11 @@ WebInspector.ObjectTreeBaseTreeElement = class ObjectTreeBaseTreeElement extends
                 resolvedValue.pushNodeToFrontend(function(nodeId) {
                     WebInspector.domTreeManager.nodeForId(nodeId).copyNode();
                 });
+            });
+
+            contextMenu.appendItem(WebInspector.UIString("Scroll Into View"), function() {
+                function scrollIntoView() { this.scrollIntoViewIfNeeded(true); }
+                resolvedValue.callFunction(scrollIntoView, undefined, false, function() {});
             });
 
             contextMenu.appendSeparator();

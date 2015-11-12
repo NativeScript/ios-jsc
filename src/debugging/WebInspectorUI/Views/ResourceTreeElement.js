@@ -83,7 +83,7 @@ WebInspector.ResourceTreeElement = class ResourceTreeElement extends WebInspecto
 
     get filterableData()
     {
-        return {text: this._resource.url};
+        return {text: [this._resource.url]};
     }
 
     ondblclick()
@@ -170,7 +170,7 @@ WebInspector.ResourceTreeElement = class ResourceTreeElement extends WebInspecto
 
     _updateToolTip()
     {
-        this.tooltip = this._resource.url;
+        this.tooltip = this._resource.displayURL;
     }
 
     _urlDidChange(event)

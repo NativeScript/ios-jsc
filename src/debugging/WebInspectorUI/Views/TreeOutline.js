@@ -504,6 +504,19 @@ WebInspector.TreeOutline = class TreeOutline extends WebInspector.Object
     {
         // this is the root, do nothing
     }
+
+    get selectedTreeElementIndex()
+    {
+        if (!this.hasChildren || !this.selectedTreeElement)
+            return;
+
+        for (var i = 0; i < this.children.length; ++i) {
+            if (this.children[i] === this.selectedTreeElement)
+                return i;
+        }
+
+        return false;
+    }
 };
 
 WebInspector.TreeOutline._knownTreeElementNextIdentifier = 1;
@@ -607,7 +620,6 @@ WebInspector.TreeElement = class TreeElement extends WebInspector.Object
         this._tooltip = x;
         if (this._listItemNode)
             this._listItemNode.title = x ? x : "";
-        this.didChange();
     }
 
     get hasChildren()
@@ -677,7 +689,7 @@ WebInspector.TreeElement = class TreeElement extends WebInspector.Object
 
     _fireDidChange()
     {
-        delete this._didChangeTimeoutIdentifier;
+        this._didChangeTimeoutIdentifier = undefined;
 
         if (this.treeOutline)
             this.treeOutline._treeElementDidChange(this);
@@ -877,7 +889,7 @@ WebInspector.TreeElement = class TreeElement extends WebInspector.Object
             for (var i = 0; i < this.children.length; ++i)
                 this.children[i]._attach();
 
-            delete this._shouldRefreshChildren;
+            this._shouldRefreshChildren = false;
         }
 
         if (this._listItemNode) {
@@ -944,16 +956,16 @@ WebInspector.TreeElement = class TreeElement extends WebInspector.Object
             this.onreveal(this);
     }
 
-    revealed()
+    revealed(ignoreHidden)
     {
-        if (this.hidden)
+        if (!ignoreHidden && this.hidden)
             return false;
 
         var currentAncestor = this.parent;
         while (currentAncestor && !currentAncestor.root) {
             if (!currentAncestor.expanded)
                 return false;
-            if (currentAncestor.hidden)
+            if (!ignoreHidden && currentAncestor.hidden)
                 return false;
             currentAncestor = currentAncestor.parent;
         }
@@ -1038,15 +1050,17 @@ WebInspector.TreeElement = class TreeElement extends WebInspector.Object
     traverseNextTreeElement(skipUnrevealed, stayWithin, dontPopulate, info)
     {
         function shouldSkip(element) {
-            return skipUnrevealed && !element.revealed();
+            return skipUnrevealed && !element.revealed(true);
         }
 
         var depthChange = 0;
         var element = this;
+
+        if (!dontPopulate)
+            element.onpopulate();
+
         do {
-            if (element.hasChildren && element.expanded && !shouldSkip(element)) {
-                if (!dontPopulate)
-                    element.onpopulate();
+            if (element.hasChildren && element.children[0] && (!skipUnrevealed || element.expanded)) {
                 element = element.children[0];
                 depthChange += 1;
             } else {
@@ -1062,19 +1076,22 @@ WebInspector.TreeElement = class TreeElement extends WebInspector.Object
 
         if (info)
             info.depthChange = depthChange;
+
         return element;
     }
 
     traversePreviousTreeElement(skipUnrevealed, dontPopulate)
     {
         function shouldSkip(element) {
-            return skipUnrevealed && !element.revealed();
+            return skipUnrevealed && !element.revealed(true);
         }
 
         var element = this;
+
         do {
             if (element.previousSibling) {
                 element = element.previousSibling;
+
                 while (element && element.hasChildren && element.expanded && !shouldSkip(element)) {
                     if (!dontPopulate)
                         element.onpopulate();

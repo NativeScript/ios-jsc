@@ -92,8 +92,9 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         }
 
         var firstTreeElement = this.contentTreeOutline.children[0];
+
         // Due to the lack of frame, the resources that come are placed under Extra Scripts folder.
-        // When we navigate to the Resources Tab the content view tries to initialize its content with the content of the folder,
+        // When we navigate to the Resources Tab the content view tries to initialize its conent with the content of the folder,
         // but this doens't seem to be implemented in the inspector logic so we receive some exceptions
         // So as a workaround until we have a frame, show a content view only if the first item is a script tree item
         if (firstTreeElement && firstTreeElement instanceof WebInspector.ScriptTreeElement)
@@ -318,21 +319,24 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
 
     _scriptsCleared(event)
     {
+        const suppressOnDeselect = true;
+        const suppressSelectSibling = true;
+        
         if (this._extensionScriptsFolderTreeElement) {
             if (this._extensionScriptsFolderTreeElement.parent)
-                this._extensionScriptsFolderTreeElement.parent.removeChild(this._extensionScriptsFolderTreeElement);
+                this._extensionScriptsFolderTreeElement.parent.removeChild(this._extensionScriptsFolderTreeElement, suppressOnDeselect, suppressSelectSibling);
             this._extensionScriptsFolderTreeElement = null;
         }
 
         if (this._extraScriptsFolderTreeElement) {
             if (this._extraScriptsFolderTreeElement.parent)
-                this._extraScriptsFolderTreeElement.parent.removeChild(this._extraScriptsFolderTreeElement);
+                this._extraScriptsFolderTreeElement.parent.removeChild(this._extraScriptsFolderTreeElement, suppressOnDeselect, suppressSelectSibling);
             this._extraScriptsFolderTreeElement = null;
         }
 
         if (this._anonymousScriptsFolderTreeElement) {
             if (this._anonymousScriptsFolderTreeElement.parent)
-                this._anonymousScriptsFolderTreeElement.parent.removeChild(this._anonymousScriptsFolderTreeElement);
+                this._anonymousScriptsFolderTreeElement.parent.removeChild(this._anonymousScriptsFolderTreeElement, suppressOnDeselect, suppressSelectSibling);
             this._anonymousScriptsFolderTreeElement = null;
         }
     }
@@ -371,7 +375,7 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         if (WebInspector.debuggableType === WebInspector.DebuggableType.JavaScript)
             this.contentTreeOutline.element.classList.remove(WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName);
     }
-    
+
     _scopeBarSelectionDidChange(event)
     {
         this.updateFilter();

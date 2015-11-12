@@ -135,6 +135,13 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
         return WebInspector.displayNameForURL(this._url, this.urlComponents);
     }
 
+    get displayURL()
+    {
+        const isMultiLine = true;
+        const dataURIMaxSize = 64;
+        return WebInspector.truncateURL(this._url, isMultiLine, dataURIMaxSize);
+    }
+
     get initiatorSourceCodeLocation()
     {
         return this._initiatorSourceCodeLocation;
@@ -484,11 +491,11 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
         // If we have the requestIdentifier we can get the actual response for this specific resource.
         // Otherwise the content will be cached resource data, which might not exist anymore.
         if (this._requestIdentifier)
-            return NetworkAgent.getResponseBody.promise(this._requestIdentifier);
+            return NetworkAgent.getResponseBody(this._requestIdentifier);
 
         // There is no request identifier or frame to request content from.
         if (this._parentFrame)
-            return PageAgent.getResourceContent.promise(this._parentFrame.id, this._url);
+            return PageAgent.getResourceContent(this._parentFrame.id, this._url);
 
         return Promise.reject(new Error("Content request failed."));
     }
@@ -637,8 +644,6 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
 
         this._scripts.push(script);
 
-        // COMPATIBILITY (iOS 6): Resources did not know their type until a response
-        // was received. We can set the Resource type to be Script here.
         if (this._type === WebInspector.Resource.Type.Other) {
             var oldType = this._type;
             this._type = WebInspector.Resource.Type.Script;

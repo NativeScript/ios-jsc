@@ -46,6 +46,8 @@ InspectorBackend.registerEnum("CSS.CSSMediaSource", {MediaRule: "mediaRule", Imp
 InspectorBackend.registerEnum("CSS.RegionRegionOverset", {Overset: "overset", Fit: "fit", Empty: "empty"});
 InspectorBackend.registerEvent("CSS.mediaQueryResultChanged", []);
 InspectorBackend.registerEvent("CSS.styleSheetChanged", ["styleSheetId"]);
+InspectorBackend.registerEvent("CSS.styleSheetAdded", ["header"]);
+InspectorBackend.registerEvent("CSS.styleSheetRemoved", ["styleSheetId"]);
 InspectorBackend.registerEvent("CSS.namedFlowCreated", ["namedFlow"]);
 InspectorBackend.registerEvent("CSS.namedFlowRemoved", ["documentNodeId", "flowName"]);
 InspectorBackend.registerEvent("CSS.regionOversetChanged", ["namedFlow"]);
@@ -62,8 +64,10 @@ InspectorBackend.registerCommand("CSS.getStyleSheetText", [{"name": "styleSheetI
 InspectorBackend.registerCommand("CSS.setStyleSheetText", [{"name": "styleSheetId", "type": "string", "optional": false}, {"name": "text", "type": "string", "optional": false}], []);
 InspectorBackend.registerCommand("CSS.setStyleText", [{"name": "styleId", "type": "object", "optional": false}, {"name": "text", "type": "string", "optional": false}], ["style"]);
 InspectorBackend.registerCommand("CSS.setRuleSelector", [{"name": "ruleId", "type": "object", "optional": false}, {"name": "selector", "type": "string", "optional": false}], ["rule"]);
-InspectorBackend.registerCommand("CSS.addRule", [{"name": "contextNodeId", "type": "number", "optional": false}, {"name": "selector", "type": "string", "optional": false}], ["rule"]);
+InspectorBackend.registerCommand("CSS.createStyleSheet", [{"name": "frameId", "type": "string", "optional": false}], ["styleSheetId"]);
+InspectorBackend.registerCommand("CSS.addRule", [{"name": "styleSheetId", "type": "string", "optional": false}, {"name": "selector", "type": "string", "optional": false}], ["rule"]);
 InspectorBackend.registerCommand("CSS.getSupportedCSSProperties", [], ["cssProperties"]);
+InspectorBackend.registerCommand("CSS.getSupportedSystemFontFamilyNames", [], ["fontFamilyNames"]);
 InspectorBackend.registerCommand("CSS.forcePseudoState", [{"name": "nodeId", "type": "number", "optional": false}, {"name": "forcedPseudoClasses", "type": "object", "optional": false}], []);
 InspectorBackend.registerCommand("CSS.getNamedFlowCollection", [{"name": "documentNodeId", "type": "number", "optional": false}], ["namedFlows"]);
 InspectorBackend.activateDomain("CSS", "web");
@@ -85,8 +89,10 @@ InspectorBackend.activateDomain("Console");
 
 // DOM.
 InspectorBackend.registerDOMDispatcher = InspectorBackend.registerDomainDispatcher.bind(InspectorBackend, "DOM");
+InspectorBackend.registerEnum("DOM.PseudoType", {Before: "before", After: "after"});
 InspectorBackend.registerEnum("DOM.LiveRegionRelevant", {Additions: "additions", Removals: "removals", Text: "text"});
 InspectorBackend.registerEnum("DOM.AccessibilityPropertiesChecked", {True: "true", False: "false", Mixed: "mixed"});
+InspectorBackend.registerEnum("DOM.AccessibilityPropertiesCurrent", {True: "true", False: "false", Page: "page", Step: "step", Location: "location", Date: "date", Time: "time"});
 InspectorBackend.registerEnum("DOM.AccessibilityPropertiesInvalid", {True: "true", False: "false", Grammar: "grammar", Spelling: "spelling"});
 InspectorBackend.registerEnum("DOM.AccessibilityPropertiesLiveRegionStatus", {Assertive: "assertive", Polite: "polite", Off: "off"});
 InspectorBackend.registerEvent("DOM.documentUpdated", []);
@@ -100,6 +106,8 @@ InspectorBackend.registerEvent("DOM.childNodeInserted", ["parentNodeId", "previo
 InspectorBackend.registerEvent("DOM.childNodeRemoved", ["parentNodeId", "nodeId"]);
 InspectorBackend.registerEvent("DOM.shadowRootPushed", ["hostId", "root"]);
 InspectorBackend.registerEvent("DOM.shadowRootPopped", ["hostId", "rootId"]);
+InspectorBackend.registerEvent("DOM.pseudoElementAdded", ["parentId", "pseudoElement"]);
+InspectorBackend.registerEvent("DOM.pseudoElementRemoved", ["parentId", "pseudoElementId"]);
 InspectorBackend.registerCommand("DOM.getDocument", [], ["root"]);
 InspectorBackend.registerCommand("DOM.requestChildNodes", [{"name": "nodeId", "type": "number", "optional": false}, {"name": "depth", "type": "number", "optional": true}], []);
 InspectorBackend.registerCommand("DOM.querySelector", [{"name": "nodeId", "type": "number", "optional": false}, {"name": "selector", "type": "string", "optional": false}], ["nodeId"]);
@@ -258,10 +266,6 @@ InspectorBackend.registerCommand("Network.enable", [], []);
 InspectorBackend.registerCommand("Network.disable", [], []);
 InspectorBackend.registerCommand("Network.setExtraHTTPHeaders", [{"name": "headers", "type": "object", "optional": false}], []);
 InspectorBackend.registerCommand("Network.getResponseBody", [{"name": "requestId", "type": "string", "optional": false}], ["body", "base64Encoded"]);
-InspectorBackend.registerCommand("Network.canClearBrowserCache", [], ["result"]);
-InspectorBackend.registerCommand("Network.clearBrowserCache", [], []);
-InspectorBackend.registerCommand("Network.canClearBrowserCookies", [], ["result"]);
-InspectorBackend.registerCommand("Network.clearBrowserCookies", [], []);
 InspectorBackend.registerCommand("Network.setCacheDisabled", [{"name": "cacheDisabled", "type": "boolean", "optional": false}], []);
 InspectorBackend.registerCommand("Network.loadResource", [{"name": "frameId", "type": "string", "optional": false}, {"name": "url", "type": "string", "optional": false}], ["content", "mimeType", "status"]);
 InspectorBackend.activateDomain("Network", "web");
