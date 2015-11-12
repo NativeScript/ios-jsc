@@ -20,10 +20,10 @@ void warn(ExecState* execState, const WTF::String& message) {
         WTFLogAlways("CONSOLE WARN %s", message.utf8().data());
         Inspector::JSGlobalObjectConsoleClient::setLogToSystemConsole(false);
         restoreLogToSystemConsole = true;
+    } else {
+        WTF::Vector<Deprecated::ScriptValue> arguments{ Deprecated::ScriptValue(execState->vm(), jsString(execState, message)) };
+        execState->lexicalGlobalObject()->consoleClient()->logWithLevel(execState, Inspector::ScriptArguments::create(execState, arguments), MessageLevel::Warning);
     }
-
-    WTF::Vector<Deprecated::ScriptValue> arguments{ Deprecated::ScriptValue(execState->vm(), jsString(execState, message)) };
-    execState->lexicalGlobalObject()->consoleClient()->logWithLevel(execState, Inspector::ScriptArguments::create(execState, arguments), MessageLevel::Warning);
 
     if (restoreLogToSystemConsole) {
         Inspector::JSGlobalObjectConsoleClient::setLogToSystemConsole(true);

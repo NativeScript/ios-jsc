@@ -59,7 +59,9 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
 
     if (ObjCConstructorDerived* constructorDerived = jsDynamicCast<ObjCConstructorDerived*>(constructor)) {
         [instance release];
-        JSValue jsValue = toValue(execState, instance, ^{ return constructorDerived->instancesStructure(); });
+        JSValue jsValue = toValue(execState, instance, ^{
+          return constructorDerived->instancesStructure();
+        });
         return JSValue::encode(jsValue);
     } else if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(constructor)) {
         AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, nativeConstructor->allocatedPlaceholderStructure(), instance, nativeConstructor->instancesStructure());
@@ -111,6 +113,7 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     ExecState* globalExec = this->globalExec();
 
     this->_inspectorController = std::make_unique<GlobalObjectInspectorController>(*this);
+    this->_inspectorController->setIncludesNativeCallStackWhenReportingExceptions(false);
     this->setConsoleClient(this->_inspectorController->consoleClient());
     this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
 
