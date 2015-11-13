@@ -6,8 +6,9 @@ function(CreateNativeScriptApp _target _main _plist _resources)
 
     target_link_libraries(${_target}
         "-framework CoreGraphics"
-        "-framework UIKit"        
+        "-framework UIKit"
         "-framework MobileCoreServices"
+        "-framework Security"
         NativeScript
     )
 
