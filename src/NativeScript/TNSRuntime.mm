@@ -33,6 +33,7 @@ using namespace NativeScript;
 + (void)initialize {
     if (self == [TNSRuntime self]) {
         initializeThreading();
+        JSC::Options::useJIT() = false;
     }
 }
 
