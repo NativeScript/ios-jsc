@@ -20,9 +20,11 @@ int main(int argc, char *argv[]) {
 #ifndef NDEBUG
     NSString *libraryPath = [NSSearchPathForDirectoriesInDomains(
         NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
-    NSString *liveSyncPath =
-        [NSString pathWithComponents:
-                      @[ libraryPath, @"Application Support", @"LiveSync" ]];
+    NSString *liveSyncPath = [NSString pathWithComponents:@[
+      libraryPath,
+      @"Application Support",
+      @"LiveSync"
+    ]];
     NSString *appFolderPath =
         [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
 
@@ -43,6 +45,10 @@ int main(int argc, char *argv[]) {
     [TNSRuntimeInspector setLogsToSystemConsole:YES];
     TNSEnableRemoteInspector(argc, argv);
 #endif
+
+    if (putenv("BUILD_CONFIGURATION=" BUILD_CONFIGURATION) == -1) {
+      perror("Could not set build configuration");
+    }
 
     [runtime executeModule:@"./"];
 
