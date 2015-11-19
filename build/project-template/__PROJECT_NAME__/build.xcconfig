@@ -5,5 +5,3 @@
 // * Generic 'iPhone Developer' (no quotes) will match the right Identity
 // * with the right Provisioning Profile plus Certificate, based on the app bundle id
 CODE_SIGN_IDENTITY = iPhone Developer
-
-// * Xcconfig files from third-party NativeScript plugins will be included here
