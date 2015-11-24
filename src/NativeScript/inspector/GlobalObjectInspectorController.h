@@ -29,6 +29,7 @@
 #include <JavaScriptCore/InspectorAgentRegistry.h>
 #include <JavaScriptCore/InspectorEnvironment.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
+#include <JavaScriptCore/JSGlobalObjectScriptDebugServer.h>
 #include <wtf/Forward.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/text/WTFString.h>
@@ -110,6 +111,8 @@ public:
     virtual void didCallInjectedScriptFunction(JSC::ExecState*) override {}
     virtual void frontendInitialized() override;
     virtual Ref<WTF::Stopwatch> executionStopwatch() override;
+    virtual Inspector::ScriptDebugServer& scriptDebugServer() override;
+    virtual JSC::VM& vm() override;
 
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
     virtual Inspector::AugmentableInspectorControllerClient* augmentableInspectorControllerClient() const override { return m_augmentingClient; }
@@ -127,6 +130,7 @@ private:
     std::unique_ptr<Inspector::InjectedScriptManager> m_injectedScriptManager;
     std::unique_ptr<JSC::ConsoleClient> m_consoleClient;
     Ref<WTF::Stopwatch> m_executionStopwatch;
+    Inspector::JSGlobalObjectScriptDebugServer m_scriptDebugServer;
     Inspector::AgentRegistry m_agents;
     Inspector::InspectorAgent* m_inspectorAgent { nullptr };
     Inspector::InspectorConsoleAgent* m_consoleAgent { nullptr };

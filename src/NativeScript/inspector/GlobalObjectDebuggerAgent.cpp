@@ -41,7 +41,6 @@ namespace NativeScript {
 
 GlobalObjectDebuggerAgent::GlobalObjectDebuggerAgent(JSAgentContext& context, InspectorConsoleAgent* consoleAgent)
     : InspectorDebuggerAgent(context)
-    , m_scriptDebugServer(context.inspectedGlobalObject)
     , m_consoleAgent(consoleAgent) {
     m_globalObject = jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject);
 }
@@ -57,21 +56,13 @@ void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
     }
 }
 
-void GlobalObjectDebuggerAgent::startListeningScriptDebugServer() {
-    scriptDebugServer().addListener(this);
-}
-
-void GlobalObjectDebuggerAgent::stopListeningScriptDebugServer(bool isBeingDestroyed) {
-    scriptDebugServer().removeListener(this, isBeingDestroyed);
-}
-
 InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& error, const int* executionContextId) {
     if (executionContextId) {
         error = ASCIILiteral("Execution context id is not supported for JSContext inspection as there is only one execution context.");
         return InjectedScript();
     }
 
-    ExecState* exec = m_scriptDebugServer.globalObject().globalExec();
+    ExecState* exec = static_cast<JSGlobalObjectScriptDebugServer&>(scriptDebugServer()).globalObject().globalExec();
     return injectedScriptManager().injectedScriptFor(exec);
 }
 

@@ -77,6 +77,7 @@ JSC::EncodedJSValue registerDispatcher(JSC::ExecState* execState) {
 GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& globalObject)
     : m_injectedScriptManager(std::make_unique<InjectedScriptManager>(*this, InjectedScriptHost::create()))
     , m_executionStopwatch(Stopwatch::create())
+    , m_scriptDebugServer(globalObject)
     , m_frontendRouter(FrontendRouter::create())
     , m_backendDispatcher(BackendDispatcher::create(m_frontendRouter.copyRef()))
     , m_globalObject(globalObject)
@@ -108,8 +109,6 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_consoleAgent = consoleAgent.get();
     m_timelineAgent = timelineAgent.get();
     m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent);
-
-    runtimeAgent->setScriptDebugServer(&debuggerAgent->scriptDebugServer());
 
     m_agents.append(WTF::move(inspectorAgent));
     m_agents.append(WTF::move(timelineAgent));
@@ -287,6 +286,14 @@ void GlobalObjectInspectorController::frontendInitialized() {
 
 Ref<Stopwatch> GlobalObjectInspectorController::executionStopwatch() {
     return m_executionStopwatch.copyRef();
+}
+    
+Inspector::ScriptDebugServer& GlobalObjectInspectorController::scriptDebugServer() {
+    return m_scriptDebugServer;
+}
+
+JSC::VM& GlobalObjectInspectorController::vm() {
+    return m_globalObject.vm();
 }
 
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)

@@ -14,9 +14,6 @@ enum class TimelineRecordType {
     Layout,
     Paint,
     RenderingFrame,
-    ScrollLayer,
-
-    ParseHTML,
 
     TimerInstall,
     TimerRemove,
@@ -24,15 +21,9 @@ enum class TimelineRecordType {
 
     EvaluateScript,
 
-    MarkLoad,
-    MarkDOMContent,
-
     TimeStamp,
     Time,
     TimeEnd,
-
-    XHRReadyStateChange,
-    XHRLoad,
 
     FunctionCall,
     ProbeSample,
@@ -40,12 +31,7 @@ enum class TimelineRecordType {
 
     RequestAnimationFrame,
     CancelAnimationFrame,
-    FireAnimationFrame,
-
-    WebSocketCreate,
-    WebSocketSendHandshakeRequest,
-    WebSocketReceiveHandshakeResponse,
-    WebSocketDestroy
+    FireAnimationFrame
 };
 
 class InspectorTimelineAgent final
