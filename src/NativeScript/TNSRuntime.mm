@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
+#include <iostream>
 #include <JavaScriptCore/InitializeThreading.h>
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/APICast.h>
@@ -57,8 +58,16 @@ using namespace NativeScript;
         JSLockHolder lock(*self->_vm);
         self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(self->_applicationPath, *self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
 
-        // HACK: Temporary workaround to add inline functions to global object. Remove when they are added the proper way.
-        evaluate(self->_globalObject->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)));
+#if PLATFORM(IOS)
+        NakedPtr<Exception> exception;
+        evaluate(self->_globalObject->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)), JSValue(), exception);
+#ifdef DEBUG
+        if (exception) {
+            std::cerr << "Error while evaluating inlineFunctions.js: " << exception->value().toWTFString(self->_globalObject->globalExec()).utf8().data() << "\n";
+            ASSERT_NOT_REACHED();
+        }
+#endif
+#endif
     }
 
     return self;
