@@ -37,9 +37,6 @@ if (!window.Symbol) {
     }
 }
 
-// Never localize user interface
-WebInspector.dontLocalizeUserInterface = true;
-
 if (!window.InspectorFrontendHost) {
     WebInspector.InspectorFrontendHostStub = function()
     {
@@ -113,6 +110,11 @@ if (!window.InspectorFrontendHost) {
             return "web";
         },
 
+        inspectionLevel: function()
+        {
+            return 1;
+        },
+
         inspectedURLChanged: function(title)
         {
             document.title = title;
@@ -123,6 +125,10 @@ if (!window.InspectorFrontendHost) {
             this._textToCopy = text;
             if (!document.execCommand("copy"))
                 console.error("Clipboard access is denied");
+        },
+
+        killText: function(text, shouldStartNewSequence)
+        {
         },
 
         openInNewTab: function(url)
@@ -177,14 +183,5 @@ if (!window.InspectorFrontendHost) {
 
     InspectorFrontendHost = new WebInspector.InspectorFrontendHostStub;
 
-    var host;
-    if (window.location.hash) {
-        host = window.location.hash.substring(1, window.location.hash.length);
-    } else if (window.location.protocol == "http:" || window.location.protocol == "https:") {
-        host = window.location.hostname + ":8080"
-    } else {
-        host = "localhost:8080";
-    }
-
-    InspectorFrontendHost.initializeWebSocket("ws://" + host + "/");
+    WebInspector.dontLocalizeUserInterface = true;
 }

@@ -46,11 +46,12 @@ WebInspector.TimelineRecordingContentView = class TimelineRecordingContentView e
         this._renderingFrameTimelineOverview.addEventListener(WebInspector.TimelineOverview.Event.RecordSelected, this._recordSelected, this);
 
         this._currentTimelineOverview = this._linearTimelineOverview;
-        this.element.appendChild(this._currentTimelineOverview.element);
+
+        this.addSubview(this._currentTimelineOverview);
 
         this._contentViewContainer = new WebInspector.ContentViewContainer;
         this._contentViewContainer.addEventListener(WebInspector.ContentViewContainer.Event.CurrentContentViewDidChange, this._currentContentViewDidChange, this);
-        this.element.appendChild(this._contentViewContainer.element);
+        this.addSubview(this._contentViewContainer);
 
         this._clearTimelineNavigationItem = new WebInspector.ButtonNavigationItem("clear-timeline", WebInspector.UIString("Clear Timeline"), "Images/NavigationItemTrash.svg", 15, 15);
         this._clearTimelineNavigationItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._clearTimeline, this);
@@ -162,12 +163,12 @@ WebInspector.TimelineRecordingContentView = class TimelineRecordingContentView e
     {
         this._currentTimelineOverview.shown();
         this._contentViewContainer.shown();
-        this._clearTimelineNavigationItem.enabled = this._recording.isWritable();
+        this._clearTimelineNavigationItem.enabled = !this._recording.readonly;
 
         this._currentContentViewDidChange();
 
         if (!this._updating && WebInspector.timelineManager.activeRecording === this._recording && WebInspector.timelineManager.isCapturing())
-            this._startUpdatingCurrentTime();
+            this._startUpdatingCurrentTime(this._currentTime);
     }
 
     hidden()
@@ -208,12 +209,6 @@ WebInspector.TimelineRecordingContentView = class TimelineRecordingContentView e
     goForward()
     {
         this._contentViewContainer.goForward();
-    }
-
-    updateLayout()
-    {
-        this._currentTimelineOverview.updateLayoutForResize();
-        this._contentViewContainer.updateLayout();
     }
 
     saveToCookie(cookie)
@@ -324,35 +319,43 @@ WebInspector.TimelineRecordingContentView = class TimelineRecordingContentView e
         return true;
     }
 
+    // Protected
+
+    layout()
+    {
+        this._currentTimelineOverview.updateLayoutForResize();
+    }
+
     // Private
 
     _currentContentViewDidChange(event)
     {
-        var newTimelineOverview = this._linearTimelineOverview;
-        var timelineView = this.currentTimelineView;
-        if (timelineView) {
-            this._timelineSidebarPanel.contentTreeOutline = timelineView.navigationSidebarTreeOutline;
-            this._timelineSidebarPanel.contentTreeOutlineLabel = timelineView.navigationSidebarTreeOutlineLabel;
-            this._timelineSidebarPanel.contentTreeOutlineScopeBar = timelineView.navigationSidebarTreeOutlineScopeBar;
-
-            if (timelineView.representedObject.type === WebInspector.TimelineRecord.Type.RenderingFrame)
-                newTimelineOverview = this._renderingFrameTimelineOverview;
-
-            timelineView.startTime = newTimelineOverview.selectionStartTime;
-            timelineView.endTime = newTimelineOverview.selectionStartTime + newTimelineOverview.selectionDuration;
-            timelineView.currentTime = this._currentTime;
-        }
+        let newTimelineOverview;
+        let timelineView = this.currentTimelineView;
+        if (timelineView && timelineView.representedObject.type === WebInspector.TimelineRecord.Type.RenderingFrame)
+            newTimelineOverview = this._renderingFrameTimelineOverview;
+        else
+            newTimelineOverview = this._linearTimelineOverview;
 
         if (newTimelineOverview !== this._currentTimelineOverview) {
             this._currentTimelineOverview.hidden();
 
-            this.element.insertBefore(newTimelineOverview.element, this._currentTimelineOverview.element);
-            this.element.removeChild(this._currentTimelineOverview.element);
+            this.replaceSubview(this._currentTimelineOverview, newTimelineOverview);
 
             this._currentTimelineOverview = newTimelineOverview;
             this._currentTimelineOverview.shown();
 
             this._updateTimelineOverviewHeight();
+        }
+
+        if (timelineView) {
+            this._timelineSidebarPanel.contentTreeOutline = timelineView.navigationSidebarTreeOutline;
+            this._timelineSidebarPanel.contentTreeOutlineLabel = timelineView.navigationSidebarTreeOutlineLabel;
+            this._timelineSidebarPanel.contentTreeOutlineScopeBar = timelineView.navigationSidebarTreeOutlineScopeBar;
+
+            timelineView.startTime = newTimelineOverview.selectionStartTime;
+            timelineView.endTime = newTimelineOverview.selectionStartTime + newTimelineOverview.selectionDuration;
+            timelineView.currentTime = this._currentTime;
         }
 
         this.dispatchEventToListeners(WebInspector.ContentView.Event.SelectionPathComponentsDidChange);
@@ -405,7 +408,8 @@ WebInspector.TimelineRecordingContentView = class TimelineRecordingContentView e
         // Only stop updating if the current time is greater than the end time, or the end time is NaN.
         // The recording end time will be NaN if no records were added.
         if (!this._updating && (currentTime >= endTime || isNaN(endTime))) {
-            this._lastUpdateTimestamp = NaN;
+            if (this.visible)
+                this._lastUpdateTimestamp = NaN;
             return;
         }
 
@@ -458,18 +462,16 @@ WebInspector.TimelineRecordingContentView = class TimelineRecordingContentView e
         if (this._updating)
             return;
 
-        if (!isNaN(this._currentTime)) {
+        if (typeof startTime === "number")
+            this._currentTime = startTime;
+        else if (!isNaN(this._currentTime)) {
             // This happens when you stop and later restart recording.
-            if (typeof startTime === "number")
-                this._currentTime = startTime;
-            else {
-                // COMPATIBILITY (iOS 9): Timeline.recordingStarted events did not include a timestamp.
-                // We likely need to jump into the future to a better current time which we can
-                // ascertained from a new incoming timeline record, so we wait for a Timeline to update.
-                console.assert(!this._waitingToResetCurrentTime);
-                this._waitingToResetCurrentTime = true;
-                this._recording.addEventListener(WebInspector.TimelineRecording.Event.TimesUpdated, this._recordingTimesUpdated, this);
-            }
+            // COMPATIBILITY (iOS 9): Timeline.recordingStarted events did not include a timestamp.
+            // We likely need to jump into the future to a better current time which we can
+            // ascertained from a new incoming timeline record, so we wait for a Timeline to update.
+            console.assert(!this._waitingToResetCurrentTime);
+            this._waitingToResetCurrentTime = true;
+            this._recording.addEventListener(WebInspector.TimelineRecording.Event.TimesUpdated, this._recordingTimesUpdated, this);
         }
 
         this._updating = true;

@@ -32,7 +32,15 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
         this._identifier = identifier;
         this._timelines = new Map;
         this._displayName = displayName;
-        this._isWritable = true;
+        this._readonly = false;
+
+        this.addTimeline(WebInspector.Timeline.create(WebInspector.TimelineRecord.Type.Network));
+        this.addTimeline(WebInspector.Timeline.create(WebInspector.TimelineRecord.Type.Layout));
+        this.addTimeline(WebInspector.Timeline.create(WebInspector.TimelineRecord.Type.Script));
+
+        // COMPATIBILITY (iOS 8): TimelineAgent.EventType.RenderingFrame did not exist.
+        if (window.TimelineAgent && TimelineAgent.EventType.RenderingFrame)
+            this.addTimeline(WebInspector.Timeline.create(WebInspector.TimelineRecord.Type.RenderingFrame));
 
         // For legacy backends, we compute the elapsed time of records relative to this timestamp.
         this._legacyFirstRecordedTimestamp = NaN;
@@ -57,6 +65,11 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
         return this._timelines;
     }
 
+    get readonly()
+    {
+        return this._readonly;
+    }
+
     get startTime()
     {
         return this._startTime;
@@ -73,11 +86,6 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
         // re-opened, so do not attempt to restore by identifier or display name.
     }
 
-    isWritable()
-    {
-        return this._isWritable;
-    }
-
     isEmpty()
     {
         for (var timeline of this._timelines.values()) {
@@ -92,14 +100,14 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
     {
         console.assert(!this.isEmpty(), "Shouldn't unload an empty recording; it should be reused instead.");
 
-        this._isWritable = false;
+        this._readonly = true;
 
         this.dispatchEventToListeners(WebInspector.TimelineRecording.Event.Unloaded);
     }
 
     reset(suppressEvents)
     {
-        console.assert(this._isWritable, "Can't reset a read-only recording.");
+        console.assert(!this._readonly, "Can't reset a read-only recording.");
 
         this._sourceCodeTimelinesMap = new Map;
         this._eventMarkers = [];
@@ -148,9 +156,14 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
         this.dispatchEventToListeners(WebInspector.TimelineRecording.Event.TimelineRemoved, {timeline});
     }
 
-    addEventMarker(eventMarker)
+    addEventMarker(marker)
     {
-        this._eventMarkers.push(eventMarker);
+        if (!WebInspector.timelineManager.isCapturing())
+            return;
+
+        this._eventMarkers.push(marker);
+
+        this.dispatchEventToListeners(WebInspector.TimelineRecording.Event.MarkerAdded, {marker});
     }
 
     addRecord(record)
@@ -168,8 +181,8 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
             return;
 
         // Add the record to the source code timelines.
-        //var activeMainResource = WebInspector.frameResourceManager.mainFrame.provisionalMainResource || WebInspector.frameResourceManager.mainFrame.mainResource;
-        var sourceCode = record.sourceCodeLocation; //? record.sourceCodeLocation.sourceCode : activeMainResource;
+        var activeMainResource = WebInspector.frameResourceManager.mainFrame.provisionalMainResource || WebInspector.frameResourceManager.mainFrame.mainResource;
+        var sourceCode = record.sourceCodeLocation ? record.sourceCodeLocation.sourceCode : activeMainResource;
 
         var sourceCodeTimelines = this._sourceCodeTimelinesMap.get(sourceCode);
         if (!sourceCodeTimelines) {
@@ -228,6 +241,18 @@ WebInspector.TimelineRecording = class TimelineRecording extends WebInspector.Ob
         this._legacyFirstRecordedTimestamp = timestamp;
     }
 
+    initializeTimeBoundsIfNecessary(timestamp)
+    {
+        if (isNaN(this._startTime)) {
+            console.assert(isNaN(this._endTime));
+
+            this._startTime = timestamp;
+            this._endTime = timestamp;
+
+            this.dispatchEventToListeners(WebInspector.TimelineRecording.Event.TimesUpdated);
+        }
+    }
+
     // Private
 
     _keyForRecord(record)
@@ -268,7 +293,8 @@ WebInspector.TimelineRecording.Event = {
     SourceCodeTimelineAdded: "timeline-recording-source-code-timeline-added",
     TimelineAdded: "timeline-recording-timeline-added",
     TimelineRemoved: "timeline-recording-timeline-removed",
-    TimesUpdated: "timeline-recording-times-updated"
+    TimesUpdated: "timeline-recording-times-updated",
+    MarkerAdded: "timeline-recording-marker-added",
 };
 
 WebInspector.TimelineRecording.isLegacy = undefined;

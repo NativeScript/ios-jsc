@@ -34,7 +34,7 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         this.filterBar.placeholder = WebInspector.UIString("Filter Resource List");
 
         this._navigationBar = new WebInspector.NavigationBar;
-        this.element.appendChild(this._navigationBar.element);
+        this.addSubview(this._navigationBar);
 
         var scopeItemPrefix = "resource-sidebar-";
         var scopeBarItems = [];
@@ -44,7 +44,7 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         for (var key in WebInspector.Resource.Type) {
             var value = WebInspector.Resource.Type[key];
             var scopeBarItem = new WebInspector.ScopeBarItem(scopeItemPrefix + value, WebInspector.Resource.displayNameForType(value, true));
-            scopeBarItem.__resourceType = value;
+            scopeBarItem[WebInspector.ResourceSidebarPanel.ResourceTypeSymbol] = value;
             scopeBarItems.push(scopeBarItem);
         }
 
@@ -92,12 +92,7 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         }
 
         var firstTreeElement = this.contentTreeOutline.children[0];
-
-        // Due to the lack of frame, the resources that come are placed under Extra Scripts folder.
-        // When we navigate to the Resources Tab the content view tries to initialize its conent with the content of the folder,
-        // but this doens't seem to be implemented in the inspector logic so we receive some exceptions
-        // So as a workaround until we have a frame, show a content view only if the first item is a script tree item
-        if (firstTreeElement && firstTreeElement instanceof WebInspector.ScriptTreeElement)
+        if (firstTreeElement)
             this.showDefaultContentViewForTreeElement(firstTreeElement);
     }
 
@@ -202,16 +197,16 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         function match()
         {
             if (treeElement instanceof WebInspector.FrameTreeElement)
-                return selectedScopeBarItem.__resourceType === WebInspector.Resource.Type.Document;
+                return selectedScopeBarItem[WebInspector.ResourceSidebarPanel.ResourceTypeSymbol] === WebInspector.Resource.Type.Document;
 
             if (treeElement instanceof WebInspector.ScriptTreeElement)
-                return selectedScopeBarItem.__resourceType === WebInspector.Resource.Type.Script;
+                return selectedScopeBarItem[WebInspector.ResourceSidebarPanel.ResourceTypeSymbol] === WebInspector.Resource.Type.Script;
 
             console.assert(treeElement instanceof WebInspector.ResourceTreeElement, "Unknown treeElement", treeElement);
             if (!(treeElement instanceof WebInspector.ResourceTreeElement))
                 return false;
 
-            return treeElement.resource.type === selectedScopeBarItem.__resourceType;
+            return treeElement.resource.type === selectedScopeBarItem[WebInspector.ResourceSidebarPanel.ResourceTypeSymbol];
         }
 
         var matched = match();
@@ -247,11 +242,8 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         if (!mainFrame)
             return;
 
-        this._mainFrameTreeElement = new WebInspector.FileSystemRepresentationTreeElement(mainFrame);
-
+        this._mainFrameTreeElement = new WebInspector.FrameTreeElement(mainFrame);
         this.contentTreeOutline.insertChild(this._mainFrameTreeElement, 0);
-
-        this._mainFrameTreeElement.populate();
 
         function delayedWork()
         {
@@ -381,3 +373,5 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         this.updateFilter();
     }
 };
+
+WebInspector.ResourceSidebarPanel.ResourceTypeSymbol = Symbol("resource-type");
