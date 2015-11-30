@@ -90,9 +90,10 @@
             absolutePath = absoluteFilePath;
         }
         absolutePath = nsstr(absolutePath).stringByStandardizingPath;
+        var bundlePath = absolutePath.substr(applicationPath.length);
 
         if (!fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
-            throw new ModuleError(`Failed to find module '${moduleIdentifier}' relative to '${previousPath}'. Computed path: ${absolutePath}`);
+            throw new ModuleError(`Failed to find module '${moduleIdentifier}' relative to 'file://${previousPath}'. Computed path: '${bundlePath.replace(/^\//, '')}'.`);
         }
 
         if (isDirectory.value) {
@@ -104,7 +105,7 @@
         var moduleMetadata = {
             name: nsstr(moduleIdentifier).lastPathComponent,
             path: absolutePath,
-            bundlePath: absolutePath.substr(applicationPath.length)
+            bundlePath
         };
 
         pathCache.set(requestedPath, moduleMetadata);
@@ -116,6 +117,7 @@
         module.require = function require(moduleIdentifier) {
             return __loadModule(moduleIdentifier, modulePath).exports;
         };
+        module.require.displayName = "__require";
         var moduleSource = NSString.stringWithContentsOfFileEncodingError(moduleMetadata.path, NSUTF8StringEncoding, null);
         var moduleFunction = createModuleFunction(moduleSource, "file://" + moduleMetadata.bundlePath);
         var fileName = moduleMetadata.path;
