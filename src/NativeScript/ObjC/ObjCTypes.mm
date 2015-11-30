@@ -9,6 +9,7 @@
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/DateInstance.h>
 #include <JavaScriptCore/JSMap.h>
+#include <JavaScriptCore/BooleanObject.h>
 #include "ObjCTypes.h"
 #include "ObjCSuperObject.h"
 #include "ObjCConstructorBase.h"
@@ -102,11 +103,11 @@ id toObject(ExecState* execState, const JSValue& value) {
     }
 
     if (value.isInt32()) {
-        return @(value.toInt32(execState));
+        return @(value.asInt32());
     }
 
     if (value.isUInt32()) {
-        return @(value.toUInt32(execState));
+        return @(value.asUInt32());
     }
 
     if (value.isDouble()) {
@@ -118,7 +119,7 @@ id toObject(ExecState* execState, const JSValue& value) {
     }
 
     if (value.isString()) {
-        return [NSString stringWithString:(NSString*)value.toString(execState)->value(execState).createCFString().get()];
+        return [[static_cast<NSString *>(jsCast<JSString*>(value)->value(execState)) copy] autorelease];
     }
 
     if (JSArray* array = jsDynamicCast<JSArray*>(value)) {
@@ -143,6 +144,14 @@ id toObject(ExecState* execState, const JSValue& value) {
     void* handle = tryHandleofValue(value, &hasHandle);
     if (hasHandle) {
         return static_cast<id>(handle);
+    }
+
+    if (value.isCell()) {
+        JSCell* wrapper = value.asCell();
+        const ClassInfo* wrapperInfo = wrapper->classInfo();
+        if (wrapperInfo == StringObject::info() || wrapperInfo == NumberObject::info() || wrapperInfo == BooleanObject::info()) {
+            return toObject(execState, jsCast<JSWrapperObject*>(value)->internalValue());
+        }
     }
 
     if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
