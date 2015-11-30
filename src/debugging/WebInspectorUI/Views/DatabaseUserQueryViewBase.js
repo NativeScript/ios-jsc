@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 University of Washington.
+ * Copyright (C) 2015 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,10 +23,29 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.runBootstrapOperations = function() {
-    // This function is invoked after the inspector has loaded.
-    // Modify it during development to hard-wire setup operations,
-    // rather than manually clicking through the user interface.
+WebInspector.DatabaseUserQueryViewBase = class DatabaseUserQueryViewBase extends WebInspector.View
+{
+    constructor(query)
+    {
+        super();
 
-    // If a model object or UI component is not easy to script, then file a bug!
-}
+        this.element.className = "database-user-query";
+
+        let commandTextElement = document.createElement("span");
+        commandTextElement.className = "database-query-text";
+        commandTextElement.textContent = query;
+        this.element.appendChild(commandTextElement);
+
+        this._resultElement = document.createElement("div");
+        this._resultElement.className = "database-query-result";
+        this.element.appendChild(this._resultElement);
+    }
+
+    // Protected
+
+    get resultElement()
+    {
+        // FIXME: remove once <https://webkit.org/b/150982> is fixed.
+        return this._resultElement;
+    }
+};

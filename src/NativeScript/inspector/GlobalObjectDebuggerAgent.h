@@ -41,11 +41,7 @@ public:
     GlobalObjectDebuggerAgent(Inspector::JSAgentContext&, Inspector::InspectorConsoleAgent*);
     virtual ~GlobalObjectDebuggerAgent() {}
 
-    virtual Inspector::JSGlobalObjectScriptDebugServer& scriptDebugServer() override { return m_scriptDebugServer; }
-
     virtual void enable(Inspector::ErrorString&) override;
-    virtual void startListeningScriptDebugServer() override;
-    virtual void stopListeningScriptDebugServer(bool isBeingDestroyed) override;
     virtual Inspector::InjectedScript injectedScriptForEval(Inspector::ErrorString&, const int* executionContextId) override;
 
     virtual void breakpointActionLog(JSC::ExecState*, const String&) override;
@@ -56,7 +52,6 @@ public:
     virtual void unmuteConsole() override {}
 
 private:
-    Inspector::JSGlobalObjectScriptDebugServer m_scriptDebugServer;
     Inspector::InspectorConsoleAgent* m_consoleAgent { nullptr };
     NativeScript::GlobalObject* m_globalObject { nullptr };
 };

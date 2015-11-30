@@ -50,9 +50,7 @@ WebInspector.VisualStyleKeywordIconList = class VisualStyleKeywordIconList exten
             iconButtonElement.addEventListener("click", this._handleKeywordChanged.bind(this));
 
             let imageName = value === "none" ? "VisualStyleNone" : prettyPropertyReferenceName + title.replace(/\s/g, "");
-            wrappedSVGDocument("Images/" + imageName + ".svg", null, null, function(wrapper) {
-                iconButtonElement.appendChild(wrapper);
-            }.bind(this));
+            iconButtonElement.appendChild(useSVGSymbol("Images/" + imageName + ".svg"));
 
             return iconButtonElement;
         }
@@ -84,7 +82,7 @@ WebInspector.VisualStyleKeywordIconList = class VisualStyleKeywordIconList exten
             if (icon.id === this._updatedValues.placeholder)
                 this._computedIcon = icon;
 
-            if (icon.id === value && !this._updatedValues.propertyMissing)
+            if (icon.id === value && !this._propertyMissing)
                 this._selectedIcon = icon;
             else
                 icon.classList.remove("selected", "computed");
@@ -96,7 +94,7 @@ WebInspector.VisualStyleKeywordIconList = class VisualStyleKeywordIconList exten
         let iconIsSelected = this._selectedIcon && this._selectedIcon.classList.toggle("selected");
         if (!iconIsSelected) {
             this._selectedIcon = null;
-            this._updatedValues.propertyMissing = true;
+            this._propertyMissing = true;
             this._computedIcon.classList.add("computed");
         }
     }
@@ -110,7 +108,7 @@ WebInspector.VisualStyleKeywordIconList = class VisualStyleKeywordIconList exten
 
     _handleKeywordChanged(event)
     {
-        this._updatedValues.propertyMissing = false;
+        this._propertyMissing = false;
         this.value = event.target.id;
         this._valueDidChange();
     }

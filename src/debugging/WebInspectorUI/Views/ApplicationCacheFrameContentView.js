@@ -23,7 +23,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.ApplicationCacheFrameContentView = class ApplicationCacheFrameContentView extends WebInspector.ApplicationCacheFrame
+WebInspector.ApplicationCacheFrameContentView = class ApplicationCacheFrameContentView extends WebInspector.ContentView
 {
     constructor(representedObject)
     {
@@ -55,12 +55,6 @@ WebInspector.ApplicationCacheFrameContentView = class ApplicationCacheFrameConte
     closed()
     {
         WebInspector.applicationCacheManager.removeEventListener(null, null, this);
-    }
-
-    updateLayout()
-    {
-        if (this.dataGrid)
-            this.dataGrid.updateLayout();
     }
 
     saveToCookie(cookie)
@@ -171,7 +165,7 @@ WebInspector.ApplicationCacheFrameContentView = class ApplicationCacheFrameConte
         this._dataGrid.sortColumnIdentifier = "url";
         this._dataGrid.sortOrder = WebInspector.DataGrid.SortOrder.Ascending;
 
-        this.element.appendChild(this._dataGrid.element);
+        this.addSubview(this._dataGrid);
         this._dataGrid.updateLayout();
     }
 

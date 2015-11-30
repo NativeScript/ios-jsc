@@ -87,6 +87,7 @@
     <link rel="stylesheet" href="Views/FontResourceContentView.css">
     <link rel="stylesheet" href="Views/FormattedValue.css">
     <link rel="stylesheet" href="Views/GoToLineDialog.css">
+    <link rel="stylesheet" href="Views/GradientEditor.css">
     <link rel="stylesheet" href="Views/GradientSlider.css">
     <link rel="stylesheet" href="Views/HierarchicalPathComponent.css">
     <link rel="stylesheet" href="Views/HoverMenu.css">
@@ -163,6 +164,8 @@
     <link rel="stylesheet" href="Views/TypeTokenView.css">
     <link rel="stylesheet" href="Views/TypeTreeElement.css">
     <link rel="stylesheet" href="Views/TypeTreeView.css">
+    <link rel="stylesheet" href="Views/Variables.css">
+    <link rel="stylesheet" href="Views/VisualStyleBackgroundPicker.css">
     <link rel="stylesheet" href="Views/VisualStyleColorPicker.css">
     <link rel="stylesheet" href="Views/VisualStyleCommaSeparatedKeywordEditor.css">
     <link rel="stylesheet" href="Views/VisualStyleDetailsPanel.css">
@@ -180,7 +183,6 @@
 
     <link rel="stylesheet" href="Controllers/CodeMirrorCompletionController.css">
     <link rel="stylesheet" href="Controllers/CodeMirrorDragToAdjustNumberController.css">
-    <link rel="stylesheet" href="Controllers/CodeMirrorGradientEditingController.css">
     <link rel="stylesheet" href="Controllers/CodeMirrorTokenTrackingController.css">
 
     <script src="External/CodeMirror/codemirror.js"></script>
@@ -226,6 +228,7 @@
     <script src="Protocol/DOMStorageObserver.js"></script>
     <script src="Protocol/DatabaseObserver.js"></script>
     <script src="Protocol/DebuggerObserver.js"></script>
+    <script src="Protocol/HeapObserver.js"></script>
     <script src="Protocol/InspectorBackend.js"></script>
     <script src="Protocol/InspectorFrontendAPI.js"></script>
     <script src="Protocol/InspectorObserver.js"></script>
@@ -279,6 +282,7 @@
     <script src="Models/ExecutionContext.js"></script>
     <script src="Models/ExecutionContextList.js"></script>
     <script src="Models/Frame.js"></script>
+    <script src="Models/GarbageCollection.js"></script>
     <script src="Models/Geometry.js"></script>
     <script src="Models/Gradient.js"></script>
     <script src="Models/IndexedDatabase.js"></script>
@@ -333,6 +337,8 @@
     <script src="Models/TypeSet.js"></script>
     <script src="Models/WrappedPromise.js"></script>
 
+    <script src="Views/View.js"></script>
+
     <script src="Views/ConsoleCommandView.js"></script>
     <script src="Views/ConsoleMessageView.js"></script>
     <script src="Views/ContentView.js"></script>
@@ -351,6 +357,9 @@
     <script src="Views/TreeOutline.js"></script>
 
     <script src="Views/ButtonNavigationItem.js"></script>
+    <script src="Views/DatabaseUserQueryViewBase.js"></script>
+    <script src="Views/DatabaseUserQueryErrorView.js"></script>
+    <script src="Views/DatabaseUserQuerySuccessView.js"></script>
     <script src="Views/DOMTreeContentView.js"></script>
     <script src="Views/DetailsSidebarPanel.js"></script>
     <script src="Views/GeneralTreeElement.js"></script>
@@ -409,6 +418,7 @@
     <script src="Views/ChartDetailsSectionRow.js"></script>
     <script src="Views/ClusterContentView.js"></script>
     <script src="Views/CodeMirrorAdditions.js"></script>
+    <script src="Views/CodeMirrorEditor.js"></script>
     <script src="Views/CodeMirrorFormatters.js"></script>
     <script src="Views/CodeMirrorTextMarkers.js"></script>
     <script src="Views/ColorPicker.js"></script>
@@ -461,6 +471,7 @@
     <script src="Views/GeneralTreeElementPathComponent.js"></script>
     <script src="Views/GenericResourceContentView.js"></script>
     <script src="Views/GoToLineDialog.js"></script>
+    <script src="Views/GradientEditor.js"></script>
     <script src="Views/GradientSlider.js"></script>
     <script src="Views/HierarchicalPathNavigationItem.js"></script>
     <script src="Views/HoverMenu.js"></script>
@@ -558,6 +569,7 @@
 
     <script src="Views/VisualStyleDetailsPanel.js"></script>
     <script src="Views/VisualStylePropertyEditor.js"></script>
+    <script src="Views/VisualStyleBackgroundPicker.js"></script>
     <script src="Views/VisualStyleColorPicker.js"></script>
     <script src="Views/VisualStyleCommaSeparatedKeywordEditor.js"></script>
     <script src="Views/VisualStyleFontFamilyListEditor.js"></script>
@@ -575,7 +587,6 @@
     <script src="Views/VisualStyleTabbedPropertiesRow.js"></script>
     <script src="Views/VisualStyleTimingEditor.js"></script>
     <script src="Views/VisualStyleUnitSlider.js"></script>
-    <script src="Views/VisualStyleURLInput.js"></script>
 
     <script src="Controllers/Annotator.js"></script>
     <script src="Controllers/CodeMirrorEditingController.js"></script>
@@ -592,6 +603,7 @@
     <script src="Controllers/CodeMirrorDragToAdjustNumberController.js"></script>
     <script src="Controllers/CodeMirrorGradientEditingController.js"></script>
     <script src="Controllers/CodeMirrorTokenTrackingController.js"></script>
+    <script src="Controllers/CodeMirrorTextKillController.js"></script>
     <script src="Controllers/DOMTreeManager.js"></script>
     <script src="Controllers/DashboardManager.js"></script>
     <script src="Controllers/DebuggerManager.js"></script>
@@ -600,6 +612,7 @@
     <script src="Controllers/FormatterContentBuilder.js"></script>
     <script src="Controllers/FormatterSourceMap.js"></script>
     <script src="Controllers/FrameResourceManager.js"></script>
+    <script src="Controllers/HeapManager.js"></script>
     <script src="Controllers/IssueManager.js"></script>
     <script src="Controllers/JavaScriptLogViewController.js"></script>
     <script src="Controllers/JavaScriptRuntimeCompletionProvider.js"></script>
@@ -616,7 +629,7 @@
 
     <script src="Base/Main.js"></script>
 
-    <script src="Base/Bootstrap.js"></script>
+    <script src="Debug/Bootstrap.js"></script>
 
     <script>
         WebInspector.loaded();

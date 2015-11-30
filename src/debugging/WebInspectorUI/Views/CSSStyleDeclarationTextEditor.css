@@ -37,10 +37,7 @@
 }
 
 .css-style-text-editor > .CodeMirror .CodeMirror-placeholder {
-    font-family: -apple-system, sans-serif;
-    color: hsl(0, 0%, 65%);
     padding: 0 5px 0 25px;
-    text-indent: 0;
 }
 
 .css-style-text-editor > .CodeMirror pre {
@@ -204,7 +201,7 @@
 
 .css-style-text-editor > .CodeMirror .cm-link {
     /* Style url(...) links as if they are strings. */
-    color: hsl(1, 79%, 42%);
+    color: var(--syntax-highlight-string-color);
     text-decoration: inherit;
     cursor: inherit;
 }

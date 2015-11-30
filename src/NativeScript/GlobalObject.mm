@@ -216,6 +216,9 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     }
 
     StringImpl* symbolName = propertyName.publicName();
+    if (symbolName == nullptr)
+        return false;
+    
     const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTable()->findMeta(symbolName);
     if (symbolMeta == nullptr)
         return false;

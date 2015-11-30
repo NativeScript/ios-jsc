@@ -119,11 +119,6 @@ static Inspector::Protocol::Timeline::EventType toProtocol(TimelineRecordType ty
         return Inspector::Protocol::Timeline::EventType::Paint;
     case TimelineRecordType::RenderingFrame:
         return Inspector::Protocol::Timeline::EventType::RenderingFrame;
-    case TimelineRecordType::ScrollLayer:
-        return Inspector::Protocol::Timeline::EventType::ScrollLayer;
-
-    case TimelineRecordType::ParseHTML:
-        return Inspector::Protocol::Timeline::EventType::ParseHTML;
 
     case TimelineRecordType::TimerInstall:
         return Inspector::Protocol::Timeline::EventType::TimerInstall;
@@ -135,22 +130,12 @@ static Inspector::Protocol::Timeline::EventType toProtocol(TimelineRecordType ty
     case TimelineRecordType::EvaluateScript:
         return Inspector::Protocol::Timeline::EventType::EvaluateScript;
 
-    case TimelineRecordType::MarkLoad:
-        return Inspector::Protocol::Timeline::EventType::MarkLoad;
-    case TimelineRecordType::MarkDOMContent:
-        return Inspector::Protocol::Timeline::EventType::MarkDOMContent;
-
     case TimelineRecordType::TimeStamp:
         return Inspector::Protocol::Timeline::EventType::TimeStamp;
     case TimelineRecordType::Time:
         return Inspector::Protocol::Timeline::EventType::Time;
     case TimelineRecordType::TimeEnd:
         return Inspector::Protocol::Timeline::EventType::TimeEnd;
-
-    case TimelineRecordType::XHRReadyStateChange:
-        return Inspector::Protocol::Timeline::EventType::XHRReadyStateChange;
-    case TimelineRecordType::XHRLoad:
-        return Inspector::Protocol::Timeline::EventType::XHRLoad;
 
     case TimelineRecordType::FunctionCall:
         return Inspector::Protocol::Timeline::EventType::FunctionCall;
@@ -165,15 +150,6 @@ static Inspector::Protocol::Timeline::EventType toProtocol(TimelineRecordType ty
         return Inspector::Protocol::Timeline::EventType::CancelAnimationFrame;
     case TimelineRecordType::FireAnimationFrame:
         return Inspector::Protocol::Timeline::EventType::FireAnimationFrame;
-
-    case TimelineRecordType::WebSocketCreate:
-        return Inspector::Protocol::Timeline::EventType::WebSocketCreate;
-    case TimelineRecordType::WebSocketSendHandshakeRequest:
-        return Inspector::Protocol::Timeline::EventType::WebSocketSendHandshakeRequest;
-    case TimelineRecordType::WebSocketReceiveHandshakeResponse:
-        return Inspector::Protocol::Timeline::EventType::WebSocketReceiveHandshakeResponse;
-    case TimelineRecordType::WebSocketDestroy:
-        return Inspector::Protocol::Timeline::EventType::WebSocketDestroy;
     }
 
     return Inspector::Protocol::Timeline::EventType::TimeStamp;

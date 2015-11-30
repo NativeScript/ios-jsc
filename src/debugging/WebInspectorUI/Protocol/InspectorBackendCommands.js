@@ -212,6 +212,15 @@ InspectorBackend.registerCommand("Debugger.evaluateOnCallFrame", [{"name": "call
 InspectorBackend.registerCommand("Debugger.setOverlayMessage", [{"name": "message", "type": "string", "optional": true}], []);
 InspectorBackend.activateDomain("Debugger");
 
+// Heap.
+InspectorBackend.registerHeapDispatcher = InspectorBackend.registerDomainDispatcher.bind(InspectorBackend, "Heap");
+InspectorBackend.registerEnum("Heap.GarbageCollectionType", {Full: "full", Partial: "partial"});
+InspectorBackend.registerEvent("Heap.garbageCollected", ["collection"]);
+InspectorBackend.registerCommand("Heap.enable", [], []);
+InspectorBackend.registerCommand("Heap.disable", [], []);
+InspectorBackend.registerCommand("Heap.gc", [], []);
+InspectorBackend.activateDomain("Heap");
+
 // IndexedDB.
 InspectorBackend.registerIndexedDBDispatcher = InspectorBackend.registerDomainDispatcher.bind(InspectorBackend, "IndexedDB");
 InspectorBackend.registerEnum("IndexedDB.KeyType", {Number: "number", String: "string", Date: "date", Array: "array"});
@@ -376,7 +385,7 @@ InspectorBackend.activateDomain("Runtime");
 
 // Timeline.
 InspectorBackend.registerTimelineDispatcher = InspectorBackend.registerDomainDispatcher.bind(InspectorBackend, "Timeline");
-InspectorBackend.registerEnum("Timeline.EventType", {EventDispatch: "EventDispatch", ScheduleStyleRecalculation: "ScheduleStyleRecalculation", RecalculateStyles: "RecalculateStyles", InvalidateLayout: "InvalidateLayout", Layout: "Layout", Paint: "Paint", Composite: "Composite", RenderingFrame: "RenderingFrame", ScrollLayer: "ScrollLayer", ParseHTML: "ParseHTML", TimerInstall: "TimerInstall", TimerRemove: "TimerRemove", TimerFire: "TimerFire", EvaluateScript: "EvaluateScript", MarkLoad: "MarkLoad", MarkDOMContent: "MarkDOMContent", TimeStamp: "TimeStamp", Time: "Time", TimeEnd: "TimeEnd", XHRReadyStateChange: "XHRReadyStateChange", XHRLoad: "XHRLoad", FunctionCall: "FunctionCall", ProbeSample: "ProbeSample", ConsoleProfile: "ConsoleProfile", GCEvent: "GCEvent", RequestAnimationFrame: "RequestAnimationFrame", CancelAnimationFrame: "CancelAnimationFrame", FireAnimationFrame: "FireAnimationFrame", WebSocketCreate: "WebSocketCreate", WebSocketSendHandshakeRequest: "WebSocketSendHandshakeRequest", WebSocketReceiveHandshakeResponse: "WebSocketReceiveHandshakeResponse", WebSocketDestroy: "WebSocketDestroy"});
+InspectorBackend.registerEnum("Timeline.EventType", {EventDispatch: "EventDispatch", ScheduleStyleRecalculation: "ScheduleStyleRecalculation", RecalculateStyles: "RecalculateStyles", InvalidateLayout: "InvalidateLayout", Layout: "Layout", Paint: "Paint", Composite: "Composite", RenderingFrame: "RenderingFrame", TimerInstall: "TimerInstall", TimerRemove: "TimerRemove", TimerFire: "TimerFire", EvaluateScript: "EvaluateScript", TimeStamp: "TimeStamp", Time: "Time", TimeEnd: "TimeEnd", FunctionCall: "FunctionCall", ProbeSample: "ProbeSample", ConsoleProfile: "ConsoleProfile", RequestAnimationFrame: "RequestAnimationFrame", CancelAnimationFrame: "CancelAnimationFrame", FireAnimationFrame: "FireAnimationFrame"});
 InspectorBackend.registerEvent("Timeline.eventRecorded", ["record"]);
 InspectorBackend.registerEvent("Timeline.recordingStarted", ["startTime"]);
 InspectorBackend.registerEvent("Timeline.recordingStopped", ["endTime"]);

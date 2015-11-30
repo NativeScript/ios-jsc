@@ -23,47 +23,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-WebInspector.VisualStyleURLInput = class VisualStyleURLInput extends WebInspector.VisualStylePropertyEditor
+WebInspector.CodeMirrorEditor = class CodeMirrorEditor
 {
-    constructor(propertyNames, text, layoutReversed)
+    static create(place, options)
     {
-        super(propertyNames, text, null, null, "url-input", layoutReversed);
+        let codeMirror = new CodeMirror(place, options);
 
-        this._urlInputElement = document.createElement("input");
-        this._urlInputElement.type = "url";
-        this._urlInputElement.placeholder = WebInspector.UIString("Enter a URL");
-        this._urlInputElement.addEventListener("keyup", this._valueDidChange.bind(this));
-        this.contentElement.appendChild(this._urlInputElement);
+        // Set up default controllers that should be present for
+        // all CodeMirror editor instances.
+        new WebInspector.CodeMirrorTextKillController(codeMirror);
+
+        return codeMirror;
     }
-
-    // Public
-
-    get value()
-    {
-        return this._urlInputElement.value;
-    }
-
-    set value(value)
-    {
-        if (value && value === this.value)
-            return;
-
-        this._urlInputElement.value = value;
-    }
-
-    get synthesizedValue()
-    {
-        var value = this.value;
-        if (!value || !value.length)
-            return null;
-
-        return "url(" + this.value + ")";
-    }
-
-    // Protected
-
-    parseValue(text)
-    {
-        return /^(?:url\(\s*)([^\)]*)(?:\s*\)\s*;?)$/.exec(text);
-    }
-};
+}
