@@ -6,6 +6,7 @@
 - (NSString *)platform;
 - (NSString *)localizedStringsURL;
 - (NSString *)debuggableType;
+- (unsigned)inspectionLevel;
 - (void)loaded;
 - (void)bringToFront;
 - (void)sendMessageToBackend:(NSString *)message;

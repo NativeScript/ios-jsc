@@ -18,6 +18,10 @@
     return @"web";
 }
 
+- (unsigned)inspectionLevel {
+    return 1;
+}
+
 - (void)connect:(NSString*)socketPath readHandler:(InspectorReadHandler)read_handler errorHandler:(InspectorErrorHandler)errorHandler {
     self->communication_channel = [[TNSCommunicationChannel alloc] initWithSocketPath:socketPath readHandler:read_handler errorHandler:errorHandler];
 }

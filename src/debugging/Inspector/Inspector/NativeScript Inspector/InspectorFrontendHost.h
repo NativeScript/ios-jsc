@@ -10,6 +10,7 @@
 - (NSString*)platform;
 - (NSString*)localizedStringsURL;
 - (NSString*)debuggableType;
+- (unsigned)inspectionLevel;
 - (void)connect:(NSString*)socketPath readHandler:(InspectorReadHandler)read_handler errorHandler:(InspectorErrorHandler)errorHandler;
 - (void)disconnect;
 - (void)loaded;
