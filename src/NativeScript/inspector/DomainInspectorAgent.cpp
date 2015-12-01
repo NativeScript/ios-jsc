@@ -3,15 +3,13 @@
 #include "GlobalObjectInspectorController.h"
 
 namespace NativeScript {
-DomainInspectorAgent::DomainInspectorAgent(GlobalObject& globalObject, WTF::String domainName, JSC::JSCell* constructorFunction)
+DomainInspectorAgent::DomainInspectorAgent(WTF::String domainName, JSC::JSCell* constructorFunction, Inspector::JSAgentContext& context)
     : Inspector::InspectorAgentBase(domainName)
-    , m_globalObject(globalObject)
-    , m_constructorFunction(m_globalObject.vm(), constructorFunction) {}
+    , m_context(context)
+    , m_constructorFunction(m_context.inspectedGlobalObject.vm(), constructorFunction) {}
 
 void DomainInspectorAgent::didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher* backendDispatcher) {
-    m_backendDispatcher = backendDispatcher;
-
-    this->m_domainBackendDispatcher = DomainBackendDispatcher::create(this->domainName(), m_constructorFunction.get(), m_backendDispatcher, m_globalObject);
+    this->m_domainBackendDispatcher = DomainBackendDispatcher::create(this->domainName(), m_constructorFunction.get(), m_context);
 }
 
 void DomainInspectorAgent::willDestroyFrontendAndBackend(Inspector::DisconnectReason) {

@@ -11,14 +11,13 @@ class DomainInspectorAgent : public Inspector::InspectorAgentBase {
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    DomainInspectorAgent(GlobalObject&, WTF::String domainName, JSC::JSCell* constructorFunction);
+    DomainInspectorAgent(WTF::String domainName, JSC::JSCell* constructorFunction, Inspector::JSAgentContext&);
 
     virtual void didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(Inspector::DisconnectReason) override;
 
 private:
-    GlobalObject& m_globalObject;
-    Inspector::BackendDispatcher* m_backendDispatcher;
+    Inspector::JSAgentContext& m_context;
     RefPtr<DomainBackendDispatcher> m_domainBackendDispatcher;
     JSC::Strong<JSC::JSCell> m_constructorFunction;
 };

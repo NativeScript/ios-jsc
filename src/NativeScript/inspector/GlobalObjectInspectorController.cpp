@@ -81,28 +81,18 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     , m_frontendRouter(FrontendRouter::create())
     , m_backendDispatcher(BackendDispatcher::create(m_frontendRouter.copyRef()))
     , m_globalObject(globalObject)
+    , m_agentContext({ *this, *m_injectedScriptManager, m_frontendRouter.get(), m_backendDispatcher.get() })
+    , m_jsAgentContext(m_agentContext, m_globalObject)
+
 {
-    AgentContext baseContext = {
-        *this,
-        *m_injectedScriptManager,
-        m_frontendRouter.get(),
-        m_backendDispatcher.get()
-    };
-    
-    JSAgentContext context = {
-        baseContext,
-        globalObject
-    };
-    
-    
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 0, &registerDispatcher, NoIntrinsic, DontEnum);
 
-    auto inspectorAgent = std::make_unique<InspectorAgent>(context);
-    auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(context);
-    auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(context);
-    auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(context, consoleAgent.get());
-    auto pageAgent = std::make_unique<InspectorPageAgent>(context);
-    auto timelineAgent = std::make_unique<InspectorTimelineAgent>(context);
+    auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
+    auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);
+    auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_jsAgentContext);
+    auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_jsAgentContext, consoleAgent.get());
+    auto pageAgent = std::make_unique<InspectorPageAgent>(m_jsAgentContext);
+    auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_jsAgentContext);
 
     m_inspectorAgent = inspectorAgent.get();
     m_debuggerAgent = debuggerAgent.get();
@@ -124,7 +114,7 @@ GlobalObjectInspectorController::~GlobalObjectInspectorController() {
 }
 
 void GlobalObjectInspectorController::registerDomainDispatcher(WTF::String domainIdentifier, JSC::JSCell* constructorFunction) {
-    std::unique_ptr<DomainInspectorAgent> domainInspectorAgent = std::make_unique<DomainInspectorAgent>(m_globalObject, domainIdentifier, constructorFunction);
+    std::unique_ptr<DomainInspectorAgent> domainInspectorAgent = std::make_unique<DomainInspectorAgent>(domainIdentifier, constructorFunction, this->m_jsAgentContext);
 
     appendExtraAgent(WTF::move(domainInspectorAgent));
 }

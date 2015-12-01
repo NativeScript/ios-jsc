@@ -19,13 +19,13 @@ static EncodedJSValue JSC_HOST_CALL dispatchMessage(ExecState* execState) {
     return JSValue::encode(jsUndefined());
 }
 
-Ref<DomainBackendDispatcher> DomainBackendDispatcher::create(WTF::String domain, JSCell* constructorFunction, Inspector::BackendDispatcher* backendDispatcher, NativeScript::GlobalObject& globalObject) {
-    return adoptRef(*new DomainBackendDispatcher(domain, constructorFunction, *backendDispatcher, globalObject));
+Ref<DomainBackendDispatcher> DomainBackendDispatcher::create(WTF::String domain, JSCell* constructorFunction, Inspector::JSAgentContext& context) {
+    return adoptRef(*new DomainBackendDispatcher(domain, constructorFunction, context));
 }
 
-DomainBackendDispatcher::DomainBackendDispatcher(WTF::String domain, JSCell* constructorFunction, Inspector::BackendDispatcher& backendDispatcher, NativeScript::GlobalObject& globalObject)
-    : SupplementalBackendDispatcher(backendDispatcher)
-    , m_globalObject(globalObject) {
+DomainBackendDispatcher::DomainBackendDispatcher(WTF::String domain, JSCell* constructorFunction, Inspector::JSAgentContext& context)
+    : SupplementalBackendDispatcher(context.backendDispatcher)
+    , m_globalObject(context.inspectedGlobalObject) {
     ConstructData constructData;
     ConstructType constructType = getConstructData(constructorFunction, constructData);
     JSFunction* dispatchMessageFunction = JSFunction::create(m_globalObject.vm(), &m_globalObject, 0, WTF::ASCIILiteral("dispatchMessage"), &dispatchMessage);
