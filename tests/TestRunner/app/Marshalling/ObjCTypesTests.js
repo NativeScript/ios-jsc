@@ -241,4 +241,34 @@ describe(module.id, function () {
        timer.fire();
        expect(actionCalled).toBe(true);
     });
+    
+    it("String boxed", function () {
+        var string = "hello";
+        var boxedString = new String(string);
+        
+        var array = NSArray.arrayWithObject(boxedString);
+        
+        expect(typeof array.firstObject).toEqual("string");
+        expect(array.firstObject).toEqual(string);
+    });
+    
+    it("Number boxed", function () {
+        var number = 42;
+        var boxedNumber = new Number(number);
+        
+        var array = NSArray.arrayWithObject(boxedNumber);
+        
+        expect(typeof array.firstObject).toEqual("number");
+        expect(array.firstObject).toEqual(number);
+    });
+    
+    it("Boolean boxed", function () {
+        var bool = true;
+        var boxedBool = new Boolean(bool);
+        
+        var array = NSArray.arrayWithObject(boxedBool);
+        
+        expect(typeof array.firstObject).toEqual("boolean");
+        expect(array.firstObject).toEqual(bool);
+    });
 });
