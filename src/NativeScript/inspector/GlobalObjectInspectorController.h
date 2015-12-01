@@ -26,6 +26,7 @@
 #ifndef GlobalObjectInspectorController_h
 #define GlobalObjectInspectorController_h
 
+#include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorAgentRegistry.h>
 #include <JavaScriptCore/InspectorEnvironment.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
@@ -140,7 +141,10 @@ private:
     bool m_isAutomaticInspection { false };
 
     GlobalObject& m_globalObject;
-          
+
+    Inspector::AgentContext m_agentContext;
+    Inspector::JSAgentContext m_jsAgentContext;
+
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
     Inspector::AugmentableInspectorControllerClient* m_augmentingClient { nullptr };
 #endif
