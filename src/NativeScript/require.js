@@ -3,7 +3,7 @@
  *
  * You can ignore this file and continue debugging.
  * To correct errors, edit the source file at: https://github.com/NativeScript/ios-runtime/blob/master/src/NativeScript/require.js
-*/
+ */
 
 (function (applicationPath, createModuleFunction) {
     'use strict';
@@ -32,6 +32,14 @@
     var pathCache = new Map();
     var modulesCache = new Map();
 
+    function getRelativeToBundlePath(absolutePath) {
+        return absolutePath.substr(applicationPath.length).replace(/^\//, '');
+    }
+
+    function getModuleCacheKey(moduleMetadata) {
+        return moduleMetadata.bundlePath;
+    }
+
     function __findModule(moduleIdentifier, previousPath) {
         var isBootstrap = !previousPath;
         if (isBootstrap) {
@@ -55,58 +63,60 @@
             return pathCache.get(requestedPath);
         }
 
+        var moduleMetadata = {
+            name: nsstr(moduleIdentifier).lastPathComponent,
+        };
+
         var absoluteFilePath = nsstr(absolutePath).stringByAppendingPathExtension("js");
-        if (!fileManager.fileExistsAtPathIsDirectory(absoluteFilePath, isDirectory) &&
-            fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
-            if (!isDirectory.value) {
-                throw new ModuleError(`Expected '${absolutePath}' to be a directory`);
-            }
-
-            var mainFileName;
-            if (isBootstrap && fileManager.fileExistsAtPathIsDirectory(NSString.pathWithComponents([applicationPath, USER_MODULES_ROOT, 'bootstrap.js']), null)) {
-                mainFileName = 'bootstrap.js';
-            } else {
-                mainFileName = 'index.js';
-            }
-
-            var packageJsonPath = nsstr(absolutePath).stringByAppendingPathComponent("package.json");
-            var packageJson = NSString.stringWithContentsOfFileEncodingError(packageJsonPath, NSUTF8StringEncoding, null);
-            if (packageJson) {
-                //console.debug("PACKAGE_FOUND: " + packageJsonPath);
-
-                try {
-                    var packageJsonMain = JSON.parse(packageJson).main;
-                    if (packageJsonMain && !/\.js$/.test(packageJsonMain)) {
-                        packageJsonMain += '.js';
-                    }
-                    mainFileName = packageJsonMain || mainFileName;
-                } catch (e) {
-                    throw new ModuleError(`Error parsing package.json in '${absolutePath}' - ${e}`);
-                }
-            }
-
-            absolutePath = nsstr(absolutePath).stringByAppendingPathComponent(mainFileName);
+        if (/\.json$/.test(absolutePath)) {
+            moduleMetadata.type = 'json';
         } else {
-            absolutePath = absoluteFilePath;
+            if (!fileManager.fileExistsAtPathIsDirectory(absoluteFilePath, isDirectory) &&
+                fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
+                if (!isDirectory.value) {
+                    throw new ModuleError(`Expected '${getRelativeToBundlePath(absolutePath)}' to be a directory.`);
+                }
+
+                var mainFileName = 'index.js';
+
+                var packageJsonPath = nsstr(absolutePath).stringByAppendingPathComponent("package.json");
+                var packageJson = NSString.stringWithContentsOfFileEncodingError(packageJsonPath, NSUTF8StringEncoding, null);
+                if (packageJson) {
+                    //console.debug("PACKAGE_FOUND: " + packageJsonPath);
+
+                    try {
+                        var packageJsonMain = JSON.parse(packageJson).main;
+                        if (packageJsonMain && !/\.js$/.test(packageJsonMain)) {
+                            packageJsonMain += '.js';
+                        }
+                        mainFileName = packageJsonMain || mainFileName;
+                    } catch (e) {
+                        throw new ModuleError(`Error parsing package.json in '${absolutePath}' - ${e}`);
+                    }
+                }
+
+                absolutePath = nsstr(absolutePath).stringByAppendingPathComponent(mainFileName);
+            } else {
+                absolutePath = absoluteFilePath;
+            }
+
+            moduleMetadata.type = 'js';
         }
         absolutePath = nsstr(absolutePath).stringByStandardizingPath;
-        var bundlePath = absolutePath.substr(applicationPath.length);
+        var bundlePath = getRelativeToBundlePath(absolutePath);
 
         if (!fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
-            throw new ModuleError(`Failed to find module '${moduleIdentifier}' relative to 'file://${previousPath}'. Computed path: '${bundlePath.replace(/^\//, '')}'.`);
+            throw new ModuleError(`Failed to find module '${moduleIdentifier}' relative to 'file:///${previousPath}'. Computed path: '${bundlePath}'.`);
         }
 
         if (isDirectory.value) {
-            throw new ModuleError(`Expected '${absolutePath}' to be a file`);
+            throw new ModuleError(`Expected '${bundlePath}' to be a file`);
         }
 
         //console.debug('FIND_MODULE:', moduleIdentifier, absolutePath);
 
-        var moduleMetadata = {
-            name: nsstr(moduleIdentifier).lastPathComponent,
-            path: absolutePath,
-            bundlePath
-        };
+        moduleMetadata.path = absolutePath;
+        moduleMetadata.bundlePath = bundlePath;
 
         pathCache.set(requestedPath, moduleMetadata);
         return moduleMetadata;
@@ -114,24 +124,39 @@
 
     function __executeModule(moduleMetadata, module) {
         var modulePath = moduleMetadata.bundlePath;
-        module.require = function require(moduleIdentifier) {
-            return __loadModule(moduleIdentifier, modulePath).exports;
-        };
-        module.require.displayName = "__require";
         var moduleSource = NSString.stringWithContentsOfFileEncodingError(moduleMetadata.path, NSUTF8StringEncoding, null);
-        var moduleFunction = createModuleFunction(moduleSource, "file://" + moduleMetadata.bundlePath);
-        var fileName = moduleMetadata.path;
-        var dirName = nsstr(moduleMetadata.path).stringByDeletingLastPathComponent.toString();
-        module.filename = fileName;
 
         var hadError = true;
-        try {
-            moduleFunction(module.require, module, module.exports, dirName, fileName);
-            hadError = false;
-        } finally {
-            if (hadError) {
-               modulesCache.delete(moduleMetadata.bundlePath);
+
+        if (moduleMetadata.type === 'js') {
+            module.require = function __require(moduleIdentifier) {
+                return __loadModule(moduleIdentifier, modulePath).exports;
+            };
+            var dirName = nsstr(moduleMetadata.path).stringByDeletingLastPathComponent.toString();
+
+            try {
+                var moduleFunction = createModuleFunction(moduleSource, "file:///" + moduleMetadata.bundlePath);
+                moduleFunction(module.require, module, module.exports, dirName, moduleMetadata.path);
+                hadError = false;
+            } finally {
+                if (hadError) {
+                    modulesCache.delete(getModuleCacheKey(moduleMetadata));
+                }
             }
+        } else if (moduleMetadata.type === 'json') {
+            try {
+                module.exports = JSON.parse(moduleSource);
+                hadError = false;
+            } catch (e) {
+                e.message = `File: 'file:///${moduleMetadata.bundlePath}'. ${e.message}`;
+                throw e;
+            } finally {
+                if (hadError) {
+                    modulesCache.delete(getModuleCacheKey(moduleMetadata));
+                }
+            }
+        } else {
+            throw new ModuleError(`Unknown module type '${moduleMetadata.type}'`);
         }
     }
 
@@ -142,14 +167,15 @@
 
         var moduleMetadata = __findModule(moduleIdentifier, previousPath);
 
-        var key = moduleMetadata.bundlePath;
+        var key = getModuleCacheKey(moduleMetadata);
         if (modulesCache.has(key)) {
             return modulesCache.get(key);
         }
 
         var module = {
             exports: {},
-            id: moduleMetadata.bundlePath
+            id: moduleMetadata.bundlePath,
+            filename: moduleMetadata.path,
         };
 
         modulesCache.set(key, module);
