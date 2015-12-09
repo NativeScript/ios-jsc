@@ -74,6 +74,14 @@ JSC::EncodedJSValue registerDispatcher(JSC::ExecState* execState) {
     return JSValue::encode(jsUndefined());
 }
 
+JSC::EncodedJSValue inspectorTimestamp(JSC::ExecState* execState) {
+    NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+
+    JSC::JSValue elapsedTime = JSC::jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime());
+
+    return JSValue::encode(elapsedTime);
+}
+
 GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& globalObject)
     : m_injectedScriptManager(std::make_unique<InjectedScriptManager>(*this, InjectedScriptHost::create()))
     , m_executionStopwatch(Stopwatch::create())
@@ -86,6 +94,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
 
 {
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 0, &registerDispatcher, NoIntrinsic, DontEnum);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, DontEnum);
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);

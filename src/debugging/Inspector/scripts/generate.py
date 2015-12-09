@@ -24,7 +24,11 @@ def generate(combined_domains_path, output_dir):
     protocol.resolve_types()
 
     generator = TypeScriptInterfaceGenerator(protocol)
-    output = generator.generate_output()
+    output = """declare var __registerDomainDispatcher;
+export function DomainDispatcher(domain: string): ClassDecorator {
+    return klass => __registerDomainDispatcher(domain, klass);
+} \n """
+    output += generator.generate_output()
 
     output_file = open(os.path.join(output_dir, generator.output_filename()), "w")
     output_file.write(output)
@@ -75,7 +79,7 @@ class TypeScriptInterfaceGenerator(Generator):
         lines.append('// %s' % domain.domain_name)
         if domain.description:
             lines.append('// %s' % domain.description)
-        lines.append('namespace %sDomain {' % domain.domain_name)
+        lines.append('export namespace %sDomain {' % domain.domain_name)
 
         lines.extend(self.generate_domain_type_declarations(domain))
         
@@ -107,8 +111,7 @@ class TypeScriptInterfaceGenerator(Generator):
         for declaration in object_declarations:
             lines.append('export interface %s {' % declaration.type.raw_name())
             
-            declaration_properties = filter(lambda member: isinstance(member.type, (AliasedType, ObjectType ,PrimitiveType)), declaration.type_members)            
-            for declaration_property in declaration_properties:
+            for declaration_property in declaration.type_members:
                 member_args = {
                     'name': declaration_property.member_name,
                     'type': ts_name_for_primitive_type(domain, declaration_property.type),

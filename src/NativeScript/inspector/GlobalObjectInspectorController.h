@@ -67,6 +67,7 @@ class JSValue;
 namespace NativeScript {
 
 JSC::EncodedJSValue JSC_HOST_CALL registerDispatcher(JSC::ExecState* execState);
+JSC::EncodedJSValue JSC_HOST_CALL inspectorTimestamp(JSC::ExecState* execState);
 
 class GlobalObjectInspectorController final
     : public Inspector::InspectorEnvironment
