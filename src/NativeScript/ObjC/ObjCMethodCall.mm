@@ -9,7 +9,9 @@
 #include "ObjCMethodCall.h"
 #include <objc/message.h>
 #include "ObjCTypes.h"
-#include "ObjCClassBuilder.h"
+#include "ObjCPrototype.h"
+#include "ObjCConstructorDerived.h"
+#include "ObjCSuperObject.h"
 #include "TypeFactory.h"
 #include "Metadata.h"
 #include "AllocatedPlaceholder.h"
@@ -70,10 +72,25 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     this->setSelector(metadata->selector());
 }
 
+static bool isJavaScriptDerived(JSC::JSValue value) {
+    if (value.isCell()) {
+        JSCell* cell = value.asCell();
+        const Structure* structure = cell->structure();
+        const ClassInfo* info = structure->classInfo();
+        if (info == ObjCWrapperObject::info()) {
+            JSC::JSValue prototype = structure->storedPrototype();
+            return prototype.isCell() && prototype.asCell()->classInfo() != ObjCPrototype::info();
+        } else {
+            return info == ObjCConstructorDerived::info() || info == ObjCSuperObject::info();
+        }
+    }
+
+    return false;
+}
+
 void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
     ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
     id target = NativeScript::toObject(execState, execState->thisValue());
-    Class targetClass = object_getClass(target);
 
     if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
         std::vector<NSError*> outError = { nil };
@@ -81,13 +98,13 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
         ReleasePool<decltype(outError)>::releaseSoon(std::move(outError));
     }
 
-    if (class_conformsToProtocol(targetClass, @protocol(TNSDerivedClass))) {
+    if (isJavaScriptDerived(execState->thisValue())) {
         std::unique_ptr<objc_super> super = std::make_unique<objc_super>();
         super->receiver = target;
-        super->super_class = class_getSuperclass(targetClass);
+        super->super_class = class_getSuperclass(object_getClass(target));
 #ifdef DEBUG_OBJC_INVOCATION
-        bool isInstance = !class_isMetaClass(targetClass);
-        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromClass(super->super_class), NSStringFromSelector(this->selector()));
+        bool isInstance = !class_isMetaClass(object_getClass(target));
+        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromClass(super->super_class), NSStringFromSelector(this->selector()));
 #endif
         invocation.setArgument(0, super.get());
         invocation.setArgument(1, call->_selector);
@@ -95,8 +112,8 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
         ReleasePool<decltype(super)>::releaseSoon(std::move(super));
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
-        bool isInstance = !class_isMetaClass(targetClass);
-        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(targetClass), NSStringFromSelector(this->selector()));
+        bool isInstance = !class_isMetaClass(object_getClass(target));
+        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(this->selector()));
 #endif
         invocation.setArgument(0, target);
         invocation.setArgument(1, call->_selector);
