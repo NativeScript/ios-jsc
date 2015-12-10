@@ -64,7 +64,7 @@ using namespace JSC;
 using namespace Inspector;
 
 namespace NativeScript {
-JSC::EncodedJSValue registerDispatcher(JSC::ExecState* execState) {
+JSC::EncodedJSValue JSC_HOST_CALL registerDispatcher(JSC::ExecState* execState) {
     NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
     WTF::String domainIdentifier = execState->argument(0).toWTFString(execState);
     JSCell* constructorFunction = execState->argument(1).asCell();
@@ -74,7 +74,7 @@ JSC::EncodedJSValue registerDispatcher(JSC::ExecState* execState) {
     return JSValue::encode(jsUndefined());
 }
 
-JSC::EncodedJSValue inspectorTimestamp(JSC::ExecState* execState) {
+JSC::EncodedJSValue JSC_HOST_CALL inspectorTimestamp(JSC::ExecState* execState) {
     NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
 
     JSC::JSValue elapsedTime = JSC::jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime());
