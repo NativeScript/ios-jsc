@@ -12,6 +12,7 @@
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <objc/runtime.h>
 #include <map>
+#include <wtf/Deque.h>
 
 namespace NativeScript {
 class ObjCConstructorBase;
@@ -22,6 +23,7 @@ class TypeFactory;
 class ObjCWrapperObject;
 class GlobalObjectInspectorController;
 class FFICallPrototype;
+class ReleasePoolBase;
 
 class GlobalObject : public JSC::JSGlobalObject {
 public:
@@ -138,6 +140,10 @@ public:
         this->_microtaskRunLoopMode = mode;
     }
 
+    WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>>& releasePools() {
+        return this->_releasePools;
+    }
+
 #if defined(__LP64__) && __LP64__
     JSC::WeakGCMap<const void*, ObjCWrapperObject>& taggedPointers() {
         return this->_taggedPointers;
@@ -193,6 +199,8 @@ private:
     std::map<Class, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
 
     std::map<const Protocol*, JSC::Strong<ObjCProtocolWrapper>> _objCProtocolWrappers;
+
+    WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>> _releasePools;
 
 #if defined(__LP64__) && __LP64__
     // See comment in toValue

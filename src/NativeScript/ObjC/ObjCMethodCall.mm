@@ -95,7 +95,7 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
     if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
         std::vector<NSError*> outError = { nil };
         invocation.setArgument(call->_argsCount - 1, outError.data());
-        ReleasePool<decltype(outError)>::releaseSoon(std::move(outError));
+        releaseSoon(execState, std::move(outError));
     }
 
     if (isJavaScriptDerived(execState->thisValue())) {
@@ -109,7 +109,7 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
         invocation.setArgument(0, super.get());
         invocation.setArgument(1, call->_selector);
         invocation.function = call->_msgSendSuper;
-        ReleasePool<decltype(super)>::releaseSoon(std::move(super));
+        releaseSoon(execState, std::move(super));
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(object_getClass(target));
