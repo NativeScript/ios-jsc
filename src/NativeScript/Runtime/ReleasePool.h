@@ -9,13 +9,10 @@
 #ifndef __NativeScript__ReleasePool__
 #define __NativeScript__ReleasePool__
 
-#include <type_traits>
-#include <typeindex>
 #include <vector>
 #include <map>
 #include <wtf/Deque.h>
 #include <string>
-#include <WTF/ThreadSpecific.h>
 
 namespace NativeScript {
 class ReleasePoolBase {
@@ -27,14 +24,7 @@ public:
     virtual ~ReleasePoolBase() = default;
 
 protected:
-    friend class ReleasePoolHolder;
-
     ReleasePoolBase() = default;
-
-    static WTF::Deque<Item>& releasePools() {
-        static auto pools = new WTF::ThreadSpecific<WTF::Deque<Item>>();
-        return **pools;
-    }
 };
 
 template <typename T>
@@ -42,13 +32,16 @@ class ReleasePool : ReleasePoolBase {
     static_assert(std::is_destructible<T>::value, "Type must be destructible");
     static_assert(!std::is_pointer<T>::value, "Type must not be a pointer");
 
-public:
-    static void releaseSoon(T&& item) {
-        ASSERT(!releasePools().isEmpty());
+private:
+    template <typename U>
+    friend void releaseSoon(GlobalObject*, U&&);
+
+    static void releaseSoon(GlobalObject* globalObject, T&& item) {
+        ASSERT(!globalObject->releasePools().isEmpty());
 
         ReleasePool<T>* pool = nullptr;
 
-        Item& poolsMap = releasePools().last();
+        Item& poolsMap = globalObject->releasePools().last();
         std::string key(__PRETTY_FUNCTION__);
 
         auto iter = poolsMap.find(key);
@@ -66,7 +59,6 @@ public:
         _items.clear();
     }
 
-private:
     ReleasePool() = default;
 
     std::vector<T> _items;
@@ -74,12 +66,16 @@ private:
 
 class ReleasePoolHolder {
 public:
-    ReleasePoolHolder() {
-        ReleasePoolBase::releasePools().append(ReleasePoolBase::Item());
+    ReleasePoolHolder(JSC::ExecState* execState) {
+        init(JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject()));
+    }
+
+    ReleasePoolHolder(GlobalObject* globalObject) {
+        init(globalObject);
     }
 
     ReleasePoolBase::Item relinquish() {
-        auto& releasePools = ReleasePoolBase::releasePools();
+        auto& releasePools = _globalObject->releasePools();
         ASSERT(!_didRelinquish);
         ASSERT(!releasePools.isEmpty());
 
@@ -89,8 +85,8 @@ public:
 
     void drain() {
         if (LIKELY(!_didRelinquish)) {
-            ASSERT(!ReleasePoolBase::releasePools().isEmpty());
-            auto& poolsMap = ReleasePoolBase::releasePools().last();
+            ASSERT(!_globalObject->releasePools().isEmpty());
+            auto& poolsMap = _globalObject->releasePools().last();
             for (auto& pair : poolsMap) {
                 pair.second->drain();
             }
@@ -99,14 +95,30 @@ public:
 
     ~ReleasePoolHolder() {
         if (LIKELY(!_didRelinquish)) {
-            ASSERT(!ReleasePoolBase::releasePools().isEmpty());
-            ReleasePoolBase::releasePools().removeLast();
+            ASSERT(!_globalObject->releasePools().isEmpty());
+            _globalObject->releasePools().removeLast();
         }
     }
 
 private:
+    void init(GlobalObject* globalObject) {
+        _globalObject = globalObject;
+        _globalObject->releasePools().append(ReleasePoolBase::Item());
+    }
+
+    GlobalObject* _globalObject;
     bool _didRelinquish;
 };
+
+template <typename T>
+void releaseSoon(GlobalObject* globalObject, T&& item) {
+    ReleasePool<T>::releaseSoon(globalObject, std::move(item));
+}
+
+template <typename T>
+void releaseSoon(JSC::ExecState* execState, T&& item) {
+    releaseSoon(JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject()), std::move(item));
+}
 }
 
 #endif /* defined(__NativeScript__ReleasePool__) */

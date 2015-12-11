@@ -11,9 +11,6 @@
 
 #include <vector>
 
-@protocol TNSDerivedClass
-@end
-
 namespace Metadata {
 struct ProtocolMeta;
 struct MethodMeta;

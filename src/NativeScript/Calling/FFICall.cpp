@@ -85,7 +85,7 @@ CallType FFICall::getCallData(JSCell*, CallData& callData) {
 EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
     FFICall* callee = jsCast<FFICall*>(execState->callee());
     Invocation invocation(callee);
-    ReleasePoolHolder releasePoolHolder;
+    ReleasePoolHolder releasePoolHolder(execState);
 
     callee->preCall(execState, invocation);
     callee->_invocationHooks.pre(callee, execState, invocation);
@@ -109,7 +109,7 @@ EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
 
 JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList& arguments) {
     __block std::unique_ptr<Invocation> invocation(new Invocation(this));
-    ReleasePoolHolder releasePoolHolder;
+    ReleasePoolHolder releasePoolHolder(execState);
 
     Register* fakeCallFrame = new Register[JSStack::CallFrameHeaderSize + execState->argumentCount() + 1];
     ExecState* fakeExecState = ExecState::create(fakeCallFrame);

@@ -21,6 +21,10 @@
 #include "Interop.h"
 #include "TNSFastEnumerationAdapter.h"
 
+@protocol TNSDerivedClass
+
+@end
+
 namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;

@@ -130,7 +130,7 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
     if (value.isString()) {
         WTF::CString result = value.toString(execState)->value(execState).utf8();
         *static_cast<const char**>(buffer) = result.data();
-        ReleasePool<WTF::CString>::releaseSoon(std::move(result));
+        releaseSoon(execState, std::move(result));
         return;
     }
 
