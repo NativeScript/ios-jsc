@@ -104,7 +104,7 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
         super->super_class = class_getSuperclass(object_getClass(target));
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(object_getClass(target));
-        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromClass(super->super_class), NSStringFromSelector(this->selector()));
+        NSLog(@"> %@[%@(%@) %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromClass(super->super_class), NSStringFromSelector(call->_selector));
 #endif
         invocation.setArgument(0, super.get());
         invocation.setArgument(1, call->_selector);
@@ -113,7 +113,7 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
     } else {
 #ifdef DEBUG_OBJC_INVOCATION
         bool isInstance = !class_isMetaClass(object_getClass(target));
-        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(this->selector()));
+        NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(call->_selector));
 #endif
         invocation.setArgument(0, target);
         invocation.setArgument(1, call->_selector);
