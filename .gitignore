@@ -41,6 +41,3 @@ node_modules/
 
 # CLion
 .idea
-
-# Inspector application
-/src/debugging/inspector/Inspector/Frameworks
