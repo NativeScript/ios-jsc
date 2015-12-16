@@ -132,6 +132,15 @@ module.exports = function(grunt) {
                 }
             },
 
+            Inspector: {
+                command: './build/scripts/build-inspector.sh',
+                options: {
+                    execOptions: {
+                        maxBuffer: Infinity
+                    }
+                }
+            },
+
             getGitSHA: {
                 command: "git rev-parse HEAD",
                 options: {
