@@ -6,6 +6,9 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
+#include <objc/runtime.h>
+#include "FFIType.h"
+#include "ObjCWrapperObject.h"
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/DateInstance.h>
 #include <JavaScriptCore/JSMap.h>
@@ -24,64 +27,6 @@
 #import "TNSDataAdapter.h"
 
 using namespace JSC;
-
-class TNSValueWrapperWeakHandleOwner : public WeakHandleOwner {
-    virtual void finalize(Handle<Unknown> handle, void* context) override {
-        [reinterpret_cast<TNSValueWrapper*>(context) detach];
-
-        WeakSet::deallocate(WeakImpl::asWeakImpl(handle.slot()));
-    }
-};
-
-static WeakHandleOwner* weakHandleOwner() {
-    static WeakHandleOwner* owner;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        owner = new TNSValueWrapperWeakHandleOwner();
-    });
-
-    return owner;
-}
-
-@implementation TNSValueWrapper {
-    Weak<JSObject> _valueWrapper;
-    id _host;
-    void* _associationKey;
-}
-
-+ (void)attachValue:(JSC::JSObject*)value toHost:(id)host {
-    TNSValueWrapper* wrapper = [[self alloc] initWithValue:value
-                                                      host:host];
-
-    objc_setAssociatedObject(host, value->globalObject()->JSC::JSScope::vm(), wrapper, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-#ifdef DEBUG_MEMORY
-    NSLog(@"TNSValueWrapper attached to %@(%p)", object_getClass(host), host);
-#endif
-    [wrapper release];
-}
-
-- (instancetype)initWithValue:(JSObject*)value host:(id)host {
-    if (self = [super init]) {
-        self->_valueWrapper = Weak<JSObject>(value, weakHandleOwner(), self);
-        self->_host = host;
-        self->_associationKey = value->globalObject()->JSC::JSScope::vm();
-    }
-
-    return self;
-}
-
-- (JSObject*)value {
-    return self->_valueWrapper.get();
-}
-
-- (void)detach {
-    objc_setAssociatedObject(self->_host, self->_associationKey, nil, OBJC_ASSOCIATION_ASSIGN);
-#ifdef DEBUG_MEMORY
-    NSLog(@"TNSValueWrapper detached from %@(%p)", object_getClass(self->_host), self->_host);
-#endif
-}
-
-@end
 
 namespace NativeScript {
 
@@ -202,35 +147,12 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
         return jsNull();
     }
 
-#if defined(__LP64__) && __LP64__
-    // There is a bug in the Objective-C runtime on 64 bit architectures, which seems to be fixed in iOS 8.
-    // We cannot use the association API with tagged pointers, so we fallback to an external map.
-    // This workaround is kept for iOS 8 64bit, because it is faster there too and the code is easier to test/maintain.
-    // For more information on tagged pointers see "objc-internal.h" in opensource.apple.com
-
-    // This check is the same as _objc_isTaggedPointer, which is a private function.
-    if (reinterpret_cast<intptr_t>(object) < 0) {
-        NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
-        if (ObjCWrapperObject* wrapper = globalObject->taggedPointers().get(object)) {
-            return wrapper;
-        }
-
-        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object, jsCast<GlobalObject*>(execState->lexicalGlobalObject()));
-        globalObject->taggedPointers().set(object, wrapper);
+    auto globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    if (JSObject* wrapper = globalObject->interop()->objectMap().get(object)) {
+        ASSERT(wrapper->classInfo() != ObjCWrapperObject::info() || jsCast<ObjCWrapperObject*>(wrapper)->wrappedObject() == object);
         return wrapper;
-    } else {
-#endif
-        TNSValueWrapper* valueWrapper = static_cast<TNSValueWrapper*>(objc_getAssociatedObject(object, execState->lexicalGlobalObject()->JSCell::vm()));
-        if (JSObject* wrapper = valueWrapper.value) {
-            return wrapper;
-        }
-
-        ObjCWrapperObject* wrapper = ObjCWrapperObject::create(execState->vm(), structureResolver(), object, jsCast<GlobalObject*>(execState->lexicalGlobalObject()));
-        [TNSValueWrapper attachValue:wrapper
-                              toHost:object];
-        return wrapper;
-#if defined(__LP64__) && __LP64__
     }
-#endif
+
+    return ObjCWrapperObject::create(execState->vm(), structureResolver(), object, globalObject);
 }
 }

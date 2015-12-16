@@ -9,6 +9,7 @@
 #include "ObjCConstructorBase.h"
 #include <JavaScriptCore/JSMap.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
+#include "ObjCWrapperObject.h"
 #include "ObjCMethodCall.h"
 #include "ObjCConstructorCall.h"
 #include "ObjCTypes.h"

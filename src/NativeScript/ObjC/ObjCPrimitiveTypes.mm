@@ -13,6 +13,7 @@
 #include "ObjCSuperObject.h"
 #include "ObjCConstructorBase.h"
 #include "ObjCProtocolWrapper.h"
+#include "ObjCWrapperObject.h"
 #include "Interop.h"
 #include "AllocatedPlaceholder.h"
 

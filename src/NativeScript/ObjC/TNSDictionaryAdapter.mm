@@ -8,6 +8,7 @@
 
 #import "TNSDictionaryAdapter.h"
 #include "ObjCTypes.h"
+#include "Interop.h"
 #include <JavaScriptCore/JSMap.h>
 #include <JavaScriptCore/JSMapIterator.h>
 #include <JavaScriptCore/StrongInlines.h>
@@ -95,7 +96,7 @@ using namespace NativeScript;
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_execState = execState;
-        [TNSValueWrapper attachValue:jsObject toHost:self];
+        interop(execState)->objectMap().set(self, jsObject);
     }
 
     return self;
@@ -141,6 +142,15 @@ using namespace NativeScript;
     PropertyNameArray properties(self->_execState, PropertyNameMode::Strings);
     object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return [[[TNSDictionaryAdapterObjectKeysEnumerator alloc] initWithProperties:properties.releaseData()] autorelease];
+}
+
+- (void)dealloc {
+    {
+        JSLockHolder lock(self->_execState);
+        interop(self->_execState)->objectMap().remove(self);
+    }
+
+    [super dealloc];
 }
 
 @end

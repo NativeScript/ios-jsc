@@ -7,7 +7,7 @@
 //
 
 #import "TNSDataAdapter.h"
-#include "ObjCTypes.h"
+#include "Interop.h"
 #include "JSErrors.h"
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/StrongInlines.h>
@@ -24,7 +24,7 @@ using namespace JSC;
     if (self) {
         self->_object.set(execState->vm(), jsObject);
         self->_execState = execState;
-        [TNSValueWrapper attachValue:jsObject toHost:self];
+        interop(execState)->objectMap().set(self, jsObject);
     }
 
     return self;
@@ -54,6 +54,15 @@ using namespace JSC;
     NSUInteger length = self->_object->get(self->_execState, self->_execState->propertyNames().byteLength).toUInt32(self->_execState);
     reportErrorIfAny(self->_execState);
     return length;
+}
+
+- (void)dealloc {
+    {
+        JSLockHolder lock(self->_execState);
+        interop(self->_execState)->objectMap().remove(self);
+    }
+
+    [super dealloc];
 }
 
 @end
