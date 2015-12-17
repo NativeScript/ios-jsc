@@ -1,4 +1,4 @@
-// https://github.com/telerik/xPlatCore/blob/master/JS/BCL/timer/timer.ios.ts
+// https://github.com/NativeScript/NativeScript/blob/master/timer/timer.ios.ts
 
 var timeoutCallbacks = {};
 
