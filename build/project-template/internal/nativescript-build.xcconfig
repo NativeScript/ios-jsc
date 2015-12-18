@@ -8,7 +8,7 @@ FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/../../lib/iOS" "$(CONFI
 
 // * Uncomment this setting to generate TypeScript declarations for the iOS SDK and all linked libraries.
 // * They will be generated on each build, so you can find them after running "tns build ios" in "YOUR_APP/platforms/ios".
-// TNS_TYPESCRIPT_DECLARATIONS_PATH = "$(SRCROOT)/typescript-declarations"
+// TNS_TYPESCRIPT_DECLARATIONS_PATH = $(SRCROOT)/typescript-declarations
 
 // * Uncomment this setting to generate human readable metadata for the iOS SDK and all linked libraries.
 // * You can learn more about NativeScript metadata in the docs: http://docs.nativescript.org/runtimes/ios/Overview#metadata
