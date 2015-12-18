@@ -13,4 +13,4 @@ FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/../../lib/iOS" "$(CONFI
 // * Uncomment this setting to generate human readable metadata for the iOS SDK and all linked libraries.
 // * You can learn more about NativeScript metadata in the docs: http://docs.nativescript.org/runtimes/ios/Overview#metadata
 // * It will be generated on each build, so you can find it after running "tns build ios" in "YOUR_APP/platforms/ios".
-// TNS_DEBUG_METADATA_PATH = "$(SRCROOT)/debug-metadata"
+// TNS_DEBUG_METADATA_PATH = $(SRCROOT)/debug-metadata
