@@ -39,7 +39,7 @@
 }
 
 - (void)startWindowDrag {
-    
+    [[NSApp mainWindow] performWindowDragWithEvent:[NSApp currentEvent]];
 }
 
 - (void)sendMessageToBackend:(NSString*)message {
