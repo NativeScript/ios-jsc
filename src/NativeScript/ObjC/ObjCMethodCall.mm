@@ -12,6 +12,7 @@
 #include "ObjCPrototype.h"
 #include "ObjCConstructorDerived.h"
 #include "ObjCSuperObject.h"
+#include "ObjCWrapperObject.h"
 #include "TypeFactory.h"
 #include "Metadata.h"
 #include "AllocatedPlaceholder.h"

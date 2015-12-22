@@ -144,12 +144,6 @@ public:
         return this->_releasePools;
     }
 
-#if defined(__LP64__) && __LP64__
-    JSC::WeakGCMap<const void*, ObjCWrapperObject>& taggedPointers() {
-        return this->_taggedPointers;
-    };
-#endif
-
 private:
     GlobalObject(JSC::VM& vm, JSC::Structure* structure);
 
@@ -201,11 +195,6 @@ private:
     std::map<const Protocol*, JSC::Strong<ObjCProtocolWrapper>> _objCProtocolWrappers;
 
     WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>> _releasePools;
-
-#if defined(__LP64__) && __LP64__
-    // See comment in toValue
-    JSC::WeakGCMap<const void*, ObjCWrapperObject> _taggedPointers;
-#endif
 };
 }
 

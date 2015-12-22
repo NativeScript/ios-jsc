@@ -57,6 +57,7 @@ private:
     static void putByIndex(JSC::JSCell* cell, JSC::ExecState* execState, unsigned propertyName, JSC::JSValue value, bool shouldThrow);
 
     WTF::RetainPtr<id> _wrappedObject;
+    JSC::WeakGCMap<id, JSC::JSObject>* _objectMap;
 
     bool _canSetObjectAtIndexedSubscript;
 };

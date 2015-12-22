@@ -16,6 +16,7 @@
 #include "ObjCMethodCallback.h"
 #include "ObjCSuperObject.h"
 #include "ObjCProtocolWrapper.h"
+#include "ObjCWrapperObject.h"
 #include "ObjCTypes.h"
 #include "FFIType.h"
 #include "Interop.h"
@@ -65,8 +66,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
         Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
         ObjCSuperObject* superObject = ObjCSuperObject::create(vm, superStructure, derivedWrapper, globalObject);
         derivedWrapper->putDirect(vm, vm.propertyNames->superKeyword, superObject, ReadOnly | DontEnum | DontDelete);
-
-        [TNSValueWrapper attachValue:derivedWrapper toHost:instance];
+        
         return instance;
     });
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
@@ -74,11 +74,9 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
     IMP newRetain = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 1) {
-            if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
-                if (JSObject* object = wrapper.value) {
-                    JSLockHolder lockHolder(globalObject->vm());
-                    gcProtect(object);
-                }
+            if (JSObject* object = globalObject->interop()->objectMap().get(self)) {
+                JSLockHolder lockHolder(globalObject->vm());
+                gcProtect(object);
             }
         }
 
@@ -89,11 +87,9 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     void (*release)(id, SEL) = (void (*)(id, SEL))findNotOverridenMethod(newKlass, @selector(release));
     IMP newRelease = imp_implementationWithBlock(^(id self) {
         if ([self retainCount] == 2) {
-            if (TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSScope::vm())) {
-                if (JSObject* object = wrapper.value) {
-                    JSLockHolder lockHolder(globalObject->vm());
-                    gcUnprotect(object);
-                }
+            if (JSObject* object = globalObject->interop()->objectMap().get(self)) {
+                JSLockHolder lockHolder(globalObject->vm());
+                gcUnprotect(object);
             }
         }
 

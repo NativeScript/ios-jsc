@@ -9,12 +9,13 @@
 #include "TNSFastEnumerationAdapter.h"
 #include "JSErrors.h"
 #include "ObjCTypes.h"
+#include "Interop.h"
 #include <JavaScriptCore/IteratorOperations.h>
 
 namespace NativeScript {
 using namespace JSC;
 
-NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id buffer[], NSUInteger length, JSGlobalObject* globalObject) {
+NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id buffer[], NSUInteger length, GlobalObject* globalObject) {
     enum State : decltype(state->state) {
         Uninitialized = 0,
         Iterating,
@@ -23,11 +24,12 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
     if (state->state == State::Uninitialized) {
         ExecState* execState = globalObject->globalExec();
-        TNSValueWrapper* wrapper = objc_getAssociatedObject(self, globalObject->JSC::JSScope::vm());
+        JSObject* wrapper = globalObject->interop()->objectMap().get(self);
+        RELEASE_ASSERT(wrapper);
 
         JSLockHolder lock(execState);
 
-        JSValue iteratorFunction = wrapper.value->get(execState, execState->propertyNames().iteratorSymbol);
+        JSValue iteratorFunction = wrapper->get(execState, execState->propertyNames().iteratorSymbol);
         reportErrorIfAny(execState);
 
         CallData iteratorFunctionCallData;
@@ -37,7 +39,7 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
         }
 
         ArgList iteratorFunctionArguments;
-        JSValue iterator = call(execState, iteratorFunction, iteratorFunctionCallType, iteratorFunctionCallData, wrapper.value, iteratorFunctionArguments);
+        JSValue iterator = call(execState, iteratorFunction, iteratorFunctionCallType, iteratorFunctionCallData, wrapper, iteratorFunctionArguments);
         reportErrorIfAny(execState);
 
         if (!iterator.isObject()) {

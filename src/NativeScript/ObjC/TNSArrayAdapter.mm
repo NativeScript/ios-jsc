@@ -8,6 +8,7 @@
 
 #import "TNSArrayAdapter.h"
 #include "ObjCTypes.h"
+#include "Interop.h"
 #include <JavaScriptCore/StrongInlines.h>
 
 using namespace NativeScript;
@@ -22,7 +23,7 @@ using namespace JSC;
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_execState = execState;
-        [TNSValueWrapper attachValue:jsObject toHost:self];
+        interop(execState)->objectMap().set(self, jsObject);
     }
 
     return self;
@@ -71,6 +72,15 @@ using namespace JSC;
     state->extra[0] = currentIndex;
 
     return count;
+}
+
+- (void)dealloc {
+    {
+        JSLockHolder lock(self->_execState);
+        interop(self->_execState)->objectMap().remove(self);
+    }
+
+    [super dealloc];
 }
 
 @end

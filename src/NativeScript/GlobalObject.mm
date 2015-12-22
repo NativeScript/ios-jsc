@@ -80,9 +80,6 @@ const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &allowsA
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
     : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable)
-#if defined(__LP64__) && __LP64__
-    , _taggedPointers(vm)
-#endif
 {
 }
 

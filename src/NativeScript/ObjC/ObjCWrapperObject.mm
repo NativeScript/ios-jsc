@@ -20,6 +20,8 @@ void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* g
     this->setWrappedObject(wrappedObject);
     this->_canSetObjectAtIndexedSubscript = [wrappedObject respondsToSelector:@selector(setObject:
                                                                                   atIndexedSubscript:)];
+    this->_objectMap = &globalObject->interop()->objectMap();
+    this->_objectMap->set(wrappedObject, this);
 }
 
 WTF::String ObjCWrapperObject::className(const JSObject* object) {
@@ -46,6 +48,7 @@ void ObjCWrapperObject::putByIndex(JSCell* cell, ExecState* execState, unsigned 
 }
 
 ObjCWrapperObject::~ObjCWrapperObject() {
+    this->_objectMap->remove(this->wrappedObject());
 #ifdef DEBUG_MEMORY
     NSLog(@"ObjCWrapperObject soon releasing %@(%p)", object_getClass(this->_wrappedObject.get()), this->_wrappedObject.get());
 #endif

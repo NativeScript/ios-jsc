@@ -50,10 +50,15 @@ public:
         return this->_functionReferenceInstanceStructure.get();
     }
 
+    JSC::WeakGCMap<id, JSC::JSObject>& objectMap() {
+        return this->_objectMap;
+    }
+
 private:
     Interop(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure)
-        , _pointerToInstance(vm) {
+        , _pointerToInstance(vm)
+        , _objectMap(vm) {
     }
 
     void finishCreation(JSC::VM&, GlobalObject*);
@@ -67,7 +72,13 @@ private:
     JSC::WriteBarrier<JSC::Structure> _functionReferenceInstanceStructure;
 
     JSC::WeakGCMap<const void*, PointerInstance> _pointerToInstance;
+
+    JSC::WeakGCMap<id, JSC::JSObject> _objectMap;
 };
+
+static inline Interop* interop(JSC::ExecState* execState) {
+    return JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop();
+}
 }
 
 #endif /* defined(__NativeScript__Interop__) */
