@@ -81,7 +81,7 @@
                         }
                         mainFileName = packageJsonMain || mainFileName;
                     } catch (e) {
-                        throw new Error(`Error parsing package.json in '${absolutePath}' - ${e}`);
+                        throw new Error(`Error parsing package.json in 'file:///${getRelativeToBundlePath(absolutePath)}/package.json' - ${e}`);
                     }
                 }
 
