@@ -8,16 +8,6 @@
 (function (applicationPath, createModuleFunction) {
     'use strict';
 
-    // TODO: Use class syntax
-    function ModuleError() {
-        var tmp = Error.apply(this, arguments);
-        this.message = tmp.message;
-        Object.defineProperty(this, 'stack', { get: () => tmp.stack });
-    }
-    ModuleError.prototype = Object.create(Error.prototype);
-    ModuleError.prototype.constructor = ModuleError;
-    global.ModuleError = ModuleError;
-
     var fileManager = NSFileManager.defaultManager();
     var nsstr = NSString.stringWithString.bind(NSString);
 
@@ -74,7 +64,7 @@
             if (!fileManager.fileExistsAtPathIsDirectory(absoluteFilePath, isDirectory) &&
                 fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
                 if (!isDirectory.value) {
-                    throw new ModuleError(`Expected '${getRelativeToBundlePath(absolutePath)}' to be a directory.`);
+                    throw new Error(`Expected '${getRelativeToBundlePath(absolutePath)}' to be a directory.`);
                 }
 
                 var mainFileName = 'index.js';
@@ -91,7 +81,7 @@
                         }
                         mainFileName = packageJsonMain || mainFileName;
                     } catch (e) {
-                        throw new ModuleError(`Error parsing package.json in '${absolutePath}' - ${e}`);
+                        throw new Error(`Error parsing package.json in '${absolutePath}' - ${e}`);
                     }
                 }
 
@@ -106,11 +96,11 @@
         var bundlePath = getRelativeToBundlePath(absolutePath);
 
         if (!fileManager.fileExistsAtPathIsDirectory(absolutePath, isDirectory)) {
-            throw new ModuleError(`Failed to find module '${moduleIdentifier}' relative to 'file:///${previousPath}'. Computed path: '${bundlePath}'.`);
+            throw new Error(`Failed to find module '${moduleIdentifier}' relative to 'file:///${previousPath}'. Computed path: '${bundlePath}'.`);
         }
 
         if (isDirectory.value) {
-            throw new ModuleError(`Expected '${bundlePath}' to be a file`);
+            throw new Error(`Expected '${bundlePath}' to be a file`);
         }
 
         //console.debug('FIND_MODULE:', moduleIdentifier, absolutePath);
@@ -156,7 +146,7 @@
                 }
             }
         } else {
-            throw new ModuleError(`Unknown module type '${moduleMetadata.type}'`);
+            throw new Error(`Unknown module type '${moduleMetadata.type}'`);
         }
     }
 
