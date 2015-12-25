@@ -1,6 +1,6 @@
 function(CreateNativeScriptApp _target _main _plist _resources)
     include_directories(${RUNTIME_DIR} ${NATIVESCRIPT_DEBUGGING_DIR})
-    link_directories(${WEBKIT_LINK_DIRECTORIES} "${LIBFFI_DIR}/lib")
+    link_directories(${WEBKIT_LINK_DIRECTORIES} "${LIBFFI_LIB_DIR}")
 
     add_executable(${_target} ${_main} ${_resources})
 
