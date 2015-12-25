@@ -1,10 +1,4 @@
 // TODO: Use TypeScript definitions when they get ready
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
 var TSObject = (function (_super) {
     __extends(TSObject, _super);
     function TSObject() {
@@ -108,18 +102,6 @@ var TSObject1 = (function (_super) {
     TSObject1.ObjCProtocols = [TNSBaseProtocol2];
     return TSObject1;
 })(NSObject);
-var A = (function () {
-    function A() {
-    }
-    return A;
-})();
-var B = (function (_super) {
-    __extends(B, _super);
-    function B() {
-        _super.apply(this, arguments);
-    }
-    return B;
-})(A);
 var UnusedConstructor = (function (_super) {
     __extends(UnusedConstructor, _super);
     function UnusedConstructor() {
@@ -213,6 +195,31 @@ describe(module.id, function () {
             'baseProtocolProperty1Optional called');
     });
     it('PlainExtends', function () {
+        var A = (function () {
+            function A() {
+            }
+            return A;
+        })();
+        var B = (function (_super) {
+            __extends(B, _super);
+            function B() {
+                _super.apply(this, arguments);
+            }
+            return B;
+        })(A);
         expect(new B() instanceof A).toBe(true);
+    });
+    it('Scope', function () {
+        global["Derived"] = 3;
+        var Derived = (function (_super) {
+            __extends(Derived, _super);
+            function Derived() {
+                _super.apply(this, arguments);
+            }
+            return Derived;
+        })(NSObject);
+        ;
+        expect(global["Derived"]).toBe(3);
+        delete global["Derived"];
     });
 });

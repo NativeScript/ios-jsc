@@ -151,12 +151,6 @@ class TSObject1 extends NSObject {
     public static ObjCProtocols = [TNSBaseProtocol2];
 }
 
-class A {
-}
-
-class B extends A {
-}
-
 class UnusedConstructor extends NSObject {
     private x = 3;
 }
@@ -286,6 +280,19 @@ describe(module.id, function () {
     });
 
     it('PlainExtends', function () {
+        class A {
+        }
+
+        class B extends A {
+        }
+
         expect(new B() instanceof A).toBe(true);
+    });
+
+    it('Scope', function () {
+        global["Derived"] = 3;
+        class Derived extends NSObject { };
+        expect(global["Derived"]).toBe(3);
+        delete global["Derived"];
     });
 });

@@ -80,10 +80,13 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
 
     JSScope* scope = callFrame->scope(callFrame->codeBlock()->scopeRegister().offset());
     Identifier constructorName = Identifier::fromString(execState, name);
-    JSValue value = JSScope::resolve(execState, scope, constructorName);
-    if (value.isObject()) {
-        PutPropertySlot slot(value);
-        value.put(execState, constructorName, derivedConstructor, slot);
+    JSValue containingScope = JSScope::resolve(execState, scope, constructorName);
+    if (containingScope.isObject()) {
+        JSValue currentValue = containingScope.get(execState, constructorName);
+        if (currentValue.isCell() && currentValue.asCell() == typeScriptConstructor) {
+            PutPropertySlot slot(containingScope);
+            containingScope.put(execState, constructorName, derivedConstructor, slot);
+        }
     }
 
     // imp_implementationWithBlock calls block copy, class copy and initialize gets skipped
