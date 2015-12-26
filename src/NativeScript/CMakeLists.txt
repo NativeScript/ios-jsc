@@ -180,12 +180,12 @@ set(JSFILES
     require.js
 )
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_DIR}/include" "${WEBKIT_INCLUDE_DIRECTORIES}")
-link_directories("${LIBFFI_DIR}/lib" ${WEBKIT_LINK_DIRECTORIES})
+include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_INCLUDE_DIR}" "${WEBKIT_INCLUDE_DIRECTORIES}")
+link_directories("${LIBFFI_LIB_DIR}" ${WEBKIT_LINK_DIRECTORIES})
 
 add_library(NativeScript ${SOURCE_FILES} ${HEADER_FILES} ${JSFILES})
 
-add_dependencies(NativeScript WebKit)
+add_dependencies(NativeScript WebKit libffi)
 
 set_target_properties(NativeScript PROPERTIES
     COMPILE_FLAGS "
@@ -222,7 +222,7 @@ elseif(${EMBED_STATIC_DEPENDENCIES})
     endforeach()
 
     set_target_properties(NativeScript PROPERTIES
-        STATIC_LIBRARY_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${LIBFFI_DIR}/lib -lffi"
+        STATIC_LIBRARY_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${LIBFFI_LIB_DIR} -lffi"
     )
 endif()
 

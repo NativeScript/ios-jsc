@@ -10,3 +10,6 @@
 [submodule "src/webkit"]
 	path = src/webkit
 	url = git@github.com:NativeScript/webkit.git
+[submodule "src/libffi"]
+	path = src/libffi
+	url = git@github.com:NativeScript/libffi.git

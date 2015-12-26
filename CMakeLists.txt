@@ -12,8 +12,6 @@ set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "7.0")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-set(LIBFFI_DIR "${CMAKE_SOURCE_DIR}/src/libffi")
-set(WEBKIT_DIR "${CMAKE_SOURCE_DIR}/dist/jsc")
 set(RUNTIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/NativeScript")
 set(NATIVESCRIPT_DEBUGGING_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/debugging/")
 
@@ -32,6 +30,7 @@ option(EMBED_STATIC_DEPENDENCIES "Embed JavaScriptCore and libffi in the NativeS
 
 include(src/WebKit.cmake)
 include(src/MetadataGenerator.cmake)
+include(src/libffi.cmake)
 
 add_subdirectory(src/NativeScript)
 add_subdirectory(examples/Gameraww)
