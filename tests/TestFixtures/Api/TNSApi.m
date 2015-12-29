@@ -71,7 +71,7 @@ void functionThrowsException() {
 }
 @end
 
-@implementation TNSSwizzleKlass : NSObject
+@implementation TNSSwizzleKlass
 + (int)staticMethod:(int)x {
     return x;
 }
