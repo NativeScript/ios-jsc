@@ -116,7 +116,7 @@
 
     function __executeModule(moduleMetadata, module) {
         let modulePath = moduleMetadata.bundlePath;
-        let moduleSource = NSString.stringWithContentsOfFileEncodingError(moduleMetadata.path, NSUTF8StringEncoding, null);
+        let moduleSource = NSString.stringWithContentsOfFileEncodingError(moduleMetadata.path, NSUTF8StringEncoding);
 
         let hadError = true;
 
