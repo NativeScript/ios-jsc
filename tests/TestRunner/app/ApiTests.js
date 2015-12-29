@@ -488,7 +488,7 @@ describe(module.id, function () {
             // console.debug(x);
 
             // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
-            if (x == "kCFAllocatorUseContext") {
+            if (x == "kCFAllocatorUseContext" || x == "kSCNetworkInterfaceIPv4") {
                 return;
             }
 

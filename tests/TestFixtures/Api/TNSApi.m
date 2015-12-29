@@ -71,11 +71,14 @@ void functionThrowsException() {
 }
 @end
 
-@implementation TNSSwizzleKlass : NSObject
+@implementation TNSSwizzleKlass
 + (int)staticMethod:(int)x {
     return x;
 }
 - (int)instanceMethod:(int)x {
     return x;
 }
+@end
+
+@implementation TNSPropertyMethodConflictClass
 @end
