@@ -17,6 +17,7 @@
 #include "Metadata.h"
 #include "AllocatedPlaceholder.h"
 #include "ReleasePool.h"
+#include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -131,7 +132,7 @@ void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICa
 
     if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
         if (NSError* error = *invocation.getArgument<NSError**>(call->_argsCount - 1)) {
-            execState->vm().throwException(execState, toValue(execState, error));
+            execState->vm().throwException(execState, interop(execState)->wrapError(execState, error));
         }
     }
 }

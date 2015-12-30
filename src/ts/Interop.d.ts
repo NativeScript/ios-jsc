@@ -206,4 +206,14 @@ declare module interop {
        */
       takeUnretainedValue(): T;
     }
+    
+    interface NSErrorWrapper extends Error {
+        error: NSError;
+    }
+    
+    declare var NSErrorWrapper: {
+        new (error: NSError): NSErrorWrapper;
+        (error: NSError): NSErrorWrapper;
+        prototype: NSErrorWrapper;
+    }
 }
