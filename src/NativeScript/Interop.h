@@ -15,6 +15,7 @@
 namespace NativeScript {
 class PointerInstance;
 class ReferenceInstance;
+class NSErrorWrapperConstructor;
 
 void* tryHandleofValue(const JSC::JSValue&, bool*);
 
@@ -53,6 +54,10 @@ public:
     JSC::WeakGCMap<id, JSC::JSObject>& objectMap() {
         return this->_objectMap;
     }
+    
+#ifdef __OBJC__
+    JSC::ErrorInstance* wrapError(JSC::ExecState*, NSError *) const;
+#endif
 
 private:
     Interop(JSC::VM& vm, JSC::Structure* structure)
@@ -70,6 +75,8 @@ private:
     JSC::WriteBarrier<JSC::Structure> _referenceInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _functionReferenceInstanceStructure;
+    
+    JSC::WriteBarrier<NSErrorWrapperConstructor> _nsErrorWrapperConstructor;
 
     JSC::WeakGCMap<const void*, PointerInstance> _pointerToInstance;
 
