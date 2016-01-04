@@ -12,14 +12,6 @@
 namespace NativeScript {
 using namespace JSC;
 
-static EncodedJSValue JSC_HOST_CALL dispatchMessage(ExecState* execState) {
-    NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
-
-    globalObject->inspectorController().frontendRouter().sendResponse(execState->argument(0).toWTFString(execState));
-
-    return JSValue::encode(jsUndefined());
-}
-
 Ref<DomainBackendDispatcher> DomainBackendDispatcher::create(WTF::String domain, JSCell* constructorFunction, Inspector::JSAgentContext& context) {
     return adoptRef(*new DomainBackendDispatcher(domain, constructorFunction, context));
 }
@@ -29,10 +21,7 @@ DomainBackendDispatcher::DomainBackendDispatcher(WTF::String domain, JSCell* con
     , m_globalObject(context.inspectedGlobalObject) {
     ConstructData constructData;
     ConstructType constructType = getConstructData(constructorFunction, constructData);
-    JSFunction* dispatchMessageFunction = JSFunction::create(m_globalObject.vm(), &m_globalObject, 0, WTF::ASCIILiteral("dispatchMessage"), &dispatchMessage);
-
     MarkedArgumentBuffer constructArgs;
-    constructArgs.append(dispatchMessageFunction);
 
     JSObject* domainDispatcher = construct(m_globalObject.globalExec(), constructorFunction, constructType, constructData, constructArgs);
     m_domainDispatcher = Strong<JSObject>(m_globalObject.vm(), domainDispatcher);
