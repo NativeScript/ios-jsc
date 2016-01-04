@@ -170,7 +170,7 @@
 
         let module = {
             exports: {},
-            id: moduleMetadata.bundlePath,
+            id: moduleMetadata.path,
             filename: moduleMetadata.path,
         };
 
