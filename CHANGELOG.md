@@ -1,3 +1,9 @@
+1.5.2
+=====
+
+## Bug Fixes
+- [Private iOS API usage in JavaScriptCore](https://github.com/NativeScript/webkit/commit/0ebcf48cd284269540892244ef163dbaab9e79b9)
+
 1.5.1
 =====
 
