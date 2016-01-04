@@ -61,6 +61,8 @@ public:
 
 #ifdef __OBJC__
     JSC::ErrorInstance* wrapError(JSC::ExecState*, NSError*) const;
+
+    JSC::ErrorInstance* wrapException(JSC::ExecState*, NSException*) const;
 #endif
 
 private:

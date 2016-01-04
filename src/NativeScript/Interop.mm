@@ -335,8 +335,13 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&interop->_nsErrorWrapperConstructor);
 }
 
+#ifdef __OBJC__
 ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
     return this->_nsErrorWrapperConstructor->createError(execState, error);
+}
+
+ErrorInstance* Interop::wrapException(ExecState* execState, NSException* exception) const {
+    return this->_nsErrorWrapperConstructor->createError(execState, exception);
 }
 
 JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const {
@@ -346,4 +351,5 @@ JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const
     arrayBuffer->putDirect(execState->vm(), execState->propertyNames().homeObjectPrivateName, NativeScript::toValue(execState, data));
     return arrayBuffer;
 }
+#endif
 }

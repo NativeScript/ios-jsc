@@ -89,7 +89,7 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
-    Calling/FFICall.cpp
+    Calling/FFICall.mm
     Calling/FFICallPrototype.cpp
     Calling/FFIFunctionCall.mm
     Calling/FFIFunctionCallback.cpp

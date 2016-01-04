@@ -33,6 +33,7 @@ public:
 
     JSC::ErrorInstance* createError(JSC::ExecState*, NSError*) const;
 
+    JSC::ErrorInstance* createError(JSC::ExecState*, NSException*) const;
 private:
     NSErrorWrapperConstructor(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {

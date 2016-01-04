@@ -11,6 +11,8 @@
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <dispatch/dispatch.h>
+#include "JSErrors.h"
+#include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -93,9 +95,11 @@ EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
         return JSValue::encode(execState->exception());
     }
 
-    {
+    @try {
         JSLock::DropAllLocks locksDropper(execState);
         ffi_call(callee->_cif, FFI_FN(invocation.function), invocation._buffer + callee->_returnOffset, reinterpret_cast<void**>(invocation._buffer + callee->_argsArrayOffset));
+    } @catch (NSException* localException) {
+        reportFatalErrorBeforeShutdown(execState, Exception::create(execState->vm(), interop(execState)->wrapException(execState, localException)));
     }
 
     JSValue result = callee->_returnType.read(execState, invocation._buffer + callee->_returnOffset, callee->_returnTypeCell.get());

@@ -13,19 +13,19 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo NSErrorWrapperConstructor::s_info = { "NSErrorWrapper", &Base::s_info, 0, CREATE_METHOD_TABLE(NSErrorWrapperConstructor) };
+const ClassInfo NSErrorWrapperConstructor::s_info = { "NativeException", &Base::s_info, 0, CREATE_METHOD_TABLE(NSErrorWrapperConstructor) };
 
 void NSErrorWrapperConstructor::destroy(JSCell* cell) {
     jsCast<NSErrorWrapperConstructor*>(cell)->~NSErrorWrapperConstructor();
 }
 
 void NSErrorWrapperConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject) {
-    Base::finishCreation(vm, WTF::ASCIILiteral("NSError"));
+    Base::finishCreation(vm, WTF::ASCIILiteral("NativeException"));
 
     ErrorPrototype* prototype = ErrorPrototype::create(vm, globalObject, ErrorPrototype::createStructure(vm, globalObject, globalObject->errorPrototype()));
     prototype->putDirect(vm, vm.propertyNames->constructor, this);
     this->putDirect(vm, vm.propertyNames->prototype, prototype);
-    prototype->putDirect(vm, vm.propertyNames->name, jsString(&vm, WTF::ASCIILiteral("NSErrorWrapper")));
+    prototype->putDirect(vm, vm.propertyNames->name, jsString(&vm, WTF::ASCIILiteral("NativeException")));
 
     this->_errorStructure.set(vm, this, ErrorInstance::createStructure(vm, globalObject, prototype));
 }
@@ -39,8 +39,13 @@ void NSErrorWrapperConstructor::visitChildren(JSCell* cell, SlotVisitor& slotVis
 
 ErrorInstance* NSErrorWrapperConstructor::createError(ExecState* execState, NSError* error) const {
     ErrorInstance* wrappedError = ErrorInstance::create(execState, this->errorStructure(), jsString(execState, error.localizedDescription));
-    wrappedError->putDirect(execState->vm(), Identifier::fromString(execState, "error"), NativeScript::toValue(execState, error));
+    wrappedError->putDirect(execState->vm(), Identifier::fromString(execState, "nativeException"), NativeScript::toValue(execState, error));
+    return wrappedError;
+}
 
+ErrorInstance* NSErrorWrapperConstructor::createError(ExecState* execState, NSException* exception) const {
+    ErrorInstance* wrappedError = ErrorInstance::create(execState, this->errorStructure(), jsString(execState, exception.reason));
+    wrappedError->putDirect(execState->vm(), Identifier::fromString(execState, "nativeException"), NativeScript::toValue(execState, exception));
     return wrappedError;
 }
 
