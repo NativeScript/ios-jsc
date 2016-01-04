@@ -20,7 +20,7 @@ global.__JUnitSaveResults = function (text) {
     }
 };
 
-global.__approot = NSBundle.mainBundle().bundlePath;
+global.__approot = NSString.stringWithString(NSBundle.mainBundle().bundlePath).stringByResolvingSymlinksInPath;
 
 require('./Infrastructure/Jasmine/jasmine-2.0.1/boot');
 
