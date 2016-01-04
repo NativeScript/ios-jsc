@@ -96,9 +96,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
         return constructor;
     }
 
-    ffi_type* ffiType = new ffi_type({ .size = 0,
-                                       .alignment = 0,
-                                       .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({.size = 0,
+                                      .alignment = 0,
+                                      .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -141,9 +141,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
 }
 
 RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
-    ffi_type* ffiType = new ffi_type({ .size = 0,
-                                       .alignment = 0,
-                                       .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({.size = 0,
+                                      .alignment = 0,
+                                      .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -174,7 +174,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 
     VM& vm = globalObject->vm();
 
-    ffiType->elements = new ffi_type* [fieldsTypes.size() + 1];
+    ffiType->elements = new ffi_type*[fieldsTypes.size() + 1];
 #if defined(__x86_64__)
     bool hasNestedStruct = false;
 #endif
@@ -225,7 +225,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
         }
 
         delete[] ffiType->elements;
-        ffiType->elements = new ffi_type* [flattenedFfiTypes.size() + 1];
+        ffiType->elements = new ffi_type*[flattenedFfiTypes.size() + 1];
         memcpy(ffiType->elements, flattenedFfiTypes.data(), flattenedFfiTypes.size() * sizeof(ffi_type*));
         ffiType->elements[flattenedFfiTypes.size()] = nullptr;
     }

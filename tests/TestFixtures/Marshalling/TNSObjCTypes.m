@@ -55,13 +55,13 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 
 - (NumberReturner)methodWithBlockScope:(int)number {
     return ^(int a, int b, int c) {
-        return (number + a + b + c);
+      return (number + a + b + c);
     };
 }
 
 - (id)methodReturningBlockAsId:(int)number {
     return ^(int a, int b, int c) {
-        return (number + a + b + c);
+      return (number + a + b + c);
     };
 }
 

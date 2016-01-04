@@ -35,12 +35,13 @@ static bool isPlainTypeScriptConstructor(JSFunction* typeScriptConstructor) {
     ];
 
     NSUInteger index = [regularExpressions indexOfObjectPassingTest:^BOOL(id obj, NSUInteger idx, BOOL* stop) {
-        NSRegularExpression* regularExpression = [NSRegularExpression regularExpressionWithPattern:obj
-                                                                                           options:0
-                                                                                             error:nil];
-        return [regularExpression numberOfMatchesInString:@(sourceUTF8.data())
-                                                  options:0
-                                                    range:NSMakeRange(0, sourceUTF8.length())] > 0;
+      NSRegularExpression* regularExpression = [NSRegularExpression regularExpressionWithPattern:obj
+                                                                                         options:0
+                                                                                           error:nil];
+      return [regularExpression numberOfMatchesInString:@(sourceUTF8.data())
+                                                options:0
+                                                  range:NSMakeRange(0, sourceUTF8.length())]
+             > 0;
     }];
     return index != NSNotFound;
 }
@@ -93,24 +94,24 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     __block Class derivedClass = derivedConstructor->klass();
 
     IMP newInitialize = imp_implementationWithBlock(^(id self) {
-        if (self != [derivedClass self]) {
-            return;
-        }
+      if (self != [derivedClass self]) {
+          return;
+      }
 
-        JSLockHolder lock(globalObject->vm());
-        ExecState* globalExec = globalObject->globalExec();
+      JSLockHolder lock(globalObject->vm());
+      ExecState* globalExec = globalObject->globalExec();
 
-        JSObject* instanceMethods = jsCast<JSObject*>(derivedConstructor->get(globalExec, globalExec->vm().propertyNames->prototype));
-        JSValue implementedProtocols = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCProtocols"));
-        JSValue exposedMethods = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCExposedMethods"));
+      JSObject* instanceMethods = jsCast<JSObject*>(derivedConstructor->get(globalExec, globalExec->vm().propertyNames->prototype));
+      JSValue implementedProtocols = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCProtocols"));
+      JSValue exposedMethods = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCExposedMethods"));
 
-        classBuilder->implementProtocols(globalExec, implementedProtocols);
-        reportErrorIfAny(globalExec);
+      classBuilder->implementProtocols(globalExec, implementedProtocols);
+      reportErrorIfAny(globalExec);
 
-        classBuilder->addInstanceMembers(globalExec, instanceMethods, exposedMethods);
-        reportErrorIfAny(globalExec);
+      classBuilder->addInstanceMembers(globalExec, instanceMethods, exposedMethods);
+      reportErrorIfAny(globalExec);
 
-        classBuilder.reset();
+      classBuilder.reset();
     });
     class_addMethod(object_getClass(derivedClass), @selector(initialize), newInitialize, "v@:");
 

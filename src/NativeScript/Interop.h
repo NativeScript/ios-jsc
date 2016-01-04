@@ -54,9 +54,9 @@ public:
     JSC::WeakGCMap<id, JSC::JSObject>& objectMap() {
         return this->_objectMap;
     }
-    
+
 #ifdef __OBJC__
-    JSC::ErrorInstance* wrapError(JSC::ExecState*, NSError *) const;
+    JSC::ErrorInstance* wrapError(JSC::ExecState*, NSError*) const;
 #endif
 
 private:
@@ -75,7 +75,7 @@ private:
     JSC::WriteBarrier<JSC::Structure> _referenceInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _functionReferenceInstanceStructure;
-    
+
     JSC::WriteBarrier<NSErrorWrapperConstructor> _nsErrorWrapperConstructor;
 
     JSC::WeakGCMap<const void*, PointerInstance> _pointerToInstance;

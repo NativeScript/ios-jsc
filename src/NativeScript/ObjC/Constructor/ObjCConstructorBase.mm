@@ -192,7 +192,7 @@ static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
     }
 
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
-    JSValue result = toValue(execState, static_cast<id>(handle), ^Structure * {
+    JSValue result = toValue(execState, static_cast<id>(handle), ^Structure* {
       return constructor->instancesStructure();
     });
     return JSValue::encode(result);

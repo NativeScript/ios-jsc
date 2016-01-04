@@ -64,7 +64,7 @@ id toObject(ExecState* execState, const JSValue& value) {
     }
 
     if (value.isString()) {
-        return [[static_cast<NSString *>(jsCast<JSString*>(value)->value(execState)) copy] autorelease];
+        return [[static_cast<NSString*>(jsCast<JSString*>(value)->value(execState)) copy] autorelease];
     }
 
     if (JSArray* array = jsDynamicCast<JSArray*>(value)) {
@@ -139,7 +139,9 @@ JSValue toValue(ExecState* execState, id object, Class klass) {
         return globalObject->constructorFor(object_getClass(object), klass);
     }
 
-    return toValue(execState, object, ^{ return globalObject->constructorFor(object_getClass(object), klass)->instancesStructure(); });
+    return toValue(execState, object, ^{
+      return globalObject->constructorFor(object_getClass(object), klass)->instancesStructure();
+    });
 }
 
 JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)()) {

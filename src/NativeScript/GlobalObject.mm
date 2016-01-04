@@ -79,8 +79,7 @@ const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base
 const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &allowsAccessFrom, &supportsProfiling, &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, 0, 0, 0, 0, 0 };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
-    : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable)
-{
+    : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable) {
 }
 
 GlobalObject::~GlobalObject() {
@@ -215,7 +214,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     StringImpl* symbolName = propertyName.publicName();
     if (symbolName == nullptr)
         return false;
-    
+
     const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTable()->findMeta(symbolName);
     if (symbolMeta == nullptr)
         return false;

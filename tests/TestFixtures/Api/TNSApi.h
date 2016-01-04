@@ -12,7 +12,7 @@ typedef NS_ENUM(NSInteger, TNSEnums) {
     TNSEnum3,
 };
 
-typedef NS_OPTIONS(NSInteger, TNSOptions){
+typedef NS_OPTIONS(NSInteger, TNSOptions) {
     TNSOption1 = 1 << 0,
     TNSOption2 = 1 << 1,
     TNSOption3 = 1 << 2,

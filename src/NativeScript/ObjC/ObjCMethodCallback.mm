@@ -90,7 +90,7 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
 
                 NSError**** outErrorPtr = reinterpret_cast<NSError****>(argValues + (methodCallback->parametersCount() + methodCallback->_initialArgumentIndex - 1));
                 if (**outErrorPtr) {
-                    *** outErrorPtr = nserror;
+                    ***outErrorPtr = nserror;
                 }
             } else if (methodCallback->_returnTypeCell.get() == static_cast<JSCell*>(jsCast<GlobalObject*>(execState->lexicalGlobalObject())->typeFactory()->boolType())) {
                 memset(retValue, 1, methodCallback->_returnType.ffiType->size);
