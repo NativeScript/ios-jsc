@@ -39,8 +39,7 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
 
     if (this->_hasErrorOutParameter) {
         this->_argumentCountValidator = [](FFICall* call, ExecState* execState) {
-            return execState->argumentCount() == call->parametersCount() ||
-                   execState->argumentCount() == call->parametersCount() - 1;
+            return execState->argumentCount() == call->parametersCount() || execState->argumentCount() == call->parametersCount() - 1;
         };
     }
 

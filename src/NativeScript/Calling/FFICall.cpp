@@ -30,7 +30,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
     size_t parametersCount = parameterTypes.size();
     this->putDirect(vm, vm.propertyNames->length, jsNumber(parametersCount), ReadOnly | DontEnum | DontDelete);
 
-    const ffi_type** parameterTypesFFITypes = new const ffi_type* [parametersCount + initialArgumentIndex];
+    const ffi_type** parameterTypesFFITypes = new const ffi_type*[parametersCount + initialArgumentIndex];
 
     for (size_t i = 0; i < initialArgumentIndex; ++i) {
         parameterTypesFFITypes[i] = &ffi_type_pointer;
@@ -136,41 +136,41 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     __block Strong<FFICall> callee(execState->vm(), this);
 
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        ffi_call(callee->_cif, FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
+      ffi_call(callee->_cif, FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
 
-        JSLockHolder lockHolder(fakeExecState);
-        // we no longer have a valid caller on the stack, what with being async and all
-        fakeExecState->setCallerFrame(CallFrame::noCaller());
+      JSLockHolder lockHolder(fakeExecState);
+      // we no longer have a valid caller on the stack, what with being async and all
+      fakeExecState->setCallerFrame(CallFrame::noCaller());
 
-        JSValue result;
-        {
-            TopCallFrameSetter frameSetter(fakeExecState->vm(), fakeExecState);
-            result = _returnType.read(fakeExecState, invocation->_buffer + _returnOffset, _returnTypeCell.get());
+      JSValue result;
+      {
+          TopCallFrameSetter frameSetter(fakeExecState->vm(), fakeExecState);
+          result = _returnType.read(fakeExecState, invocation->_buffer + _returnOffset, _returnTypeCell.get());
 
-            if (InvocationHook post = _invocationHooks.post) {
-                post(this, fakeExecState, *invocation);
-            }
-        }
+          if (InvocationHook post = _invocationHooks.post) {
+              post(this, fakeExecState, *invocation);
+          }
+      }
 
-        if (Exception* exception = fakeExecState->exception()) {
-            fakeExecState->clearException();
-            CallData rejectCallData;
-            CallType rejectCallType = JSC::getCallData(deferred->reject(), rejectCallData);
+      if (Exception* exception = fakeExecState->exception()) {
+          fakeExecState->clearException();
+          CallData rejectCallData;
+          CallType rejectCallType = JSC::getCallData(deferred->reject(), rejectCallData);
 
-            MarkedArgumentBuffer rejectArguments;
-            rejectArguments.append(exception->value());
-            JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->reject(), rejectCallType, rejectCallData, jsUndefined(), rejectArguments);
-        } else {
-            CallData resolveCallData;
-            CallType resolveCallType = JSC::getCallData(deferred->resolve(), resolveCallData);
+          MarkedArgumentBuffer rejectArguments;
+          rejectArguments.append(exception->value());
+          JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->reject(), rejectCallType, rejectCallData, jsUndefined(), rejectArguments);
+      } else {
+          CallData resolveCallData;
+          CallType resolveCallType = JSC::getCallData(deferred->resolve(), resolveCallData);
 
-            MarkedArgumentBuffer resolveArguments;
-            resolveArguments.append(result);
-            JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->resolve(), resolveCallType, resolveCallData, jsUndefined(), resolveArguments);
-        }
+          MarkedArgumentBuffer resolveArguments;
+          resolveArguments.append(result);
+          JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->resolve(), resolveCallType, resolveCallData, jsUndefined(), resolveArguments);
+      }
 
-        delete fakeCallFrame;
-        delete releasePool;
+      delete fakeCallFrame;
+      delete releasePool;
     });
 
     return deferred->promise();

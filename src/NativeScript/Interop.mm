@@ -83,7 +83,6 @@ void* tryHandleofValue(const JSValue& value, bool* hasHandle) {
         } else {
             handle = arrayBufferView->vector();
         }
-
     } else if (value.isNull()) {
         *hasHandle = true;
         handle = nullptr;
@@ -247,10 +246,10 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     FunctionReferenceConstructor* functionReferenceConstructor = FunctionReferenceConstructor::create(vm, FunctionReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferencePrototype);
     this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name(globalObject->globalExec())), functionReferenceConstructor, ReadOnly | DontDelete);
     functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, DontEnum);
-    
+
     this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
     this->putDirect(vm, Identifier::fromString(&vm, "NSErrorWrapper"), this->_nsErrorWrapperConstructor.get());
-    
+
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, ReadOnly | DontDelete);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, ReadOnly | DontDelete);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("adopt")), 0, &interopFuncAdopt, NoIntrinsic, ReadOnly | DontDelete);
@@ -338,8 +337,8 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&interop->_functionReferenceInstanceStructure);
     visitor.append(&interop->_nsErrorWrapperConstructor);
 }
-    
-    ErrorInstance* Interop::wrapError(ExecState* execState, NSError *error) const {
-        return this->_nsErrorWrapperConstructor->createError(execState, error);
-    }
+
+ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
+    return this->_nsErrorWrapperConstructor->createError(execState, error);
+}
 }

@@ -78,7 +78,7 @@ inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlo
 
     size_t parametersCount = parameterTypes.size();
 
-    const ffi_type** parameterTypesFFITypes = new const ffi_type* [parametersCount + initialArgumentIndex];
+    const ffi_type** parameterTypesFFITypes = new const ffi_type*[parametersCount + initialArgumentIndex];
 
     for (size_t i = 0; i < initialArgumentIndex; ++i) {
         parameterTypesFFITypes[i] = &ffi_type_pointer;
