@@ -1,7 +1,7 @@
 // Inform the test results runner that the runtime is up.
 console.log('Application Start!');
 
-require('./Infrastructure/timers');
+import "./Infrastructure/timers";
 
 global.UNUSED = function (param) {
 };
@@ -22,42 +22,42 @@ global.__JUnitSaveResults = function (text) {
 
 global.__approot = NSString.stringWithString(NSBundle.mainBundle().bundlePath).stringByResolvingSymlinksInPath;
 
-require('./Infrastructure/Jasmine/jasmine-2.0.1/boot');
+import "./Infrastructure/Jasmine/jasmine-2.0.1/boot";
 
-require('./Marshalling/Primitives/Function');
-require('./Marshalling/Primitives/Static');
-require('./Marshalling/Primitives/Instance');
-require('./Marshalling/Primitives/Derived');
+import "./Marshalling/Primitives/Function";
+import "./Marshalling/Primitives/Static";
+import "./Marshalling/Primitives/Instance";
+import "./Marshalling/Primitives/Derived";
 
-require('./Marshalling/ObjCTypesTests');
-require('./Marshalling/ConstantsTests');
-require('./Marshalling/RecordTests');
-require('./Marshalling/NSStringTests');
-require('./Marshalling/TypesTests');
-require('./Marshalling/PointerTests');
-require('./Marshalling/ReferenceTests');
-require('./Marshalling/FunctionPointerTests');
-require('./Marshalling/EnumTests');
+import "./Marshalling/ObjCTypesTests";
+import "./Marshalling/ConstantsTests";
+import "./Marshalling/RecordTests";
+import "./Marshalling/NSStringTests";
+import "./Marshalling/TypesTests";
+import "./Marshalling/PointerTests";
+import "./Marshalling/ReferenceTests";
+import "./Marshalling/FunctionPointerTests";
+import "./Marshalling/EnumTests";
 
-// require('./Inheritance/ConstructorResolutionTests');
-require('./Inheritance/InheritanceTests');
-require('./Inheritance/ProtocolImplementationTests');
-require('./Inheritance/TypeScriptTests');
+// import "./Inheritance/ConstructorResolutionTests";
+import "./Inheritance/InheritanceTests";
+import "./Inheritance/ProtocolImplementationTests";
+import "./Inheritance/TypeScriptTests";
 
-require('./MethodCallsTests');
-require('./FunctionsTests');
-require('./VersionDiffTests');
-require('./ObjCConstructors');
+import "./MethodCallsTests";
+import "./FunctionsTests";
+import "./VersionDiffTests";
+import "./ObjCConstructors";
 
-require('./MetadataTests');
+import "./MetadataTests";
 
 // Tests common for all runtimes.
-require('./shared');
+import "./shared";
 
-require('./ApiTests');
-require('./DeclarationConflicts');
+import "./ApiTests";
+import "./DeclarationConflicts";
 
-require('./Promises');
+import "./Promises";
 
 execute();
 

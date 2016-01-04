@@ -12,6 +12,7 @@
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <objc/runtime.h>
 #include <map>
+#include <list>
 #include <wtf/Deque.h>
 
 namespace NativeScript {
@@ -135,13 +136,22 @@ public:
         return this->_fastEnumerationIteratorStructure.get();
     }
 
-    void setMicrotaskRunLoopAndMode(CFRunLoopRef runLoop, CFTypeRef mode) {
-        this->_microtaskRunLoop = runLoop;
-        this->_microtaskRunLoopMode = mode;
+    CFRunLoopSourceRef microtaskRunLoopSource() const {
+        return this->_microtaskRunLoopSource.get();
     }
+
+    std::list<WTF::RetainPtr<CFRunLoopRef>>& microtaskRunLoops() {
+        return this->_microtaskRunLoops;
+    }
+
+    void drainMicrotasks();
 
     WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>>& releasePools() {
         return this->_releasePools;
+    }
+
+    const JSC::Identifier& commonJSModuleFunctionIdentifier() const {
+        return this->_commonJSModuleFunctionIdentifier;
     }
 
 private:
@@ -153,14 +163,27 @@ private:
 
     static void destroy(JSC::JSCell* cell);
 
+    WTF::Deque<WTF::RefPtr<JSC::Microtask>> _microtasksQueue;
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
+
+    static JSC::JSInternalPromise* moduleLoaderResolve(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue referrerValue);
+
+    static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue);
+
+    static JSC::JSInternalPromise* moduleLoaderTranslate(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue sourceValue);
+
+    static JSC::JSInternalPromise* moduleLoaderInstantiate(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue sourceValue);
+
+    static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue);
+
+    static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
 
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 
     WTF::String _applicationPath;
 
-    WTF::RetainPtr<CFRunLoopRef> _microtaskRunLoop;
-    WTF::RetainPtr<CFTypeRef> _microtaskRunLoopMode;
+    std::list<WTF::RetainPtr<CFRunLoopRef>> _microtaskRunLoops;
+    WTF::RetainPtr<CFRunLoopSourceRef> _microtaskRunLoopSource;
 
     JSC::WriteBarrier<FFICallPrototype> _ffiCallPrototype;
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
@@ -195,6 +218,8 @@ private:
     std::map<const Protocol*, JSC::Strong<ObjCProtocolWrapper>> _objCProtocolWrappers;
 
     WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>> _releasePools;
+
+    JSC::Identifier _commonJSModuleFunctionIdentifier;
 };
 }
 

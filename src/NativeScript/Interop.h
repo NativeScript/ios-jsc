@@ -51,6 +51,10 @@ public:
         return this->_functionReferenceInstanceStructure.get();
     }
 
+#ifdef __OBJC__
+    JSC::JSArrayBuffer* bufferFromData(JSC::ExecState*, NSData*) const;
+#endif
+
     JSC::WeakGCMap<id, JSC::JSObject>& objectMap() {
         return this->_objectMap;
     }

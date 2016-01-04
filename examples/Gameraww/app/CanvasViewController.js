@@ -1,4 +1,4 @@
-var utils = require('./Utils');
+import fetch from './fetch';
 
 var JSCanvasViewController = UICollectionViewController.extend({
     numberOfSectionsInCollectionView: function () {
@@ -18,10 +18,10 @@ var JSCanvasViewController = UICollectionViewController.extend({
 
         var item = this.items[indexPath.item];
 
-        utils.fetch(item["thumbnail"])
-             .then(data => UIImage.imageWithData.async(UIImage, [data]))
-             .then(image => imageView.image = image)
-             .catch(error => console.error(error.toString()));
+        fetch(item["thumbnail"])
+            .then(data => UIImage.imageWithData.async(UIImage, [ data ]))
+            .then(image => imageView.image = image)
+            .catch(error => console.error(error.toString()));
 
         return cell;
     },

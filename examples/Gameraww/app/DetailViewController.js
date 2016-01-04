@@ -1,4 +1,4 @@
-var utils = require('./Utils');
+import fetch from './fetch';
 
 var JSDetailViewController = UIViewController.extend({
     viewWillAppear: function (animated) {
@@ -12,10 +12,10 @@ var JSDetailViewController = UIViewController.extend({
             url += ".jpg";
         }
 
-        utils.fetch(url)
-             .then(data => UIImage.imageWithData.async(UIImage, [data]))
-             .then(this.setImage.bind(this))
-             .catch(error => console.error(error));
+        fetch(url)
+            .then(data => UIImage.imageWithData.async(UIImage, [ data ]))
+            .then(this.setImage.bind(this))
+            .catch(error => console.error(error));
 
         UIViewController.prototype.viewWillAppear.call(this, animated);
     },

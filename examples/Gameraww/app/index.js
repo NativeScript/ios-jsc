@@ -1,6 +1,6 @@
-require('./CanvasViewController');
-require('./DetailViewController');
-require('./MasterViewController');
+import './CanvasViewController';
+import './DetailViewController';
+import './MasterViewController';
 
 var TNSAppDelegate = UIResponder.extend({
     get window() {
