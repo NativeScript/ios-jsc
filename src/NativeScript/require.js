@@ -70,12 +70,16 @@
                 let mainFileName = 'index.js';
 
                 let packageJsonPath = nsstr(absolutePath).stringByAppendingPathComponent("package.json");
-                let packageJson = NSString.stringWithContentsOfFileEncodingError(packageJsonPath, NSUTF8StringEncoding, null);
-                if (packageJson) {
+                if (fileManager.fileExistsAtPathIsDirectory(packageJsonPath, isDirectory)) {
+                    if (isDirectory.value) {
+                        throw new Error(`Expected '${getRelativeToBundlePath(packageJsonPath)}' to be a file.`);
+                    }
+
                     //console.debug("PACKAGE_FOUND: " + packageJsonPath);
 
                     let packageJsonMain;
                     try {
+                        let packageJson = NSString.stringWithContentsOfFileEncodingError(packageJsonPath, NSUTF8StringEncoding);
                         packageJsonMain = JSON.parse(packageJson).main;
                     } catch (e) {
                         throw new Error(`Error parsing package.json in 'file:///${getRelativeToBundlePath(absolutePath)}/package.json' - ${e}`);
