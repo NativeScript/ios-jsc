@@ -4,8 +4,13 @@
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/Inspector/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/Inspector/InspectorFrontendDispatchers.h>
+#include <JavaScriptCore/profiler/LegacyProfiler.h>
 
 namespace Inspector {
+    
+JSC::EncodedJSValue JSC_HOST_CALL startProfile(JSC::ExecState* execState);
+JSC::EncodedJSValue JSC_HOST_CALL stopProfile(JSC::ExecState* execState);
+    
 enum class TimelineRecordType {
     EventDispatch,
     ScheduleStyleRecalculation,
@@ -43,6 +48,9 @@ class InspectorTimelineAgent final
 public:
     InspectorTimelineAgent(JSAgentContext&);
 
+    static inline void startProfiling(JSC::ExecState* exec, const String& title, PassRefPtr<Stopwatch> stopwatch);
+    static inline PassRefPtr<JSC::Profile> stopProfiling(JSC::ExecState* exec, const String& title);
+          
     virtual void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(DisconnectReason) override;
 

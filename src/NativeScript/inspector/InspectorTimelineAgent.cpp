@@ -1,7 +1,6 @@
 #include "InspectorTimelineAgent.h"
 #include "TimelineRecordFactory.h"
 #include <JavaScriptCore/InspectorEnvironment.h>
-#include <JavaScriptCore/profiler/LegacyProfiler.h>
 #include "GlobalObjectInspectorController.h"
 
 namespace Inspector {
@@ -35,12 +34,33 @@ void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {
     ErrorString unused;
     stop(unused);
 }
+    
+JSC::EncodedJSValue JSC_HOST_CALL startProfile(JSC::ExecState* execState) {
+    NativeScript::GlobalObject* globalObject = JSC::jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+    WTF::String identifier = execState->argument(0).toWTFString(execState);
+    
+    InspectorTimelineAgent::startProfiling(execState, identifier, globalObject->inspectorController().executionStopwatch());
+    
+    return JSC::JSValue::encode(JSC::jsUndefined());
+}
 
-static inline void startProfiling(JSC::ExecState* exec, const String& title, PassRefPtr<Stopwatch> stopwatch) {
+JSC::EncodedJSValue JSC_HOST_CALL stopProfile(JSC::ExecState* execState) {
+    WTF::String identifier = execState->argument(0).toWTFString(execState);
+    
+    RefPtr<JSC::Profile> profile = InspectorTimelineAgent::stopProfiling(execState, identifier);
+    if (profile) {
+        Ref<InspectorValue> inspectorObject = TimelineRecordFactory::buildProfileInspectorObject(profile.get());
+        return JSC::JSValue::encode(JSC::jsString(&execState->vm(), inspectorObject->toJSONString()));
+    }
+
+    return JSC::JSValue::encode(JSC::jsUndefined());
+}
+    
+void InspectorTimelineAgent::startProfiling(JSC::ExecState* exec, const String& title, PassRefPtr<Stopwatch> stopwatch) {
     JSC::LegacyProfiler::profiler()->startProfiling(exec, title, stopwatch);
 }
 
-static inline PassRefPtr<JSC::Profile> stopProfiling(JSC::ExecState* exec, const String& title) {
+PassRefPtr<JSC::Profile> InspectorTimelineAgent::stopProfiling(JSC::ExecState* exec, const String& title) {
     return JSC::LegacyProfiler::profiler()->stopProfiling(exec, title);
 }
 
