@@ -134,6 +134,8 @@ using namespace NativeScript;
 }
 
 - (NSEnumerator*)keyEnumerator {
+    JSLockHolder lock(self->_execState);
+
     JSObject* object = self->_object.get();
     if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
         return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMap:map execState:self->_execState] autorelease];
