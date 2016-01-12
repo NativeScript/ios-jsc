@@ -216,11 +216,8 @@ static EncodedJSValue JSC_HOST_CALL interopFuncBufferFromData(ExecState* execSta
     }
 
     if ([object isKindOfClass:[NSData class]]) {
-        JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(), ArrayBuffer::createAdopted([object bytes], [object length], false));
-
-        // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
-        arrayBuffer->putDirect(execState->vm(), execState->propertyNames().homeObjectPrivateName, execState->argument(0));
-        return JSValue::encode(arrayBuffer);
+        JSArrayBuffer* buffer = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->bufferFromData(execState, object);
+        return JSValue::encode(buffer);
     }
 
     return throwVMTypeError(execState, WTF::ASCIILiteral("Argument must be an NSData instance."));
@@ -340,5 +337,13 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 
 ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
     return this->_nsErrorWrapperConstructor->createError(execState, error);
+}
+
+JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const {
+    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(), ArrayBuffer::createAdopted([data bytes], [data length], false));
+
+    // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
+    arrayBuffer->putDirect(execState->vm(), execState->propertyNames().homeObjectPrivateName, NativeScript::toValue(execState, data));
+    return arrayBuffer;
 }
 }

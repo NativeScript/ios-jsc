@@ -17,7 +17,6 @@ set(HEADER_FILES
     inspector/InspectorPageAgent.h
     inspector/InspectorTimelineAgent.h
     inspector/MimeTypeHelper.h
-    inspector/SourceProviderManager.h
     Interop.h
     JSErrors.h
     JSWarnings.h
@@ -95,6 +94,7 @@ set(SOURCE_FILES
     Calling/FFIFunctionCall.mm
     Calling/FFIFunctionCallback.cpp
     GlobalObject.mm
+	GlobalObject.moduleLoader.mm
     inspector/CachedResource.mm
     inspector/DomainBackendDispatcher.cpp
     inspector/DomainInspectorAgent.cpp
@@ -103,7 +103,6 @@ set(SOURCE_FILES
     inspector/GlobalObjectInspectorController.cpp
     inspector/InspectorPageAgent.mm
     inspector/InspectorTimelineAgent.cpp
-    inspector/SourceProviderManager.cpp
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp
@@ -179,7 +178,6 @@ set(NativeScript_PUBLIC_HEADERS
 set(JSFILES
     __extends.js
     inlineFunctions.js
-    require.js
 )
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_INCLUDE_DIR}" "${WEBKIT_INCLUDE_DIRECTORIES}")
@@ -214,6 +212,7 @@ if(${BUILD_SHARED_LIBS})
         libc++.dylib
         "-framework UIKit"
         "-framework MobileCoreServices"
+		"-framework Security"
     )
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})

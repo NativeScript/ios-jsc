@@ -17,4 +17,4 @@
 #include "JSWarnings.h"
 #endif
 
-#include <JavaScriptCore/JavaScriptCore.h>
+#include <JavaScriptCore/JavaScript.h>

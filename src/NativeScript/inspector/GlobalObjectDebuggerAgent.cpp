@@ -33,6 +33,10 @@
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
+#include <JavaScriptCore/ModuleLoaderObject.h>
+#include <JavaScriptCore/JSModuleRecord.h>
+#include <JavaScriptCore/JSMapIterator.h>
+#include <JavaScriptCore/MapDataInlines.h>
 
 using namespace JSC;
 using namespace Inspector;
@@ -48,11 +52,19 @@ GlobalObjectDebuggerAgent::GlobalObjectDebuggerAgent(JSAgentContext& context, In
 void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
     InspectorDebuggerAgent::enable(errorString);
 
-    ResourceManager& resourceManager = ResourceManager::getInstance();
-    WTF::HashMap<WTF::String, WTF::RefPtr<JSC::SourceProvider>>& sourceProviders = resourceManager.sourceProviders();
+    JSValue registry = this->m_globalObject->moduleLoader()->get(this->m_globalObject->globalExec(), Identifier::fromString(&this->m_globalObject->vm(), "registry"));
+    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->mapIteratorStructure(), jsCast<JSMap*>(registry), MapIterateKeyValue);
 
-    for (auto resource : sourceProviders) {
-        m_globalObject->debugger()->sourceParsed(m_globalObject->globalExec(), resource.value.get(), -1, WTF::emptyString());
+    JSValue moduleKey, moduleEntry;
+    Identifier moduleIdentifier = Identifier::fromString(&this->m_globalObject->vm(), "module");
+    while (registryIterator->nextKeyValue(moduleKey, moduleEntry)) {
+        if (JSModuleRecord* record = jsDynamicCast<JSModuleRecord*>(moduleEntry.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
+            SourceProvider* sourceProvider = record->sourceCode().provider();
+            if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
+                sourceProvider = moduleFunction->sourceCode()->provider();
+            }
+            this->m_globalObject->debugger()->sourceParsed(this->m_globalObject->globalExec(), sourceProvider, -1, WTF::emptyString());
+        }
     }
 }
 

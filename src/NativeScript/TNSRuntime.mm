@@ -13,18 +13,19 @@
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/JSInternalPromise.h>
+#include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/Exception.h>
 
 #if PLATFORM(IOS)
 #import <UIKit/UIApplication.h>
 #endif
 
-#include "require.h"
 #include "inlineFunctions.h"
 #import "TNSRuntime.h"
 #import "TNSRuntime+Private.h"
 #include "JSErrors.h"
 #include "Metadata/Metadata.h"
-#include "inspector/SourceProviderManager.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -74,11 +75,13 @@ using namespace NativeScript;
 }
 
 - (void)scheduleInRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
-    self->_globalObject->setMicrotaskRunLoopAndMode([runLoop getCFRunLoop], mode);
+    CFRunLoopAddSource(runLoop.getCFRunLoop, self->_globalObject->microtaskRunLoopSource(), (CFStringRef)mode);
+    self->_globalObject->microtaskRunLoops().push_back(WTF::retainPtr(runLoop.getCFRunLoop));
 }
 
 - (void)removeFromRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
-    self->_globalObject->setMicrotaskRunLoopAndMode(nullptr, nullptr);
+    CFRunLoopRemoveSource(runLoop.getCFRunLoop, self->_globalObject->microtaskRunLoopSource(), (CFStringRef)mode);
+    self->_globalObject->microtaskRunLoops().remove(WTF::retainPtr(runLoop.getCFRunLoop));
 }
 
 - (JSGlobalContextRef)globalContext {
@@ -93,73 +96,24 @@ using namespace NativeScript;
 }
 #endif
 
-static JSObject* constructFunction(
-    ExecState* exec, JSGlobalObject* globalObject,
-    const Identifier& functionName, const String& sourceURL,
-    const String& moduleBody, const TextPosition& position) {
-    if (!globalObject->evalEnabled())
-        return exec->vm().throwException(exec, createEvalError(exec, globalObject->evalDisabledErrorMessage()));
-
-    ResourceManager& resourceManager = ResourceManager::getInstance();
-    WTF::RefPtr<SourceProvider> sourceProvider = resourceManager.addSourceProvider(sourceURL, moduleBody);
-    SourceCode source(sourceProvider, position.m_line.oneBasedInt(), position.m_column.oneBasedInt());
-    JSObject* exception = nullptr;
-    FunctionExecutable* function = FunctionExecutable::fromGlobalCode(functionName, *exec, source, exception, -1);
-    if (!function) {
-        ASSERT(exception);
-        return exec->vm().throwException(exec, exception);
-    }
-
-    return JSFunction::create(exec->vm(), function, globalObject);
-}
-
-static JSC_HOST_CALL EncodedJSValue createModuleFunction(ExecState* execState) {
-    WTF::String moduleBody = execState->argument(0).toWTFString(execState);
-    WTF::String moduleUrl = execState->argument(1).toWTFString(execState);
-
-    JSObject* constructedFunction = constructFunction(execState, execState->lexicalGlobalObject(), execState->propertyNames().anonymous, moduleUrl, moduleBody, WTF::TextPosition());
-    if (execState->hadException()) {
-        return JSValue::encode(jsUndefined());
-    }
-
-    JSFunction* moduleFunction = jsCast<JSFunction*>(constructedFunction);
-
-    return JSValue::encode(moduleFunction);
-}
-
 - (void)executeModule:(NSString*)entryPointModuleIdentifier {
     JSLockHolder lock(*self->_vm);
+    JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier);
 
-    WTF::NakedPtr<Exception> exception;
-#ifdef DEBUG
-    SourceCode sourceCode = makeSource(WTF::String(require_js, require_js_len), WTF::ASCIILiteral("require.js"));
-#else
-    SourceCode sourceCode = makeSource(WTF::String(require_js, require_js_len));
-#endif
-    JSValue requireFactory = evaluate(self->_globalObject->globalExec(), sourceCode, JSValue(), exception);
-    if (exception) {
-        reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
-        return;
-    }
+    JSValue error;
+    JSFunction* errorHandler = JSNativeStdFunction::create(*self->_vm.get(), self->_globalObject.get(), 1, String(), [&](ExecState* execState) {
+        error = execState->argument(0);
+        return JSValue::encode(jsUndefined());
+    });
+    promise->then(self->_globalObject->globalExec(), nullptr, errorHandler);
 
-    MarkedArgumentBuffer requireFactoryArgs;
-    requireFactoryArgs.append(jsString(self->_vm.get(), WTF::String(self->_applicationPath)));
-    requireFactoryArgs.append(JSFunction::create(*self->_vm, self->_globalObject.get(), 2, WTF::emptyString(), createModuleFunction));
-    CallData requireFactoryCallData;
-    CallType requireFactoryCallType = requireFactory.asCell()->methodTable()->getCallData(requireFactory.asCell(), requireFactoryCallData);
-    JSValue require = call(self->_globalObject->globalExec(), requireFactory.asCell(), requireFactoryCallType, requireFactoryCallData, jsNull(), requireFactoryArgs, exception);
-    if (exception) {
-        reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
-        return;
-    }
+    self->_globalObject->drainMicrotasks();
+    if (error) {
+        Exception* exception = jsDynamicCast<Exception*>(error);
+        if (!exception) {
+            exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
+        }
 
-    MarkedArgumentBuffer requireArgs;
-    requireArgs.append(jsString(self->_vm.get(), entryPointModuleIdentifier));
-
-    CallData requireCallData;
-    CallType requireCallType = require.asCell()->methodTable()->getCallData(require.asCell(), requireCallData);
-    call(self->_globalObject->globalExec(), require.asCell(), requireCallType, requireCallData, jsNull(), requireArgs, exception);
-    if (exception) {
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
     }
 }
