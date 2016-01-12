@@ -64,6 +64,11 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
         absolutePath = [[absolutePath stringByAppendingPathComponent:path] stringByStandardizingPath];
     }
 
+    WTF::String requestedPath = absolutePath;
+    if (self->modulePathCache().contains(requestedPath)) {
+        return deferred->resolve(execState, jsString(execState, self->modulePathCache().get(requestedPath)));
+    }
+
     NSFileManager* fileManager = [NSFileManager defaultManager];
     NSString* absoluteFilePath = absolutePath;
     if (absoluteFilePath.pathExtension.length == 0) {
@@ -113,6 +118,7 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
         return deferred->reject(execState, createError(execState, WTF::String::format("Expected '%s' to be a file", absoluteFilePath.UTF8String)));
     }
 
+    self->modulePathCache().set(requestedPath, absoluteFilePath);
     return deferred->resolve(execState, jsString(execState, absoluteFilePath));
 }
 

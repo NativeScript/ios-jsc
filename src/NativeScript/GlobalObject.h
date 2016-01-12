@@ -154,6 +154,10 @@ public:
         return this->_commonJSModuleFunctionIdentifier;
     }
 
+    WTF::HashMap<WTF::String, WTF::String>& modulePathCache() {
+        return this->_modulePathCache;
+    }
+
 private:
     GlobalObject(JSC::VM& vm, JSC::Structure* structure);
 
@@ -220,6 +224,8 @@ private:
     WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>> _releasePools;
 
     JSC::Identifier _commonJSModuleFunctionIdentifier;
+
+    WTF::HashMap<WTF::String, WTF::String> _modulePathCache;
 };
 }
 
