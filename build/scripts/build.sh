@@ -11,11 +11,11 @@ cd "$WORKSPACE/cmake-build"
 
 echo "Building NativeScript.framework..."
 rm -f CMakeCache.txt
-echo -e "\tConfiguring..."
+echo "\tConfiguring..."
 cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON > "$WORKSPACE/build.log" 2>&1
-echo -e "\tiPhoneOS..."
+echo "\tiPhoneOS..."
 xcodebuild -configuration Release -sdk iphoneos -target NativeScript >> "$WORKSPACE/build.log" 2>&1
-echo -e "\tiPhoneSimulator..."
+echo "\tiPhoneSimulator..."
 xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript >> "$WORKSPACE/build.log" 2>&1
 
 echo "Packaging NativeScript.framework..."
@@ -29,11 +29,11 @@ lipo -create -output "$WORKSPACE/dist/NativeScript.framework/NativeScript" \
 
 echo "Building libNativeScript..."
 rm -f CMakeCache.txt
-echo -e "\tConfiguring..."
+echo "\tConfiguring..."
 cmake .. $CMAKE_FLAGS -DEMBED_STATIC_DEPENDENCIES=ON  >> "$WORKSPACE/build.log"
-echo -e "\tiPhoneOS..."
+echo "\tiPhoneOS..."
 xcodebuild -configuration Release -sdk iphoneos -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
-echo -e "\tiPhoneSimulator..."
+echo "\tiPhoneSimulator..."
 xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
 
 echo "Packaging libNativeScript..."

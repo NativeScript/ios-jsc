@@ -22,9 +22,8 @@ cmake .. -G Xcode
 ```
 
 ## NPM Package
-The `tns-ios` package is built with grunt. Install `grunt-cli` with npm and then run `npm install .` in the root of the repo to install the local grunt dependencies.
 
-To build the npm package run `grunt package` in the **root** of the repo. This should produce a `dist/tns-ios-*.tgz` file, which should contain the NativeScript static library and Cocoa Framework, the NativeScript CLI template project, the API metadata generator and the Web Inspector frontend.
+To build the npm package run ```sh build/script/build-runtime.sh``` in the **root** of the repository. This should produce a `dist/tns-ios-*.tgz` file, which should contain the NativeScript static library and Cocoa Framework, the NativeScript CLI template project, the API metadata generator and the Web Inspector frontend.
 
 ## Tests
 To run the tests build and run the TestRunner target from the generated Xcode project as described above.
