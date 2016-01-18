@@ -223,11 +223,9 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
     SourceCode sourceCode = makeSource(source, moduleUrl.toString());
     ParserError error;
     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
-    if (error.isValid()) {
-        return deferred->reject(execState, error.toErrorObject(globalObject, sourceCode));
-    }
 
-    if (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json) {
+    if (!moduleRecord || (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json)) {
+        error = ParserError();
         sourceCode = makeSource(WTF::ASCIILiteral("export default undefined;"));
         moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
         ASSERT(!error.isValid());
@@ -248,6 +246,8 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         moduleRecord->putDirect(vm, self->_commonJSModuleFunctionIdentifier, moduleFunction);
     } else if (json) {
         moduleRecord->putDirect(vm, vm.propertyNames->JSON, json);
+    } else if (error.isValid()) {
+        return deferred->reject(execState, error.toErrorObject(globalObject, sourceCode));
     }
 
     return deferred->resolve(execState, moduleRecord);
