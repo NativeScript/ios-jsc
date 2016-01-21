@@ -248,6 +248,8 @@ struct ModuleTable {
     int sizeInBytes() const {
         return modules.sizeInBytes();
     }
+
+    const ModuleMeta* getModule(const char* moduleName) const;
 };
 
 struct MetaFile {
@@ -407,6 +409,7 @@ public:
     UInt8 flags;
     String name;
     PtrTo<ArrayOfPtrTo<LibraryMeta>> libraries;
+    PtrTo<GlobalTable> globalTable;
 
     const char* getName() const {
         return name.valuePtr();
@@ -449,7 +452,7 @@ struct Meta {
 
 private:
     MetaNames _names;
-    PtrTo<ModuleMeta> _topLevelModule;
+    String _topLevelModule;
     UInt8 _flags;
     UInt8 _introduced;
 
@@ -459,7 +462,8 @@ public:
     }
 
     const ModuleMeta* topLevelModule() const {
-        return this->_topLevelModule.valuePtr();
+        const char* moduleName = this->_topLevelModule.valuePtr();
+        return MetaFile::instance()->topLevelModulesTable()->getModule(moduleName);
     }
 
     bool hasName() const {

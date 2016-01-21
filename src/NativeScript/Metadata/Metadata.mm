@@ -68,6 +68,16 @@ const Meta* GlobalTable::findMeta(const char* identifierString, size_t length, u
     return nullptr;
 }
 
+const ModuleMeta* ModuleTable::getModule(const char* moduleName) const {
+    for (ArrayOfPtrTo<ModuleMeta>::iterator it = modules.begin(); it != modules.end(); it++) {
+        const ModuleMeta* module = (*it).valuePtr();
+        if (strcmp(module->name.valuePtr(), moduleName) == 0) {
+            return module;
+        }
+    }
+    return nullptr;
+}
+
 // Meta
 bool Meta::isAvailable() const {
     UInt8 introducedIn = this->introducedIn();
