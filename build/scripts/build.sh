@@ -4,6 +4,10 @@ set -e
 
 WORKSPACE=`pwd`
 
+function xcodebuild_pretty {
+    set -o pipefail && xcodebuild "$@" 2>&1 | tee -a "$WORKSPACE/build.log" | xcpretty
+}
+
 CMAKE_FLAGS="-G Xcode -DCMAKE_INSTALL_PREFIX=$WORKSPACE/dist"
 
 mkdir -p "$WORKSPACE/cmake-build"
@@ -11,12 +15,13 @@ cd "$WORKSPACE/cmake-build"
 
 echo "Building NativeScript.framework..."
 rm -f CMakeCache.txt
-echo "\tConfiguring..."
-cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON > "$WORKSPACE/build.log" 2>&1
-echo "\tiPhoneOS..."
-xcodebuild -configuration Release -sdk iphoneos -target NativeScript >> "$WORKSPACE/build.log" 2>&1
-echo "\tiPhoneSimulator..."
-xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript >> "$WORKSPACE/build.log" 2>&1
+rm -f "$WORKSPACE/build.log"
+echo -e "\tConfiguring..."
+cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON 2>&1 | tee -a "$WORKSPACE/build.log"
+echo -e "\tiPhoneOS..."
+xcodebuild_pretty -configuration Release -sdk iphoneos -target NativeScript
+echo -e "\tiPhoneSimulator..."
+xcodebuild_pretty -configuration Release -sdk iphonesimulator -target NativeScript
 
 echo "Packaging NativeScript.framework..."
 mkdir -p "$WORKSPACE/dist"
@@ -29,12 +34,12 @@ lipo -create -output "$WORKSPACE/dist/NativeScript.framework/NativeScript" \
 
 echo "Building libNativeScript..."
 rm -f CMakeCache.txt
-echo "\tConfiguring..."
-cmake .. $CMAKE_FLAGS -DEMBED_STATIC_DEPENDENCIES=ON  >> "$WORKSPACE/build.log"
-echo "\tiPhoneOS..."
-xcodebuild -configuration Release -sdk iphoneos -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
-echo "\tiPhoneSimulator..."
-xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript  >> "$WORKSPACE/build.log" 2>&1
+echo -e "\tConfiguring..."
+cmake .. $CMAKE_FLAGS -DEMBED_STATIC_DEPENDENCIES=ON 2>&1 | tee -a "$WORKSPACE/build.log"
+echo -e "\tiPhoneOS..."
+xcodebuild_pretty -configuration Release -sdk iphoneos -target NativeScript
+echo -e "\tiPhoneSimulator..."
+xcodebuild_pretty -configuration Release -sdk iphonesimulator -target NativeScript
 
 echo "Packaging libNativeScript..."
 mkdir -p "$WORKSPACE/dist/NativeScript/lib"
@@ -52,13 +57,13 @@ cp \
     "$WORKSPACE/dist/NativeScript/include"
 
 echo "Building objc-metadata-generator..."
-xcodebuild -configuration Release -target MetadataGenerator  >> "$WORKSPACE/build.log" 2>&1
+xcodebuild_pretty -configuration Release -target MetadataGenerator
 echo "Packaging objc-metadata-generator..."
 cp -R "$WORKSPACE/cmake-build/metadataGenerator" "$WORKSPACE/dist/"
 cp "$WORKSPACE/build/scripts/metadata-generation-build-step" "$WORKSPACE/dist/metadataGenerator/bin/"
 
 echo "Building Gameraww..."
-xcodebuild -configuration Release -sdk iphoneos -target Gameraww  >> "$WORKSPACE/build.log" 2>&1
+xcodebuild_pretty -configuration Release -sdk iphoneos -target Gameraww
 echo "Packaging Gameraww..."
 xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.app" \
     -o "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.ipa" \
@@ -68,7 +73,7 @@ echo "TNS_IPA_SIZE: "$GAMERAWW_IPA_SIZE"KB"
 echo "TNS_IPA_SIZE_KB\\n"$GAMERAWW_IPA_SIZE > "$WORKSPACE/build-stats.csv"
 
 echo "Building TestRunner..."
-xcodebuild -configuration Debug -sdk iphoneos -target TestRunner ARCHS="armv7" ONLY_ACTIVE_ARCH=NO  >> "$WORKSPACE/build.log" 2>&1
+xcodebuild_pretty -configuration Debug -sdk iphoneos -target TestRunner ARCHS="armv7" ONLY_ACTIVE_ARCH=NO
 echo "Packaging TestRunner..."
 xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.app" \
     -o "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.ipa" \

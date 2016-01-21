@@ -1,8 +1,15 @@
-language: node_js
-node_js:
-    4.2.4
-before_script:
-    - npm install -g grunt-cli
-    - npm install
+language: objective-c
+osx_image: xcode7.2
+before_install:
+- sed -i '' -e 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+- git clone https://github.com/NativeScript/webkit.git src/webkit --depth 50 --no-single-branch --quiet
+- git submodule update --init --recursive --depth 50 --quiet
+- brew install homebrew/versions/cmake31
+- brew install brew/versions/llvm37
+- ln -s /usr/local/bin/llvm-config-3.7 /usr/local/bin/llvm-config
+git:
+  submodules: false
 script:
-    grunt default
+- ./build/scripts/build-runtime.sh
+after_failure:
+- cat build.log
