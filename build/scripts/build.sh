@@ -5,7 +5,14 @@ set -e
 WORKSPACE=`pwd`
 
 function xcodebuild_pretty {
-    set -o pipefail && xcodebuild "$@" 2>&1 | tee -a "$WORKSPACE/build.log" | xcpretty
+    XCFORMATTER=tee
+    if hash xcpretty 2>/dev/null; then
+        XCFORMATTER=xcpretty
+        if hash xcpretty-travis-formatter 2>/dev/null; then
+            XCFORMATTER="xcpretty -f `xcpretty-travis-formatter`"
+        fi
+    fi
+    set -o pipefail && xcodebuild "$@" 2>&1 | tee -a "$WORKSPACE/build.log" | $XCFORMATTER
 }
 
 CMAKE_FLAGS="-G Xcode -DCMAKE_INSTALL_PREFIX=$WORKSPACE/dist"
