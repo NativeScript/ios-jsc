@@ -77,4 +77,48 @@ describe("Constructing Objective-C classes with new operator", function () {
         expect(arr.objectAtIndex(1)).toBe(2);
         expect(arr.objectAtIndex(2)).toBe(3);
     });
+
+    describe("Swift-style initializers", () => {
+      it("should work", () => {
+        let obj = new NSObject();
+        expect(obj).toEqual(jasmine.any(NSObject));
+        expect(obj.retainCount()).toBe(1);
+      });
+
+      it("should support parameters", () => {
+        let arr = new NSArray({array : [ 1, 2, 3 ]});
+        expect(arr).toEqual(jasmine.any(NSArray));
+        expect(arr.count).toEqual(3);
+      });
+
+      it("should support even more complex parameters", () => {
+        let alertView = new UIAlertView({
+          title : "About",
+          message : "NativeScript Team",
+          delegate : null,
+          cancelButtonTitle : "OK",
+          otherButtonTitles : null
+        });
+        expect(alertView.title).toEqual("About");
+        expect(alertView.message).toEqual("NativeScript Team");
+        expect(alertView.buttonTitleAtIndex(0)).toEqual("OK");
+      });
+
+      it("should support void initializers", () => {
+        let transform = new MDLTransform({identity : void 0});
+        expect(transform).toEqual(jasmine.any(MDLTransform));
+      });
+
+      it("should resolve NSError** initializers", () => {
+        expect(() => new NSString({
+                 contentsOfFile : "/does/not/exist",
+                 encoding : NSUTF8StringEncoding
+        })).toThrowError(/The file “exist” couldn’t be opened because there is no such file./);
+      });
+
+      it("should resolve initializers that only begin with 'init'", () => {
+        let url = new NSURL({fileURLWithPath : "/foo"});
+        expect(url).toEqual(jasmine.any(NSURL));
+      });
+    })
 });

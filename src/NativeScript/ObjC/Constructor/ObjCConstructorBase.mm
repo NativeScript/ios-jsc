@@ -12,6 +12,8 @@
 #include "ObjCWrapperObject.h"
 #include "ObjCMethodCall.h"
 #include "ObjCConstructorCall.h"
+#include "ObjCConstructorNative.h"
+#include "AllocatedPlaceholder.h"
 #include "ObjCTypes.h"
 #include "Interop.h"
 #include "PointerInstance.h"
@@ -146,8 +148,92 @@ void ObjCConstructorBase::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(constructor->_initializers.begin(), constructor->_initializers.end());
 }
 
+static WTF::String computeInitializerJSName(ExecState* execState, JSFinalObject* initializer, MarkedArgumentBuffer& arguments) {
+    PropertyNameArray properties(execState, PropertyNameMode::Strings);
+    initializer->getOwnPropertyNames(initializer, execState, properties, EnumerationMode(DontEnumPropertiesMode::Exclude, JSObjectPropertiesMode::Include));
+
+    VM& vm = execState->vm();
+    WTF::StringBuilder builder;
+    builder.reserveCapacity(32);
+    for (auto& property : properties) {
+        const WTF::String& propertyString = property.string();
+        const WTF::String firstCharacter = propertyString.substringSharingImpl(0, 1).upper();
+        const WTF::String rest = propertyString.substringSharingImpl(1);
+
+        builder.append(firstCharacter);
+        builder.append(rest);
+        arguments.append(initializer->getDirect(vm, property));
+    }
+
+    return builder.toString();
+}
+
+static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, JSValue prototype, WTF::String jsName) {
+    static WTF::String initWith("initWith", WTF::String::ConstructFromLiteral);
+    static WTF::String init("init", WTF::String::ConstructFromLiteral);
+    static WTF::String error("Error", WTF::String::ConstructFromLiteral);
+
+    JSValue value;
+#define RETURN_IF_CELL if (value.isCell()) return value
+    
+    if (jsName.isEmpty()) {
+        return value;
+    }
+
+    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(initWith + jsName)));
+    RETURN_IF_CELL;
+
+    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(initWith + jsName + error)));
+    RETURN_IF_CELL;
+
+    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(init + jsName)));
+    RETURN_IF_CELL;
+
+    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(init + jsName + error)));
+    RETURN_IF_CELL;
+
+    return JSValue();
+}
+
 static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
+
+    if (execState->argumentCount() <= 1) {
+        MarkedArgumentBuffer initializerArguments;
+        JSValue initializer;
+        if (JSFinalObject* argument = jsDynamicCast<JSFinalObject*>(execState->argument(0))) {
+            initializer = getInitializerForSwiftStyleConstruction(execState, constructor->instancesStructure()->storedPrototype(), computeInitializerJSName(execState, argument, initializerArguments));
+        } else if (execState->argumentCount() == 0) {
+            initializer = constructor->instancesStructure()->storedPrototype().get(execState, Identifier::fromString(execState, "init"));
+        }
+
+        if (initializer && initializer.isCell()) {
+            CallData callData;
+            CallType callType = JSC::getCallData(initializer, callData);
+            ASSERT(callType != CallTypeNone);
+
+            if (initializerArguments.size() == 1 && initializerArguments.at(0).isUndefined()) {
+                // methods such as -[MDLTransform initWithIdentity] are called as new MDLTransform({ identity: void 0 })
+                // check to see if the method takes zero arguments and empty the arguments buffer
+                if (initializer.get(execState, execState->propertyNames().length).asInt32() == 0) {
+                    initializerArguments.clear();
+                }
+            }
+
+            ObjCConstructorBase* newTarget = jsCast<ObjCConstructorBase*>(execState->newTarget());
+            id instance = [newTarget->klass() alloc];
+            JSValue thisValue;
+
+            if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(constructor)) {
+                thisValue = AllocatedPlaceholder::create(execState->vm(), jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
+            } else {
+                thisValue = NativeScript::toValue(execState, instance, ^ { return constructor->instancesStructure(); });
+            }
+
+            return JSValue::encode(JSC::call(execState, initializer.asCell(), callType, callData, thisValue, initializerArguments));
+        }
+    }
+
     WTF::Vector<ObjCConstructorCall*> candidateInitializers;
 
     for (WriteBarrier<ObjCConstructorCall> initializer : constructor->initializers(execState->vm(), jsCast<GlobalObject*>(execState->lexicalGlobalObject()))) {

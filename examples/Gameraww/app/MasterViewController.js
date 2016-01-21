@@ -21,10 +21,13 @@ var JSMasterViewController = UITableViewController.extend(
         this.loadData();
       },
       "aboutPressed:" : function(sender) {
-        var alertWindow = new UIAlertView();
-        alertWindow.title = "About";
-        alertWindow.message = "NativeScript Team";
-        alertWindow.addButtonWithTitle("OK");
+        var alertWindow = new UIAlertView({
+          title : "About",
+          message : "NativeScript Team",
+          delegate : null,
+          cancelButtonTitle : "OK",
+          otherButtonTitles : null
+        });
         alertWindow.show();
       },
       numberOfSectionsInTableView : function(tableView) { return 1; },
@@ -67,10 +70,8 @@ var JSMasterViewController = UITableViewController.extend(
         fetch("http://www.reddit.com/r/aww.json?limit=500")
             .then(data => {
               var jsonString =
-                  NSString.alloc()
-                      .initWithDataEncoding(data, NSUTF8StringEncoding)
-                      .toString();
-              var json = JSON.parse(jsonString);
+                  new NSString({data : data, encoding : NSUTF8StringEncoding});
+              var json = JSON.parse(jsonString.toString());
               this.items = json.data.children.map(child => child.data);
 
               this.tableView.reloadData();
