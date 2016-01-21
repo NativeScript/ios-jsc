@@ -6,7 +6,7 @@
 #include <JavaScriptCore/JavaScriptCore.h>
 #include <NativeScript.h>
 
-#ifndef NDEBUG
+#if DEBUG
 #include <TNSDebugging.h>
 #endif
 
@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
   @autoreleasepool {
     NSString *applicationPath = [[NSBundle mainBundle] bundlePath];
 
-#ifndef NDEBUG
+#if DEBUG
     NSString *libraryPath = [NSSearchPathForDirectoriesInDomains(
         NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
     NSString *liveSyncPath =
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
                        forMode:NSRunLoopCommonModes];
 
-#ifndef NDEBUG
+#if DEBUG
     [TNSRuntimeInspector setLogsToSystemConsole:YES];
     TNSEnableRemoteInspector(argc, argv);
 #endif
