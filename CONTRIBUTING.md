@@ -71,11 +71,7 @@ Make your changes in a new git branch. We use the Gitflow branching model so you
 Create your patch and include appropriate test cases.
 Build your changes locally.
 ```bash
-    grunt
-```
-Test your changes locally.
-```bash
-    grunt test
+    sh build/scripts/build-runtime.sh
 ```
 Commit your changes and create a descriptive commit message (the commit message is used to generate release notes).
 ```bash

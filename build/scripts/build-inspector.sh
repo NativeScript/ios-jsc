@@ -55,6 +55,7 @@ xcodebuild \
     -exportPath "$INSPECTOR_BUILD_OUTPUT_PATH" \
     >> "$BUILD_LOG" 2>&1
 
+checkpoint "Inspector build finished."
 checkpoint "Packaging Inspector app..."
 pushd "$INSPECTOR_BUILD_OUTPUT_PATH" \
     >> "$BUILD_LOG"
@@ -66,5 +67,3 @@ zip -r \
     >> "$BUILD_LOG"
 popd \
     >> "$BUILD_LOG"
-
-checkpoint "Inspector build finished."

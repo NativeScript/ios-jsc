@@ -1,0 +1,29 @@
+{
+  "name": "tns-ios-inspector",
+  "description": "Telerik NativeScript Inspector for iOS Runtime",
+  "version":"1.6.0",
+  "keywords": [
+    "NativeScript",
+    "iOS",
+    "inspector"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NativeScript/ios-runtime"
+  },
+  "author": {
+    "name": "Telerik",
+    "email": "support@telerik.com"
+  },
+  "os": [
+    "darwin"
+  ],
+  "directories": {},
+  "files": [
+    "**/*"
+  ],
+  "scripts": {
+    "postinstall": "unzip -o './NativeScript Inspector.zip' -d ."
+  },
+  "license": "Apache-2.0"
+}
