@@ -23,6 +23,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "NativeScript-Prefix.h"
 #include "GlobalObjectDebuggerAgent.h"
 #include "SourceProviderManager.h"
 #include <JavaScriptCore/config.h>

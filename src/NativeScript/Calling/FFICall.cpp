@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "FFICall.h"
 #include <malloc/malloc.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>

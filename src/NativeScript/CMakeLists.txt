@@ -237,6 +237,3 @@ SetActiveArchitectures(NativeScript)
 
 include(GroupSources)
 GroupSources(NativeScript)
-
-include(PrecompiledHeaders)
-SetPrecompiledHeader(NativeScript NativeScript-Prefix.h)

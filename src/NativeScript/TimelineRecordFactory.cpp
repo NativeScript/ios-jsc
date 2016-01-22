@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "TimelineRecordFactory.h"
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>

@@ -9,6 +9,7 @@
 #ifndef __NativeScript__FFIFunctionCallback__
 #define __NativeScript__FFIFunctionCallback__
 
+#include "NativeScript-Prefix.h"
 #include "FFICallback.h"
 
 namespace NativeScript {

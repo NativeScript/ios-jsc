@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "ObjCSuperObject.h"
 #include "ObjCWrapperObject.h"
 #include "Interop.h"

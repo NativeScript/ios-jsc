@@ -5,7 +5,7 @@
 //  Created by Yavor Georgiev on 14.07.14.
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
-
+#include "NativeScript-Prefix.h"
 #include "GlobalObject.h"
 #include <string>
 #include <JavaScriptCore/FunctionPrototype.h>

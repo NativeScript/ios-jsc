@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include <JavaScriptCore/ScriptValue.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ConsoleClient.h>

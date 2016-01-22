@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include <UIKit/UIKit.h>
 #include <sys/stat.h>
 #include "Metadata.h"

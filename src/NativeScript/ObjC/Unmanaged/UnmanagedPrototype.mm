@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "UnmanagedPrototype.h"
 #include "UnmanagedInstance.h"
 #include "ObjCTypes.h"

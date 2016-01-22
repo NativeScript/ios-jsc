@@ -4,6 +4,7 @@
 //  The contents of this file are implicitly included at the beginning of every source file.
 //
 
+#pragma once
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #endif
@@ -17,4 +18,4 @@
 #include "JSWarnings.h"
 #endif
 
-#include <JavaScriptCore/JavaScript.h>
+//#include <JavaScriptCore/JavaScript.h>

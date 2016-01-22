@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include <stdio.h>
 #include "DomainBackendDispatcher.h"
 #include <JavaScriptCore/Completion.h>

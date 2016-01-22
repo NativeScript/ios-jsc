@@ -5,7 +5,7 @@
 //  Created by Jason Zhekov on 10/24/14.
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
-
+#include "NativeScript-Prefix.h"
 #include "FFISimpleType.h"
 #include "PointerInstance.h"
 

@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "TNSFastEnumerationAdapter.h"
 #include "JSErrors.h"
 #include "ObjCTypes.h"

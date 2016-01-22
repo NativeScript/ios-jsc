@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 г. Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "GlobalObject.h"
 #include <JavaScriptCore/BuiltinNames.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>

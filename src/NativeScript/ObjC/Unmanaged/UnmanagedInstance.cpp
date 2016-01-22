@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "UnmanagedInstance.h"
 
 namespace NativeScript {

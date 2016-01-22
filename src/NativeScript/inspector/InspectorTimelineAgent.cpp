@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "InspectorTimelineAgent.h"
 #include "TimelineRecordFactory.h"
 #include <JavaScriptCore/InspectorEnvironment.h>

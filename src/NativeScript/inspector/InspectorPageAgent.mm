@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "InspectorPageAgent.h"
 #include "CachedResource.h"
 #include "GlobalObjectInspectorController.h"

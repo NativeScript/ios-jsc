@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 г. Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #import "TNSDictionaryAdapter.h"
 #include "ObjCTypes.h"
 #include "Interop.h"

@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "ObjCBlockCallback.h"
 #include "FFICallbackInlines.h"
 #include "TypeFactory.h"

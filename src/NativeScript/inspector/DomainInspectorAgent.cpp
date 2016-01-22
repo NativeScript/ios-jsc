@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include <JavaScriptCore/JSObject.h>
 #include "DomainInspectorAgent.h"
 #include "GlobalObjectInspectorController.h"

@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "SourceProviderManager.h"
 #include <stdio.h>
 #include <JavaScriptCore/inspector/ScriptDebugListener.h>

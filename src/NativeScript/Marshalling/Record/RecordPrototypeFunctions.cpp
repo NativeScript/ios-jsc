@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "RecordPrototypeFunctions.h"
 #include "RecordField.h"
 #include "RecordInstance.h"

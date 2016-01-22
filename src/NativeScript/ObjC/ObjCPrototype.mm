@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "ObjCPrototype.h"
 #include <objc/runtime.h>
 #include "ObjCMethodCallback.h"

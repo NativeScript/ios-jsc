@@ -5,7 +5,7 @@
 //  Created by Jason Zhekov on 10/18/14.
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
-
+#include "NativeScript-Prefix.h"
 #include "FunctionReferenceTypeInstance.h"
 #include "FFIFunctionCall.h"
 #include "FFIFunctionCallback.h"

@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #include "SymbolLoader.h"
 #include <dlfcn.h>
 #include <wtf/NeverDestroyed.h>

@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "GlobalObjectConsoleClient.h"
 #include <JavaScriptCore/ConsoleMessage.h>
 #include <JavaScriptCore/InspectorConsoleAgent.h>

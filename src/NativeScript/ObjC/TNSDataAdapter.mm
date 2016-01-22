@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 Telerik. All rights reserved.
 //
 
+#include "NativeScript-Prefix.h"
 #import "TNSDataAdapter.h"
 #include "Interop.h"
 #include "JSErrors.h"

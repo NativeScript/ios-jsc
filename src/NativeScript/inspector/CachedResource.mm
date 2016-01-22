@@ -1,3 +1,4 @@
+#include "NativeScript-Prefix.h"
 #include "CachedResource.h"
 #include "MimeTypeHelper.h"
 
