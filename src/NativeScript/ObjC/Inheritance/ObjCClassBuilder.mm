@@ -30,15 +30,14 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-static WTF::CString generateAnonymousSubclassName(const char* className) {
-    int i = 0;
-    WTF::CString anonymousName;
+static WTF::CString computeRuntimeAvailableClassName(const char* userDesiredName) {
+    WTF::CString runtimeAvailableName(userDesiredName);
 
-    do {
-        anonymousName = WTF::String::format("%s%d", className, ++i).utf8();
-    } while (objc_getClass(anonymousName.data()));
+    for (int i = 1; objc_getClass(runtimeAvailableName.data()); ++i) {
+        runtimeAvailableName = WTF::String::format("%s%d", userDesiredName, i).utf8();
+    }
 
-    return anonymousName;
+    return runtimeAvailableName;
 }
 
 static IMP findNotOverridenMethod(Class klass, SEL method) {
@@ -192,18 +191,14 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
 
     this->_baseConstructor = Strong<ObjCConstructorNative>(execState->vm(), jsCast<ObjCConstructorNative*>(baseConstructor));
 
-    WTF::CString classNameUTF8;
-    if (className.isEmpty()) {
-        classNameUTF8 = generateAnonymousSubclassName(this->_baseConstructor->metadata()->name());
-    } else if (!objc_getClass(className.utf8().data())) {
-        classNameUTF8 = className.utf8();
-    } else {
-        WTF::String errorMessage = WTF::String::format("The desired name is already in use: \"%s\".", className.utf8().data());
-        execState->vm().throwException(execState, createError(execState, errorMessage));
-        return;
+    WTF::CString runtimeName = computeRuntimeAvailableClassName(className.isEmpty() ? this->_baseConstructor->metadata()->name() : className.utf8().data());
+    Class klass = objc_allocateClassPair(this->_baseConstructor->klass(), runtimeName.data(), 0);
+    objc_registerClassPair(klass);
+
+    if (!className.isEmpty() && runtimeName != className.utf8()) {
+        warn(execState, WTF::String::format("Objective-C class name \"%s\" is already in use - using \"%s\" instead.", className.utf8().data(), runtimeName.data()));
     }
 
-    Class klass = objc_allocateClassPair(this->_baseConstructor->klass(), classNameUTF8.data(), 0);
     class_addProtocol(klass, @protocol(TNSDerivedClass));
     class_addProtocol(object_getClass(klass), @protocol(TNSDerivedClass));
 
@@ -475,7 +470,6 @@ ObjCConstructorDerived* ObjCClassBuilder::build(ExecState* execState) {
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    objc_registerClassPair(klass);
     globalObject->_objCConstructors.insert({ klass, Strong<ObjCConstructorBase>(execState->vm(), this->_constructor.get()) });
     attachDerivedMachinery(globalObject, klass, this->_baseConstructor->get(execState, globalObject->vm().propertyNames->prototype));
 

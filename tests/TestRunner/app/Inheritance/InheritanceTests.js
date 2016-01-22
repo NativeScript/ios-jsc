@@ -1739,12 +1739,16 @@ describe(module.id, function () {
         });
     });
 
-    it('UnavailableClassName', function () {
-        expect(function () {
-            NSObject.extend({}, {
-                name: 'NSObject'
-            });
-        }).toThrowError();
+    it('ClassName', function () {
+        var MyPrivateClass = NSObject.extend({}, {
+            name: 'MyPrivateClassName'
+        });
+        expect(NSStringFromClass(MyPrivateClass)).toBe('MyPrivateClassName');
+
+        var MyPrivateClass1 = NSObject.extend({}, {
+            name: 'MyPrivateClassName'
+        });
+        expect(NSStringFromClass(MyPrivateClass1)).toBe('MyPrivateClassName1');
     });
 
     it('ExtendDerivedClass', function () {
@@ -1841,7 +1845,7 @@ describe(module.id, function () {
         var encoding = method_getTypeEncoding(method);
         expect(NSString.stringWithCString(encoding).toString()).toBe("v@:");
     });
-    
+
     it("should project Symbol.iterable as NSFastEnumeration", function () {
         var start = 1;
         var end = 10;
@@ -1850,7 +1854,7 @@ describe(module.id, function () {
             [Symbol.iterator]() {
                 return {
                     step: start,
-                    
+
                     next() {
                         if (this.step <= end) {
                             return { value: this.step++, done: false };
@@ -1858,7 +1862,7 @@ describe(module.id, function () {
                             return { done: true };
                         }
                     },
-                    
+
                     return() {
                         lastStep = this.step;
                         return {};
@@ -1866,15 +1870,15 @@ describe(module.id, function () {
                 }
             }
         });
-        
+
         var expected = "12345678910";
         TNSIterableConsumer.consumeIterable(IterableClass.alloc().init());
         var actual = TNSGetOutput();
-        
+
         expect(IterableClass.conformsToProtocol(NSFastEnumeration)).toBe(true);
         expect(actual).toEqual(expected);
         expect(lastStep).toEqual(end + 1);
-        
+
         TNSClearOutput();
     })
 });
