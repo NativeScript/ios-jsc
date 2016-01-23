@@ -101,20 +101,18 @@ using namespace NativeScript;
     JSLockHolder lock(*self->_vm);
     JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier);
 
-    JSValue error;
+    Exception* exception = nullptr;
     JSFunction* errorHandler = JSNativeStdFunction::create(*self->_vm.get(), self->_globalObject.get(), 1, String(), [&](ExecState* execState) {
-        error = execState->argument(0);
+        JSValue error = execState->argument(0);
+        if (!(exception = jsDynamicCast<Exception*>(error))) {
+            exception = Exception::create(execState->vm(), error);
+        }
         return JSValue::encode(jsUndefined());
     });
     promise->then(self->_globalObject->globalExec(), nullptr, errorHandler);
 
     self->_globalObject->drainMicrotasks();
-    if (error) {
-        Exception* exception = jsDynamicCast<Exception*>(error);
-        if (!exception) {
-            exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
-        }
-
+    if (exception) {
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
     }
 }

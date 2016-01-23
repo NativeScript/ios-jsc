@@ -27,9 +27,12 @@
 #include "ObjCTypes.h"
 #include "Interop.h"
 #include <sys/stat.h>
+#include "ObjCMetadataModule.h"
 
 namespace NativeScript {
 using namespace JSC;
+
+static WTF::String ObjCModulePrefix("@objc/");
 
 template <mode_t mode>
 static NSString* stat(NSString* path) {
@@ -62,11 +65,17 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
         return deferred->resolve(execState, keyValue);
     }
 
-    NSString* path = keyValue.toWTFString(execState);
+    WTF::String keyValueString = keyValue.toWTFString(execState);
     if (JSC::Exception* e = execState->exception()) {
         execState->clearException();
         return deferred->reject(execState, e);
     }
+
+    if (keyValueString.startsWith(ObjCModulePrefix)) {
+        return deferred->resolve(execState, keyValue);
+    }
+
+    NSString* path = keyValueString;
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
 
@@ -131,13 +140,24 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
 JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
-    NSString* modulePath = keyValue.toWTFString(execState);
+    WTF::String keyValueString = keyValue.toWTFString(execState);
     if (JSC::Exception* e = execState->exception()) {
         execState->clearException();
         return deferred->reject(execState, e->value());
     }
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
+
+    if (keyValueString.startsWith(ObjCModulePrefix)) {
+        WTF::CString moduleName = keyValueString.substring(ObjCModulePrefix.length()).utf8();
+        if (const Metadata::ModuleMeta* module = Metadata::MetaFile::instance()->topLevelModulesTable()->getModule(moduleName.data())) {
+            return deferred->resolve(execState, ObjCMetadataModule::create(execState->vm(), self->metadataModuleStructure(), module));
+        } else {
+            return deferred->reject(execState, createError(execState, WTF::String::format("The module '%s' could not be found in the Objective-C metadata.", moduleName.data())));
+        }
+    }
+
+    NSString* modulePath = keyValueString;
 
     NSError* error = nil;
     NSData* moduleContent = [NSData dataWithContentsOfFile:modulePath options:NSDataReadingMappedIfSafe error:&error];
@@ -150,6 +170,10 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
 
 JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue sourceValue) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
+
+    if (sourceValue.inherits(ObjCMetadataModule::info())) {
+        return deferred->resolve(execState, sourceValue);
+    }
 
     id source = NativeScript::toObject(execState, sourceValue);
     if (Exception* exception = execState->exception()) {
@@ -185,23 +209,43 @@ static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourc
     return moduleAnalyzer.analyze(*moduleProgramNode);
 }
 
+static JSModuleRecord* createMetadataModule(GlobalObject* globalObject, ExecState* execState, ObjCMetadataModule* metadataModule, const JSC::Identifier& moduleKey) {
+    WTF::StringBuilder moduleContents;
+    moduleContents.reserveCapacity(8096);
+    for (const Metadata::Meta* meta : metadataModule->module()->globalTable.value()) {
+        moduleContents.append(WTF::String::format("export var %s = void 0;\n", meta->jsName()));
+    }
+
+    ParserError error;
+    JSModuleRecord* module = parseModule(execState, makeSource(moduleContents.toString()), moduleKey, error);
+    ASSERT(!error.isValid());
+
+    module->putDirect(execState->vm(), globalObject->metadataModuleIdentifier(), metadataModule);
+
+    return module;
+}
+
 JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue sourceValue) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
     VM& vm = execState->vm();
-    const Identifier moduleKey = execState->argument(0).toPropertyKey(execState);
-    if (Exception* exception = execState->exception()) {
-        vm.clearException();
-        return deferred->reject(execState, exception->value());
-    }
-
-    WTF::String source = execState->argument(1).toWTFString(execState);
-    if (Exception* exception = execState->exception()) {
-        vm.clearException();
-        return deferred->reject(execState, exception->value());
-    }
-
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
+
+    if (ObjCMetadataModule* metadataModule = jsDynamicCast<ObjCMetadataModule*>(sourceValue)) {
+        return deferred->resolve(execState, createMetadataModule(self, execState, metadataModule, keyValue.toPropertyKey(execState)));
+    }
+
+    const Identifier moduleKey = keyValue.toPropertyKey(execState);
+    if (Exception* exception = execState->exception()) {
+        vm.clearException();
+        return deferred->reject(execState, exception->value());
+    }
+
+    WTF::String source = sourceValue.toWTFString(execState);
+    if (Exception* exception = execState->exception()) {
+        vm.clearException();
+        return deferred->reject(execState, exception->value());
+    }
 
     WTF::StringBuilder moduleUrl;
     moduleUrl.append("file://");
@@ -393,6 +437,13 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
     } else if (JSValue json = moduleRecord->getDirect(vm, vm.propertyNames->JSON)) {
         putValueInScopeAndSymbolTable(vm, moduleRecord, vm.propertyNames->builtinNames().starDefaultPrivateName(), json);
         return json;
+    } else if (ObjCMetadataModule* metadataModule = jsDynamicCast<ObjCMetadataModule*>(moduleRecord->getDirect(vm, self->metadataModuleIdentifier()))) {
+        JSModuleEnvironment* moduleEnvironment = moduleRecord->moduleEnvironment();
+        for (const Metadata::Meta* meta : metadataModule->module()->globalTable.value()) {
+            //putValueInScopeAndSymbolTable(vm, moduleRecord, Identifier::fromString(&vm, meta->jsName()), getterSetter);
+            moduleEnvironment->putDirect(vm, Identifier::fromString(&vm, meta->jsName()), jsString(&vm, "foo"));
+        }
+        return metadataModule;
     }
 
     return moduleRecord->evaluate(execState);

@@ -1,6 +1,11 @@
 import './CanvasViewController';
 import './DetailViewController';
 import './MasterViewController';
+import {
+  UIResponder,
+  UIApplicationDelegate,
+  UIApplicationMain
+} from '@objc/UIKit';
 
 var TNSAppDelegate = UIResponder.extend({
     get window() {

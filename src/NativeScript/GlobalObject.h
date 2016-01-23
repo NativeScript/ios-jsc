@@ -116,6 +116,10 @@ public:
         return this->_unmanagedInstanceStructure.get();
     }
 
+    JSC::Structure* metadataModuleStructure() const {
+        return this->_metadataModuleStructure.get();
+    }
+
     JSC::JSFunction* typeScriptOriginalExtendsFunction() const {
         return this->_typeScriptOriginalExtendsFunction.get();
     }
@@ -152,6 +156,10 @@ public:
 
     const JSC::Identifier& commonJSModuleFunctionIdentifier() const {
         return this->_commonJSModuleFunctionIdentifier;
+    }
+
+    const JSC::Identifier& metadataModuleIdentifier() const {
+        return this->_metadataModuleIdentifier;
     }
 
     WTF::HashMap<WTF::String, WTF::String, WTF::CaseFoldingHash>& modulePathCache() {
@@ -216,6 +224,7 @@ private:
     JSC::WriteBarrier<JSC::Structure> _weakRefInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _unmanagedInstanceStructure;
+    JSC::WriteBarrier<JSC::Structure> _metadataModuleStructure;
 
     std::map<Class, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
 
@@ -224,6 +233,7 @@ private:
     WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>> _releasePools;
 
     JSC::Identifier _commonJSModuleFunctionIdentifier;
+    JSC::Identifier _metadataModuleIdentifier;
 
     WTF::HashMap<WTF::String, WTF::String, WTF::CaseFoldingHash> _modulePathCache;
 };

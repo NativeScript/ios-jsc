@@ -12,13 +12,6 @@
 #include "Metadata/Metadata.h"
 
 namespace NativeScript {
-class SymbolResolver {
-public:
-    virtual void* loadFunctionSymbol(const char* symbolName) = 0;
-    virtual void* loadDataSymbol(const char* symbolName) = 0;
-    virtual bool load() = 0;
-};
-
 class CFBundleSymbolResolver : public SymbolResolver {
 public:
     CFBundleSymbolResolver(WTF::RetainPtr<CFBundleRef> bundle)

@@ -16,7 +16,12 @@ struct ModuleMeta;
 }
 
 namespace NativeScript {
-class SymbolResolver;
+class SymbolResolver {
+public:
+    virtual void* loadFunctionSymbol(const char* symbolName) = 0;
+    virtual void* loadDataSymbol(const char* symbolName) = 0;
+    virtual bool load() = 0;
+};
 
 class SymbolLoader {
 public:
@@ -26,9 +31,9 @@ public:
     void* loadDataSymbol(const Metadata::ModuleMeta*, const char* symbolName);
     bool ensureModule(const Metadata::ModuleMeta*);
 
-private:
     SymbolResolver* resolveModule(const Metadata::ModuleMeta*);
 
+private:
     std::map<const Metadata::ModuleMeta*, std::unique_ptr<SymbolResolver>> _cache;
 };
 }

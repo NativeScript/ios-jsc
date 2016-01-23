@@ -46,6 +46,7 @@
 #include "ObjCTypes.h"
 #include "FFICallPrototype.h"
 #include "UnmanagedType.h"
+#include "ObjCMetadataModule.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -147,6 +148,8 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     UnmanagedPrototype* unmanagedPrototype = UnmanagedPrototype::create(vm, this, unmanagedPrototypeStructure);
     this->_unmanagedInstanceStructure.set(vm, this, UnmanagedInstance::createStructure(this, unmanagedPrototype));
 
+    this->_metadataModuleStructure.set(vm, this, ObjCMetadataModule::createStructure(vm, this, this->objectPrototype()));
+
     this->_interopIdentifier = Identifier::fromString(&vm, Interop::info()->className);
     this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())));
 
@@ -179,6 +182,7 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     _microtaskRunLoopSource = WTF::adoptCF(CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &context));
 
     _commonJSModuleFunctionIdentifier = Identifier::fromString(&vm, "CommonJSModuleFunction");
+    _metadataModuleIdentifier = Identifier::fromString(&vm, "MetadataModule");
     this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
 }
 
@@ -204,6 +208,7 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_weakRefPrototypeStructure);
     visitor.append(&globalObject->_weakRefInstanceStructure);
     visitor.append(&globalObject->_fastEnumerationIteratorStructure);
+    visitor.append(&globalObject->_metadataModuleStructure);
 }
 
 void GlobalObject::destroy(JSCell* cell) {
