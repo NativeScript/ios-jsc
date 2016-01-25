@@ -59,7 +59,7 @@ set(HEADER_FILES
     ObjC/Inheritance/ObjCClassBuilder.h
     ObjC/Inheritance/ObjCExtend.h
     ObjC/Inheritance/ObjCTypeScriptExtend.h
-    ObjC/NSErrorWrapperConstructor.h
+    ObjC/NativeErrorWrapperConstructor.h
     ObjC/ObjCMethodCall.h
     ObjC/ObjCMethodCallback.h
     ObjC/ObjCPrimitiveTypes.h
@@ -94,7 +94,7 @@ set(SOURCE_FILES
     Calling/FFIFunctionCall.mm
     Calling/FFIFunctionCallback.cpp
     GlobalObject.mm
-	GlobalObject.moduleLoader.mm
+    GlobalObject.moduleLoader.mm
     inspector/CachedResource.mm
     inspector/DomainBackendDispatcher.cpp
     inspector/DomainInspectorAgent.cpp
@@ -143,7 +143,7 @@ set(SOURCE_FILES
     ObjC/Inheritance/ObjCClassBuilder.mm
     ObjC/Inheritance/ObjCExtend.mm
     ObjC/Inheritance/ObjCTypeScriptExtend.mm
-    ObjC/NSErrorWrapperConstructor.mm
+    ObjC/NativeErrorWrapperConstructor.mm
     ObjC/ObjCMethodCall.mm
     ObjC/ObjCMethodCallback.mm
     ObjC/ObjCPrimitiveTypes.mm

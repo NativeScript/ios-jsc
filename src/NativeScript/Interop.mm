@@ -38,7 +38,7 @@
 #include "FunctionReferenceTypeInstance.h"
 #include "FunctionReferenceTypeConstructor.h"
 #include "ObjCTypes.h"
-#include "NSErrorWrapperConstructor.h"
+#include "NativeErrorWrapperConstructor.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -244,8 +244,8 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name(globalObject->globalExec())), functionReferenceConstructor, ReadOnly | DontDelete);
     functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, DontEnum);
 
-    this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
-    this->putDirect(vm, Identifier::fromString(&vm, "NSErrorWrapper"), this->_nsErrorWrapperConstructor.get());
+    this->_nsErrorWrapperConstructor.set(vm, this, NativeErrorWrapperConstructor::create(vm, NativeErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
+    this->putDirect(vm, Identifier::fromString(&vm, "NativeErrorWrapper"), this->_nsErrorWrapperConstructor.get());
 
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, ReadOnly | DontDelete);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, ReadOnly | DontDelete);
