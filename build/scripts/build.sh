@@ -14,7 +14,7 @@ rm -f CMakeCache.txt
 echo "\tConfiguring..."
 cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON > "$WORKSPACE/build.log" 2>&1
 echo "\tiPhoneOS..."
-xcodebuild -configuration Release -sdk iphoneos -target NativeScript >> "$WORKSPACE/build.log" 2>&1
+xcodebuild -configuration Release -sdk iphoneos -target NativeScript CC="$WORKSPACE/build/scripts/ccache-clang.sh" >> "$WORKSPACE/build.log" 2>&1
 echo "\tiPhoneSimulator..."
 xcodebuild -configuration Release -sdk iphonesimulator -target NativeScript >> "$WORKSPACE/build.log" 2>&1
 
