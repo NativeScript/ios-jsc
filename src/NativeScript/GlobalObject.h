@@ -154,7 +154,7 @@ public:
         return this->_commonJSModuleFunctionIdentifier;
     }
 
-    WTF::HashMap<WTF::String, WTF::String>& modulePathCache() {
+    WTF::HashMap<WTF::String, WTF::String, WTF::CaseFoldingHash>& modulePathCache() {
         return this->_modulePathCache;
     }
 
@@ -225,7 +225,7 @@ private:
 
     JSC::Identifier _commonJSModuleFunctionIdentifier;
 
-    WTF::HashMap<WTF::String, WTF::String> _modulePathCache;
+    WTF::HashMap<WTF::String, WTF::String, WTF::CaseFoldingHash> _modulePathCache;
 };
 }
 
