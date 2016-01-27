@@ -20,7 +20,7 @@ NSString* TNSGetOutput() {
 }
 
 void TNSLog(NSString* message) {
-    [(NSMutableString*)TNSGetOutput() appendString:message];
+    [(NSMutableString*)TNSGetOutput() appendFormat:@"%@", message];
 }
 
 void TNSClearOutput() {
