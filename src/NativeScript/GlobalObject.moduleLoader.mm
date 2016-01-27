@@ -26,9 +26,34 @@
 #include <JavaScriptCore/LiteralParser.h>
 #include "ObjCTypes.h"
 #include "Interop.h"
+#include <sys/stat.h>
 
 namespace NativeScript {
 using namespace JSC;
+
+template <mode_t mode>
+static NSString* stat(NSString* path) {
+    struct stat statbuf;
+    if (stat(path.fileSystemRepresentation, &statbuf) == 0) {
+        if ((statbuf.st_mode & S_IFMT) == mode) {
+            return path;
+        }
+    }
+
+    return nil;
+}
+
+static NSString* resolveFile(NSString* filePath) {
+    if (stat<S_IFREG>(filePath)) {
+        return filePath;
+    } else if (NSString* path = stat<S_IFREG>([filePath stringByAppendingPathExtension:@"js"])) {
+        return path;
+    } else if (NSString* path = stat<S_IFREG>([filePath stringByAppendingPathExtension:@"json"])) {
+        return path;
+    }
+
+    return nil;
+}
 
 JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue referrerValue) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
@@ -69,26 +94,12 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
         return deferred->resolve(execState, jsString(execState, self->modulePathCache().get(requestedPath)));
     }
 
-    NSFileManager* fileManager = [NSFileManager defaultManager];
-    NSString* absoluteFilePath = absolutePath;
-    if (absoluteFilePath.pathExtension.length == 0) {
-        absoluteFilePath = [absoluteFilePath stringByAppendingPathExtension:@"js"];
-    }
-
-    BOOL isDirectory = false;
-    if (![fileManager fileExistsAtPath:absoluteFilePath] && [fileManager fileExistsAtPath:absolutePath isDirectory:&isDirectory]) {
-        if (!isDirectory) {
-            return deferred->reject(execState, createError(execState, WTF::String::format("Expected '%s' to be a directory", absolutePath.UTF8String)));
-        }
-
+    NSString* absoluteFilePath = resolveFile(absolutePath);
+    if (!absoluteFilePath && stat<S_IFDIR>(absolutePath)) {
         NSString* mainFileName = @"index.js";
 
         NSString* packageJsonPath = [absolutePath stringByAppendingPathComponent:@"package.json"];
-        if ([fileManager fileExistsAtPath:packageJsonPath isDirectory:&isDirectory]) {
-            if (isDirectory) {
-                return deferred->reject(execState, createError(execState, WTF::String::format("Expected '%s' to be a file", packageJsonPath.UTF8String)));
-            }
-
+        if (stat<S_IFREG>(packageJsonPath)) {
             NSError* error = nil;
             NSData* packageJsonData = [NSData dataWithContentsOfFile:packageJsonPath options:0 error:&error];
             if (!packageJsonData && error) {
@@ -101,21 +112,16 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
             }
 
             if (NSString* packageMain = [packageJson objectForKey:@"main"]) {
-                if (packageMain.pathExtension.length == 0) {
-                    packageMain = [packageMain stringByAppendingPathExtension:@"js"];
-                }
                 mainFileName = packageMain;
             }
         }
 
-        absoluteFilePath = [absolutePath stringByAppendingPathComponent:mainFileName];
+        absoluteFilePath = resolveFile([absolutePath stringByAppendingPathComponent:mainFileName]);
     }
 
-    if (![fileManager fileExistsAtPath:absoluteFilePath isDirectory:&isDirectory]) {
-        WTF::String errorMessage = WTF::String::format("Could not find module '%s'. Computed path '%s'.", keyValue.toWTFString(execState).utf8().data(), absoluteFilePath.UTF8String);
+    if (!absoluteFilePath) {
+        WTF::String errorMessage = WTF::String::format("Could not find module '%s'. Computed path '%s'.", keyValue.toWTFString(execState).utf8().data(), absolutePath.UTF8String);
         return deferred->reject(execState, createError(execState, errorMessage));
-    } else if (isDirectory) {
-        return deferred->reject(execState, createError(execState, WTF::String::format("Expected '%s' to be a file", absoluteFilePath.UTF8String)));
     }
 
     self->modulePathCache().set(requestedPath, absoluteFilePath);
