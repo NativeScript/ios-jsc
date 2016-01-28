@@ -5,7 +5,7 @@ set -e
 WORKSPACE=`pwd`
 
 function xcodebuild_pretty {
-    XCFORMATTER=tee
+    XCFORMATTER=true
     if hash xcpretty 2>/dev/null; then
         XCFORMATTER=xcpretty
     fi
@@ -80,8 +80,5 @@ echo "Building TestRunner..."
 xcodebuild_pretty -configuration Debug -sdk iphoneos -target TestRunner ARCHS="armv7" ONLY_ACTIVE_ARCH=NO
 echo "Packaging TestRunner..."
 xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.app" \
-    -o "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.ipa" \
-         >> "$WORKSPACE/build.log" 2>&1
-TestRunner/Debug-iphoneos/TestRunner.app" \
     -o "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.ipa" \
          >> "$WORKSPACE/build.log" 2>&1
