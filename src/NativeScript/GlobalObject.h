@@ -146,6 +146,10 @@ public:
 
     void drainMicrotasks();
 
+    WTF::Deque<WTF::RefPtr<JSC::Microtask>>& microtasks() {
+        return this->_microtasksQueue;
+    }
+
     WTF::Deque<std::map<std::string, std::unique_ptr<ReleasePoolBase>>>& releasePools() {
         return this->_releasePools;
     }

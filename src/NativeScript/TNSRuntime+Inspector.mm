@@ -11,6 +11,7 @@
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
 #include <JavaScriptCore/Debugger.h>
+#include <JavaScriptCore/Completion.h>
 
 #include "GlobalObjectInspectorController.h"
 #import "TNSRuntime+Inspector.h"
@@ -49,14 +50,19 @@ private:
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
                  messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler;
+- (void)setup;
 
 @end
 
 @implementation TNSRuntime (Inspector)
 
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
-    return [[[TNSRuntimeInspector alloc] initWithRuntime:self
-                                          messageHandler:messageHandler] autorelease];
+    TNSRuntimeInspector* runtimeInspector = [[TNSRuntimeInspector alloc] initWithRuntime:self
+                                                                          messageHandler:messageHandler];
+
+    [runtimeInspector setup];
+
+    return [runtimeInspector autorelease];
 }
 
 @end
@@ -87,6 +93,20 @@ private:
     }
 
     return self;
+}
+
+- (void)setup {
+    JSC::JSLockHolder lock(_runtime->_vm.get());
+
+    WTF::Deque<WTF::RefPtr<JSC::Microtask>> other;
+    GlobalObject* globalObject = self->_runtime->_globalObject.get();
+
+    globalObject->microtasks().swap(other);
+
+    loadAndEvaluateModule(_runtime->_globalObject->globalExec(), WTF::ASCIILiteral("inspector_modules.js"));
+
+    globalObject->drainMicrotasks();
+    globalObject->microtasks().swap(other);
 }
 
 - (void)dispatchMessage:(NSString*)message {
