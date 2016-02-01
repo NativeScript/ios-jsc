@@ -46,7 +46,7 @@ using namespace NativeScript;
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath {
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
-        self->_applicationPath = [applicationPath copy];
+        self->_applicationPath = [[applicationPath stringByStandardizingPath] retain];
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
 #if PLATFORM(IOS)
