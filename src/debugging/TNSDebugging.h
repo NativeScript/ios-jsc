@@ -226,7 +226,6 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
             [inspector pause];
         });
         CFRunLoopWakeUp(runloop);
-        CFRunLoopStop(runloop);
       }
 
       NSArray *inspectorRunloopModes =
@@ -257,9 +256,10 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
                            dispatch_get_main_queue(), ^(int token) {
       isWaitingForDebugger = YES;
       NSLog(@"NativeScript waiting for debugger.");
-      CFRunLoopPerformBlock(CFRunLoopGetCurrent(), kCFRunLoopDefaultMode, ^{
-          CFRunLoopRunInMode(kCFRunLoopDefaultMode, 30, false);
-      });
+
+      do {
+        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
+      } while (isWaitingForDebugger);
   });
 
   int attachRequestSubscription;
@@ -280,6 +280,8 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
             dispatch_source_cancel(listenSource);
             listenSource = nil;
           }
+
+          isWaitingForDebugger = NO;
       });
   });
 
