@@ -38,7 +38,7 @@
 #include "FunctionReferenceTypeInstance.h"
 #include "FunctionReferenceTypeConstructor.h"
 #include "ObjCTypes.h"
-#include "NSErrorWrapperConstructor.h"
+#include "NativeErrorWrapperConstructor.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -244,8 +244,8 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name(globalObject->globalExec())), functionReferenceConstructor, ReadOnly | DontDelete);
     functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, DontEnum);
 
-    this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
-    this->putDirect(vm, Identifier::fromString(&vm, "NSErrorWrapper"), this->_nsErrorWrapperConstructor.get());
+    this->_nsErrorWrapperConstructor.set(vm, this, NativeErrorWrapperConstructor::create(vm, NativeErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
+    this->putDirect(vm, Identifier::fromString(&vm, "NativeErrorWrapper"), this->_nsErrorWrapperConstructor.get());
 
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, ReadOnly | DontDelete);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, ReadOnly | DontDelete);
@@ -335,8 +335,13 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&interop->_nsErrorWrapperConstructor);
 }
 
+#ifdef __OBJC__
 ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
     return this->_nsErrorWrapperConstructor->createError(execState, error);
+}
+
+ErrorInstance* Interop::wrapException(ExecState* execState, NSException* exception) const {
+    return this->_nsErrorWrapperConstructor->createError(execState, exception);
 }
 
 JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const {
@@ -346,4 +351,5 @@ JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const
     arrayBuffer->putDirect(execState->vm(), execState->propertyNames().homeObjectPrivateName, NativeScript::toValue(execState, data));
     return arrayBuffer;
 }
+#endif
 }

@@ -5,6 +5,7 @@ functionReturningFunctionPtrAsVoidPtr
 functionReturnsCFRetained
 functionReturnsNSRetained
 functionReturnsUnmanaged
+functionThrowsException
 functionWhichReturnsSimpleFunctionPointer
 functionWith_BoolPtr
 functionWith_VoidPtr

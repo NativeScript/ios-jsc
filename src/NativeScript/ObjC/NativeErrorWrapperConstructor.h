@@ -1,5 +1,5 @@
 //
-//  NSErrorWrapperConstructor.h
+//  NativeErrorWrapperConstructor.h
 //  NativeScript
 //
 //  Created by Yavor Georgiev on 30.12.15 г..
@@ -11,12 +11,12 @@
 @class NSError;
 
 namespace NativeScript {
-class NSErrorWrapperConstructor : public JSC::InternalFunction {
+class NativeErrorWrapperConstructor : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static NSErrorWrapperConstructor* create(JSC::VM& vm, JSC::Structure* structure) {
-        NSErrorWrapperConstructor* cell = new (NotNull, JSC::allocateCell<NSErrorWrapperConstructor>(vm.heap)) NSErrorWrapperConstructor(vm, structure);
+    static NativeErrorWrapperConstructor* create(JSC::VM& vm, JSC::Structure* structure) {
+        NativeErrorWrapperConstructor* cell = new (NotNull, JSC::allocateCell<NativeErrorWrapperConstructor>(vm.heap)) NativeErrorWrapperConstructor(vm, structure);
         cell->finishCreation(vm, structure->globalObject());
         return cell;
     }
@@ -33,8 +33,10 @@ public:
 
     JSC::ErrorInstance* createError(JSC::ExecState*, NSError*) const;
 
+    JSC::ErrorInstance* createError(JSC::ExecState*, NSException*) const;
+
 private:
-    NSErrorWrapperConstructor(JSC::VM& vm, JSC::Structure* structure)
+    NativeErrorWrapperConstructor(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
 

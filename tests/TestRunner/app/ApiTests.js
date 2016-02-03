@@ -239,7 +239,7 @@ describe(module.id, function () {
             TNSApi.new().methodError(1);
         } catch (e) {
             isThrown = true;
-            expect(e instanceof interop.NSErrorWrapper).toBe(true);
+            expect(e instanceof interop.NativeErrorWrapper).toBe(true);
             expect(e.stack).toEqual(jasmine.any(String));
         } finally {
             expect(isThrown).toBe(true);
@@ -435,7 +435,7 @@ describe(module.id, function () {
             var api = TNSApi.new();
             api.methodError.async(api, [1])
             .catch(error => {
-                expect(error).toEqual(jasmine.any(interop.NSErrorWrapper));
+                expect(error).toEqual(jasmine.any(interop.NativeErrorWrapper));
                 done();
             });
         });
