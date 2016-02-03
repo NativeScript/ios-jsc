@@ -26,6 +26,7 @@
 #import "TNSRuntime+Private.h"
 #include "JSErrors.h"
 #include "Metadata/Metadata.h"
+#include "ObjCTypes.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -116,6 +117,11 @@ using namespace NativeScript;
 
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
     }
+}
+
+- (JSValueRef)convertObject:(id)object {
+    JSLockHolder lock(*self->_vm);
+    return toRef(self->_globalObject->globalExec(), toValue(self->_globalObject->globalExec(), object));
 }
 
 - (void)dealloc {

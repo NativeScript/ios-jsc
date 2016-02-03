@@ -15,7 +15,7 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 @interface TNSRuntime : NSObject
 
-@property(nonatomic, retain) NSString* applicationPath;
+@property(nonatomic, retain, readonly) NSString* applicationPath;
 
 + (void)initializeMetadata:(void*)metadataPtr;
 
@@ -28,5 +28,7 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 - (JSGlobalContextRef)globalContext;
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier;
+
+- (JSValueRef)convertObject:(id)object;
 
 @end

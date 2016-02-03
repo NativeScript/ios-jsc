@@ -57,6 +57,7 @@ NATIVESCRIPT_DIR="$WORKSPACE/src/NativeScript/"
 cp \
     "$NATIVESCRIPT_DIR/NativeScript.h" \
     "$NATIVESCRIPT_DIR/TNSRuntime.h" \
+    "$NATIVESCRIPT_DIR/TNSRuntime+Diagnostics.h" \
     "$NATIVESCRIPT_DIR/TNSRuntime+Inspector.h" \
     "$WORKSPACE/dist/NativeScript/include"
 

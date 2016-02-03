@@ -7,44 +7,37 @@
 //
 
 #import "TNSRuntime+Diagnostics.h"
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/ScriptCallStack.h>
+#include <JavaScriptCore/ScriptCallStackFactory.h>
 #import "TNSRuntime+Private.h"
-
-#import <Foundation/NSString.h>
 
 using namespace JSC;
 using namespace NativeScript;
 
 @implementation TNSRuntime (Diagnostics)
 
-struct StackTraceFunctor {
-public:
-    StackTraceFunctor(WTF::StringBuilder& trace)
-        : _trace(trace)
-        , line(0) {
-    }
-
-    StackVisitor::Status operator()(StackVisitor& visitor) {
-        if (line++) {
-            _trace.append("\n");
-        }
-        this->_trace.append(visitor->toString().utf8().data());
-        return StackVisitor::Continue;
-    }
-
-private:
-    WTF::StringBuilder& _trace;
-    int line;
-};
-
 + (void)_printCurrentStack {
-    NSLog(@"--> JavaScript Stack trace:\n%@", [self _getCurrentStack]);
+    NSLog(@"%s is deprecated - use [runtime getCurrentStack] instead.", __FUNCTION__);
 }
 
-+ (NSString*)_getCurrentStack {
-    WTF::StringBuilder trace;
-    StackTraceFunctor functor(trace);
-    static_cast<TNSRuntime*>(WTF::wtfThreadData().m_apiData)->_vm->topCallFrame->iterate(functor);
-    return (NSString*)trace.toString().createCFString().autorelease();
+- (NSString*)getCurrentStack {
+    std::stringstream output;
+    RefPtr<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStack(self->_vm->topCallFrame, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
+    for (size_t i = 0; i < callStack->size(); ++i) {
+        Inspector::ScriptCallFrame frame = callStack->at(i);
+        output << "\t" << std::setw(4) << std::setfill(' ') << std::left << i << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
+        if (frame.lineNumber() && frame.columnNumber()) {
+            output << ":" << frame.lineNumber() << ":" << frame.columnNumber();
+        }
+        if (i != callStack->size() - 1) {
+            output << "\n";
+        }
+    }
+    return [NSString stringWithUTF8String:output.str().c_str()];
 }
 
 @end

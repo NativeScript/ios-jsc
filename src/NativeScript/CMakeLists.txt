@@ -171,6 +171,7 @@ set(SOURCE_FILES
 
 set(NativeScript_PUBLIC_HEADERS
     NativeScript.h
+    TNSRuntime+Diagnostics.h
     TNSRuntime+Inspector.h
     TNSRuntime.h
 )

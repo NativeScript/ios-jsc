@@ -1,4 +1,5 @@
 #import <NativeScript.h>
+#import <TNSExceptionHandler.h>
 
 #ifndef NDEBUG
 #include <TNSDebugging.h>
@@ -15,6 +16,8 @@ int main(int argc, char *argv[]) {
     [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
                        forMode:NSRunLoopCommonModes];
     TNSRuntimeInspector.logsToSystemConsole = YES;
+
+    TNSInstallExceptionHandler();
 
 #ifndef NDEBUG
     TNSEnableRemoteInspector(argc, argv);

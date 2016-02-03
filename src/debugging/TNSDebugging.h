@@ -153,7 +153,7 @@ static dispatch_source_t TNSCreateInspectorServer(
   return listenSource;
 }
 
-static void TNSObjectiveCUncaughtExceptionHandler(NSException *exception) {
+static void TNSInspectorUncaughtExceptionHandler(NSException *exception) {
   JSStringRef exceptionMessage =
       JSStringCreateWithUTF8CString(exception.description.UTF8String);
 
@@ -211,7 +211,7 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
 
       inspector = [runtime attachInspectorWithHandler:sendMessageToFrontend];
 
-      NSSetUncaughtExceptionHandler(&TNSObjectiveCUncaughtExceptionHandler);
+      NSSetUncaughtExceptionHandler(&TNSInspectorUncaughtExceptionHandler);
 
       if (isWaitingForDebugger) {
         isWaitingForDebugger = NO;
