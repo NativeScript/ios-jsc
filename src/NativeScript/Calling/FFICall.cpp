@@ -126,13 +126,13 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
         this->preCall(fakeExecState, *invocation);
         this->_invocationHooks.pre(this, fakeExecState, *invocation);
         if (Exception* exception = fakeExecState->exception()) {
-            delete fakeCallFrame;
+            delete[] fakeCallFrame;
             return exception;
         }
     }
 
     JSPromiseDeferred* deferred = JSPromiseDeferred::create(execState, execState->lexicalGlobalObject());
-    auto* releasePool = new ReleasePoolBase::Item(std::move(releasePoolHolder.relinquish()));
+    auto* releasePool = new ReleasePoolBase::Item(releasePoolHolder.relinquish());
     __block Strong<FFICall> callee(execState->vm(), this);
 
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
@@ -169,7 +169,7 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
           JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->resolve(), resolveCallType, resolveCallData, jsUndefined(), resolveArguments);
       }
 
-      delete fakeCallFrame;
+      delete[] fakeCallFrame;
       delete releasePool;
     });
 
