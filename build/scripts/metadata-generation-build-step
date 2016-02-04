@@ -34,6 +34,16 @@ other_cflags_parsed = shlex.split(other_cflags)
 preprocessor_defs = env_or_empty("GCC_PREPROCESSOR_DEFINITIONS")
 preprocessor_defs_parsed = map((lambda s: "-D" + s), shlex.split(preprocessor_defs, '\''))
 typescript_output_folder = env_or_none("TNS_TYPESCRIPT_DECLARATIONS_PATH")
+docset_platform = "iOS"
+effective_platofrm_name = env("EFFECTIVE_PLATFORM_NAME")
+
+if effective_platofrm_name is "-macosx":
+    docset_platform = "OSX"
+elif effective_platofrm_name is "-watchos" or effective_platofrm_name is "-watchsimulator":
+    docset_platform = "watchOS"
+elif effective_platofrm_name is "-appletvos" or effective_platofrm_name is "-appletvsimulator":
+    docset_platform = "tvOS"
+docset_path = os.path.join(os.path.expanduser("~"), "Library/Developer/Shared/Documentation/DocSets/com.apple.adc.documentation.{}.docset".format(docset_platform))
 yaml_output_folder = env_or_none("TNS_DEBUG_METADATA_PATH")
 
 
@@ -41,7 +51,8 @@ def generate_metadata(arch):
     # metadata generator arguments
     generator_call = ["./objc-metadata-generator",
                       "-output-bin", "{}/metadata-{}.bin".format(conf_build_dir, arch),
-                      "-output-umbrella", "{}/umbrella-{}.h".format(conf_build_dir, arch)]
+                      "-output-umbrella", "{}/umbrella-{}.h".format(conf_build_dir, arch),
+                      "-docset-path", docset_path]
 
     # optionally add typescript output folder
     if typescript_output_folder is not None:
