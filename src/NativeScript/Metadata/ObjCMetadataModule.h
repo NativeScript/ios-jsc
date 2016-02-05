@@ -27,7 +27,9 @@ public:
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
-
+    
+    static JSC::EncodedJSValue lazyMetadataSymbolGetter(JSC::ExecState*, JSC::JSObject* slotBase, JSC::EncodedJSValue thisValue, JSC::PropertyName);
+    
     const Metadata::ModuleMeta* module() const {
         return this->_module;
     }
@@ -41,6 +43,7 @@ private:
         : Base(vm, structure)
         , _module(module)
         , _symbolResolver(SymbolLoader::instance().resolveModule(module)) {
+            _symbolResolver->load();
     }
 
     const Metadata::ModuleMeta* _module;

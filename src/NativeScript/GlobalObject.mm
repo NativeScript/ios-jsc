@@ -183,6 +183,7 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
 
     _commonJSModuleFunctionIdentifier = Identifier::fromString(&vm, "CommonJSModuleFunction");
     _metadataModuleIdentifier = Identifier::fromString(&vm, "MetadataModule");
+    _metadataModuleLazyGetter.set(vm, this, CustomGetterSetter::create(vm, &ObjCMetadataModule::lazyMetadataSymbolGetter, nullptr));
     this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
 }
 
@@ -209,6 +210,7 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_weakRefInstanceStructure);
     visitor.append(&globalObject->_fastEnumerationIteratorStructure);
     visitor.append(&globalObject->_metadataModuleStructure);
+    visitor.append(&globalObject->_metadataModuleLazyGetter);
 }
 
 void GlobalObject::destroy(JSCell* cell) {

@@ -162,6 +162,10 @@ public:
         return this->_metadataModuleIdentifier;
     }
 
+    JSC::JSValue metadataModuleLazyGetter() const {
+        return this->_metadataModuleLazyGetter.get();
+    }
+    
     WTF::HashMap<WTF::String, WTF::String, WTF::CaseFoldingHash>& modulePathCache() {
         return this->_modulePathCache;
     }
@@ -225,6 +229,7 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _unmanagedInstanceStructure;
     JSC::WriteBarrier<JSC::Structure> _metadataModuleStructure;
+    JSC::WriteBarrier<JSC::JSCell> _metadataModuleLazyGetter;
 
     std::map<Class, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
 

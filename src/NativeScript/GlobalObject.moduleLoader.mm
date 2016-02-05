@@ -211,17 +211,21 @@ static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourc
 
 static JSModuleRecord* createMetadataModule(GlobalObject* globalObject, ExecState* execState, ObjCMetadataModule* metadataModule, const JSC::Identifier& moduleKey) {
     WTF::StringBuilder moduleContents;
-    moduleContents.reserveCapacity(8096);
-    for (const Metadata::Meta* meta : metadataModule->module()->globalTable.value()) {
-        moduleContents.append(WTF::String::format("export var %s = void 0;\n", meta->jsName()));
-    }
+//    moduleContents.reserveCapacity(8096);
+//    for (const Metadata::Meta* meta : metadataModule->module()->globalTable.value()) {
+//        moduleContents.append(WTF::String::format("export var %s = void 0;\n", meta->jsName()));
+//    }
 
     ParserError error;
     JSModuleRecord* module = parseModule(execState, makeSource(moduleContents.toString()), moduleKey, error);
     ASSERT(!error.isValid());
 
     module->putDirect(execState->vm(), globalObject->metadataModuleIdentifier(), metadataModule);
-
+    for (const Metadata::Meta* meta : metadataModule->module()->globalTable.value()) {
+        Identifier exportName = Identifier::fromString(execState, meta->jsName());
+        module->addExportEntry(JSModuleRecord::ExportEntry::createLocal(exportName, exportName, VariableEnvironmentEntry()));
+    }
+    
     return module;
 }
 
@@ -437,11 +441,11 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
     } else if (JSValue json = moduleRecord->getDirect(vm, vm.propertyNames->JSON)) {
         putValueInScopeAndSymbolTable(vm, moduleRecord, vm.propertyNames->builtinNames().starDefaultPrivateName(), json);
         return json;
-    } else if (ObjCMetadataModule* metadataModule = jsDynamicCast<ObjCMetadataModule*>(moduleRecord->getDirect(vm, self->metadataModuleIdentifier()))) {
+    } else if (JSValue metadataModuleValue = moduleRecord->getDirect(vm, self->metadataModuleIdentifier())) {
+        ObjCMetadataModule* metadataModule = jsCast<ObjCMetadataModule*>(metadataModuleValue);
         JSModuleEnvironment* moduleEnvironment = moduleRecord->moduleEnvironment();
         for (const Metadata::Meta* meta : metadataModule->module()->globalTable.value()) {
-            //putValueInScopeAndSymbolTable(vm, moduleRecord, Identifier::fromString(&vm, meta->jsName()), getterSetter);
-            moduleEnvironment->putDirect(vm, Identifier::fromString(&vm, meta->jsName()), jsString(&vm, "foo"));
+            moduleEnvironment->putDirectCustomAccessor(vm, Identifier::fromString(&vm, meta->jsName()), self->metadataModuleLazyGetter(), 0);
         }
         return metadataModule;
     }
