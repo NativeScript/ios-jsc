@@ -31,7 +31,7 @@ namespace NativeScript {
 using namespace JSC;
 
 static void handleJsUncaughtErrorCallback(ExecState* execState, Exception* exception) {
-    JSValue callback = execState->lexicalGlobalObject()->get(execState, Identifier::fromString(execState, "__onUncaughtError"));
+    JSValue callback = execState->lexicalGlobalObject()->get(execState, Identifier::fromString(execState, "__onUncaughtError")); // Keep in sync with TNSExceptionHandler.h
 
     CallData callData;
     CallType callType = getCallData(callback, callData);

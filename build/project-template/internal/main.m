@@ -5,6 +5,7 @@
 #include <Foundation/Foundation.h>
 #include <JavaScriptCore/JavaScriptCore.h>
 #include <NativeScript.h>
+#include <TNSExceptionHandler.h>
 
 #if DEBUG
 #include <TNSDebugging.h>
@@ -20,9 +21,11 @@ int main(int argc, char *argv[]) {
 #if DEBUG
     NSString *libraryPath = [NSSearchPathForDirectoriesInDomains(
         NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
-    NSString *liveSyncPath =
-        [NSString pathWithComponents:
-                      @[ libraryPath, @"Application Support", @"LiveSync" ]];
+    NSString *liveSyncPath = [NSString pathWithComponents:@[
+      libraryPath,
+      @"Application Support",
+      @"LiveSync"
+    ]];
     NSString *appFolderPath =
         [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
 
@@ -35,6 +38,8 @@ int main(int argc, char *argv[]) {
 #endif
 
     [TNSRuntime initializeMetadata:&startOfMetadataSection];
+    TNSInstallExceptionHandler();
+
     runtime = [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
     [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
                        forMode:NSRunLoopCommonModes];

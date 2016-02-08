@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <JavaScriptCore/JavaScriptCore.h>
 #import <NativeScript.h>
+#import <TNSExceptionHandler.h>
 
 static NSString *toString(JSContextRef context, JSValueRef value) {
   JSStringRef errorMessageRef = JSValueToStringCopy(context, value, NULL);
@@ -35,6 +36,8 @@ int main(int argc, char *argv[]) {
       NSLog(@"%@", error.localizedDescription);
       return 1;
     }
+
+    TNSInstallExceptionHandler();
 
     JSValueRef errorRef = NULL;
 

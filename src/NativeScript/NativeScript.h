@@ -7,4 +7,5 @@
 //
 
 #import "TNSRuntime.h"
+#import "TNSRuntime+Diagnostics.h"
 #import "TNSRuntime+Inspector.h"
