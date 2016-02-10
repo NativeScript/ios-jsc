@@ -158,6 +158,8 @@ public:
         return this->_modulePathCache;
     }
 
+    JSC::JSInternalPromise* loadModule(JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue referrerValue = JSC::jsUndefined()); // promise resolves to JSC::JSModuleRecord*
+
 private:
     GlobalObject(JSC::VM& vm, JSC::Structure* structure);
 

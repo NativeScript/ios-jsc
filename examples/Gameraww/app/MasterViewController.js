@@ -1,4 +1,5 @@
 import fetch from './fetch';
+import redditImage from '@uiimage/reddit-default';
 
 var dateFormatter = new NSDateFormatter();
 dateFormatter.locale = NSLocale.currentLocale();
@@ -56,6 +57,7 @@ var JSMasterViewController = UITableViewController.extend(
         detailTextLabel.text = dateFormatter.stringFromDate(created);
 
         var imageView = cell.contentView.viewWithTag(3);
+        imageView.image = redditImage;
         fetch(item["thumbnail"])
             .then(data => UIImage.imageWithData.async(UIImage, [ data ]))
             .then(image => imageView.image = image)
