@@ -485,18 +485,22 @@ describe(module.id, function () {
     it("ApiIterator", function () {
         var counter = 0;
 
-        Object.getOwnPropertyNames(global).forEach(function (x) {
-            // console.debug(x);
+        Object.getOwnPropertyNames(global).forEach(function (name) {
+            // console.debug(name);
 
             // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
-            if (x == "kCFAllocatorUseContext") {
+            if (name == "kCFAllocatorUseContext") {
+                return;
+            }
+
+            if (name == "JSExport") {
                 return;
             }
 
             counter++;
 
             try {
-                var symbol = global[x];
+                var symbol = global[name];
             } catch (e) {
                 if (e instanceof ReferenceError) {
                     return;
@@ -513,7 +517,7 @@ describe(module.id, function () {
 
                 Object.getOwnPropertyNames(klass).forEach(function (y) {
                     if (klass.respondsToSelector(y)) {
-                        // console.debug(x, y);
+                        // console.debug(name, y);
 
                         var method = klass[y];
                         expect(method).toBeDefined();
@@ -524,7 +528,7 @@ describe(module.id, function () {
 
                 Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
                     if (klass.instancesRespondToSelector(y)) {
-                        // console.debug(x, "proto", y);
+                        // console.debug(name, "proto", y);
 
                         var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
 

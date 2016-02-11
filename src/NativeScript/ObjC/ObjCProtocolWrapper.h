@@ -14,16 +14,19 @@ struct ProtocolMeta;
 }
 
 namespace NativeScript {
+class ObjCPrototype;
 
 class ObjCProtocolWrapper : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
+    static const unsigned StructureFlags = JSC::OverridesGetOwnPropertySlot | Base::StructureFlags;
+
     DECLARE_INFO;
 
-    static ObjCProtocolWrapper* create(JSC::VM& vm, JSC::Structure* structure, const Metadata::ProtocolMeta* metadata, Protocol* aProtocol = nil) {
+    static ObjCProtocolWrapper* create(JSC::VM& vm, JSC::Structure* structure, ObjCPrototype* prototype, const Metadata::ProtocolMeta* metadata, Protocol* aProtocol = nil) {
         ObjCProtocolWrapper* cell = new (NotNull, JSC::allocateCell<ObjCProtocolWrapper>(vm.heap)) ObjCProtocolWrapper(vm, structure);
-        cell->finishCreation(vm, metadata, aProtocol);
+        cell->finishCreation(vm, prototype, metadata, aProtocol);
         return cell;
     }
 
@@ -46,7 +49,9 @@ private:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM& vm, const Metadata::ProtocolMeta* metadata, Protocol* aProtocol);
+    void finishCreation(JSC::VM& vm, ObjCPrototype* prototype, const Metadata::ProtocolMeta* metadata, Protocol* aProtocol);
+
+    static bool getOwnPropertySlot(JSC::JSObject*, JSC::ExecState*, JSC::PropertyName, JSC::PropertySlot&);
 
     const Metadata::ProtocolMeta* _metadata;
 

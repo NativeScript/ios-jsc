@@ -72,6 +72,15 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
     return JSValue::encode(jsUndefined());
 }
 
+static ObjCProtocolWrapper* createProtocolWrapper(GlobalObject* globalObject, const ProtocolMeta* protocolMeta, Protocol* aProtocol) {
+    Structure* prototypeStructure = ObjCPrototype::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
+    ObjCPrototype* prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta);
+    Structure* protocolWrapperStructure = ObjCProtocolWrapper::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
+    ObjCProtocolWrapper* protocolWrapper = ObjCProtocolWrapper::create(globalObject->vm(), protocolWrapperStructure, prototype, protocolMeta, aProtocol);
+    prototype->materializeProperties(globalObject->vm(), globalObject);
+    return protocolWrapper;
+}
+
 const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(GlobalObject) };
 
 const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
@@ -254,10 +263,11 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
             aProtocol = objc_getProtocol(symbolMeta->name());
         }
 
-        symbolWrapper = ObjCProtocolWrapper::create(vm, ObjCProtocolWrapper::createStructure(vm, globalObject, globalObject->objectPrototype()), static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
+        symbolWrapper = createProtocolWrapper(globalObject, static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
         if (aProtocol) {
             globalObject->_objCProtocolWrappers.insert({ aProtocol, Strong<ObjCProtocolWrapper>(vm, jsCast<ObjCProtocolWrapper*>(symbolWrapper)) });
         }
+
         break;
     }
     case Union: {
@@ -392,7 +402,8 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     }
     ASSERT(meta && meta->type() == MetaType::ProtocolType);
 
-    ObjCProtocolWrapper* protocolWrapper = ObjCProtocolWrapper::create(this->vm(), ObjCProtocolWrapper::createStructure(this->vm(), this, this->objectPrototype()), static_cast<const ProtocolMeta*>(meta), aProtocol);
+    ObjCProtocolWrapper* protocolWrapper = createProtocolWrapper(this, static_cast<const ProtocolMeta*>(meta), aProtocol);
+
     this->_objCProtocolWrappers.insert({ aProtocol, Strong<ObjCProtocolWrapper>(this->vm(), protocolWrapper) });
     this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, DontDelete | ReadOnly);
 

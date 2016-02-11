@@ -38,6 +38,7 @@ import "./Marshalling/PointerTests";
 import "./Marshalling/ReferenceTests";
 import "./Marshalling/FunctionPointerTests";
 import "./Marshalling/EnumTests";
+import "./Marshalling/ProtocolTests";
 
 // import "./Inheritance/ConstructorResolutionTests";
 import "./Inheritance/InheritanceTests";
