@@ -257,9 +257,12 @@ static void TNSEnableRemoteInspector(int argc, char **argv) {
       isWaitingForDebugger = YES;
       NSLog(@"NativeScript waiting for debugger.");
 
-      do {
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
-      } while (isWaitingForDebugger);
+      CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopDefaultMode, ^{
+          do {
+              CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.1, false);
+          } while (isWaitingForDebugger);
+      });
+      CFRunLoopWakeUp(CFRunLoopGetMain());
   });
 
   int attachRequestSubscription;
