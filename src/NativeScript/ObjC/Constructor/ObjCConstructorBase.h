@@ -26,6 +26,7 @@ public:
     }
 
     const WTF::Vector<ObjCConstructorCall*> generateInitializers(JSC::VM& vm, GlobalObject* globalObject, Class target) {
+        JSC::DeferGCForAWhile deferGC(vm.heap);
         return this->_initializersGenerator(vm, globalObject, target);
     }
 

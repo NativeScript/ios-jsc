@@ -170,6 +170,8 @@ RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* glob
 }
 
 WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalObject, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType) {
+    DeferGCForAWhile deferGC(globalObject->vm().heap);
+
     ASSERT(fieldsNames.size() == fieldsTypes.size());
 
     VM& vm = globalObject->vm();
@@ -318,6 +320,8 @@ ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject,
 }
 
 JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncoding) {
+    DeferGCForAWhile deferGC(globalObject->vm().heap);
+
     JSC::JSCell* result = nullptr;
 
     switch (typeEncoding->type) {
@@ -456,6 +460,8 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
 }
 
 const WTF::Vector<JSC::JSCell*> TypeFactory::parseTypes(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncodings, int count) {
+    DeferGCForAWhile deferGC(globalObject->vm().heap);
+
     WTF::Vector<JSCell*> types;
     for (int i = 0; i < count; i++) {
         types.append(parseType(globalObject, typeEncodings));
