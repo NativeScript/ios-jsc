@@ -1846,7 +1846,7 @@ describe(module.id, function () {
         expect(NSString.stringWithCString(encoding).toString()).toBe("v@:");
     });
 
-    it("should project Symbol.iterable as NSFastEnumeration", function () {
+    it("should project Symbol.iterable as NSFastEnumeration", function() {
         var start = 1;
         var end = 10;
         var lastStep = 0;
@@ -1855,15 +1855,16 @@ describe(module.id, function () {
                 return {
                     step: start,
 
-                    next() {
+                        next() {
                         if (this.step <= end) {
-                            return { value: this.step++, done: false };
+                            return { value : this.step++, done : false };
                         } else {
-                            return { done: true };
+                            return { done : true };
                         }
-                    },
+                    }
+                    ,
 
-                    return() {
+                        return () {
                         lastStep = this.step;
                         return {};
                     }
@@ -1880,5 +1881,15 @@ describe(module.id, function () {
         expect(lastStep).toEqual(end + 1);
 
         TNSClearOutput();
-    })
+    });
+
+    it("Method and property with the same name", function() {
+        var JSObject = NSObject.extend({ get conflict() { return true; } },
+                                       { protocols : [ TNSPropertyMethodConflictProtocol ] });
+
+        var derived = JSObject.new();
+        var result = TNSTestNativeCallbacks.protocolWithNameConflict(derived);
+
+        expect(result).toBe(true);
+    });
 });

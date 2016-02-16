@@ -79,3 +79,7 @@ void functionThrowsException() {
     return x;
 }
 @end
+
+@implementation TNSPropertyMethodConflictClass
+
+@end
