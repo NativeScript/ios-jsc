@@ -13,10 +13,12 @@
 #include "ObjCMethodCall.h"
 #include "ObjCConstructorCall.h"
 #include "ObjCConstructorNative.h"
+#include "ObjCPrototype.h"
 #include "AllocatedPlaceholder.h"
 #include "ObjCTypes.h"
 #include "Interop.h"
 #include "PointerInstance.h"
+#include "Metadata/Metadata.h"
 
 #import "TNSArrayAdapter.h"
 #import "TNSDictionaryAdapter.h"
@@ -26,6 +28,8 @@ namespace NativeScript {
 using namespace JSC;
 
 const ClassInfo ObjCConstructorBase::s_info = { "Function", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorBase) };
+
+const unsigned ObjCConstructorBase::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
 // TODO: Use the current class in finish creation
 JSValue ObjCConstructorBase::read(ExecState* execState, void const* buffer, JSCell* self) {
@@ -88,6 +92,22 @@ const char* ObjCConstructorBase::encode(JSCell* cell) {
     return "@";
 }
 
+const Metadata::InterfaceMeta* ObjCConstructorBase::metadata() {
+    if (this->_metadata == nullptr) {
+        JSObject* proto = this->_prototype.get();
+        ObjCPrototype* objcPrototype = nullptr;
+        while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(proto))) {
+            proto = jsDynamicCast<JSObject*>(proto->prototype());
+        }
+        ASSERT(objcPrototype != nullptr);
+        const Metadata::BaseClassMeta* metadata = objcPrototype->metadata();
+
+        ASSERT(metadata->type() == Metadata::MetaType::Interface);
+        this->_metadata = static_cast<const Metadata::InterfaceMeta*>(metadata);
+    }
+    return this->_metadata;
+}
+
 void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Class klass) {
     Base::finishCreation(vm, WTF::String(class_getName(klass)));
 
@@ -95,6 +115,7 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
     this->_instancesStructure.set(vm, this, ObjCWrapperObject::createStructure(vm, globalObject, prototype));
 
     this->_klass = klass;
+    this->_metadata = nullptr;
 
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
     this->_ffiTypeMethodTable.read = &read;
@@ -132,9 +153,21 @@ bool ObjCConstructorBase::getOwnPropertySlot(JSObject* object, ExecState* execSt
 
 const WTF::Vector<WriteBarrier<ObjCConstructorCall>>& ObjCConstructorBase::initializers(VM& vm, GlobalObject* globalObject) {
     if (this->_initializers.size() == 0) {
-        for (ObjCConstructorCall* initializer : this->generateInitializers(vm, globalObject, this->klass())) {
-            this->_initializers.append(WriteBarrier<ObjCConstructorCall>(vm, this, initializer));
-        }
+        JSC::DeferGCForAWhile deferGC(vm.heap);
+        const Metadata::InterfaceMeta* metadata = this->metadata();
+
+        do {
+            std::vector<const Metadata::MethodMeta*> initializers = metadata->initializersWithProtcols();
+            for (const Metadata::MethodMeta* method : initializers) {
+                if (method->isAvailable()) {
+                    ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), this->_klass, method);
+                    this->_initializers.append(WriteBarrier<ObjCConstructorCall>(vm, this, constructorCall));
+                }
+            }
+
+            metadata = metadata->baseMeta();
+
+        } while (metadata);
     }
 
     return this->_initializers;
@@ -174,8 +207,10 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, JSV
     static WTF::String error("Error", WTF::String::ConstructFromLiteral);
 
     JSValue value;
-#define RETURN_IF_CELL if (value.isCell()) return value
-    
+#define RETURN_IF_CELL  \
+    if (value.isCell()) \
+    return value
+
     if (jsName.isEmpty()) {
         return value;
     }
@@ -227,7 +262,9 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
             if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(constructor)) {
                 thisValue = AllocatedPlaceholder::create(execState->vm(), jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
             } else {
-                thisValue = NativeScript::toValue(execState, instance, ^ { return constructor->instancesStructure(); });
+                thisValue = NativeScript::toValue(execState, instance, ^{
+                  return constructor->instancesStructure();
+                });
             }
 
             return JSValue::encode(JSC::call(execState, initializer.asCell(), callType, callData, thisValue, initializerArguments));
