@@ -60,3 +60,11 @@ typedef UIColor NIKColor;
 + (int)staticMethod:(int)x;
 - (int)instanceMethod:(int)x;
 @end
+
+@protocol TNSPropertyMethodConflictProtocol
+- (BOOL)conflict;
+@end
+
+@interface TNSPropertyMethodConflictClass : NSObject <TNSPropertyMethodConflictProtocol>
+@property BOOL conflict;
+@end
