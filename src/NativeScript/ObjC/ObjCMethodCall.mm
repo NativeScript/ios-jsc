@@ -91,6 +91,12 @@ static bool isJavaScriptDerived(JSC::JSValue value) {
 
 void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
     ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
+
+    if (!(execState->thisValue().inherits(ObjCConstructorBase::info()) || execState->thisValue().inherits(ObjCWrapperObject::info()) || execState->thisValue().inherits(AllocatedPlaceholder::info()) || execState->thisValue().inherits(ObjCSuperObject::info()))) {
+        throwVMError(execState, createError(execState, WTF::ASCIILiteral("This value is not a native object.")));
+        return;
+    }
+
     id target = NativeScript::toObject(execState, execState->thisValue());
 
     if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {

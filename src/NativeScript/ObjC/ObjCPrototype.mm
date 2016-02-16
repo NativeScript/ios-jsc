@@ -39,7 +39,7 @@ static EncodedJSValue JSC_HOST_CALL getIterator(ExecState* execState) {
     return JSValue::encode(iterator);
 }
 
-void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const InterfaceMeta* metadata) {
+void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const BaseClassMeta* metadata) {
     Base::finishCreation(vm);
 
     this->_metadata = metadata;
