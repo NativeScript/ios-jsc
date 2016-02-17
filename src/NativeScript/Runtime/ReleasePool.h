@@ -107,7 +107,7 @@ private:
     }
 
     GlobalObject* _globalObject;
-    bool _didRelinquish;
+    bool _didRelinquish = false;
 };
 
 template <typename T>
