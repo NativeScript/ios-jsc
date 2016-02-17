@@ -12,7 +12,9 @@ typedef struct TNSCStructure {
 } TNSCStructure;
 
 @interface TNSCInterface : NSObject
+- (id)initWithEmpty;
 - (id)initWithPrimitive:(int)x;
 - (id)initWithStructure:(TNSCStructure)x;
 - (id)initWithString:(NSString*)x;
+- (id)initWithParameter1:(NSString*)x parameter2:(NSString*)y error:(NSError**)error;
 @end
