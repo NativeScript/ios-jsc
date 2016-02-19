@@ -315,6 +315,11 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         VM& vm = globalObject->vm();
 
         if (const MethodMeta* getter = propertyMeta->getter()) {
+            if (propertyDescriptor.getter().isUndefined()) {
+                throwVMError(execState, createError(execState, WTF::String::format("Property \"%s\" requires a getter function.", propertyName->utf8().data())));
+                return;
+            }
+
             const TypeEncoding* encodings = getter->encodings()->first();
             JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
             const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->count - 1);
@@ -328,6 +333,11 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         }
 
         if (const MethodMeta* setter = propertyMeta->setter()) {
+            if (propertyDescriptor.setter().isUndefined()) {
+                throwVMError(execState, createError(execState, WTF::String::format("Property \"%s\" requires a setter function.", propertyName->utf8().data())));
+                return;
+            }
+
             const TypeEncoding* encodings = setter->encodings()->first();
             JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
             const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->count - 1);
