@@ -11,21 +11,15 @@
 
 #include "ObjCConstructorBase.h"
 
-namespace Metadata {
-struct InterfaceMeta;
-}
-
 namespace NativeScript {
 class ObjCConstructorNative : public ObjCConstructorBase {
 public:
     typedef ObjCConstructorBase Base;
 
-    static const unsigned StructureFlags;
-
-    static ObjCConstructorNative* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass, const Metadata::InterfaceMeta* metadata) {
+    static ObjCConstructorNative* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
         ASSERT(klass);
         ObjCConstructorNative* cell = new (NotNull, JSC::allocateCell<ObjCConstructorNative>(vm.heap)) ObjCConstructorNative(vm, structure);
-        cell->finishCreation(vm, globalObject, prototype, klass, metadata);
+        cell->finishCreation(vm, globalObject, prototype, klass);
         return cell;
     }
 
@@ -35,22 +29,16 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    const Metadata::InterfaceMeta* metadata() const {
-        return this->_metadata;
-    }
-
     JSC::Structure* allocatedPlaceholderStructure() const {
         return _allocatedPlaceholderStructure.get();
     }
-
-    const WTF::Vector<ObjCConstructorCall*> initializersGenerator(JSC::VM&, GlobalObject*, Class);
 
 protected:
     ObjCConstructorNative(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class, const Metadata::InterfaceMeta*);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class);
 
     static void getOwnPropertyNames(JSC::JSObject*, JSC::ExecState*, JSC::PropertyNameArray&, JSC::EnumerationMode);
 
@@ -60,8 +48,6 @@ protected:
 
 private:
     static bool getOwnPropertySlot(JSC::JSObject*, JSC::ExecState*, JSC::PropertyName, JSC::PropertySlot&);
-
-    const Metadata::InterfaceMeta* _metadata;
 
     JSC::WriteBarrier<JSC::Structure> _allocatedPlaceholderStructure;
 };

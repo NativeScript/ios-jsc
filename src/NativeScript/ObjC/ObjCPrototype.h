@@ -35,9 +35,13 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
+    static WTF::String className(const JSObject* object);
+
     void materializeProperties(JSC::VM& vm, GlobalObject* globalObject);
 
-    static WTF::String className(const JSObject* object);
+    const Metadata::BaseClassMeta* metadata() {
+        return this->_metadata;
+    }
 
 private:
     ObjCPrototype(JSC::VM& vm, JSC::Structure* structure)

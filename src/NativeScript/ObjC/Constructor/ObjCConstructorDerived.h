@@ -16,11 +16,9 @@ class ObjCConstructorDerived : public ObjCConstructorBase {
 public:
     typedef ObjCConstructorBase Base;
 
-    static const unsigned StructureFlags;
-
-    static ObjCConstructorDerived* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass, ObjCConstructorBase* parent) {
+    static ObjCConstructorDerived* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
         ObjCConstructorDerived* cell = new (NotNull, JSC::allocateCell<ObjCConstructorDerived>(vm.heap)) ObjCConstructorDerived(vm, structure);
-        cell->finishCreation(vm, globalObject, prototype, klass, parent);
+        cell->finishCreation(vm, globalObject, prototype, klass);
         return cell;
     }
 
@@ -38,15 +36,6 @@ protected:
     static void destroy(JSC::JSCell* cell) {
         JSC::jsCast<ObjCConstructorDerived*>(cell)->~ObjCConstructorDerived();
     }
-
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class, ObjCConstructorBase* parent);
-
-    static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
-
-private:
-    const WTF::Vector<ObjCConstructorCall*> initializersGenerator(JSC::VM&, GlobalObject*, Class);
-
-    JSC::WriteBarrier<ObjCConstructorBase> _parent;
 };
 }
 

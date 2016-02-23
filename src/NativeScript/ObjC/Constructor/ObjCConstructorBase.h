@@ -12,6 +12,10 @@
 #include <functional>
 #include "FFIType.h"
 
+namespace Metadata {
+struct InterfaceMeta;
+}
+
 namespace NativeScript {
 class ObjCConstructorCall;
 
@@ -19,15 +23,12 @@ class ObjCConstructorBase : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
+    static const unsigned StructureFlags;
+
     DECLARE_INFO;
 
     Class klass() const {
         return this->_klass;
-    }
-
-    const WTF::Vector<ObjCConstructorCall*> generateInitializers(JSC::VM& vm, GlobalObject* globalObject, Class target) {
-        JSC::DeferGCForAWhile deferGC(vm.heap);
-        return this->_initializersGenerator(vm, globalObject, target);
     }
 
     JSC::Structure* instancesStructure() const {
@@ -41,6 +42,8 @@ public:
     static WTF::String className(const JSObject* object);
 
     const WTF::Vector<JSC::WriteBarrier<ObjCConstructorCall>>& initializers(JSC::VM&, GlobalObject*);
+
+    const Metadata::InterfaceMeta* metadata();
 
 protected:
     ObjCConstructorBase(JSC::VM& vm, JSC::Structure* structure)
@@ -61,8 +64,6 @@ protected:
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
-    std::function<const WTF::Vector<ObjCConstructorCall*>(JSC::VM&, GlobalObject*, Class)> _initializersGenerator;
-
 private:
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);
 
@@ -79,6 +80,8 @@ private:
     WTF::Vector<JSC::WriteBarrier<ObjCConstructorCall>> _initializers;
 
     JSC::WriteBarrier<JSC::Structure> _instancesStructure;
+
+    const Metadata::InterfaceMeta* _metadata;
 
     FFITypeMethodTable _ffiTypeMethodTable;
 };

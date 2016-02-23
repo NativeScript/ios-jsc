@@ -280,7 +280,7 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     }
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
-    ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, klass, metadata);
+    ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, klass);
     prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor, DontEnum | DontDelete | ReadOnly);
 
     auto addResult = this->_cacheId.set(klassName, constructor);

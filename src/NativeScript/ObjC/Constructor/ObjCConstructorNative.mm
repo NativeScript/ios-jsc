@@ -20,14 +20,10 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const unsigned ObjCConstructorNative::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
-
 const ClassInfo ObjCConstructorNative::s_info = { "Function", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorNative) };
 
-void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Class klass, const InterfaceMeta* metadata) {
+void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Class klass) {
     Base::finishCreation(vm, globalObject, prototype, klass);
-    this->_metadata = metadata;
-    this->ObjCConstructorBase::_initializersGenerator = std::bind(&ObjCConstructorNative::initializersGenerator, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     this->_allocatedPlaceholderStructure.set(vm, this, AllocatedPlaceholder::createStructure(vm, globalObject, prototype));
 }
 
@@ -42,7 +38,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
-    if (const MethodMeta* method = constructor->_metadata->staticMethod(propertyName.publicName())) {
+    if (const MethodMeta* method = constructor->metadata()->staticMethod(propertyName.publicName())) {
         SymbolLoader::instance().ensureModule(method->topLevelModule());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -59,7 +55,7 @@ void ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
 
     if (WTF::StringImpl* publicName = propertyName.publicName()) {
-        if (const MethodMeta* meta = constructor->_metadata->staticMethod(publicName)) {
+        if (const MethodMeta* meta = constructor->metadata()->staticMethod(publicName)) {
             Class klass = object_getClass(constructor->klass());
 
             std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
@@ -82,7 +78,7 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
     std::vector<const BaseClassMeta*> baseClassMetaStack;
-    baseClassMetaStack.push_back(constructor->_metadata);
+    baseClassMetaStack.push_back(constructor->metadata());
 
     while (!baseClassMetaStack.empty()) {
         const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
@@ -102,29 +98,6 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
     }
 
     Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
-}
-
-const WTF::Vector<ObjCConstructorCall*> ObjCConstructorNative::initializersGenerator(VM& vm, GlobalObject* globalObject, Class target) {
-    const InterfaceMeta* metadata = this->_metadata;
-
-    WTF::Vector<ObjCConstructorCall*> constructors;
-
-    do {
-        std::vector<const MethodMeta*> initializers = metadata->initializersWithProtcols();
-        for (std::vector<const MethodMeta*>::iterator init = initializers.begin(); init != initializers.end(); ++init) {
-            const MethodMeta* method = (*init);
-
-            if (method->isAvailable()) {
-                ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), target, method);
-                constructors.append(constructorCall);
-            }
-        }
-
-        metadata = metadata->baseMeta();
-
-    } while (metadata);
-
-    return constructors;
 }
 
 void ObjCConstructorNative::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor) {
