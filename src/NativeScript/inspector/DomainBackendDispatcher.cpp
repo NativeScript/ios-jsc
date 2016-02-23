@@ -7,6 +7,7 @@
 #include <JavaScriptCore/runtime/Exception.h>
 #include <JavaScriptCore/runtime/JSONObject.h>
 #include "GlobalObjectInspectorController.h"
+#include "SuppressAllPauses.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -57,9 +58,13 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
 
     CallData dispatchCallData;
     CallType dispatchCallType = getCallData(functionValue, dispatchCallData);
-
     WTF::NakedPtr<Exception> exception;
-    JSValue dispatchResult = call(globalExec, functionValue, dispatchCallType, dispatchCallData, m_domainDispatcher.get(), dispatchArguments, exception);
+    JSValue dispatchResult;
+
+    {
+        SuppressAllPauses suppressAllPauses(m_globalObject);
+        dispatchResult = call(globalExec, functionValue, dispatchCallType, dispatchCallData, m_domainDispatcher.get(), dispatchArguments, exception);
+    }
 
     RefPtr<Inspector::InspectorObject> messageObject = Inspector::InspectorObject::create();
     Inspector::ErrorString error;

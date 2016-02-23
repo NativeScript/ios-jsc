@@ -17,6 +17,7 @@ set(HEADER_FILES
     inspector/InspectorPageAgent.h
     inspector/InspectorTimelineAgent.h
     inspector/MimeTypeHelper.h
+    inspector/SuppressAllPauses.h
     Interop.h
     JSErrors.h
     JSWarnings.h
@@ -103,6 +104,7 @@ set(SOURCE_FILES
     inspector/GlobalObjectInspectorController.cpp
     inspector/InspectorPageAgent.mm
     inspector/InspectorTimelineAgent.cpp
+    inspector/SuppressAllPauses.cpp
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp
