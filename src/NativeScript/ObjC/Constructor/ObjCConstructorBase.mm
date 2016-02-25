@@ -181,51 +181,47 @@ void ObjCConstructorBase::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(constructor->_initializers.begin(), constructor->_initializers.end());
 }
 
-static WTF::String computeInitializerJSName(ExecState* execState, JSFinalObject* initializer, MarkedArgumentBuffer& arguments) {
+static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, ObjCConstructorBase* constructor, JSFinalObject* initializer, MarkedArgumentBuffer& arguments) {
     PropertyNameArray properties(execState, PropertyNameMode::Strings);
     initializer->getOwnPropertyNames(initializer, execState, properties, EnumerationMode(DontEnumPropertiesMode::Exclude, JSObjectPropertiesMode::Include));
+    if (properties.size() == 0) {
+        return JSValue();
+    }
 
     VM& vm = execState->vm();
     WTF::StringBuilder builder;
     builder.reserveCapacity(32);
-    for (auto& property : properties) {
-        const WTF::String& propertyString = property.string();
-        const WTF::String firstCharacter = propertyString.substringSharingImpl(0, 1).upper();
-        const WTF::String rest = propertyString.substringSharingImpl(1);
-
-        builder.append(firstCharacter);
-        builder.append(rest);
+    for (size_t i = 0; i < properties.size(); i++) {
+        JSC::Identifier property = properties[i];
+        builder.append(property.string());
+        builder.append(':');
         arguments.append(initializer->getDirect(vm, property));
     }
 
-    return builder.toString();
-}
+    const char* ctorMetadata = builder.toString().utf8().data();
+    const Metadata::InterfaceMeta* interface = constructor->metadata();
+    const Metadata::MethodMeta* result = nullptr;
+    std::vector<const Metadata::MethodMeta*> initializers;
+    initializers.reserve(16);
+    do {
+        interface->initializersWithProtcols(initializers);
+        for (const Metadata::MethodMeta* method : initializers) {
+            if (method->isAvailable() && strcmp(method->constructorTokens(), ctorMetadata) == 0) {
+                result = method;
+                break;
+            }
+        }
+        initializers.clear();
+        interface = interface->baseMeta();
+    } while (interface && !result);
 
-static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, JSValue prototype, WTF::String jsName) {
-    static WTF::String initWith("initWith", WTF::String::ConstructFromLiteral);
-    static WTF::String init("init", WTF::String::ConstructFromLiteral);
-    static WTF::String error("Error", WTF::String::ConstructFromLiteral);
-
-    JSValue value;
-#define RETURN_IF_CELL  \
-    if (value.isCell()) \
-    return value
-
-    if (jsName.isEmpty()) {
-        return value;
+    if (result) {
+        JSValue prototype = constructor->instancesStructure()->storedPrototype();
+        JSValue value = prototype.get(execState, Identifier::fromString(execState, WTF::String(result->jsName())));
+        if (value.isCell()) {
+            return value;
+        }
     }
-
-    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(initWith + jsName)));
-    RETURN_IF_CELL;
-
-    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(initWith + jsName + error)));
-    RETURN_IF_CELL;
-
-    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(init + jsName)));
-    RETURN_IF_CELL;
-
-    value = prototype.get(execState, Identifier::fromString(execState, WTF::String(init + jsName + error)));
-    RETURN_IF_CELL;
 
     return JSValue();
 }
@@ -237,7 +233,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
         MarkedArgumentBuffer initializerArguments;
         JSValue initializer;
         if (JSFinalObject* argument = jsDynamicCast<JSFinalObject*>(execState->argument(0))) {
-            initializer = getInitializerForSwiftStyleConstruction(execState, constructor->instancesStructure()->storedPrototype(), computeInitializerJSName(execState, argument, initializerArguments));
+            initializer = getInitializerForSwiftStyleConstruction(execState, constructor, argument, initializerArguments);
         } else if (execState->argumentCount() == 0) {
             initializer = constructor->instancesStructure()->storedPrototype().get(execState, Identifier::fromString(execState, "init"));
         }
