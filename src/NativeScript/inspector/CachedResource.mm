@@ -2,6 +2,30 @@
 #include "MimeTypeHelper.h"
 
 namespace Inspector {
+WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources(NativeScript::GlobalObject& globalObject) {
+    static WTF::HashMap<WTF::String, Inspector::CachedResource> cachedResources;
+
+    static std::once_flag flag;
+    std::call_once(flag, [&globalObject]() {
+        NSString* applicationPath = globalObject.applicationPath();
+        NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", applicationPath, @"app"];
+        NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL URLWithString:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
+
+        NSURL* file;
+        NSError* error;
+        for (file in directoryEnumerator) {
+            NSNumber* isDirectory;
+            [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
+            if (![isDirectory boolValue]) {
+                Inspector::CachedResource resource(bundlePath, [file path]);
+
+                cachedResources.add(resource.displayName(), resource);
+            }
+        }
+    });
+    return cachedResources;
+}
+
 WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResource::m_mimeTypeMap = {
     { "text/xml", Inspector::Protocol::Page::ResourceType::Document },
     { "text/plain", Inspector::Protocol::Page::ResourceType::Document },

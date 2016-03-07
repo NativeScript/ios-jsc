@@ -14,6 +14,7 @@ set(HEADER_FILES
     inspector/GlobalObjectConsoleClient.h
     inspector/GlobalObjectDebuggerAgent.h
     inspector/GlobalObjectInspectorController.h
+    inspector/InspectorNetworkAgent.h
     inspector/InspectorPageAgent.h
     inspector/InspectorTimelineAgent.h
     inspector/MimeTypeHelper.h
@@ -102,6 +103,7 @@ set(SOURCE_FILES
     inspector/GlobalObjectConsoleClient.cpp
     inspector/GlobalObjectDebuggerAgent.cpp
     inspector/GlobalObjectInspectorController.cpp
+    inspector/InspectorNetworkAgent.cpp
     inspector/InspectorPageAgent.mm
     inspector/InspectorTimelineAgent.cpp
     inspector/SuppressAllPauses.cpp

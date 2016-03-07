@@ -53,8 +53,6 @@ private:
     NativeScript::GlobalObject& m_globalObject;
     std::unique_ptr<PageFrontendDispatcher> m_frontendDispatcher;
     RefPtr<PageBackendDispatcher> m_backendDispatcher;
-
-    WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources();
 };
 }
 

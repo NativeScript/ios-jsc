@@ -47,6 +47,7 @@
 #include "GlobalObjectConsoleClient.h"
 #include "InspectorPageAgent.h"
 #include "InspectorTimelineAgent.h"
+#include "InspectorNetworkAgent.h"
 #include "DomainInspectorAgent.h"
 
 #include <cxxabi.h>
@@ -102,6 +103,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_jsAgentContext, consoleAgent.get());
     auto pageAgent = std::make_unique<InspectorPageAgent>(m_jsAgentContext);
     auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_jsAgentContext);
+    auto networkAgent = std::make_unique<InspectorNetworkAgent>(m_jsAgentContext);
 
     m_inspectorAgent = inspectorAgent.get();
     m_debuggerAgent = debuggerAgent.get();
@@ -115,6 +117,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_agents.append(WTF::move(runtimeAgent));
     m_agents.append(WTF::move(consoleAgent));
     m_agents.append(WTF::move(debuggerAgent));
+    m_agents.append(WTF::move(networkAgent));
 
     m_executionStopwatch->start();
 }

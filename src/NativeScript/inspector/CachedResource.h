@@ -28,6 +28,8 @@ private:
 
     static Inspector::Protocol::Page::ResourceType resourceTypeByMimeType(WTF::String mimeType);
 };
+
+WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources(NativeScript::GlobalObject&);
 }
 
 #endif
