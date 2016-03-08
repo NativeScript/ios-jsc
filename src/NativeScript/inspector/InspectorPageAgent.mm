@@ -80,7 +80,7 @@ void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protoco
                                                             .setMimeType("text/xml")
                                                             .release();
 
-    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
 
     RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::FrameResource>> subresources = Inspector::Protocol::Array<Inspector::Protocol::Page::FrameResource>::create();
     out_frameTree = Inspector::Protocol::Page::FrameResourceTree::create()
@@ -107,7 +107,7 @@ void InspectorPageAgent::searchInResource(ErrorString&, const String& in_frameId
     bool isRegex = in_isRegex ? *in_isRegex : false;
     bool caseSensitive = in_caseSensitive ? *in_caseSensitive : false;
 
-    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
     auto iterator = resources.find(in_url);
     if (iterator != resources.end()) {
         CachedResource& resource = iterator->value;
@@ -134,7 +134,7 @@ void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, 
     bool caseSensitive = in_caseSensitive ? *in_caseSensitive : false;
     JSC::Yarr::RegularExpression regex = ContentSearchUtilities::createSearchRegex(in_text, caseSensitive, isRegex);
 
-    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
     for (CachedResource& cachedResource : resources.values()) {
         ErrorString out_error;
         WTF::String out_content = cachedResource.content(out_error);
@@ -202,7 +202,7 @@ void InspectorPageAgent::getResourceContent(ErrorString& errorString, const Stri
         return;
     }
 
-    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = cachedResources();
+    WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
     auto iterator = resources.find(in_url);
     if (iterator == resources.end()) {
         errorString = WTF::ASCIILiteral("No such item");
@@ -214,29 +214,5 @@ void InspectorPageAgent::getResourceContent(ErrorString& errorString, const Stri
 
     *out_base64Encoded = !resource.hasTextContent();
     *out_content = resource.content(errorString);
-}
-
-WTF::HashMap<WTF::String, Inspector::CachedResource>& InspectorPageAgent::cachedResources() {
-    static WTF::HashMap<WTF::String, Inspector::CachedResource> cachedResources;
-
-    static std::once_flag flag;
-    std::call_once(flag, [this]() {
-        NSString* applicationPath = this->m_globalObject.applicationPath();
-        NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", applicationPath, @"app"];
-        NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL URLWithString:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
-
-        NSURL* file;
-        NSError* error;
-        for (file in directoryEnumerator) {
-            NSNumber* isDirectory;
-            [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
-            if (![isDirectory boolValue]) {
-                Inspector::CachedResource resource(bundlePath, [file path]);
-
-                cachedResources.add(resource.displayName(), resource);
-            }
-        }
-    });
-    return cachedResources;
 }
 }
