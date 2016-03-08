@@ -33,12 +33,6 @@ static UInt8 getSystemVersion() {
     return iosVersion;
 }
 
-static bool startsWith(const char* pre, const char* str) {
-    size_t lenpre = strlen(pre),
-           lenstr = strlen(str);
-    return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
-}
-
 static int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated, size_t length) {
     int result = strncmp(nullTerminated, notNullTerminated, length);
     return (result == 0) ? strlen(nullTerminated) - length : result;
@@ -131,7 +125,7 @@ vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>&
     if (firstInitIndex != -1) {
         for (int i = firstInitIndex; i < instanceMethods->count; i++) {
             const MethodMeta* method = instanceMethods.value()[i].valuePtr();
-            if (startsWith("init", method->jsName())) {
+            if (method->isInitializer()) {
                 container.push_back(method);
             } else {
                 break;

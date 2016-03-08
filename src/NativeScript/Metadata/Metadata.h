@@ -574,6 +574,7 @@ struct MethodMeta : MemberMeta {
 
 private:
     PtrTo<TypeEncodingsList<ArrayCount>> _encodings;
+    String _constructorTokens;
 
 public:
     bool isVariadic() const {
@@ -592,6 +593,10 @@ public:
         return this->flag(MetaFlags::MethodIsInitializer);
     }
 
+    bool ownsReturnedCocoaObject() const {
+        return this->flag(MetaFlags::MethodOwnsReturnedCocoaObject);
+    }
+
     SEL selector() const {
         return sel_registerName(this->selectorAsString());
     }
@@ -605,8 +610,8 @@ public:
         return this->_encodings.valuePtr();
     }
 
-    bool ownsReturnedCocoaObject() const {
-        return this->flag(MetaFlags::MethodOwnsReturnedCocoaObject);
+    const char* constructorTokens() const {
+        return this->_constructorTokens.valuePtr();
     }
 };
 
