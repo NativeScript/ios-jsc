@@ -63,7 +63,7 @@ void InspectorPageAgent::navigate(ErrorString&, const String& in_url) {
 }
 
 void InspectorPageAgent::getCookies(ErrorString&, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::Cookie>>& out_cookies) {
-    ASSERT_NOT_REACHED();
+    out_cookies = Inspector::Protocol::Array<Inspector::Protocol::Page::Cookie>::create();
 }
 
 void InspectorPageAgent::deleteCookie(ErrorString&, const String& in_cookieName, const String& in_url) {
