@@ -198,7 +198,7 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
         arguments.append(initializer->getDirect(vm, property));
     }
 
-    const char* ctorMetadata = builder.toString().utf8().data();
+    const WTF::CString ctorMetadata = builder.toString().utf8();
     const Metadata::InterfaceMeta* interface = constructor->metadata();
     const Metadata::MethodMeta* result = nullptr;
     std::vector<const Metadata::MethodMeta*> initializers;
@@ -206,7 +206,7 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
     do {
         interface->initializersWithProtcols(initializers);
         for (const Metadata::MethodMeta* method : initializers) {
-            if (method->isAvailable() && strcmp(method->constructorTokens(), ctorMetadata) == 0) {
+            if (method->isAvailable() && strcmp(method->constructorTokens(), ctorMetadata.data()) == 0) {
                 result = method;
                 break;
             }
