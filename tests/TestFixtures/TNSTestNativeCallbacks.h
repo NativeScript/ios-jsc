@@ -44,6 +44,8 @@
 
 + (void)protocolImplementationProperties:(id<TNSBaseProtocol1, NSObject>)object;
 
++ (BOOL)protocolWithNameConflict:(id<TNSPropertyMethodConflictProtocol, NSObject>)object;
+
 + (TNSSimpleStruct)recordsSimpleStruct:(TNSSimpleStruct)object;
 
 + (TNSNestedStruct)recordsNestedStruct:(TNSNestedStruct)object;

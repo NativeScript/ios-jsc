@@ -233,6 +233,10 @@
     UNUSED(object.baseProtocolProperty1Optional);
 }
 
++ (BOOL)protocolWithNameConflict:(id<TNSPropertyMethodConflictProtocol, NSObject>)object {
+    return object.conflict;
+}
+
 + (TNSSimpleStruct)recordsSimpleStruct:(TNSSimpleStruct)object {
     TNSLog([NSString stringWithFormat:@"%d %d", object.x, object.y]);
     return object;
