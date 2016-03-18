@@ -65,7 +65,7 @@ using namespace JSC;
 using namespace Inspector;
 
 namespace NativeScript {
-JSC::EncodedJSValue JSC_HOST_CALL registerDispatcher(JSC::ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL registerDispatcher(ExecState* execState) {
     NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
     WTF::String domainIdentifier = execState->argument(0).toWTFString(execState);
     JSCell* constructorFunction = execState->argument(1).asCell();
@@ -75,10 +75,18 @@ JSC::EncodedJSValue JSC_HOST_CALL registerDispatcher(JSC::ExecState* execState) 
     return JSValue::encode(jsUndefined());
 }
 
-JSC::EncodedJSValue JSC_HOST_CALL inspectorTimestamp(JSC::ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL sendEvent(ExecState* execState) {
     NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
 
-    JSC::JSValue elapsedTime = JSC::jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime());
+    globalObject->inspectorController().frontendRouter().sendResponse(execState->argument(0).toWTFString(execState));
+
+    return JSValue::encode(jsUndefined());
+}
+
+EncodedJSValue JSC_HOST_CALL inspectorTimestamp(ExecState* execState) {
+    NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+
+    JSValue elapsedTime = jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime());
 
     return JSValue::encode(elapsedTime);
 }
@@ -94,8 +102,11 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     , m_jsAgentContext(m_agentContext, m_globalObject)
 
 {
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 0, &registerDispatcher, NoIntrinsic, DontEnum);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, DontEnum);
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, DontEnum);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, DontEnum);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__startProfile")), 1, &startProfile, JSC::NoIntrinsic, JSC::DontEnum);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__stopProfile")), 1, &stopProfile, JSC::NoIntrinsic, JSC::DontEnum);
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);

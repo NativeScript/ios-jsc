@@ -16,21 +16,14 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
-
-# Mac
-.DS_Store
-#ignore thumbnails created by windows
-Thumbs.db
-#Ignore Podfile.lock
-Podfile.lock
-
-# Mac OS X and Xcode stuff
-*.swp
 *~.nib
-/.metadata/
 
-# Node
-node_modules/
+# Mac OS X
+.DS_Store
+Thumbs.db
+Podfile.lock
+*.swp
+/.metadata/
 
 # Build
 /cmake-build
@@ -41,3 +34,7 @@ node_modules/
 
 # CLion
 .idea
+
+# Other
+node_modules/
+*.pyc

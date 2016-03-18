@@ -25,6 +25,7 @@ def generate(combined_domains_path, output_dir):
 
     generator = TypeScriptInterfaceGenerator(protocol)
     output = """declare var __registerDomainDispatcher;
+declare var __inspectorSendEvent;
 export function DomainDispatcher(domain: string): ClassDecorator {
     return klass => __registerDomainDispatcher(domain, klass);
 } \n """
@@ -88,7 +89,6 @@ class TypeScriptInterfaceGenerator(Generator):
 
         if len(domain.events) > 0:
             lines.append("export class %sFrontend { " % domain.domain_name);
-            lines.append('\tconstructor(private dispatchMessage: (message: String) => void) { \n\t}')
             lines.extend(self.generate_domain_events(domain))
             lines.append('}')
 
@@ -172,7 +172,7 @@ class TypeScriptInterfaceGenerator(Generator):
             
             if event.description:
                 lines.append('\t// %s' % event.description)
-            lines.append('\t{0}({1}): void {{ \n\t\tthis.dispatchMessage(JSON.stringify( {2} )); \n\t}}'.format(event.event_name, callParams, event_json_message));
+            lines.append('\t{0}({1}): void {{ \n\t\t __inspectorSendEvent(JSON.stringify( {2} )); \n\t}}'.format(event.event_name, callParams, event_json_message));
         return lines
 
     def generate_parameter_object(self, domain, parameter):

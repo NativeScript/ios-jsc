@@ -63,7 +63,7 @@ static Ref<Protocol::Timeline::CPUProfileNode> buildInspectorObject(const JSC::P
     return WTF::move(result);
 }
 
-static Ref<Protocol::Timeline::CPUProfile> buildProfileInspectorObject(const JSC::Profile* profile) {
+Ref<InspectorValue> TimelineRecordFactory::buildProfileInspectorObject(const JSC::Profile* profile) {
     auto rootNodes = Protocol::Array<Protocol::Timeline::CPUProfileNode>::create();
     for (RefPtr<JSC::ProfileNode> profileNode : profile->rootNode()->children())
         rootNodes->addItem(buildInspectorObject(profileNode.get()));
