@@ -59,6 +59,7 @@ import "./ApiTests";
 import "./DeclarationConflicts";
 
 import "./Promises";
+import "./Modules";
 
 execute();
 
