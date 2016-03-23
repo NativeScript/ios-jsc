@@ -161,6 +161,10 @@ JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObj
 
     if ([source isKindOfClass:[NSData class]]) {
         contents = [[NSString alloc] initWithData:source encoding:NSUTF8StringEncoding];
+
+        if (contents == nil) {
+            return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
+        }
     } else if ([source isKindOfClass:[NSString class]]) {
         contents = source;
     } else {
