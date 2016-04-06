@@ -3,7 +3,7 @@
 import os
 import sys
 import json
-from collections import OrderedDict
+import get_version
 
 if len(sys.argv) < 2:
 	print "Package.json location argument is missing"
@@ -14,22 +14,15 @@ def getCommitSHA():
 	if commitSHA == None:
 		return  os.popen("git rev-parse HEAD").read().replace("\n", "");
 		
-def getPackageVersion(baseVersion):
-	buildVersion = os.environ.get('PACKAGE_VERSION')
-	if buildVersion == None:
-		return baseVersion
-	return baseVersion + "-" + buildVersion
-
-def updatePackageVersion(data):
-	data["version"] = getPackageVersion(data["version"])
+def updatePackageVersion():
+	data = get_version.readPackageJSON(sys.argv[1])
+	data["version"] = get_version.getPackageVersion(data["version"])
 	commitSHA = getCommitSHA()
 	if commitSHA:
 		data["repository"]["url"] += "/commit/" + commitSHA
 
-with open(sys.argv[1], "r") as jsonFile:
-    data = json.load(jsonFile, object_pairs_hook=OrderedDict)    
+	with open(sys.argv[1], "w") as jsonFile:
+	    jsonFile.write(json.dumps(data, indent=2))
 
-updatePackageVersion(data)
-
-with open(sys.argv[1], "w") as jsonFile:
-    jsonFile.write(json.dumps(data, indent=2))
+if __name__ == "__main__":
+	updatePackageVersion()
