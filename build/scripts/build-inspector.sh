@@ -8,6 +8,7 @@ MACOSX_DEPLOYMENT_TARGET="10.10"
 
 WEBKIT_SOURCE_PATH="$WORKSPACE/src/webkit"
 WEBKIT_BUILD_OUTPUT_PATH="$WORKSPACE/cmake-build/WebKit-Xcode"
+BUILD_DIR="$WORKSPACE/build"
 
 INSPECTOR_SOURCE_PATH="$WORKSPACE/src/debugging/Inspector/Inspector"
 INSPECTOR_BUILD_OUTPUT_PATH="$WORKSPACE/cmake-build/Inspector"
@@ -41,7 +42,10 @@ find "$WEBKIT_BUILD_OUTPUT_PATH/Build/Products/$CONFIGURATION" -name "*.framewor
 
 checkpoint "Building Inspector app..."
 rm -rf "$INSPECTOR_BUILD_OUTPUT_PATH"
+
+version=$(python "$BUILD_DIR/scripts/get_version.py" "$BUILD_DIR/npm/inspector_package.json" 2>&1)
 xcodebuild \
+    PACKAGE_VERSION=$version \
     -project "$INSPECTOR_SOURCE_PATH/Inspector.xcodeproj" \
     -scheme "Inspector" \
     -archivePath "$INSPECTOR_BUILD_OUTPUT_PATH/Inspector.xcarchive" \
