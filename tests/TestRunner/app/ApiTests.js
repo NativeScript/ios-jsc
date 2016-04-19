@@ -417,6 +417,11 @@ describe(module.id, function () {
 
         expect(actual).toEqual(expected);
     });
+    
+    it("should be able to call string.normalize with simple value", function () {
+        var str = 'string value';
+        expect(str.normalize()).toBe(str);
+    });
 
     describe("async", function () {
         it("should work", function (done) {
