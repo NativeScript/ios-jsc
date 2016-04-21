@@ -23,6 +23,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * Copyright (C) 2016 Telerik AD. All rights reserved. (as modified)
+ */
+
 WebInspector.CallFrameView = class CallFrameView extends WebInspector.Object
 {
     constructor(callFrame, showFunctionName)
