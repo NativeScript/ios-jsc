@@ -16,6 +16,7 @@
 #include <JavaScriptCore/JSGlobalObjectFunctions.h>
 #include <JavaScriptCore/runtime/JSConsole.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
+#include <JavaScriptCore/ModuleLoaderObject.h>
 #include "ObjCProtocolWrapper.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCPrototype.h"
@@ -118,6 +119,8 @@ static void microtaskRunLoopSourcePerformWork(void* context) {
     self->drainMicrotasks();
 }
 
+EncodedJSValue JSC_HOST_CALL moduleLoaderObjectCreateSyntheticModule(ExecState* execState);
+
 void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     Base::finishCreation(vm);
 
@@ -189,6 +192,7 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
 
     _commonJSModuleFunctionIdentifier = Identifier::fromString(&vm, "CommonJSModuleFunction");
     this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
+    this->moduleLoader()->putDirectNativeFunctionWithoutTransition(vm, this, Identifier::fromString(&vm, "createSyntheticModule"), 2, moduleLoaderObjectCreateSyntheticModule, NoIntrinsic, DontDelete | ReadOnly);
 }
 
 void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {

@@ -1,4 +1,5 @@
 import fetch from './fetch';
+import redditImage from '@uiimage/reddit-default';
 
 var JSCanvasViewController = UICollectionViewController.extend({
     numberOfSectionsInCollectionView: function () {
@@ -14,7 +15,7 @@ var JSCanvasViewController = UICollectionViewController.extend({
 
         var imageView = cell.contentView.viewWithTag(1);
 
-        imageView.image = UIImage.imageNamed("reddit-default");
+        imageView.image = redditImage;
 
         var item = this.items[indexPath.item];
 

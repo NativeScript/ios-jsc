@@ -24,6 +24,8 @@
 #include <JavaScriptCore/tools/CodeProfiling.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/LiteralParser.h>
+#include <JavaScriptCore/JSMap.h>
+#include <JavaScriptCore/StrongInlines.h>
 #include "ObjCTypes.h"
 #include "Interop.h"
 #include <sys/stat.h>
@@ -55,6 +57,50 @@ static NSString* resolveFile(NSString* filePath) {
     return nil;
 }
 
+static JSValue moduleLoaderKey(ExecState* execState, WTF::String moduleKey) {
+    if (moduleKey.characterAt(0) == '@') {
+        size_t slashIndex = moduleKey.find('/', 1);
+        if (slashIndex == WTF::notFound) {
+            return JSValue();
+        }
+
+        return jsString(execState, WTF::String::format("%s-module-loader", moduleKey.substringSharingImpl(1, slashIndex - 1).utf8().data()));
+    }
+
+    return JSValue();
+}
+
+static JSInternalPromise* importModuleLoader(ExecState* execState, GlobalObject* globalObject, WTF::String moduleKey, JSValue refererKey = jsUndefined()) {
+    if (JSValue moduleLoader = moduleLoaderKey(execState, moduleKey)) {
+        return globalObject->loadModule(execState, moduleLoader, refererKey);
+    }
+
+    return nullptr;
+}
+
+static JSInternalPromise* invokeModuleLoaderHook(ExecState* execState, JSInternalPromise* moduleLoaderPromise, const JSC::Identifier& hookName, JSValue* arguments, size_t argumentCount) {
+    Strong<JSArray> args(execState->vm(), constructArray(execState, static_cast<ArrayAllocationProfile*>(nullptr), arguments, argumentCount));
+    return moduleLoaderPromise->then(execState, JSNativeStdFunction::create(execState->vm(), execState->lexicalGlobalObject(), 1, String(), [args, hookName](ExecState* execState) {
+        auto* record = jsCast<JSModuleRecord*>(execState->argument(0));
+        auto resolution = record->resolveExport(execState, hookName);
+        if (resolution.type == JSModuleRecord::Resolution::Type::Resolved) {
+            JSValue hook = record->moduleEnvironment()->get(execState, resolution.localName);
+            ASSERT(!hook.isEmpty());
+
+            CallData callData;
+            CallType callType = JSC::getCallData(hook.asCell(), callData);
+
+            MarkedArgumentBuffer arguments;
+            arguments.append(execState->lexicalGlobalObject()->moduleLoader());
+            const_cast<JSArray*>(args.get())->fillArgList(execState, arguments);
+
+            return JSValue::encode(JSC::call(execState, hook.asCell(), callType, callData, execState->globalThisValue(), arguments));
+        }
+
+        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::String::format("Module loader '%s' does not export a '%s' hook.", record->moduleKey().utf8().data(), hookName.utf8().data()))));
+    }));
+}
+
 JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue referrerValue) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
@@ -62,7 +108,7 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
         return deferred->resolve(execState, keyValue);
     }
 
-    NSString* path = keyValue.toWTFString(execState);
+    WTF::String key = keyValue.toWTFString(execState);
     if (JSC::Exception* e = execState->exception()) {
         execState->clearException();
         return deferred->reject(execState, e);
@@ -70,6 +116,12 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
 
+    if (JSInternalPromise* moduleLoaderPromise = importModuleLoader(execState, self, key)) {
+        std::array<JSValue, 2> values{ { keyValue, referrerValue } };
+        return invokeModuleLoaderHook(execState, moduleLoaderPromise, execState->propertyNames().resolve, values.data(), values.size());
+    }
+
+    NSString* path = key;
     NSString* absolutePath = path;
     unichar pathChar = [path characterAtIndex:0];
     if (pathChar != '/') {
@@ -139,6 +191,11 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
 
+    if (JSInternalPromise* moduleLoaderPromise = importModuleLoader(execState, self, modulePath)) {
+        std::array<JSValue, 1> values{ { keyValue } };
+        return invokeModuleLoaderHook(execState, moduleLoaderPromise, Identifier::fromString(execState, "fetch"), values.data(), values.size());
+    }
+
     NSError* error = nil;
     NSData* moduleContent = [NSData dataWithContentsOfFile:modulePath options:NSDataReadingMappedIfSafe error:&error];
     if (error) {
@@ -149,6 +206,13 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
 }
 
 JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue sourceValue) {
+    GlobalObject* self = jsCast<GlobalObject*>(globalObject);
+
+    if (JSInternalPromise* moduleLoaderPromise = importModuleLoader(execState, self, keyValue.toWTFString(execState))) {
+        std::array<JSValue, 2> values{ { keyValue, sourceValue } };
+        return invokeModuleLoaderHook(execState, moduleLoaderPromise, Identifier::fromString(execState, "translate"), values.data(), values.size());
+    }
+
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
     id source = NativeScript::toObject(execState, sourceValue);
@@ -193,19 +257,24 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
     VM& vm = execState->vm();
-    const Identifier moduleKey = execState->argument(0).toPropertyKey(execState);
-    if (Exception* exception = execState->exception()) {
-        vm.clearException();
-        return deferred->reject(execState, exception->value());
-    }
-
-    WTF::String source = execState->argument(1).toWTFString(execState);
+    const Identifier moduleKey = keyValue.toPropertyKey(execState);
     if (Exception* exception = execState->exception()) {
         vm.clearException();
         return deferred->reject(execState, exception->value());
     }
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
+
+    if (JSInternalPromise* moduleLoaderPromise = importModuleLoader(execState, self, moduleKey.impl())) {
+        std::array<JSValue, 2> values{ { keyValue, sourceValue } };
+        return invokeModuleLoaderHook(execState, moduleLoaderPromise, Identifier::fromString(execState, "instantiate"), values.data(), values.size());
+    }
+
+    WTF::String source = sourceValue.toWTFString(execState);
+    if (Exception* exception = execState->exception()) {
+        vm.clearException();
+        return deferred->reject(execState, exception->value());
+    }
 
     WTF::StringBuilder moduleUrl;
     moduleUrl.append("file://");
@@ -279,7 +348,6 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
     JSValue refererKey = callee.get(execState, execState->propertyNames().sourceURL);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSInternalPromise* promise = globalObject->moduleLoader()->resolve(execState, moduleName, refererKey);
 
     Exception* exception = nullptr;
     JSFunction* errorHandler = JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&exception](ExecState* execState) {
@@ -291,33 +359,10 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
         return JSValue::encode(jsUndefined());
     });
 
-    JSModuleRecord* record;
-    promise->then(execState, JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&record, errorHandler](ExecState* execState) {
-                      JSValue moduleKey = execState->argument(0);
-
-                      JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
-                      JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->propertyNames().builtinNames().linkAndEvaluateModulePublicName()));
-                      CallData callData;
-                      CallType callType = JSC::getCallData(function, callData);
-
-                      JSInternalPromise* promise = jsCast<JSInternalPromise*>(JSC::call(execState, function, callType, callData, moduleLoader, execState));
-                      promise = promise->then(execState, JSNativeStdFunction::create(execState->vm(), execState->lexicalGlobalObject(), 1, String(), [moduleKey, &record](ExecState* execState) {
-                                                  JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
-                                                  JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->propertyNames().builtinNames().ensureRegisteredPublicName()));
-
-                                                  CallData callData;
-                                                  CallType callType = JSC::getCallData(function, callData);
-
-                                                  MarkedArgumentBuffer args;
-                                                  args.append(moduleKey);
-                                                  JSValue entry = JSC::call(execState, function, callType, callData, moduleLoader, args);
-                                                  record = jsCast<JSModuleRecord*>(entry.get(execState, Identifier::fromString(execState, "module")));
-
-                                                  return JSValue::encode(jsUndefined());
-                                              }), errorHandler);
-
-                      return JSValue::encode(promise);
-                  }), errorHandler);
+    JSModuleRecord* record = nullptr;
+    globalObject->loadModule(execState, moduleName, refererKey)->then(execState, JSNativeStdFunction::create(globalObject->vm(), globalObject, 1, String(), [&record](ExecState* execState) {
+        record = jsCast<JSModuleRecord*>(execState->argument(0));
+        return JSValue::encode(jsUndefined()); }), errorHandler);
     globalObject->drainMicrotasks();
 
     if (exception) {
@@ -350,6 +395,38 @@ static void putValueInScopeAndSymbolTable(VM& vm, JSModuleRecord* moduleRecord, 
     moduleEnvironment->variableAt(entry.scopeOffset()).set(vm, moduleEnvironment, value);
 }
 
+EncodedJSValue JSC_HOST_CALL moduleLoaderObjectCreateSyntheticModule(ExecState* execState) {
+    GlobalObject* self = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    VM& vm = self->vm();
+
+    Identifier moduleKey = execState->argument(0).toPropertyKey(execState);
+    JSObject* object = execState->argument(1).toObject(execState, self);
+
+    WTF::StringBuilder source;
+    source.reserveCapacity(64);
+    if (JSValue defaultExport = object->getDirect(vm, vm.propertyNames->defaultKeyword)) {
+        object->deleteProperty(object, execState, vm.propertyNames->defaultKeyword);
+        object->putDirect(vm, vm.propertyNames->builtinNames().starDefaultPrivateName(), defaultExport);
+        source.appendLiteral("export default undefined;\n");
+    }
+
+    PropertyNameArray properties(&vm, PropertyNameMode::Strings);
+    object->getOwnPropertyNames(object, execState, properties, EnumerationMode());
+    for (auto& property : properties) {
+        source.append(WTF::String::format("export var %s = undefined;\n", property.utf8().data()));
+    }
+
+    SourceCode sourceCode = makeSource(source.toString());
+    ParserError parserError;
+    JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, parserError);
+    if (parserError.isValid()) {
+        return JSValue::encode(vm.throwException(execState, parserError.toErrorObject(self, sourceCode)));
+    }
+
+    moduleRecord->putDirect(vm, vm.propertyNames->builtinNames().moduleEvaluationPrivateName(), object);
+    return JSValue::encode(moduleRecord);
+}
+
 JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue moduleRecordValue) {
     JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(moduleRecordValue);
     if (!moduleRecord) {
@@ -357,7 +434,12 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
     }
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
-    VM& vm = execState->vm();
+    VM& vm = self->vm();
+
+    if (JSInternalPromise* moduleLoaderPromise = importModuleLoader(execState, self, keyValue.toWTFString(execState))) {
+        std::array<JSValue, 2> values{ { keyValue, moduleRecordValue } };
+        return invokeModuleLoaderHook(execState, moduleLoaderPromise, Identifier::fromString(execState, "evaluate"), values.data(), values.size());
+    }
 
     if (JSValue moduleFunction = moduleRecord->getDirect(vm, self->_commonJSModuleFunctionIdentifier)) {
         NSURL* moduleUrl = [NSURL fileURLWithPath:(NSString*)keyValue.toWTFString(execState).createCFString().get()];
@@ -397,8 +479,41 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
     } else if (JSValue json = moduleRecord->getDirect(vm, vm.propertyNames->JSON)) {
         putValueInScopeAndSymbolTable(vm, moduleRecord, vm.propertyNames->builtinNames().starDefaultPrivateName(), json);
         return json;
+    } else if (JSValue syntheticModuleValue = moduleRecord->getDirect(vm, vm.propertyNames->builtinNames().moduleEvaluationPrivateName())) {
+        auto* syntheticModule = jsCast<JSObject*>(syntheticModuleValue);
+        PropertyNameArray properties(&vm, PropertyNameMode::StringsAndSymbols);
+        syntheticModule->getOwnPropertyNames(syntheticModule, execState, properties, EnumerationMode());
+        for (auto& property : properties) {
+            putValueInScopeAndSymbolTable(vm, moduleRecord, property, syntheticModule->getDirect(vm, property));
+        }
+
+        return syntheticModule;
     }
 
     return moduleRecord->evaluate(execState);
+}
+
+JSInternalPromise* GlobalObject::loadModule(ExecState* execState, JSValue keyValue, JSValue referrerValue) {
+    return this->moduleLoader()->resolve(execState, keyValue, referrerValue)->then(execState, JSNativeStdFunction::create(this->vm(), this, 1, String(), [](ExecState* execState) {
+        JSValue moduleKey = execState->argument(0);
+        
+        auto* then = JSNativeStdFunction::create(execState->vm(), execState->lexicalGlobalObject(), 1, String(), [](ExecState* execState) {
+            VM& vm = execState->vm();
+            
+            auto* moduleRegistry = jsCast<JSMap*>(execState->lexicalGlobalObject()->moduleLoader()->getDirect(vm, Identifier::fromString(&vm, "registry")));
+            if (execState->hadException()) {
+                return JSValue::encode(jsUndefined());
+            }
+            
+            JSValue moduleKey = execState->callee()->getDirect(vm, execState->propertyNames().source);
+            JSValue entry = moduleRegistry->get(execState, moduleKey);
+            JSValue moduleRecord = jsCast<JSObject*>(entry)->getDirect(vm, Identifier::fromString(&vm, "module"));
+            
+            return JSValue::encode(moduleRecord);
+        });
+        then->putDirect(execState->vm(), execState->propertyNames().source, moduleKey);
+        
+        return JSValue::encode(execState->lexicalGlobalObject()->moduleLoader()->linkAndEvaluateModule(execState, moduleKey)->then(execState, then));
+    }));
 }
 }
