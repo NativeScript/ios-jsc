@@ -96,7 +96,7 @@ set(SOURCE_FILES
     Calling/FFIFunctionCall.mm
     Calling/FFIFunctionCallback.cpp
     GlobalObject.mm
-	GlobalObject.moduleLoader.mm
+    GlobalObject.moduleLoader.mm
     inspector/CachedResource.mm
     inspector/DomainBackendDispatcher.cpp
     inspector/DomainInspectorAgent.cpp
@@ -217,7 +217,7 @@ if(${BUILD_SHARED_LIBS})
         libc++.dylib
         "-framework UIKit"
         "-framework MobileCoreServices"
-		"-framework Security"
+        "-framework Security"
     )
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
