@@ -43,13 +43,13 @@ find "$WEBKIT_BUILD_OUTPUT_PATH/Build/Products/$CONFIGURATION" -name "*.framewor
 checkpoint "Building Inspector app..."
 rm -rf "$INSPECTOR_BUILD_OUTPUT_PATH"
 
-version=$(python "$BUILD_DIR/scripts/get_version.py" "$BUILD_DIR/npm/inspector_package.json" 2>&1)
+VERSION=$(python "$BUILD_DIR/scripts/get_version.py" "$BUILD_DIR/npm/inspector_package.json" 2>&1)
 xcodebuild \
-    PACKAGE_VERSION=$version \
     -project "$INSPECTOR_SOURCE_PATH/Inspector.xcodeproj" \
     -scheme "Inspector" \
     -archivePath "$INSPECTOR_BUILD_OUTPUT_PATH/Inspector.xcarchive" \
     MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
+    PACKAGE_VERSION="$VERSION" \
     archive \
     >> "$BUILD_LOG" 2>&1
 xcodebuild \

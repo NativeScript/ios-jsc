@@ -189,6 +189,8 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
 
     _commonJSModuleFunctionIdentifier = Identifier::fromString(&vm, "CommonJSModuleFunction");
     this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
+
+    this->putDirect(vm, Identifier::fromString(&vm, "__runtimeVersion"), jsString(&vm, STRINGIZE_VALUE_OF(NATIVESCRIPT_VERSION)), DontEnum | ReadOnly | DontDelete);
 }
 
 void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
