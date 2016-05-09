@@ -200,6 +200,8 @@ set_target_properties(NativeScript PROPERTIES
     "
 )
 
+target_compile_definitions(NativeScript PUBLIC "NATIVESCRIPT_VERSION=${NATIVESCRIPT_VERSION}")
+
 if(${BUILD_SHARED_LIBS})
     set_target_properties(NativeScript PROPERTIES
         FRAMEWORK TRUE
