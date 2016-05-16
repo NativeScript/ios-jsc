@@ -140,6 +140,10 @@ public:
         return this->_microtaskRunLoopSource.get();
     }
 
+    CFRunLoopObserverRef runLoopBeforeWaitingObserver() const {
+        return this->_runLoopBeforeWaitingObserver.get();
+    }
+
     std::list<WTF::RetainPtr<CFRunLoopRef>>& microtaskRunLoops() {
         return this->_microtaskRunLoops;
     }
@@ -192,6 +196,7 @@ private:
 
     std::list<WTF::RetainPtr<CFRunLoopRef>> _microtaskRunLoops;
     WTF::RetainPtr<CFRunLoopSourceRef> _microtaskRunLoopSource;
+    WTF::RetainPtr<CFRunLoopObserverRef> _runLoopBeforeWaitingObserver;
 
     JSC::WriteBarrier<FFICallPrototype> _ffiCallPrototype;
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;

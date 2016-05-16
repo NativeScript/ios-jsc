@@ -76,13 +76,17 @@ using namespace NativeScript;
 }
 
 - (void)scheduleInRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
-    CFRunLoopAddSource(runLoop.getCFRunLoop, self->_globalObject->microtaskRunLoopSource(), (CFStringRef)mode);
-    self->_globalObject->microtaskRunLoops().push_back(WTF::retainPtr(runLoop.getCFRunLoop));
+    CFRunLoopRef cfRunLoop = runLoop.getCFRunLoop;
+    CFRunLoopAddSource(cfRunLoop, self->_globalObject->microtaskRunLoopSource(), (CFStringRef)mode);
+    CFRunLoopAddObserver(cfRunLoop, self->_globalObject->runLoopBeforeWaitingObserver(), (CFStringRef)mode);
+    self->_globalObject->microtaskRunLoops().push_back(WTF::retainPtr(cfRunLoop));
 }
 
 - (void)removeFromRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
-    CFRunLoopRemoveSource(runLoop.getCFRunLoop, self->_globalObject->microtaskRunLoopSource(), (CFStringRef)mode);
-    self->_globalObject->microtaskRunLoops().remove(WTF::retainPtr(runLoop.getCFRunLoop));
+    CFRunLoopRef cfRunLoop = runLoop.getCFRunLoop;
+    CFRunLoopRemoveSource(cfRunLoop, self->_globalObject->microtaskRunLoopSource(), (CFStringRef)mode);
+    CFRunLoopRemoveObserver(cfRunLoop, self->_globalObject->runLoopBeforeWaitingObserver(), (CFStringRef)mode);
+    self->_globalObject->microtaskRunLoops().remove(WTF::retainPtr(cfRunLoop));
 }
 
 - (JSGlobalContextRef)globalContext {
