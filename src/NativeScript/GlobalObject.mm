@@ -7,45 +7,46 @@
 //
 
 #include "GlobalObject.h"
-#include <string>
-#include <JavaScriptCore/FunctionPrototype.h>
-#include <JavaScriptCore/FunctionConstructor.h>
-#include <JavaScriptCore/Microtask.h>
-#include <JavaScriptCore/Completion.h>
-#include <JavaScriptCore/StrongInlines.h>
-#include <JavaScriptCore/JSGlobalObjectFunctions.h>
-#include <JavaScriptCore/runtime/JSConsole.h>
-#include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
-#include "ObjCProtocolWrapper.h"
-#include "ObjCConstructorNative.h"
-#include "ObjCPrototype.h"
-#include "Metadata.h"
-#include "SymbolLoader.h"
+#include "AllocatedPlaceholder.h"
+#include "FFICallPrototype.h"
 #include "FFIFunctionCall.h"
-#include "RecordConstructor.h"
-#include "RecordPrototypeFunctions.h"
+#include "FFIFunctionCallback.h"
 #include "Interop.h"
-#include "inspector/GlobalObjectInspectorController.h"
-#include "ObjCExtend.h"
-#include "ObjCTypeScriptExtend.h"
-#include "__extends.h"
-#include "ObjCMethodCall.h"
-#include "ObjCConstructorCall.h"
-#include "ObjCConstructorDerived.h"
+#include "JSWeakRefConstructor.h"
+#include "JSWeakRefInstance.h"
+#include "JSWeakRefPrototype.h"
+#include "Metadata.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockCallback.h"
-#include "ObjCMethodCallback.h"
-#include "FFIFunctionCallback.h"
-#include "JSWeakRefConstructor.h"
-#include "JSWeakRefPrototype.h"
-#include "JSWeakRefInstance.h"
-#include "TypeFactory.h"
+#include "ObjCConstructorCall.h"
+#include "ObjCConstructorDerived.h"
+#include "ObjCConstructorNative.h"
+#include "ObjCExtend.h"
 #include "ObjCFastEnumerationIterator.h"
 #include "ObjCFastEnumerationIteratorPrototype.h"
-#include "AllocatedPlaceholder.h"
+#include "ObjCMethodCall.h"
+#include "ObjCMethodCallback.h"
+#include "ObjCProtocolWrapper.h"
+#include "ObjCPrototype.h"
+#include "ObjCTypeScriptExtend.h"
 #include "ObjCTypes.h"
-#include "FFICallPrototype.h"
+#include "RecordConstructor.h"
+#include "RecordPrototypeFunctions.h"
+#include "SymbolLoader.h"
+#include "TypeFactory.h"
 #include "UnmanagedType.h"
+#include "__extends.h"
+#include "inspector/GlobalObjectInspectorController.h"
+#include <JavaScriptCore/Completion.h>
+#include <JavaScriptCore/FunctionConstructor.h>
+#include <JavaScriptCore/FunctionPrototype.h>
+#include <JavaScriptCore/JSGlobalObjectFunctions.h>
+#include <JavaScriptCore/Microtask.h>
+#include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
+#include <JavaScriptCore/runtime/JSConsole.h>
+#include <JavaScriptCore/runtime/VMEntryScope.h>
+#include <string>
 
 namespace NativeScript {
 using namespace JSC;
@@ -118,6 +119,27 @@ static void microtaskRunLoopSourcePerformWork(void* context) {
     self->drainMicrotasks();
 }
 
+static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void* info) {
+    GlobalObject* self = static_cast<GlobalObject*>(info);
+    VMEntryScope* currentEntryScope = self->vm().entryScope;
+    if (self->vm().topCallFrame && currentEntryScope && !currentEntryScope->didPopListeners().isEmpty()) {
+        FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(self->vm().topCallFrame->callee());
+        const Meta* meta = Metadata::MetaFile::instance()->globalTable()->findMeta("UIApplicationMain");
+
+        if (function_call && meta && function_call->functionPointer() == SymbolLoader::instance().loadFunctionSymbol(meta->topLevelModule(), meta->name())) {
+
+            self->vm().entryScope = nullptr;
+
+            for (auto& listener : currentEntryScope->didPopListeners())
+                listener();
+
+            currentEntryScope->didPopListeners().clear();
+
+            self->vm().entryScope = currentEntryScope;
+        }
+    }
+}
+
 void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     Base::finishCreation(vm);
 
@@ -185,7 +207,10 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     NSObjectConstructor->setPrototype(vm, NSObjectPrototype);
 
     CFRunLoopSourceContext context = { 0, this, 0, 0, 0, 0, 0, 0, 0, microtaskRunLoopSourcePerformWork };
+    CFRunLoopObserverContext observerContext = { 0, this, NULL, NULL, NULL };
+
     _microtaskRunLoopSource = WTF::adoptCF(CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &context));
+    _runLoopBeforeWaitingObserver = WTF::adoptCF(CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopBeforeWaiting, YES, 0, &runLoopBeforeWaitingPerformWork, &observerContext));
 
     _commonJSModuleFunctionIdentifier = Identifier::fromString(&vm, "CommonJSModuleFunction");
     this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
