@@ -178,6 +178,8 @@ private:
     WTF::Deque<WTF::RefPtr<JSC::Microtask>> _microtasksQueue;
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
 
+    static bool supportsProfiling(const JSGlobalObject*) { return true; }
+
     static JSC::JSInternalPromise* moduleLoaderResolve(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue referrerValue);
 
     static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue);
