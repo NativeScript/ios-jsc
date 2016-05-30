@@ -106,6 +106,10 @@ public:
         return m_timelineAgent;
     }
 
+    void setTimelineAgent(Inspector::InspectorTimelineAgent* timelineAgent) {
+        m_timelineAgent = timelineAgent;
+    }
+
     virtual bool developerExtrasEnabled() const override;
     virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override { return true; }
     virtual Inspector::InspectorFunctionCallHandler functionCallHandler() const override;
