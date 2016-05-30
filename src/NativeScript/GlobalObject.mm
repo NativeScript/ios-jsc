@@ -451,4 +451,10 @@ void GlobalObject::drainMicrotasks() {
         this->_microtasksQueue.takeFirst()->run(this->globalExec());
     }
 }
+
+bool GlobalObject::supportsProfiling(const JSGlobalObject* globalObject) {
+    GlobalObject* self = jsCast<GlobalObject*>(const_cast<JSGlobalObject*>(globalObject));
+
+    return self->inspectorController().timelineAgent();
+}
 }

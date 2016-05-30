@@ -25,6 +25,9 @@ void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {
 void InspectorTimelineAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {
     m_frontendDispatcher = std::make_unique<TimelineFrontendDispatcher>(*frontendRouter);
     m_backendDispatcher = TimelineBackendDispatcher::create(*backendDispatcher, this);
+
+    this->m_globalObject.inspectorController().setTimelineAgent(this);
+    this->m_globalObject.vm().deleteAllCode();
 }
 
 void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {
@@ -33,6 +36,8 @@ void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {
 
     ErrorString unused;
     stop(unused);
+
+    this->m_globalObject.inspectorController().setTimelineAgent(nullptr);
 }
     
 JSC::EncodedJSValue JSC_HOST_CALL startProfile(JSC::ExecState* execState) {
