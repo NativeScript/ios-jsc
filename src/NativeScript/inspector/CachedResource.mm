@@ -9,7 +9,7 @@ WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources(NativeScri
     std::call_once(flag, [&globalObject]() {
         NSString* applicationPath = globalObject.applicationPath();
         NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", applicationPath, @"app"];
-        NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL URLWithString:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
+        NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
 
         NSURL* file;
         NSError* error;
