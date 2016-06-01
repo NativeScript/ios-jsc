@@ -1,3 +1,9 @@
+2.0.1
+=====
+
+## Bug Fixes
+- [Attaching a debugger crashes the app if it was already livesynced](https://github.com/NativeScript/ios-runtime/issues/572)
+
 2.0.0
 =====
 
