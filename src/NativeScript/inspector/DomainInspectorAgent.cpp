@@ -14,6 +14,9 @@ void DomainInspectorAgent::didCreateFrontendAndBackend(Inspector::FrontendRouter
 
 void DomainInspectorAgent::willDestroyFrontendAndBackend(Inspector::DisconnectReason) {
     m_domainBackendDispatcher = nullptr;
+}
+
+void DomainInspectorAgent::discardAgent() {
     m_constructorFunction.clear();
 }
 }
