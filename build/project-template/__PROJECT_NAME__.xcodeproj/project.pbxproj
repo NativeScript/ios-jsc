@@ -36,7 +36,6 @@
 		CDD59A261BB43B5D00EC2671 /* build-debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "build-debug.xcconfig"; sourceTree = "<group>"; };
 		CDD59A271BB43B5D00EC2671 /* build-release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "build-release.xcconfig"; sourceTree = "<group>"; };
 		CDF4743E1BA4855C0087EA85 /* build.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = build.xcconfig; sourceTree = "<group>"; };
-		F9B8C6A31ACEDEEB00547416 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,7 +79,6 @@
 			isa = PBXGroup;
 			children = (
 				CD45EE7A18DC2D5800FB50C0 /* app */,
-				F9B8C6A21ACEDEEB00547416 /* LaunchScreen.xib */,
 				858B833818CA111C00AB12DE /* Supporting Files */,
 			);
 			path = __PROJECT_NAME__;
@@ -236,14 +234,6 @@
 				858B833B18CA111C00AB12DE /* en */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		F9B8C6A21ACEDEEB00547416 /* LaunchScreen.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F9B8C6A31ACEDEEB00547416 /* en */,
-			);
-			name = LaunchScreen.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
