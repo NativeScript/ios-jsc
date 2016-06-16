@@ -10,6 +10,13 @@
 		858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 858B833A18CA111C00AB12DE /* InfoPlist.strings */; };
 		CD45EE7C18DC2D5800FB50C0 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CD45EE7A18DC2D5800FB50C0 /* app */; };
 		CD62955D1BB2678900AE3A93 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CD62955C1BB2678900AE3A93 /* main.m */; };
+		FE2FB9CE1D12CEFB0034D33F /* TKLiveSync.m in Sources */ = {isa = PBXBuildFile; fileRef = FE2FB9CD1D12CEFB0034D33F /* TKLiveSync.m */; };
+		FE2FBA191D12FC510034D33F /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = FE2FBA0F1D12FC510034D33F /* ioapi.c */; };
+		FE2FBA1A1D12FC510034D33F /* mztools.c in Sources */ = {isa = PBXBuildFile; fileRef = FE2FBA111D12FC510034D33F /* mztools.c */; };
+		FE2FBA1B1D12FC510034D33F /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = FE2FBA131D12FC510034D33F /* unzip.c */; };
+		FE2FBA1C1D12FC510034D33F /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = FE2FBA151D12FC510034D33F /* zip.c */; };
+		FE2FBA1D1D12FC510034D33F /* SSZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = FE2FBA181D12FC510034D33F /* SSZipArchive.m */; };
+		FE2FBA1F1D12FC510034D33F /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = FE2FBA1E1D12FC510034D33F /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,6 +43,20 @@
 		CDD59A261BB43B5D00EC2671 /* build-debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "build-debug.xcconfig"; sourceTree = "<group>"; };
 		CDD59A271BB43B5D00EC2671 /* build-release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "build-release.xcconfig"; sourceTree = "<group>"; };
 		CDF4743E1BA4855C0087EA85 /* build.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = build.xcconfig; sourceTree = "<group>"; };
+		FE2FB9CC1D12CEFB0034D33F /* TKLiveSync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TKLiveSync.h; path = internal/TKLiveSync.h; sourceTree = SOURCE_ROOT; };
+		FE2FB9CD1D12CEFB0034D33F /* TKLiveSync.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TKLiveSync.m; path = internal/TKLiveSync.m; sourceTree = SOURCE_ROOT; };
+		FE2FBA0E1D12FC510034D33F /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypt.h; path = internal/SSZipArchive/minizip/crypt.h; sourceTree = SOURCE_ROOT; };
+		FE2FBA0F1D12FC510034D33F /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioapi.c; path = internal/SSZipArchive/minizip/ioapi.c; sourceTree = SOURCE_ROOT; };
+		FE2FBA101D12FC510034D33F /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ioapi.h; path = internal/SSZipArchive/minizip/ioapi.h; sourceTree = SOURCE_ROOT; };
+		FE2FBA111D12FC510034D33F /* mztools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mztools.c; path = internal/SSZipArchive/minizip/mztools.c; sourceTree = SOURCE_ROOT; };
+		FE2FBA121D12FC510034D33F /* mztools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mztools.h; path = internal/SSZipArchive/minizip/mztools.h; sourceTree = SOURCE_ROOT; };
+		FE2FBA131D12FC510034D33F /* unzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = unzip.c; path = internal/SSZipArchive/minizip/unzip.c; sourceTree = SOURCE_ROOT; };
+		FE2FBA141D12FC510034D33F /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unzip.h; path = internal/SSZipArchive/minizip/unzip.h; sourceTree = SOURCE_ROOT; };
+		FE2FBA151D12FC510034D33F /* zip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zip.c; path = internal/SSZipArchive/minizip/zip.c; sourceTree = SOURCE_ROOT; };
+		FE2FBA161D12FC510034D33F /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zip.h; path = internal/SSZipArchive/minizip/zip.h; sourceTree = SOURCE_ROOT; };
+		FE2FBA171D12FC510034D33F /* SSZipArchive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SSZipArchive.h; path = internal/SSZipArchive/SSZipArchive.h; sourceTree = SOURCE_ROOT; };
+		FE2FBA181D12FC510034D33F /* SSZipArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SSZipArchive.m; path = internal/SSZipArchive/SSZipArchive.m; sourceTree = SOURCE_ROOT; };
+		FE2FBA1E1D12FC510034D33F /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +64,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FE2FBA1F1D12FC510034D33F /* libz.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +93,7 @@
 		858B833018CA111C00AB12DE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				FE2FBA1E1D12FC510034D33F /* libz.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -87,12 +110,15 @@
 		858B833818CA111C00AB12DE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				FE2FBA201D12FC570034D33F /* SSZipArchive */,
 				CDF4743E1BA4855C0087EA85 /* build.xcconfig */,
 				CDD59A261BB43B5D00EC2671 /* build-debug.xcconfig */,
 				CDD59A271BB43B5D00EC2671 /* build-release.xcconfig */,
 				858B833918CA111C00AB12DE /* __PROJECT_NAME__-Info.plist */,
 				858B833A18CA111C00AB12DE /* InfoPlist.strings */,
 				CD62955C1BB2678900AE3A93 /* main.m */,
+				FE2FB9CC1D12CEFB0034D33F /* TKLiveSync.h */,
+				FE2FB9CD1D12CEFB0034D33F /* TKLiveSync.m */,
 				858B833F18CA111C00AB12DE /* __PROJECT_NAME__-Prefix.pch */,
 			);
 			name = "Supporting Files";
@@ -103,6 +129,32 @@
 			children = (
 			);
 			name = Resources;
+			sourceTree = "<group>";
+		};
+		FE2FBA201D12FC570034D33F /* SSZipArchive */ = {
+			isa = PBXGroup;
+			children = (
+				FE2FBA211D12FC630034D33F /* minizip */,
+				FE2FBA171D12FC510034D33F /* SSZipArchive.h */,
+				FE2FBA181D12FC510034D33F /* SSZipArchive.m */,
+			);
+			name = SSZipArchive;
+			sourceTree = "<group>";
+		};
+		FE2FBA211D12FC630034D33F /* minizip */ = {
+			isa = PBXGroup;
+			children = (
+				FE2FBA0E1D12FC510034D33F /* crypt.h */,
+				FE2FBA0F1D12FC510034D33F /* ioapi.c */,
+				FE2FBA101D12FC510034D33F /* ioapi.h */,
+				FE2FBA111D12FC510034D33F /* mztools.c */,
+				FE2FBA121D12FC510034D33F /* mztools.h */,
+				FE2FBA131D12FC510034D33F /* unzip.c */,
+				FE2FBA141D12FC510034D33F /* unzip.h */,
+				FE2FBA151D12FC510034D33F /* zip.c */,
+				FE2FBA161D12FC510034D33F /* zip.h */,
+			);
+			name = minizip;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -221,7 +273,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FE2FBA191D12FC510034D33F /* ioapi.c in Sources */,
+				FE2FBA1B1D12FC510034D33F /* unzip.c in Sources */,
 				CD62955D1BB2678900AE3A93 /* main.m in Sources */,
+				FE2FBA1C1D12FC510034D33F /* zip.c in Sources */,
+				FE2FBA1A1D12FC510034D33F /* mztools.c in Sources */,
+				FE2FBA1D1D12FC510034D33F /* SSZipArchive.m in Sources */,
+				FE2FB9CE1D12CEFB0034D33F /* TKLiveSync.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
