@@ -24,6 +24,7 @@
 #include <JavaScriptCore/tools/CodeProfiling.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/LiteralParser.h>
+#include "LiveEdit/EditableSourceProvider.h"
 #include "ObjCTypes.h"
 #include "Interop.h"
 #include <sys/stat.h>
@@ -236,13 +237,13 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         source = WTF::ASCIILiteral("export default undefined;");
     }
 
-    SourceCode sourceCode = makeSource(source, moduleUrl.toString());
+    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString()));
     ParserError error;
     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
 
     if (!moduleRecord || (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json)) {
         error = ParserError();
-        sourceCode = makeSource(WTF::ASCIILiteral("export default undefined;"));
+        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString()));
         moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
         ASSERT(!error.isValid());
 
@@ -252,7 +253,8 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         moduleFunctionSource.append("\n}}");
 
         JSObject* exception = nullptr;
-        FunctionExecutable* moduleFunctionExecutable = FunctionExecutable::fromGlobalCode(Identifier::fromString(execState, "anonymous"), *execState, makeSource(moduleFunctionSource.toString(), moduleUrl.toString(), WTF::TextPosition()), exception, -1);
+        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl.toString()));
+        FunctionExecutable* moduleFunctionExecutable = FunctionExecutable::fromGlobalCode(Identifier::fromString(execState, "anonymous"), *execState, sourceCode, exception, -1);
         if (!moduleFunctionExecutable) {
             ASSERT(exception);
             return deferred->reject(execState, exception);

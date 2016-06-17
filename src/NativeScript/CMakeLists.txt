@@ -1,6 +1,4 @@
 set(HEADER_FILES
-    NativeScript-Prefix.h
-
     Calling/FFICall.h
     Calling/FFICallback.h
     Calling/FFICallbackInlines.h
@@ -22,6 +20,9 @@ set(HEADER_FILES
     Interop.h
     JSErrors.h
     JSWarnings.h
+    LiveEdit/ClearChangedCellsFunctor.h
+    LiveEdit/EditableSourceProvider.h
+    LiveEdit/TextualDifferencesHelper.h
     Marshalling/FFISimpleType.h
     Marshalling/FFIType.h
     Marshalling/FunctionReference/FunctionReferenceConstructor.h
@@ -45,6 +46,7 @@ set(HEADER_FILES
     Marshalling/Reference/ReferenceTypeConstructor.h
     Marshalling/Reference/ReferenceTypeInstance.h
     Metadata/Metadata.h
+    NativeScript-Prefix.h
     NativeScript.h
     ObjC/AllocatedPlaceholder.h
     ObjC/Block/ObjCBlockCall.h
@@ -110,6 +112,8 @@ set(SOURCE_FILES
     Interop.mm
     JSErrors.mm
     JSWarnings.cpp
+    LiveEdit/ClearChangedCellsFunctor.cpp
+    LiveEdit/TextualDifferencesHelper.cpp
     Marshalling/FFISimpleType.cpp
     Marshalling/FFIType.cpp
     Marshalling/FunctionReference/FunctionReferenceConstructor.cpp
