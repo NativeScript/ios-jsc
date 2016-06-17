@@ -15,6 +15,7 @@ public:
 
     virtual void didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(Inspector::DisconnectReason) override;
+    virtual void discardAgent() override;
 
 private:
     Inspector::JSAgentContext& m_context;
