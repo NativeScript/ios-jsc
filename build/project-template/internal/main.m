@@ -9,6 +9,7 @@
 
 #if DEBUG
 #include <TNSDebugging.h>
+#include <TKLiveSync.h>
 #endif
 
 TNSRuntime *runtime = nil;
@@ -19,22 +20,7 @@ int main(int argc, char *argv[]) {
     NSString *applicationPath = [[NSBundle mainBundle] bundlePath];
 
 #if DEBUG
-    NSString *libraryPath = [NSSearchPathForDirectoriesInDomains(
-        NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
-    NSString *liveSyncPath = [NSString pathWithComponents:@[
-      libraryPath,
-      @"Application Support",
-      @"LiveSync"
-    ]];
-    NSString *appFolderPath =
-        [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
-
-    NSArray *appContents =
-        [[NSFileManager defaultManager] contentsOfDirectoryAtPath:appFolderPath
-                                                            error:nil];
-    if (appContents.count > 0) {
-      applicationPath = liveSyncPath;
-    }
+      applicationPath = [TKLiveSync initAppFolder];
 #endif
 
     [TNSRuntime initializeMetadata:&startOfMetadataSection];
