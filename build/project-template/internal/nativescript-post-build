@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
+# TODO: Move this to the CLI
+if [ $CONFIGURATION = "Debug" ]; then
+    rsync -a "${SRCROOT}/internal/TKLiveSync.framework" "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+else
+    # The CLI is using the same folder for Debug and Release builds :(
+    rm -rf "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/TKLiveSync.framework"
+fi
+
 pushd "$SRCROOT/internal"
 ./strip-dynamic-framework-architectures.sh
 popd

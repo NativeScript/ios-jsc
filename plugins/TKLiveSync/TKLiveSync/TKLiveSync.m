@@ -14,8 +14,9 @@ static void TKLiveSyncInit() {
     NSFileManager *fileManager = [NSFileManager defaultManager];
 
     NSString *libraryPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
-    NSString *appPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
-    NSString *syncZipPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync", @"sync.zip" ]];
+    NSString *liveSyncPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
+    NSString *appPath = [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
+    NSString *syncZipPath = [NSString pathWithComponents:@[ liveSyncPath, @"sync.zip" ]];
 
     if ([fileManager fileExistsAtPath:syncZipPath]) {
         NSError *err;
@@ -29,8 +30,10 @@ static void TKLiveSyncInit() {
         if (err) {
             NSLog(@"Can't create: %@", appPath);
         }
-        NSLog(@"Unzipping %@", syncZipPath);
-        [SSZipArchive unzipFileAtPath:syncZipPath toDestination:appPath];
-        NSLog(@"Unzip finished!");
+        [SSZipArchive unzipFileAtPath:syncZipPath toDestination:liveSyncPath];
+        [fileManager removeItemAtPath:syncZipPath error:&err];
+        if (err) {
+            NSLog(@"Can't remove: %@", syncZipPath);
+        }
     }
 }
