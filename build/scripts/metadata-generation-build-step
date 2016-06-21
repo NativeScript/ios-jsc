@@ -79,7 +79,7 @@ def generate_metadata(arch):
     generator_call.extend(other_cflags_parsed)  # OTHER_CFLAGS
     generator_call.extend(preprocessor_defs_parsed)  # GCC_PREPROCESSOR_DEFINITIONS
 
-    child_process = subprocess.Popen(generator_call, stderr=subprocess.PIPE)
+    child_process = subprocess.Popen(generator_call, stderr=subprocess.PIPE, universal_newlines=True)
     sys.stdout.flush()
     error_stream_content = child_process.communicate()[1]
 
