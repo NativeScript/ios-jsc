@@ -1,0 +1,3 @@
+target 'TKLiveSync' do
+  pod 'SSZipArchive'
+end

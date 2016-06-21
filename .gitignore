@@ -21,7 +21,6 @@ DerivedData
 # Mac OS X
 .DS_Store
 Thumbs.db
-Podfile.lock
 *.swp
 /.metadata/
 

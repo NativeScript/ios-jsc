@@ -10,6 +10,11 @@ PACKAGE_DIR="$DIST_DIR/package"
 FRAMEWORK_DIR="$PACKAGE_DIR/framework"
 INTERNAL_DIR="$FRAMEWORK_DIR/internal"
 
+mkdir -p "$INTERNAL_DIR"
+
+. "$WORKSPACE/plugins/TKLiveSync/build.sh"
+cp -R "$DIST_DIR/TKLiveSync.framework" "$INTERNAL_DIR"
+
 . "$WORKSPACE/build/scripts/build.sh"
 
 mkdir -p "$INTERNAL_DIR/NativeScript/Frameworks"
