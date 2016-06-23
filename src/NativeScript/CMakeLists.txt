@@ -188,7 +188,7 @@ set(JSFILES
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_INCLUDE_DIR}" "${WEBKIT_INCLUDE_DIRECTORIES}")
 link_directories("${LIBFFI_LIB_DIR}" ${WEBKIT_LINK_DIRECTORIES})
 
-add_library(NativeScript ${SOURCE_FILES} ${HEADER_FILES} ${JSFILES})
+add_library(NativeScript SHARED ${SOURCE_FILES} ${HEADER_FILES} ${JSFILES})
 
 add_dependencies(NativeScript WebKit libffi)
 
@@ -202,37 +202,24 @@ set_target_properties(NativeScript PROPERTIES
 
 target_compile_definitions(NativeScript PUBLIC "NATIVESCRIPT_VERSION=${NATIVESCRIPT_VERSION}")
 
-if(${BUILD_SHARED_LIBS})
-    set_target_properties(NativeScript PROPERTIES
-        FRAMEWORK TRUE
-        FRAMEWORK_VERSION "1.0" # TODO
-        PUBLIC_HEADER "${NativeScript_PUBLIC_HEADERS}"
-        INSTALL_NAME_DIR "@executable_path/Frameworks"
-        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
-        MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
-    )
-    target_link_libraries(NativeScript
-        ${WEBKIT_LIBRARIES}
-        ffi
-        libicucore.dylib
-        libz.dylib
-        libc++.dylib
-        "-framework UIKit"
-        "-framework MobileCoreServices"
-        "-framework Security"
-    )
-elseif(${EMBED_STATIC_DEPENDENCIES})
-    foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
-        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${_directory}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)")
-    endforeach()
-    foreach(_library ${WEBKIT_LIBRARIES})
-        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -l${_library}")
-    endforeach()
-
-    set_target_properties(NativeScript PROPERTIES
-        STATIC_LIBRARY_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${LIBFFI_LIB_DIR} -lffi"
-    )
-endif()
+set_target_properties(NativeScript PROPERTIES
+    FRAMEWORK TRUE
+    # FRAMEWORK_VERSION "1.0" # TODO
+    PUBLIC_HEADER "${NativeScript_PUBLIC_HEADERS}"
+    INSTALL_NAME_DIR "@executable_path/Frameworks"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
+    MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
+)
+target_link_libraries(NativeScript
+    ${WEBKIT_LIBRARIES}
+    ffi
+    libicucore.dylib
+    libz.dylib
+    libc++.dylib
+    "-framework UIKit"
+    "-framework MobileCoreServices"
+    "-framework Security"
+)
 
 include(EmbedResourceInHeader)
 foreach(_jsfile ${JSFILES})

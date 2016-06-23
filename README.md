@@ -13,7 +13,7 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
  - [GNU Libtool](http://www.gnu.org/software/libtool/) - available in [Homebrew](http://brew.sh) as `libtool`
 
 ## Building
-Run `build/scripts/build.sh` in the root of the repository. This will produce a static library and Cocoa Framework versions of the iOS runtime and a build of the metadata generator and place them in the `dist` folder. The script depends on the repo's git submodules, so if you run into issues make sure to update them using `git submodule update --init`.
+Run `build/scripts/build.sh` in the root of the repository. This will produce a Cocoa Framework version of the iOS runtime and a build of the metadata generator and place them in the `dist` folder. The script depends on the repo's git submodules, so if you run into issues make sure to update them using `git submodule update --init`.
 
 ## Creating an Xcode Project
 ```shell
@@ -23,7 +23,7 @@ cmake .. -G Xcode
 
 ## NPM Package
 
-To build the npm package run ```sh build/script/build-runtime.sh``` in the **root** of the repository. This should produce a `dist/tns-ios-*.tgz` file, which should contain the NativeScript static library and Cocoa Framework, the NativeScript CLI template project, the API metadata generator and the Web Inspector frontend.
+To build the npm package run ```sh build/script/build-runtime.sh``` in the **root** of the repository. This should produce a `dist/tns-ios-*.tgz` file, which should contain the Cocoa Framework, the NativeScript CLI template project, the API metadata generator and the Web Inspector frontend.
 
 ## Tests
 To run the tests build and run the TestRunner target from the generated Xcode project as described above.

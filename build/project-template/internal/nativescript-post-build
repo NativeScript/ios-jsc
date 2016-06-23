@@ -9,6 +9,8 @@ else
     rm -rf "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/TKLiveSync.framework"
 fi
 
+rsync -a "${SRCROOT}/internal/NativeScript/NativeScript.framework" "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+
 pushd "$SRCROOT/internal"
 ./strip-dynamic-framework-architectures.sh
 popd

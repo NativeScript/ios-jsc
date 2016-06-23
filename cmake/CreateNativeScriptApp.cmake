@@ -13,18 +13,6 @@ function(CreateNativeScriptApp _target _main _plist _resources)
         NativeScript
     )
 
-    if(NOT ${BUILD_SHARED_LIBS})
-        target_link_libraries(${_target}
-            libicucore.dylib
-            libz.dylib
-            libc++.dylib
-        )
-
-        if(NOT ${EMBED_STATIC_DEPENDENCIES})
-            target_link_libraries(${_target} ${WEBKIT_LIBRARIES} ffi)
-        endif()
-    endif()
-
     set_target_properties(${_target} PROPERTIES
         MACOSX_BUNDLE YES
         MACOSX_BUNDLE_INFO_PLIST "${_plist}"
