@@ -49,6 +49,10 @@ int main(int argc, char *argv[]) {
     TNSEnableRemoteInspector(argc, argv);
 #endif
 
+    if (putenv("BUILD_CONFIGURATION=" BUILD_CONFIGURATION) == -1) {
+      perror("Could not set build configuration");
+    }
+
     [runtime executeModule:@"./"];
 
     return 0;
