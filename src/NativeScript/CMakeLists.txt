@@ -220,6 +220,20 @@ if(${BUILD_SHARED_LIBS})
         "-framework UIKit"
         "-framework MobileCoreServices"
         "-framework Security"
+        "-Wl,-exported_symbol,_JSContextGetGlobalObject"
+        "-Wl,-exported_symbol,_JSStringCopyCFString"
+        "-Wl,-exported_symbol,_JSObjectCallAsFunction"
+        "-Wl,-exported_symbol,_JSObjectGetProperty"
+        "-Wl,-exported_symbol,_JSObjectMakeError"
+        "-Wl,-exported_symbol,_JSObjectSetProperty"
+        "-Wl,-exported_symbol,_JSStringCreateWithUTF8CString"
+        "-Wl,-exported_symbol,_JSStringRelease"
+        "-Wl,-exported_symbol,_JSValueIsUndefined"
+        "-Wl,-exported_symbol,_JSValueMakeString"
+        "-Wl,-exported_symbol,_JSValueToStringCopy"
+        "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntime"
+        "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntimeInspector"
+        "-Wl,-exported_symbol,_TNSInspectorRunLoopMode"
     )
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
