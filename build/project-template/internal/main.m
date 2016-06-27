@@ -4,7 +4,7 @@
 
 #include <Foundation/Foundation.h>
 #include <JavaScriptCore/JavaScriptCore.h>
-#include <NativeScript.h>
+#include <NativeScript/NativeScript.h>
 #include <TNSExceptionHandler.h>
 
 #if DEBUG

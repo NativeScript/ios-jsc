@@ -30,7 +30,13 @@ static void TKLiveSyncInit() {
         if (err) {
             NSLog(@"Can't create: %@", appPath);
         }
-        [SSZipArchive unzipFileAtPath:syncZipPath toDestination:liveSyncPath];
+
+        NSLog(@"Unzipping LiveSync folder. This could take a while ...");
+        BOOL success = [SSZipArchive unzipFileAtPath:syncZipPath toDestination:liveSyncPath];
+        if (!success) {
+            NSLog(@"Unzipping LiveSync folder finished unsuccessfully.");
+        }
+
         [fileManager removeItemAtPath:syncZipPath error:&err];
         if (err) {
             NSLog(@"Can't remove: %@", syncZipPath);
