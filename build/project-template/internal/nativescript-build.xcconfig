@@ -4,7 +4,7 @@ HEADER_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/internal"
 OTHER_LDFLAGS[sdk=*] = $(inherited) -ObjC -sectcreate __DATA __TNSMetadata "$(CONFIGURATION_BUILD_DIR)/metadata-$(CURRENT_ARCH).bin" -framework NativeScript -F"$(SRCROOT)/internal" -licucore -lz -lc++ -framework Foundation -framework UIKit -framework CoreGraphics -framework MobileCoreServices -framework Security
 
 // TODO: Move this to the CLI
-OTHER_LDFLAGS[config=Debug] = -framework TKLiveSync -F$(SRCROOT)/internal/
+OTHER_LDFLAGS[config=Debug] = $(inherited) -framework TKLiveSync -F$(SRCROOT)/internal/
 
 // We need to add CONFIGURATION_BUILD_DIR here so that we can explicitly quote-escape any paths in it, because the implicitly added path by Xcode is not always escaped
 FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/internal/" "$(SRCROOT)/../../lib/iOS" "$(CONFIGURATION_BUILD_DIR)"
