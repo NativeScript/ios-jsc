@@ -23,7 +23,7 @@ cmake .. -G Xcode
 
 ## NPM Package
 
-To build the npm package run ```sh build/script/build-runtime.sh``` in the **root** of the repository. This should produce a `dist/tns-ios-*.tgz` file, which should contain the NativeScript Cocoa Framework, the NativeScript CLI template project, the API metadata generator and the Web Inspector frontend.
+To build the npm package run ```sh build/script/package-runtime.sh``` in the **root** of the repository. This should produce a `dist/tns-ios-*.tgz` file, which should contain the NativeScript Cocoa Framework, the NativeScript CLI template project, the API metadata generator and the Web Inspector frontend.
 
 ## Tests
 To run the tests build and run the TestRunner target from the generated Xcode project as described above.

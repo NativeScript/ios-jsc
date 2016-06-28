@@ -71,7 +71,7 @@ Make your changes in a new git branch. We use the Gitflow branching model so you
 Create your patch and include appropriate test cases.
 Build your changes locally.
 ```bash
-    sh build/scripts/build-runtime.sh
+    sh build/scripts/package-runtime.sh
 ```
 Commit your changes and create a descriptive commit message (the commit message is used to generate release notes).
 ```bash
