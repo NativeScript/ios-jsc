@@ -58,7 +58,7 @@ static dispatch_source_t TNSCreateInspectorServer(
   setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr,
              sizeof(so_reuseaddr));
   struct sockaddr_in addr = {
-      sizeof(addr), AF_INET, htons(18181), {INADDR_ANY}, {0}};
+      sizeof(addr), AF_INET, htons(18182), {INADDR_ANY}, {0}};
   if (!CheckError(
           bind(listenSocket, (const struct sockaddr *)&addr, sizeof(addr)),
           connectedHandler)) {

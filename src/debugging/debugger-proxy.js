@@ -37,7 +37,7 @@ var server = ws.createServer({
 server.on("connection", function(webSocket) {
 	console.info("Frontend client connected.");
 	
-	var deviceSocket = net.connect(18181);
+	var deviceSocket = net.connect(18182);
 	var packets = new PacketStream();
 	deviceSocket.pipe(packets);
 	
