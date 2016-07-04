@@ -233,9 +233,12 @@ if(${BUILD_SHARED_LIBS})
         "-Wl,-exported_symbol,_JSValueIsUndefined"
         "-Wl,-exported_symbol,_JSValueMakeString"
         "-Wl,-exported_symbol,_JSValueToStringCopy"
+        "-Wl,-exported_symbol,_JSValueToObject"
+        "-Wl,-exported_symbol,_JSValueToNumber"
         "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntime"
         "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntimeInspector"
         "-Wl,-exported_symbol,_TNSInspectorRunLoopMode"
+        "-Wl,-exported_symbol,_TNSSetUncaughtErrorHandler"
     )
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
