@@ -205,7 +205,9 @@ target_compile_definitions(NativeScript PUBLIC "NATIVESCRIPT_VERSION=${NATIVESCR
 if(${BUILD_SHARED_LIBS})
     set_target_properties(NativeScript PROPERTIES
         FRAMEWORK TRUE
-        FRAMEWORK_VERSION "1.0" # TODO
+        # FRAMEWORK_VERSION "1.0" # TODO
+        MACOSX_FRAMEWORK_BUNDLE_VERSION "${NATIVESCRIPT_VERSION}"
+        MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${NATIVESCRIPT_VERSION}"
         PUBLIC_HEADER "${NativeScript_PUBLIC_HEADERS}"
         INSTALL_NAME_DIR "@executable_path/Frameworks"
         XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
@@ -231,9 +233,12 @@ if(${BUILD_SHARED_LIBS})
         "-Wl,-exported_symbol,_JSValueIsUndefined"
         "-Wl,-exported_symbol,_JSValueMakeString"
         "-Wl,-exported_symbol,_JSValueToStringCopy"
+        "-Wl,-exported_symbol,_JSValueToObject"
+        "-Wl,-exported_symbol,_JSValueToNumber"
         "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntime"
         "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntimeInspector"
         "-Wl,-exported_symbol,_TNSInspectorRunLoopMode"
+        "-Wl,-exported_symbol,_TNSSetUncaughtErrorHandler"
     )
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
