@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 def readPackageJSON(path):
 	with open(path, "r") as jsonFile:
-	    return json.load(jsonFile, object_pairs_hook=OrderedDict)
+		return json.load(jsonFile, object_pairs_hook=OrderedDict)
 
 def getPackageVersion(baseVersion):
 	buildVersion = os.environ.get('PACKAGE_VERSION')
@@ -20,4 +20,4 @@ if __name__ == "__main__":
 		print "Package.json location argument is missing"
 		sys.exit(2)
 	data = readPackageJSON(sys.argv[1]);
-	print getPackageVersion(data["version"])
+	print "{};{}".format(data["version"], getPackageVersion(data["version"]))
