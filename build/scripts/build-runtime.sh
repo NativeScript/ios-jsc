@@ -2,33 +2,62 @@
 
 set -e
 
-WORKSPACE=$(pwd)
-BUILD_DIR="$WORKSPACE/build"
-BUILD_LOG="$WORKSPACE/build.log"
-DIST_DIR="$WORKSPACE/dist"
-PACKAGE_DIR="$DIST_DIR/package"
-FRAMEWORK_DIR="$PACKAGE_DIR/framework"
-INTERNAL_DIR="$FRAMEWORK_DIR/internal"
+WORKSPACE=`pwd`
 
-mkdir -p "$INTERNAL_DIR"
+function xcodebuild_pretty {
+    XCFORMATTER=true
+    if hash xcpretty 2>/dev/null; then
+        XCFORMATTER=xcpretty
+    fi
+    set -o pipefail && xcodebuild "$@" 2>&1 | tee -a "$WORKSPACE/build.log" | $XCFORMATTER
+}
 
-. "$WORKSPACE/plugins/TKLiveSync/build.sh"
-cp -R "$DIST_DIR/TKLiveSync.framework" "$INTERNAL_DIR"
+CMAKE_FLAGS="-G Xcode -DCMAKE_INSTALL_PREFIX=$WORKSPACE/dist"
 
-. "$WORKSPACE/build/scripts/build.sh"
+mkdir -p "$WORKSPACE/cmake-build"
+cd "$WORKSPACE/cmake-build"
 
-cp -R "$DIST_DIR/NativeScript.framework" "$INTERNAL_DIR/NativeScript.framework"
-sed 's/#import <NativeScript.h>/#import <NativeScript\/NativeScript.h>/g' "$WORKSPACE/src/debugging/TNSDebugging.h" > "$INTERNAL_DIR/TNSDebugging.h"
-sed 's/#import <NativeScript.h>/#import <NativeScript\/NativeScript.h>/g' "$WORKSPACE/src/NativeScript/ObjC/TNSExceptionHandler.h" > "$INTERNAL_DIR/TNSExceptionHandler.h"
-cp -R "$DIST_DIR/metadataGenerator" "$INTERNAL_DIR/metadata-generator"
-cp -R "$BUILD_DIR/project-template/" "$FRAMEWORK_DIR"
-cp -R "$BUILD_DIR/npm/runtime_package.json" "$PACKAGE_DIR/package.json"
+echo "Building NativeScript.framework..."
+rm -f CMakeCache.txt
+rm -f "$WORKSPACE/build.log"
+echo -e "\tConfiguring..."
+cmake .. $CMAKE_FLAGS -DBUILD_SHARED_LIBS=ON 2>&1 | tee -a "$WORKSPACE/build.log"
+echo -e "\tiPhoneOS..."
+xcodebuild_pretty -configuration Release -sdk iphoneos -target NativeScript
+echo -e "\tiPhoneSimulator..."
+xcodebuild_pretty -configuration Release -sdk iphonesimulator -target NativeScript
 
-python "$BUILD_DIR/scripts/update-version.py" "$PACKAGE_DIR/package.json"
+echo "Packaging NativeScript.framework..."
+mkdir -p "$WORKSPACE/dist"
+cp -r "$WORKSPACE/cmake-build/src/NativeScript/Release-iphoneos/NativeScript.framework" "$WORKSPACE/dist"
+rm "$WORKSPACE/dist/NativeScript.framework/NativeScript"
+lipo -create -output "$WORKSPACE/dist/NativeScript.framework/NativeScript" \
+    "$WORKSPACE/cmake-build/src/NativeScript/Release-iphonesimulator/NativeScript.framework/NativeScript" \
+    "$WORKSPACE/cmake-build/src/NativeScript/Release-iphoneos/NativeScript.framework/NativeScript" \
+         >> "$WORKSPACE/build.log" 2>&1
 
-pushd "$DIST_DIR" >> "$BUILD_LOG"
+rm -f CMakeCache.txt
+echo -e "\tConfiguring..."
+cmake .. $CMAKE_FLAGS -DEMBED_STATIC_DEPENDENCIES=ON 2>&1 | tee -a "$WORKSPACE/build.log"
+echo "Building objc-metadata-generator..."
+xcodebuild_pretty -configuration Release -target MetadataGenerator
+echo "Packaging objc-metadata-generator..."
+cp -R "$WORKSPACE/cmake-build/metadataGenerator" "$WORKSPACE/dist/"
+cp "$WORKSPACE/build/scripts/metadata-generation-build-step" "$WORKSPACE/dist/metadataGenerator/bin/"
 
-echo "Packaging..."
-npm pack "package" >> "$BUILD_LOG"
+echo "Building Gameraww..."
+xcodebuild_pretty -configuration Release -sdk iphoneos -target Gameraww
+echo "Packaging Gameraww..."
+xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.app" \
+    -o "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.ipa" \
+         >> "$WORKSPACE/build.log" 2>&1
+GAMERAWW_IPA_SIZE=$(du -k "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.ipa" | awk '{print $1}')
+echo "TNS_IPA_SIZE: "$GAMERAWW_IPA_SIZE"KB"
+echo "TNS_IPA_SIZE_KB\\n"$GAMERAWW_IPA_SIZE > "$WORKSPACE/build-stats.csv"
 
-popd >> "$BUILD_LOG"
+echo "Building TestRunner..."
+xcodebuild_pretty -configuration Debug -sdk iphoneos -target TestRunner ARCHS="armv7" ONLY_ACTIVE_ARCH=NO
+echo "Packaging TestRunner..."
+xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.app" \
+    -o "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.ipa" \
+         >> "$WORKSPACE/build.log" 2>&1
