@@ -23,7 +23,8 @@ def env_or_empty(env_name):
 # process environment variables
 conf_build_dir = env("CONFIGURATION_BUILD_DIR")
 sdk_root = env("SDKROOT")
-deployment_target = env("IPHONEOS_DEPLOYMENT_TARGET")
+deployment_target_flag_name = env("DEPLOYMENT_TARGET_CLANG_FLAG_NAME")
+deployment_target = env(env("DEPLOYMENT_TARGET_CLANG_ENV_NAME"))
 std = env("GCC_C_LANGUAGE_STANDARD")
 header_search_paths = env_or_empty("HEADER_SEARCH_PATHS")
 header_search_paths_parsed = map((lambda s: "-I" + s), shlex.split(header_search_paths))
@@ -70,8 +71,7 @@ def generate_metadata(arch):
     generator_call.extend(["Xclang",
                            "-isysroot", sdk_root,
                            "-arch", arch,
-                           "-miphoneos-version-min=" + deployment_target,
-                           "-target", "arm-apple-darwin",
+                           "-" + deployment_target_flag_name + "=" + deployment_target,
                            "-std=" + std])
 
     generator_call.extend(header_search_paths_parsed)  # HEADER_SEARCH_PATHS

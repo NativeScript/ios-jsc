@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 project(NativeScript)
 
-set(CMAKE_XCODE_ATTRIBUTE_SUPPORTED_PLATFORMS "macosx iphoneos iphonesimulator")
-set(CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator;-macosx")
+set(CMAKE_XCODE_ATTRIBUTE_SUPPORTED_PLATFORMS "iphoneos iphonesimulator")
+set(CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator")
 set(CMAKE_XCODE_ATTRIBUTE_ENABLE_BITCODE "NO")
 set(CMAKE_OSX_SYSROOT $(PLATFORM_NAME))
 
