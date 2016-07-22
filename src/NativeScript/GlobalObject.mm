@@ -15,6 +15,9 @@
 #include "JSWeakRefConstructor.h"
 #include "JSWeakRefInstance.h"
 #include "JSWeakRefPrototype.h"
+#include "JSWorkerConstructor.h"
+#include "JSWorkerInstance.h"
+#include "JSWorkerPrototype.h"
 #include "Metadata.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockCallback.h"
@@ -170,6 +173,12 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     this->_weakRefInstanceStructure.set(vm, this, JSWeakRefInstance::createStructure(vm, this, weakRefPrototype));
     this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("WeakRef")), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
 
+    this->_workerConstructorStructure.set(vm, this, JSWorkerConstructor::createStructure(vm, this, Base::functionPrototype()));
+    this->_workerPrototypeStructure.set(vm, this, JSWorkerPrototype::createStructure(vm, this, Base::objectPrototype()));
+    JSWorkerPrototype* workerPrototype = JSWorkerPrototype::create(vm, this, this->workerPrototypeStructure());
+    this->_workerInstanceStructure.set(vm, this, JSWorkerInstance::createStructure(vm, this, workerPrototype));
+    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("Worker")), JSWorkerConstructor::create(vm, this->workerConstructorStructure(), workerPrototype));
+
     auto fastEnumerationIteratorPrototype = ObjCFastEnumerationIteratorPrototype::create(vm, this, ObjCFastEnumerationIteratorPrototype::createStructure(vm, this, this->objectPrototype()));
     this->_fastEnumerationIteratorStructure.set(vm, this, ObjCFastEnumerationIterator::createStructure(vm, this, fastEnumerationIteratorPrototype));
 
@@ -238,6 +247,9 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_weakRefConstructorStructure);
     visitor.append(&globalObject->_weakRefPrototypeStructure);
     visitor.append(&globalObject->_weakRefInstanceStructure);
+    visitor.append(&globalObject->_workerConstructorStructure);
+    visitor.append(&globalObject->_workerInstanceStructure);
+    visitor.append(&globalObject->_workerPrototypeStructure);
     visitor.append(&globalObject->_fastEnumerationIteratorStructure);
 }
 

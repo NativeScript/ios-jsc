@@ -90,6 +90,10 @@ set(HEADER_FILES
     TNSRuntime.h
     TypeFactory.h
     WeakHandleOwners.h
+    Workers/JSWorkerConstructor.h
+    Workers/JSWorkerGlobalObject.h
+    Workers/JSWorkerInstance.h
+    Workers/JSWorkerPrototype.h
 )
 
 set(SOURCE_FILES
@@ -175,6 +179,10 @@ set(SOURCE_FILES
     TNSRuntime+Inspector.mm
     TNSRuntime.mm
     TypeFactory.mm
+    Workers/JSWorkerConstructor.cpp
+    Workers/JSWorkerGlobalObject.cpp
+    Workers/JSWorkerInstance.cpp
+    Workers/JSWorkerPrototype.cpp
 )
 
 set(NativeScript_PUBLIC_HEADERS

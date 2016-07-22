@@ -112,6 +112,18 @@ public:
         return this->_weakRefInstanceStructure.get();
     }
 
+    JSC::Structure* workerConstructorStructure() const {
+        return this->_workerConstructorStructure.get();
+    }
+
+    JSC::Structure* workerPrototypeStructure() const {
+        return this->_workerPrototypeStructure.get();
+    }
+
+    JSC::Structure* workerInstanceStructure() const {
+        return this->_workerInstanceStructure.get();
+    }
+
     JSC::Structure* unmanagedInstanceStructure() const {
         return this->_unmanagedInstanceStructure.get();
     }
@@ -166,15 +178,18 @@ public:
         return this->_modulePathCache;
     }
 
-private:
+protected:
+    static void destroy(JSC::JSCell* cell);
+
+    static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
+
     GlobalObject(JSC::VM& vm, JSC::Structure* structure);
 
     ~GlobalObject();
 
     void finishCreation(WTF::String applicationPath, JSC::VM& vm);
 
-    static void destroy(JSC::JSCell* cell);
-
+private:
     WTF::Deque<WTF::RefPtr<JSC::Microtask>> _microtasksQueue;
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::Ref<JSC::Microtask>&& task);
 
@@ -189,8 +204,6 @@ private:
     static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue, JSC::JSValue initiator);
 
     static WTF::String defaultLanguage();
-
-    static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
 
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 
@@ -225,6 +238,10 @@ private:
     JSC::WriteBarrier<JSC::Structure> _weakRefConstructorStructure;
     JSC::WriteBarrier<JSC::Structure> _weakRefPrototypeStructure;
     JSC::WriteBarrier<JSC::Structure> _weakRefInstanceStructure;
+
+    JSC::WriteBarrier<JSC::Structure> _workerConstructorStructure;
+    JSC::WriteBarrier<JSC::Structure> _workerPrototypeStructure;
+    JSC::WriteBarrier<JSC::Structure> _workerInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _unmanagedInstanceStructure;
 
