@@ -7,19 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		224774616FEEDBBF8AFD61D2 /* libPods-TKLiveSync.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EFBB057B6442E149BCFD8D46 /* libPods-TKLiveSync.a */; };
 		CD56430F1D181F240083EF6A /* TKLiveSync.h in Headers */ = {isa = PBXBuildFile; fileRef = CD56430E1D181F240083EF6A /* TKLiveSync.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		CD56432C1D1820330083EF6A /* TKLiveSync.m in Sources */ = {isa = PBXBuildFile; fileRef = CD56432B1D1820330083EF6A /* TKLiveSync.m */; };
+		CD56432C1D1820330083EF6A /* TKLiveSync.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD56432B1D1820330083EF6A /* TKLiveSync.mm */; };
+		CD5C757E1D489D8600BD4EFA /* libzip_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */; };
+		CD5C75811D489DF000BD4EFA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CD5C75801D489DF000BD4EFA /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2A200685FD6C5F3CE1C984F8 /* Pods-TKLiveSync.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TKLiveSync.debug.xcconfig"; path = "Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync.debug.xcconfig"; sourceTree = "<group>"; };
 		CD56430B1D181F240083EF6A /* TKLiveSync.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TKLiveSync.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD56430E1D181F240083EF6A /* TKLiveSync.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKLiveSync.h; sourceTree = "<group>"; };
 		CD5643101D181F240083EF6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CD56432B1D1820330083EF6A /* TKLiveSync.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TKLiveSync.m; sourceTree = "<group>"; };
-		DF3129EE2B3A233A3825B1E3 /* Pods-TKLiveSync.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TKLiveSync.release.xcconfig"; path = "Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync.release.xcconfig"; sourceTree = "<group>"; };
-		EFBB057B6442E149BCFD8D46 /* libPods-TKLiveSync.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TKLiveSync.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD56432B1D1820330083EF6A /* TKLiveSync.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TKLiveSync.mm; sourceTree = "<group>"; };
+		CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libzip_iOS.framework; sourceTree = "<group>"; };
+		CD5C75801D489DF000BD4EFA /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -27,37 +27,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				224774616FEEDBBF8AFD61D2 /* libPods-TKLiveSync.a in Frameworks */,
+				CD5C75811D489DF000BD4EFA /* libz.tbd in Frameworks */,
+				CD5C757E1D489D8600BD4EFA /* libzip_iOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		21B6906E924570A5757E3216 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				EFBB057B6442E149BCFD8D46 /* libPods-TKLiveSync.a */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		21DDDFB11954A7F7FB18412A /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				2A200685FD6C5F3CE1C984F8 /* Pods-TKLiveSync.debug.xcconfig */,
-				DF3129EE2B3A233A3825B1E3 /* Pods-TKLiveSync.release.xcconfig */,
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
 		CD5643011D181F240083EF6A = {
 			isa = PBXGroup;
 			children = (
 				CD56430D1D181F240083EF6A /* TKLiveSync */,
 				CD56430C1D181F240083EF6A /* Products */,
-				21DDDFB11954A7F7FB18412A /* Pods */,
-				21B6906E924570A5757E3216 /* Frameworks */,
+				CD5C757F1D489DC200BD4EFA /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -73,10 +56,19 @@
 			isa = PBXGroup;
 			children = (
 				CD56430E1D181F240083EF6A /* TKLiveSync.h */,
-				CD56432B1D1820330083EF6A /* TKLiveSync.m */,
+				CD56432B1D1820330083EF6A /* TKLiveSync.mm */,
 				CD5643101D181F240083EF6A /* Info.plist */,
 			);
 			path = TKLiveSync;
+			sourceTree = "<group>";
+		};
+		CD5C757F1D489DC200BD4EFA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CD5C75801D489DF000BD4EFA /* libz.tbd */,
+				CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -97,12 +89,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CD5643131D181F240083EF6A /* Build configuration list for PBXNativeTarget "TKLiveSync" */;
 			buildPhases = (
-				5187AF02026E69B1539C8700 /* 📦 Check Pods Manifest.lock */,
 				CD5643061D181F240083EF6A /* Sources */,
 				CD5643071D181F240083EF6A /* Frameworks */,
 				CD5643081D181F240083EF6A /* Headers */,
 				CD5643091D181F240083EF6A /* Resources */,
-				F7F1D73913B55ED0802A267E /* 📦 Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -154,45 +144,12 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		5187AF02026E69B1539C8700 /* 📦 Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "📦 Check Pods Manifest.lock";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		F7F1D73913B55ED0802A267E /* 📦 Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "📦 Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		CD5643061D181F240083EF6A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CD56432C1D1820330083EF6A /* TKLiveSync.m in Sources */,
+				CD56432C1D1820330083EF6A /* TKLiveSync.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,12 +248,16 @@
 		};
 		CD5643141D181F240083EF6A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2A200685FD6C5F3CE1C984F8 /* Pods-TKLiveSync.debug.xcconfig */;
 			buildSettings = {
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = TKLiveSync/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -309,12 +270,16 @@
 		};
 		CD5643151D181F240083EF6A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DF3129EE2B3A233A3825B1E3 /* Pods-TKLiveSync.release.xcconfig */;
 			buildSettings = {
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = TKLiveSync/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
