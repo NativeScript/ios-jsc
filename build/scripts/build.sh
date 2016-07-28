@@ -36,27 +36,16 @@ lipo -create -output "$WORKSPACE/dist/NativeScript.framework/NativeScript" \
     "$WORKSPACE/cmake-build/src/NativeScript/Release-iphoneos/NativeScript.framework/NativeScript" \
          >> "$WORKSPACE/build.log" 2>&1
 
-rm -f CMakeCache.txt
-echo -e "\tConfiguring..."
-cmake .. $CMAKE_FLAGS -DEMBED_STATIC_DEPENDENCIES=ON 2>&1 | tee -a "$WORKSPACE/build.log"
 echo "Building objc-metadata-generator..."
 xcodebuild_pretty -configuration Release -target MetadataGenerator
 echo "Packaging objc-metadata-generator..."
 cp -R "$WORKSPACE/cmake-build/metadataGenerator" "$WORKSPACE/dist/"
 cp "$WORKSPACE/build/scripts/metadata-generation-build-step" "$WORKSPACE/dist/metadataGenerator/bin/"
 
-echo "Building Gameraww..."
-xcodebuild_pretty -configuration Release -sdk iphoneos -target Gameraww
-echo "Packaging Gameraww..."
-xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.app" \
-    -o "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.ipa" \
-         >> "$WORKSPACE/build.log" 2>&1
-GAMERAWW_IPA_SIZE=$(du -k "$WORKSPACE/cmake-build/examples/Gameraww/Release-iphoneos/Gameraww.ipa" | awk '{print $1}')
-echo "TNS_IPA_SIZE: "$GAMERAWW_IPA_SIZE"KB"
-echo "TNS_IPA_SIZE_KB\\n"$GAMERAWW_IPA_SIZE > "$WORKSPACE/build-stats.csv"
-
 echo "Building TestRunner..."
-xcodebuild_pretty -configuration Debug -sdk iphoneos -target TestRunner ARCHS="armv7" ONLY_ACTIVE_ARCH=NO
+rm -f CMakeCache.txt
+cmake .. $CMAKE_FLAGS 2>&1 | tee -a "$WORKSPACE/build.log"
+xcodebuild_pretty -configuration Debug -sdk iphoneos -target TestRunner ARCHS="armv7 arm64" ONLY_ACTIVE_ARCH=NO
 echo "Packaging TestRunner..."
 xcrun -sdk iphoneos PackageApplication -v "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.app" \
     -o "$WORKSPACE/cmake-build/tests/TestRunner/Debug-iphoneos/TestRunner.ipa" \
