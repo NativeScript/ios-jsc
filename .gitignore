@@ -29,7 +29,6 @@ Thumbs.db
 /build.log
 /dist/
 /junit-result.xml
-/build-stats.csv
 
 # CLion
 .idea
