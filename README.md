@@ -7,7 +7,7 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
 ## Requirements
  - OS X 10.10.3+
  - [Xcode 7+](https://developer.apple.com/xcode/)
- - [CMake 3.1.3](http://www.cmake.org/) - It is available in [Homebrew](http://brew.sh) as `homebrew/versions/cmake31`.
+ - [CMake 3.1.3](https://cmake.org/files/v3.1/cmake-3.1.3-Darwin-x86_64.dmg) - Make sure to install the command line tools from the menu.
  - [llvm 3.8](http://www.llvm.org/releases/download.html#3.8.0) - used to build the [metadata generator](https://github.com/NativeScript/ios-metadata-generator) submodule. Be sure to have `llvm-config` in `PATH` or otherwise export the `LLVM_CONFIG_PATH` environment variable to point to the folder that contains it.
  - [Automake](https://www.gnu.org/software/automake/) - available in [Homebrew](http://brew.sh) as `automake`
  - [GNU Libtool](http://www.gnu.org/software/libtool/) - available in [Homebrew](http://brew.sh) as `libtool`
