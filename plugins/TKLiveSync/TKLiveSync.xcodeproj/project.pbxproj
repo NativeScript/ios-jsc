@@ -7,17 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD0F75AB1D4B7DB20095538D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD0F75A91D4B7DB20095538D /* unzip.cpp */; };
+		CD0F75AC1D4B7DB20095538D /* unzip.h in Headers */ = {isa = PBXBuildFile; fileRef = CD0F75AA1D4B7DB20095538D /* unzip.h */; };
 		CD56430F1D181F240083EF6A /* TKLiveSync.h in Headers */ = {isa = PBXBuildFile; fileRef = CD56430E1D181F240083EF6A /* TKLiveSync.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		CD56432C1D1820330083EF6A /* TKLiveSync.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD56432B1D1820330083EF6A /* TKLiveSync.mm */; };
+		CD56432C1D1820330083EF6A /* TKLiveSync.m in Sources */ = {isa = PBXBuildFile; fileRef = CD56432B1D1820330083EF6A /* TKLiveSync.m */; };
 		CD5C757E1D489D8600BD4EFA /* libzip_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */; };
 		CD5C75811D489DF000BD4EFA /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CD5C75801D489DF000BD4EFA /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CD0F75A91D4B7DB20095538D /* unzip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = unzip.cpp; sourceTree = "<group>"; };
+		CD0F75AA1D4B7DB20095538D /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unzip.h; sourceTree = "<group>"; };
 		CD56430B1D181F240083EF6A /* TKLiveSync.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TKLiveSync.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD56430E1D181F240083EF6A /* TKLiveSync.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKLiveSync.h; sourceTree = "<group>"; };
 		CD5643101D181F240083EF6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CD56432B1D1820330083EF6A /* TKLiveSync.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TKLiveSync.mm; sourceTree = "<group>"; };
+		CD56432B1D1820330083EF6A /* TKLiveSync.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TKLiveSync.m; sourceTree = "<group>"; };
 		CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libzip_iOS.framework; sourceTree = "<group>"; };
 		CD5C75801D489DF000BD4EFA /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -56,8 +60,10 @@
 			isa = PBXGroup;
 			children = (
 				CD56430E1D181F240083EF6A /* TKLiveSync.h */,
-				CD56432B1D1820330083EF6A /* TKLiveSync.mm */,
+				CD56432B1D1820330083EF6A /* TKLiveSync.m */,
 				CD5643101D181F240083EF6A /* Info.plist */,
+				CD0F75AA1D4B7DB20095538D /* unzip.h */,
+				CD0F75A91D4B7DB20095538D /* unzip.cpp */,
 			);
 			path = TKLiveSync;
 			sourceTree = "<group>";
@@ -79,6 +85,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD56430F1D181F240083EF6A /* TKLiveSync.h in Headers */,
+				CD0F75AC1D4B7DB20095538D /* unzip.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,7 +156,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CD56432C1D1820330083EF6A /* TKLiveSync.mm in Sources */,
+				CD0F75AB1D4B7DB20095538D /* unzip.cpp in Sources */,
+				CD56432C1D1820330083EF6A /* TKLiveSync.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
