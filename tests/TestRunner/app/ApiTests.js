@@ -487,6 +487,64 @@ describe(module.id, function () {
         }).toThrow();
     });
 
+    it('methods can be recursively called', function() {
+        var result = TNSTestNativeCallbacks.callRecursively(function() {
+            return TNSTestNativeCallbacks.callRecursively(function() {
+                 return "InnerRecursiveResult";
+            });
+        });
+        expect(result).toBe("InnerRecursiveResult");
+    });
+    it('methods returning blocks can be recursively called', function() {
+        var i = 0;
+        var stack = null;
+        var log = function(message) {
+            if (stack) {
+                stack += " > " + message;
+            } else {
+                stack = message;
+            }
+        }
+
+        log("start");
+        var Derived = TNSTestNativeCallbacks.extend({
+            getBlock: function() {
+                i++;
+                var that = this;
+                if (i == 1) {
+                    log("get recurse");
+                    that.getBlockFromNative()();
+                    return function() {
+                        log("f1");
+                    }
+                } else if (i == 2) {
+                    log("get recurse");
+                    that.getBlockFromNative()();
+                    return function() {
+                        log("f2");
+                    }
+                } else {
+                    log("get bottom");
+                    return function() {
+                        log("f3");
+                    }
+                }
+            }
+        });
+
+        var inst = Derived.alloc().init();
+
+        log("get");
+        var block = inst.getBlock();
+        log("exec");
+        var blockResult = block();
+        log("end");
+
+        var expectedStack = "start > get > get recurse > get recurse > get bottom > f3 > f2 > exec > f1 > end";
+
+        expect(stack).toBe(expectedStack);
+    });
+
     it("ApiIterator", function () {
         var counter = 0;
 

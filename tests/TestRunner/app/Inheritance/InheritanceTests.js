@@ -10,15 +10,25 @@ describe(module.id, function () {
 
         expect(Object.getOwnPropertyNames(TNSBaseInterface).sort()).toEqual([
             'baseCategoryMethod',
+            'baseCategoryProperty',
             'baseCategoryProtocolMethod1',
             'baseCategoryProtocolMethod1Optional',
             'baseCategoryProtocolMethod2',
             'baseCategoryProtocolMethod2Optional',
+            'baseCategoryProtocolProperty1',
+            'baseCategoryProtocolProperty1Optional',
+            'baseCategoryProtocolProperty2',
+            'baseCategoryProtocolProperty2Optional',
             'baseMethod',
+            'baseProperty',
             'baseProtocolMethod1',
             'baseProtocolMethod1Optional',
             'baseProtocolMethod2',
             'baseProtocolMethod2Optional',
+            'baseProtocolProperty1',
+            'baseProtocolProperty1Optional',
+            'baseProtocolProperty2',
+            'baseProtocolProperty2Optional',
             'name'
         ]);
     });
