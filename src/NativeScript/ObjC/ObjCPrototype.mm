@@ -99,7 +99,7 @@ void ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
 bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, PropertyName propertyName, const PropertyDescriptor& propertyDescriptor, bool shouldThrow) {
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
 
-    if (const PropertyMeta* propertyMeta = prototype->_metadata->property(propertyName.publicName())) {
+    if (const PropertyMeta* propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName())) {
         if (!propertyDescriptor.isAccessorDescriptor()) {
             WTFCrash();
         }
@@ -153,7 +153,7 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
                 propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
         }
 
-        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->props->begin(); it != baseClassMeta->props->end(); it++) {
+        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->instanceProps->begin(); it != baseClassMeta->instanceProps->end(); it++) {
             if ((*it)->isAvailable())
                 propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
         }
@@ -169,7 +169,7 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
 }
 
 void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
-    std::vector<const PropertyMeta*> properties = this->_metadata->propertiesWithProtocols();
+    std::vector<const PropertyMeta*> properties = this->_metadata->instancePropertiesWithProtocols();
 
     for (const PropertyMeta* propertyMeta : properties) {
         if (propertyMeta->isAvailable()) {

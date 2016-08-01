@@ -79,8 +79,11 @@ const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, M
     case MemberType::StaticMethod:
         members = &this->staticMethods->castTo<PtrTo<MemberMeta>>();
         break;
-    case MemberType::Property:
-        members = &this->props->castTo<PtrTo<MemberMeta>>();
+    case MemberType::InstanceProperty:
+        members = &this->instanceProps->castTo<PtrTo<MemberMeta>>();
+        break;
+    case MemberType::StaticProperty:
+        members = &this->staticProps->castTo<PtrTo<MemberMeta>>();
         break;
     }
 
@@ -109,12 +112,22 @@ const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, M
     return nullptr;
 }
 
-std::vector<const PropertyMeta*> BaseClassMeta::propertiesWithProtocols(std::vector<const PropertyMeta*>& container) const {
-    this->properties(container);
+std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const {
+    this->instanceProperties(container);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
         const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
         if (protocolMeta != nullptr)
-            protocolMeta->propertiesWithProtocols(container);
+            protocolMeta->instancePropertiesWithProtocols(container);
+    }
+    return container;
+}
+
+std::vector<const PropertyMeta*> BaseClassMeta::staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const {
+    this->staticProperties(container);
+    for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
+        const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
+        if (protocolMeta != nullptr)
+            protocolMeta->staticPropertiesWithProtocols(container);
     }
     return container;
 }

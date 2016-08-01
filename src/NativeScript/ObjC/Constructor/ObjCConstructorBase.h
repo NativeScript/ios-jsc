@@ -64,6 +64,8 @@ protected:
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
+    const Metadata::InterfaceMeta* _metadata;
+
 private:
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);
 
@@ -80,8 +82,6 @@ private:
     WTF::Vector<JSC::WriteBarrier<ObjCConstructorCall>> _initializers;
 
     JSC::WriteBarrier<JSC::Structure> _instancesStructure;
-
-    const Metadata::InterfaceMeta* _metadata;
 
     FFITypeMethodTable _ffiTypeMethodTable;
 };

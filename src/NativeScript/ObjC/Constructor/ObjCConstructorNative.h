@@ -33,6 +33,8 @@ public:
         return _allocatedPlaceholderStructure.get();
     }
 
+    void materializeProperties(JSC::VM&, GlobalObject*);
+
 protected:
     ObjCConstructorNative(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {

@@ -90,6 +90,11 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
                 propertyNames.add(Identifier::fromString(execState, meta->jsName()));
         }
 
+        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->staticProps->begin(); it != baseClassMeta->staticProps->end(); it++) {
+            if ((*it)->isAvailable())
+                propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
+        }
+
         for (Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
             const ProtocolMeta* protocolMeta = (const ProtocolMeta*)MetaFile::instance()->globalTable()->findMeta((*it).valuePtr());
             if (protocolMeta != nullptr)
@@ -98,6 +103,28 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
     }
 
     Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
+}
+
+void ObjCConstructorNative::materializeProperties(VM& vm, GlobalObject* globalObject) {
+    std::vector<const PropertyMeta*> properties = this->metadata()->staticPropertiesWithProtocols();
+
+    for (const PropertyMeta* propertyMeta : properties) {
+        if (propertyMeta->isAvailable()) {
+            SymbolLoader::instance().ensureModule(propertyMeta->topLevelModule());
+
+            const MethodMeta* getter = (propertyMeta->getter() != nullptr && propertyMeta->getter()->isAvailable()) ? propertyMeta->getter() : nullptr;
+            const MethodMeta* setter = (propertyMeta->setter() != nullptr && propertyMeta->setter()->isAvailable()) ? propertyMeta->setter() : nullptr;
+
+            PropertyDescriptor descriptor;
+            descriptor.setGetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), getter));
+
+            if (setter) {
+                descriptor.setSetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), setter));
+            }
+
+            Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
+        }
+    }
 }
 
 void ObjCConstructorNative::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor) {
