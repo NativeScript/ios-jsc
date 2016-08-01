@@ -9,12 +9,12 @@
 #endif
 
 #ifdef __cplusplus
-#include <JavaScriptCore/config.h>
-#include <JavaScriptCore/JSCInlines.h>
-#include <JavaScriptCore/Error.h>
-#include "RecordType.h"
 #include "GlobalObject.h"
 #include "JSWarnings.h"
+#include "RecordType.h"
+#include <JavaScriptCore/Error.h>
+#include <JavaScriptCore/JSCInlines.h>
+#include <JavaScriptCore/config.h>
 #endif
 
 #include <JavaScriptCore/JavaScript.h>

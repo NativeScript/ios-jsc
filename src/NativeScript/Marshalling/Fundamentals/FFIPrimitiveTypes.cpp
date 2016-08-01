@@ -7,13 +7,13 @@
 //
 
 #include "FFIPrimitiveTypes.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
-#include "PointerInstance.h"
-#include "Interop.h"
-#include "TypeFactory.h"
 #include "FFISimpleType.h"
+#include "Interop.h"
+#include "PointerInstance.h"
 #include "ReferenceInstance.h"
 #include "ReleasePool.h"
+#include "TypeFactory.h"
+#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 
 namespace NativeScript {
 using namespace JSC;

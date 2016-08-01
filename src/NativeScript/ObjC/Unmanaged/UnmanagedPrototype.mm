@@ -1,7 +1,7 @@
 #include "UnmanagedPrototype.h"
-#include "UnmanagedInstance.h"
-#include "ObjCTypes.h"
 #include "ObjCConstructorBase.h"
+#include "ObjCTypes.h"
+#include "UnmanagedInstance.h"
 
 namespace NativeScript {
 static char consumedUnmanagedCheck = 'k';

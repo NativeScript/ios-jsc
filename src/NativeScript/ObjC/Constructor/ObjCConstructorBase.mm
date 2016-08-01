@@ -7,22 +7,22 @@
 //
 
 #include "ObjCConstructorBase.h"
-#include <JavaScriptCore/JSMap.h>
-#include <JavaScriptCore/JSArrayBuffer.h>
-#include "ObjCWrapperObject.h"
-#include "ObjCMethodCall.h"
+#include "AllocatedPlaceholder.h"
+#include "Interop.h"
+#include "Metadata/Metadata.h"
 #include "ObjCConstructorCall.h"
 #include "ObjCConstructorNative.h"
+#include "ObjCMethodCall.h"
 #include "ObjCPrototype.h"
-#include "AllocatedPlaceholder.h"
 #include "ObjCTypes.h"
-#include "Interop.h"
+#include "ObjCWrapperObject.h"
 #include "PointerInstance.h"
-#include "Metadata/Metadata.h"
+#include <JavaScriptCore/JSArrayBuffer.h>
+#include <JavaScriptCore/JSMap.h>
 
 #import "TNSArrayAdapter.h"
-#import "TNSDictionaryAdapter.h"
 #import "TNSDataAdapter.h"
+#import "TNSDictionaryAdapter.h"
 
 namespace NativeScript {
 using namespace JSC;

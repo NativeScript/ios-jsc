@@ -26,8 +26,8 @@
 #ifndef GlobalObjectDebuggerAgent_h
 #define GlobalObjectDebuggerAgent_h
 
-#include <JavaScriptCore/inspector/agents/InspectorDebuggerAgent.h>
 #include <JavaScriptCore/JSGlobalObjectScriptDebugServer.h>
+#include <JavaScriptCore/inspector/agents/InspectorDebuggerAgent.h>
 
 namespace Inspector {
 class InspectorConsoleAgent;
@@ -53,8 +53,8 @@ public:
     virtual void unmuteConsole() override {}
 
 private:
-    Inspector::InspectorConsoleAgent* m_consoleAgent { nullptr };
-    NativeScript::GlobalObject* m_globalObject { nullptr };
+    Inspector::InspectorConsoleAgent* m_consoleAgent{ nullptr };
+    NativeScript::GlobalObject* m_globalObject{ nullptr };
 };
 
 } // namespace Inspector

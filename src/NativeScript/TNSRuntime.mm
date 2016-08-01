@@ -6,27 +6,27 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
-#include <iostream>
-#include <JavaScriptCore/InitializeThreading.h>
-#include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/Completion.h>
+#include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
+#include <JavaScriptCore/InitializeThreading.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
-#include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
-#include <JavaScriptCore/Exception.h>
+#include <JavaScriptCore/StrongInlines.h>
+#include <iostream>
 
 #if PLATFORM(IOS)
 #import <UIKit/UIApplication.h>
 #endif
 
-#include "inlineFunctions.h"
-#import "TNSRuntime.h"
-#import "TNSRuntime+Private.h"
 #include "JSErrors.h"
 #include "Metadata/Metadata.h"
 #include "ObjCTypes.h"
+#import "TNSRuntime+Private.h"
+#import "TNSRuntime.h"
+#include "inlineFunctions.h"
 
 using namespace JSC;
 using namespace NativeScript;

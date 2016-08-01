@@ -7,9 +7,9 @@
 //
 
 #include "SymbolLoader.h"
+#include "Metadata/Metadata.h"
 #include <dlfcn.h>
 #include <wtf/NeverDestroyed.h>
-#include "Metadata/Metadata.h"
 
 namespace NativeScript {
 class SymbolResolver {

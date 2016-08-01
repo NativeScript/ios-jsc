@@ -9,8 +9,8 @@
 #ifndef __NativeScript__Interop__
 #define __NativeScript__Interop__
 
-#include <string>
 #include "Metadata.h"
+#include <string>
 
 namespace NativeScript {
 class PointerInstance;

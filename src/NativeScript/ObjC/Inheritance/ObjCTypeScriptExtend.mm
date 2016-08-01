@@ -8,11 +8,11 @@
 
 #include "ObjCTypeScriptExtend.h"
 #include "GlobalObjectInspectorController.h"
-#include <JavaScriptCore/ObjectConstructor.h>
-#include <JavaScriptCore/CodeBlock.h>
-#include "ObjCConstructorDerived.h"
-#include "ObjCClassBuilder.h"
 #include "JSErrors.h"
+#include "ObjCClassBuilder.h"
+#include "ObjCConstructorDerived.h"
+#include <JavaScriptCore/CodeBlock.h>
+#include <JavaScriptCore/ObjectConstructor.h>
 
 namespace NativeScript {
 using namespace JSC;

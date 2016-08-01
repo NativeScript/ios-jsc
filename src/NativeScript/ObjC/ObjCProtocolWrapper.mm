@@ -8,9 +8,9 @@
 
 #include "ObjCProtocolWrapper.h"
 #include "Metadata.h"
-#include "SymbolLoader.h"
 #include "ObjCMethodCall.h"
 #include "ObjCPrototype.h"
+#include "SymbolLoader.h"
 
 namespace NativeScript {
 using namespace JSC;

@@ -8,8 +8,8 @@
 
 #include "ObjCBlockCallback.h"
 #include "FFICallbackInlines.h"
-#include "TypeFactory.h"
 #include "ObjCBlockType.h"
+#include "TypeFactory.h"
 
 namespace NativeScript {
 using namespace JSC;

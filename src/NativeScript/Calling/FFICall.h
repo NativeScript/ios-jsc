@@ -11,8 +11,8 @@
 
 #include "FFIType.h"
 #include "ReleasePool.h"
-#include <vector>
 #include <JavaScriptCore/Exception.h>
+#include <vector>
 
 namespace NativeScript {
 class FFICall : public JSC::InternalFunction {

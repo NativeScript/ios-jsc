@@ -1,10 +1,10 @@
 #ifndef UnmanagedType_h
 #define UnmanagedType_h
 
-#include <stdio.h>
 #include "FFIType.h"
-#include "UnmanagedPrototype.h"
 #include "UnmanagedInstance.h"
+#include "UnmanagedPrototype.h"
+#include <stdio.h>
 
 namespace NativeScript {
 class UnmanagedType : public JSC::JSDestructibleObject {

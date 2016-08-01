@@ -7,8 +7,8 @@
 //
 
 #include "ObjCSuperObject.h"
-#include "ObjCWrapperObject.h"
 #include "Interop.h"
+#include "ObjCWrapperObject.h"
 
 namespace NativeScript {
 using namespace JSC;

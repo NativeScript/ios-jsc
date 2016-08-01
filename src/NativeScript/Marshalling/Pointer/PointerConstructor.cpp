@@ -7,10 +7,10 @@
 //
 
 #include "PointerConstructor.h"
-#include "PointerPrototype.h"
-#include "PointerInstance.h"
-#include "ReferenceInstance.h"
 #include "Interop.h"
+#include "PointerInstance.h"
+#include "PointerPrototype.h"
+#include "ReferenceInstance.h"
 
 namespace NativeScript {
 using namespace JSC;

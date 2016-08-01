@@ -2,9 +2,9 @@
 #ifndef GlobalObjectConsoleClient_hpp
 #define GlobalObjectConsoleClient_hpp
 
-#include <stdio.h>
-#include <JavaScriptCore/runtime/ConsoleClient.h>
 #include <JavaScriptCore/InspectorConsoleAgent.h>
+#include <JavaScriptCore/runtime/ConsoleClient.h>
+#include <stdio.h>
 
 namespace NativeScript {
 class GlobalObjectConsoleClient : public JSC::ConsoleClient {

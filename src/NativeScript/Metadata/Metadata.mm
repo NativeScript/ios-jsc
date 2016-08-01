@@ -6,9 +6,9 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
+#include "Metadata.h"
 #include <UIKit/UIKit.h>
 #include <sys/stat.h>
-#include "Metadata.h"
 
 namespace Metadata {
 

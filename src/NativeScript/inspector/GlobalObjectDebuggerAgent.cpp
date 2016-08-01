@@ -71,7 +71,7 @@ void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
         }
     }
 }
-    
+
 void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString&, const String& scriptIdStr, const String& scriptSource) {
     JSValue registry = this->m_globalObject->moduleLoader()->get(this->m_globalObject->globalExec(), Identifier::fromString(&this->m_globalObject->vm(), "registry"));
     JSMap* map = jsCast<JSMap*>(registry);
@@ -81,20 +81,20 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString&, const S
     if (JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(value.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
         SourceCode& sourceCode = const_cast<SourceCode&>(moduleRecord->sourceCode());
         EditableSourceProvider* sourceProvider = static_cast<EditableSourceProvider*>(sourceCode.provider());
-        
+
         WTF::String moduleSource;
         ParserError parseError;
         std::unique_ptr<ScopeNode> program;
-        
+
         if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
             sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
             sourceCode = *moduleFunction->sourceCode();
-            
+
             WTF::StringBuilder moduleFunctionSource;
             moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
             moduleFunctionSource.append(scriptSource);
             moduleFunctionSource.append("\n}}");
-            
+
             moduleSource = moduleFunctionSource.toString();
 
             SourceCode updatedSourceCode = makeSource(moduleSource).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
@@ -103,18 +103,18 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString&, const S
             moduleSource = scriptSource;
             program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::Strict, SourceParseMode::ModuleEvaluateMode, parseError);
         }
-        
+
         WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source());
         sourceProvider->setSource(moduleSource);
         sourceCode.setEndOffset(sourceProvider->source().length());
-        
-        if(!program) {
+
+        if (!program) {
             JSObject* errorObject = parseError.toErrorObject(this->m_globalObject, sourceCode);
             Exception* exception = Exception::create(this->m_globalObject->vm(), errorObject);
 
             reportFatalErrorBeforeShutdown(this->m_globalObject->globalExec(), exception);
         }
-        
+
         m_globalObject->vm().clearSourceProviderCaches();
         ClearChangedCellsFunctor functor(moduleRecord->sourceCode().provider()->url(), diff);
         {

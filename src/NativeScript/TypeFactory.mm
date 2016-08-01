@@ -7,25 +7,25 @@
 //
 
 #include "TypeFactory.h"
-#include <string>
-#include <JavaScriptCore/FunctionPrototype.h>
-#include "Metadata.h"
-#include "FFISimpleType.h"
-#include "FFIPrimitiveTypes.h"
 #include "FFINumericTypes.h"
-#include "ReferenceTypeInstance.h"
-#include "ObjCConstructorNative.h"
-#include "ObjCPrototype.h"
-#include "ObjCPrimitiveTypes.h"
-#include "ObjCBlockType.h"
+#include "FFIPrimitiveTypes.h"
+#include "FFISimpleType.h"
 #include "FunctionReferenceTypeInstance.h"
-#include "ReferenceInstance.h"
-#include "RecordConstructor.h"
-#include "RecordPrototype.h"
-#include "RecordField.h"
+#include "Metadata.h"
+#include "ObjCBlockType.h"
+#include "ObjCConstructorNative.h"
+#include "ObjCPrimitiveTypes.h"
+#include "ObjCPrototype.h"
 #include "PointerConstructor.h"
 #include "PointerPrototype.h"
+#include "RecordConstructor.h"
+#include "RecordField.h"
+#include "RecordPrototype.h"
+#include "ReferenceInstance.h"
+#include "ReferenceTypeInstance.h"
 #include "SymbolLoader.h"
+#include <JavaScriptCore/FunctionPrototype.h>
+#include <string>
 
 namespace NativeScript {
 using namespace JSC;
