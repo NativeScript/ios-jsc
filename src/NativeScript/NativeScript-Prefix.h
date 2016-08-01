@@ -8,13 +8,16 @@
 #import <Foundation/Foundation.h>
 #endif
 
+// Clang format reorders these headers and this fails the build
+// clang-format off
 #ifdef __cplusplus
+#include <JavaScriptCore/config.h>
+#include <JavaScriptCore/JSCInlines.h>
+#include <JavaScriptCore/Error.h>
+#include "RecordType.h"
 #include "GlobalObject.h"
 #include "JSWarnings.h"
-#include "RecordType.h"
-#include <JavaScriptCore/Error.h>
-#include <JavaScriptCore/JSCInlines.h>
-#include <JavaScriptCore/config.h>
 #endif
+// clang-format on
 
 #include <JavaScriptCore/JavaScript.h>
