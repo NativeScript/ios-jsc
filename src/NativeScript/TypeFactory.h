@@ -10,10 +10,10 @@
 #define __NativeScript__TypeFactory__
 
 #include "FFIType.h"
+#include "Metadata/Metadata.h"
+#include "WeakHandleOwners.h"
 #include <unordered_map>
 #include <wtf/HashFunctions.h>
-#include "WeakHandleOwners.h"
-#include "Metadata/Metadata.h"
 
 namespace Metadata {
 struct InterfaceMeta;

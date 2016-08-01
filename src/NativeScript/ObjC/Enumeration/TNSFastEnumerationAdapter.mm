@@ -7,9 +7,9 @@
 //
 
 #include "TNSFastEnumerationAdapter.h"
+#include "Interop.h"
 #include "JSErrors.h"
 #include "ObjCTypes.h"
-#include "Interop.h"
 #include <JavaScriptCore/IteratorOperations.h>
 
 namespace NativeScript {

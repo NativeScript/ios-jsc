@@ -7,12 +7,12 @@
 //
 
 #import "TNSDictionaryAdapter.h"
-#include "ObjCTypes.h"
 #include "Interop.h"
+#include "ObjCTypes.h"
 #include <JavaScriptCore/JSMap.h>
 #include <JavaScriptCore/JSMapIterator.h>
-#include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/MapDataInlines.h>
+#include <JavaScriptCore/StrongInlines.h>
 
 using namespace JSC;
 using namespace NativeScript;

@@ -7,13 +7,13 @@
 //
 
 #include "ObjCConstructorNative.h"
-#include "Metadata.h"
-#include "ObjCMethodCall.h"
-#include "ObjCConstructorCall.h"
-#include "SymbolLoader.h"
-#include "ObjCMethodCallback.h"
-#include "Interop.h"
 #include "AllocatedPlaceholder.h"
+#include "Interop.h"
+#include "Metadata.h"
+#include "ObjCConstructorCall.h"
+#include "ObjCMethodCall.h"
+#include "ObjCMethodCallback.h"
+#include "SymbolLoader.h"
 
 namespace NativeScript {
 

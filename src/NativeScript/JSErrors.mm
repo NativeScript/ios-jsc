@@ -8,18 +8,18 @@
 
 #include "JSErrors.h"
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
+#import "JSWarnings.h"
+#import "TNSRuntime+Diagnostics.h"
+#import "TNSRuntime+Inspector.h"
+#import "TNSRuntime+Private.h"
+#include "inspector/GlobalObjectConsoleClient.h"
+#include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
-#include "inspector/GlobalObjectInspectorController.h"
-#include "inspector/GlobalObjectConsoleClient.h"
-#import "TNSRuntime+Private.h"
-#import "TNSRuntime+Inspector.h"
-#import "TNSRuntime+Diagnostics.h"
-#import "JSWarnings.h"
 
 static TNSUncaughtErrorHandler uncaughtErrorHandler;
 void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler) {

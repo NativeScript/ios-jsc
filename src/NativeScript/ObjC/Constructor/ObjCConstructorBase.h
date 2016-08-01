@@ -9,8 +9,8 @@
 #ifndef __NativeScript__ObjCConstructorBase__
 #define __NativeScript__ObjCConstructorBase__
 
-#include <functional>
 #include "FFIType.h"
+#include <functional>
 
 namespace Metadata {
 struct InterfaceMeta;

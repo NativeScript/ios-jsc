@@ -1,7 +1,7 @@
 #include "InspectorTimelineAgent.h"
+#include "GlobalObjectInspectorController.h"
 #include "TimelineRecordFactory.h"
 #include <JavaScriptCore/InspectorEnvironment.h>
-#include "GlobalObjectInspectorController.h"
 
 namespace Inspector {
 
@@ -39,19 +39,19 @@ void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {
 
     this->m_globalObject.inspectorController().setTimelineAgent(nullptr);
 }
-    
+
 JSC::EncodedJSValue JSC_HOST_CALL startProfile(JSC::ExecState* execState) {
     NativeScript::GlobalObject* globalObject = JSC::jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
     WTF::String identifier = execState->argument(0).toWTFString(execState);
-    
+
     InspectorTimelineAgent::startProfiling(execState, identifier, globalObject->inspectorController().executionStopwatch());
-    
+
     return JSC::JSValue::encode(JSC::jsUndefined());
 }
 
 JSC::EncodedJSValue JSC_HOST_CALL stopProfile(JSC::ExecState* execState) {
     WTF::String identifier = execState->argument(0).toWTFString(execState);
-    
+
     RefPtr<JSC::Profile> profile = InspectorTimelineAgent::stopProfiling(execState, identifier);
     if (profile) {
         Ref<InspectorValue> inspectorObject = TimelineRecordFactory::buildProfileInspectorObject(profile.get());
@@ -60,7 +60,7 @@ JSC::EncodedJSValue JSC_HOST_CALL stopProfile(JSC::ExecState* execState) {
 
     return JSC::JSValue::encode(JSC::jsUndefined());
 }
-    
+
 void InspectorTimelineAgent::startProfiling(JSC::ExecState* exec, const String& title, PassRefPtr<Stopwatch> stopwatch) {
     JSC::LegacyProfiler::profiler()->startProfiling(exec, title, stopwatch);
 }

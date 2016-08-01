@@ -7,16 +7,16 @@
 //
 
 #include "ObjCPrototype.h"
-#include <objc/runtime.h>
-#include "ObjCMethodCallback.h"
-#include "TypeFactory.h"
-#include "ObjCConstructorBase.h"
-#include "Metadata.h"
-#include "ObjCMethodCall.h"
-#include "SymbolLoader.h"
 #include "Interop.h"
-#include "ObjCTypes.h"
+#include "Metadata.h"
+#include "ObjCConstructorBase.h"
 #include "ObjCFastEnumerationIterator.h"
+#include "ObjCMethodCall.h"
+#include "ObjCMethodCallback.h"
+#include "ObjCTypes.h"
+#include "SymbolLoader.h"
+#include "TypeFactory.h"
+#include <objc/runtime.h>
 
 namespace NativeScript {
 using namespace JSC;

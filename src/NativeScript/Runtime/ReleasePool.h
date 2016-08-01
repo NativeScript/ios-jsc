@@ -9,10 +9,10 @@
 #ifndef __NativeScript__ReleasePool__
 #define __NativeScript__ReleasePool__
 
-#include <vector>
 #include <map>
-#include <wtf/Deque.h>
 #include <string>
+#include <vector>
+#include <wtf/Deque.h>
 
 namespace NativeScript {
 class ReleasePoolBase {

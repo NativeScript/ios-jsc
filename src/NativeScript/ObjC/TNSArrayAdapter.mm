@@ -7,8 +7,8 @@
 //
 
 #import "TNSArrayAdapter.h"
-#include "ObjCTypes.h"
 #include "Interop.h"
+#include "ObjCTypes.h"
 #include <JavaScriptCore/StrongInlines.h>
 
 using namespace NativeScript;

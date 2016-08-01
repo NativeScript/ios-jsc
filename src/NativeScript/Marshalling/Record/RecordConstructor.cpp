@@ -7,12 +7,12 @@
 //
 
 #include "RecordConstructor.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
-#include "JSErrors.h"
 #include "Interop.h"
-#include "RecordPrototype.h"
-#include "RecordInstance.h"
+#include "JSErrors.h"
 #include "RecordField.h"
+#include "RecordInstance.h"
+#include "RecordPrototype.h"
+#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <sstream>
 
 namespace NativeScript {

@@ -6,18 +6,18 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
+#include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/Completion.h>
+#include <JavaScriptCore/Debugger.h>
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
-#include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/JSONObject.h>
-#include <JavaScriptCore/Debugger.h>
-#include <JavaScriptCore/Completion.h>
 
+#include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectInspectorController.h"
+#include "JSErrors.h"
 #import "TNSRuntime+Inspector.h"
 #import "TNSRuntime+Private.h"
-#include "JSErrors.h"
-#include "GlobalObjectConsoleClient.h"
 
 using namespace JSC;
 using namespace NativeScript;

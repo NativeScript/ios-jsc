@@ -9,10 +9,10 @@
 #ifndef __NativeScript__Metadata__
 #define __NativeScript__Metadata__
 
-#include <vector>
 #include <stack>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace Metadata {
 

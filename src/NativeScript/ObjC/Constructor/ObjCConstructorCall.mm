@@ -7,11 +7,11 @@
 //
 
 #include "ObjCConstructorCall.h"
-#include <objc/message.h>
 #include "Metadata.h"
-#include "TypeFactory.h"
-#include "ObjCTypes.h"
 #include "ObjCConstructorBase.h"
+#include "ObjCTypes.h"
+#include "TypeFactory.h"
+#include <objc/message.h>
 
 namespace NativeScript {
 using namespace JSC;

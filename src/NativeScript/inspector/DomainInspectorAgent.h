@@ -1,9 +1,9 @@
 #ifndef DomainInspectorAgent_h
 #define DomainInspectorAgent_h
 
+#include "DomainBackendDispatcher.h"
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/StrongInlines.h>
-#include "DomainBackendDispatcher.h"
 
 namespace NativeScript {
 class DomainInspectorAgent : public Inspector::InspectorAgentBase {

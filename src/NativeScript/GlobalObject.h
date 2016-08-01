@@ -10,9 +10,9 @@
 #define __NativeScript__GlobalObject__
 
 #include <JavaScriptCore/JSGlobalObject.h>
-#include <objc/runtime.h>
-#include <map>
 #include <list>
+#include <map>
+#include <objc/runtime.h>
 #include <wtf/Deque.h>
 
 namespace NativeScript {

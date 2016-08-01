@@ -1,12 +1,12 @@
 #include "GlobalObjectConsoleClient.h"
+#include "GlobalObjectInspectorController.h"
+#include "InspectorTimelineAgent.h"
 #include <JavaScriptCore/ConsoleMessage.h>
 #include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <JavaScriptCore/ScriptValue.h>
-#include "InspectorTimelineAgent.h"
-#include "GlobalObjectInspectorController.h"
 
 namespace NativeScript {
 #if !LOG_DISABLED

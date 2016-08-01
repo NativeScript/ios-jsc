@@ -7,38 +7,38 @@
 //
 
 #include "Interop.h"
-#include <JavaScriptCore/FunctionPrototype.h>
-#include <JavaScriptCore/ObjectConstructor.h>
-#include <JavaScriptCore/JSArrayBuffer.h>
-#include <sstream>
-#include "FFIType.h"
+#include "FFIFunctionCall.h"
 #include "FFISimpleType.h"
-#include "TypeFactory.h"
+#include "FFIType.h"
+#include "FunctionReferenceConstructor.h"
+#include "FunctionReferenceInstance.h"
+#include "FunctionReferenceTypeConstructor.h"
+#include "FunctionReferenceTypeInstance.h"
+#include "NSErrorWrapperConstructor.h"
+#include "ObjCBlockCall.h"
+#include "ObjCBlockType.h"
+#include "ObjCBlockType.h"
+#include "ObjCBlockTypeConstructor.h"
+#include "ObjCConstructorBase.h"
+#include "ObjCConstructorNative.h"
+#include "ObjCProtocolWrapper.h"
+#include "ObjCTypes.h"
+#include "ObjCWrapperObject.h"
 #include "PointerConstructor.h"
 #include "PointerInstance.h"
 #include "PointerPrototype.h"
 #include "RecordConstructor.h"
 #include "RecordInstance.h"
 #include "ReferenceConstructor.h"
-#include "ReferencePrototype.h"
 #include "ReferenceInstance.h"
+#include "ReferencePrototype.h"
 #include "ReferenceTypeConstructor.h"
 #include "ReferenceTypeInstance.h"
-#include "ObjCBlockTypeConstructor.h"
-#include "ObjCBlockType.h"
-#include "ObjCWrapperObject.h"
-#include "ObjCConstructorBase.h"
-#include "ObjCProtocolWrapper.h"
-#include "ObjCConstructorNative.h"
-#include "FFIFunctionCall.h"
-#include "ObjCBlockCall.h"
-#include "ObjCBlockType.h"
-#include "FunctionReferenceInstance.h"
-#include "FunctionReferenceConstructor.h"
-#include "FunctionReferenceTypeInstance.h"
-#include "FunctionReferenceTypeConstructor.h"
-#include "ObjCTypes.h"
-#include "NSErrorWrapperConstructor.h"
+#include "TypeFactory.h"
+#include <JavaScriptCore/FunctionPrototype.h>
+#include <JavaScriptCore/JSArrayBuffer.h>
+#include <JavaScriptCore/ObjectConstructor.h>
+#include <sstream>
 
 namespace NativeScript {
 using namespace JSC;

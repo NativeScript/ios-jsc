@@ -7,17 +7,17 @@
 //
 
 #include "ObjCMethodCall.h"
-#include <objc/message.h>
-#include "ObjCTypes.h"
-#include "ObjCPrototype.h"
-#include "ObjCConstructorDerived.h"
-#include "ObjCSuperObject.h"
-#include "ObjCWrapperObject.h"
-#include "TypeFactory.h"
-#include "Metadata.h"
 #include "AllocatedPlaceholder.h"
-#include "ReleasePool.h"
 #include "Interop.h"
+#include "Metadata.h"
+#include "ObjCConstructorDerived.h"
+#include "ObjCPrototype.h"
+#include "ObjCSuperObject.h"
+#include "ObjCTypes.h"
+#include "ObjCWrapperObject.h"
+#include "ReleasePool.h"
+#include "TypeFactory.h"
+#include <objc/message.h>
 
 namespace NativeScript {
 using namespace JSC;

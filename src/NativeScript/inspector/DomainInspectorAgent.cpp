@@ -1,6 +1,6 @@
-#include <JavaScriptCore/JSObject.h>
 #include "DomainInspectorAgent.h"
 #include "GlobalObjectInspectorController.h"
+#include <JavaScriptCore/JSObject.h>
 
 namespace NativeScript {
 DomainInspectorAgent::DomainInspectorAgent(WTF::String domainName, JSC::JSCell* constructorFunction, Inspector::JSAgentContext& context)

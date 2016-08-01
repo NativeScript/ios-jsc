@@ -7,8 +7,8 @@
 //
 
 #include "ReferenceTypeInstance.h"
-#include "ReferenceInstance.h"
 #include "Interop.h"
+#include "ReferenceInstance.h"
 
 namespace NativeScript {
 using namespace JSC;

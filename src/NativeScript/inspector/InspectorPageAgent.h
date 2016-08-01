@@ -2,11 +2,11 @@
 #ifndef __NativeScript__InspectorPageAgent__
 #define __NativeScript__InspectorPageAgent__
 
-#include <map>
+#include "CachedResource.h"
 #include <JavaScriptCore/inspector/InspectorAgentBase.h>
 #include <JavaScriptCore/inspector/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/inspector/InspectorFrontendDispatchers.h>
-#include "CachedResource.h"
+#include <map>
 
 namespace Inspector {
 class InspectorPageAgent
