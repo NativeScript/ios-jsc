@@ -288,6 +288,7 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
         ASSERT_NOT_REACHED();
     }
     prototype->materializeProperties(vm, globalObject);
+    constructor->materializeProperties(vm, globalObject);
 
     return constructor;
 }

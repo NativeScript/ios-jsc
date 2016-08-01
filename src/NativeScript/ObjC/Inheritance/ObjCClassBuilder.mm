@@ -297,13 +297,13 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
     const PropertyMeta* propertyMeta = nullptr;
     do {
-        propertyMeta = currentClass->property(propertyName);
+        propertyMeta = currentClass->instanceProperty(propertyName);
         currentClass = currentClass->baseMeta();
     } while (!propertyMeta && currentClass);
 
     if (!propertyMeta && !this->_protocols.empty()) {
         for (const ProtocolMeta* aProtocol : this->_protocols) {
-            if ((propertyMeta = aProtocol->property(propertyName))) {
+            if ((propertyMeta = aProtocol->instanceProperty(propertyName))) {
                 break;
             }
         }

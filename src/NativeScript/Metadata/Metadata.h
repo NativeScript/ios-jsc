@@ -48,7 +48,8 @@ enum MetaType {
 enum MemberType {
     InstanceMethod = 0,
     StaticMethod = 1,
-    Property = 2
+    InstanceProperty = 2,
+    StaticProperty = 3
 };
 
 enum BinaryTypeEncodingType : Byte {
@@ -641,7 +642,8 @@ struct BaseClassMeta : Meta {
 
     PtrTo<ArrayOfPtrTo<MethodMeta>> instanceMethods;
     PtrTo<ArrayOfPtrTo<MethodMeta>> staticMethods;
-    PtrTo<ArrayOfPtrTo<PropertyMeta>> props;
+    PtrTo<ArrayOfPtrTo<PropertyMeta>> instanceProps;
+    PtrTo<ArrayOfPtrTo<PropertyMeta>> staticProps;
     PtrTo<Array<String>> protocols;
     int16_t initializersStartIndex;
 
@@ -675,34 +677,62 @@ struct BaseClassMeta : Meta {
         return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::StaticMethod, includeProtocols));
     }
 
-    /// properties
-    const PropertyMeta* property(const char* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::Property, includeProtocols));
+    /// instance properties
+    const PropertyMeta* instanceProperty(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols));
     }
 
-    const PropertyMeta* property(StringImpl* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::Property, includeProtocols));
+    const PropertyMeta* instanceProperty(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols));
+    }
+
+    /// static properties
+    const PropertyMeta* staticProperty(const char* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols));
+    }
+
+    const PropertyMeta* staticProperty(StringImpl* identifier, bool includeProtocols = true) const {
+        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols));
     }
 
     /// vectors
-    std::vector<const PropertyMeta*> properties() const {
+    std::vector<const PropertyMeta*> instanceProperties() const {
         std::vector<const PropertyMeta*> properties;
-        return this->properties(properties);
+        return this->instanceProperties(properties);
     }
 
-    std::vector<const PropertyMeta*> propertiesWithProtocols() const {
+    std::vector<const PropertyMeta*> instancePropertiesWithProtocols() const {
         std::vector<const PropertyMeta*> properties;
-        return this->propertiesWithProtocols(properties);
+        return this->instancePropertiesWithProtocols(properties);
     }
 
-    std::vector<const PropertyMeta*> properties(std::vector<const PropertyMeta*>& container) const {
-        for (Array<PtrTo<PropertyMeta>>::iterator it = this->props->begin(); it != this->props->end(); it++) {
+    std::vector<const PropertyMeta*> instanceProperties(std::vector<const PropertyMeta*>& container) const {
+        for (Array<PtrTo<PropertyMeta>>::iterator it = this->instanceProps->begin(); it != this->instanceProps->end(); it++) {
             container.push_back((*it).valuePtr());
         }
         return container;
     }
 
-    std::vector<const PropertyMeta*> propertiesWithProtocols(std::vector<const PropertyMeta*>& container) const;
+    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const;
+
+    std::vector<const PropertyMeta*> staticProperties() const {
+        std::vector<const PropertyMeta*> properties;
+        return this->staticProperties(properties);
+    }
+
+    std::vector<const PropertyMeta*> staticPropertiesWithProtocols() const {
+        std::vector<const PropertyMeta*> properties;
+        return this->staticPropertiesWithProtocols(properties);
+    }
+
+    std::vector<const PropertyMeta*> staticProperties(std::vector<const PropertyMeta*>& container) const {
+        for (Array<PtrTo<PropertyMeta>>::iterator it = this->staticProps->begin(); it != this->staticProps->end(); it++) {
+            container.push_back((*it).valuePtr());
+        }
+        return container;
+    }
+
+    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const;
 
     std::vector<const MethodMeta*> initializers() const {
         std::vector<const MethodMeta*> initializers;
