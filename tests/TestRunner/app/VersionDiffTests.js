@@ -4,7 +4,7 @@ describe(module.id, function() {
     });
 
     function SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(version) {
-        var systemVersion = NSString.stringWithString(UIDevice.currentDevice().systemVersion);
+        var systemVersion = NSString.stringWithString(UIDevice.currentDevice.systemVersion);
         return systemVersion.compareOptions(version, NSStringCompareOptions.NSNumericSearch) !== NSComparisonResult.NSOrderedAscending;
     };
 

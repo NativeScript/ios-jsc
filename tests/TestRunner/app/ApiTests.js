@@ -102,8 +102,8 @@ describe(module.id, function () {
     it("Appearance", function () {
         expect(UILabel.appearance().description.indexOf('<Customizable class: UILabel>')).not.toBe(-1);
 
-        UILabel.appearance().textColor = UIColor.redColor();
-        expect(UILabel.appearance().textColor).toBe(UIColor.redColor());
+        UILabel.appearance().textColor = UIColor.redColor;
+        expect(UILabel.appearance().textColor).toBe(UIColor.redColor);
         expect(UILabel.appearance().constructor).toBe(UILabel);
     });
 

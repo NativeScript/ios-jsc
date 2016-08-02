@@ -209,10 +209,10 @@ describe(module.id, function () {
     })
 
     it("MethodWithNSDecimalNumber", function () {
-        expect(NSDecimalNumber.maximumDecimalNumber() instanceof NSDecimalNumber).toBe(true);
+        expect(NSDecimalNumber.maximumDecimalNumber instanceof NSDecimalNumber).toBe(true);
 
-        var returned = TNSObjCTypes.alloc().init().methodWithNSDecimalNumber(NSDecimalNumber.maximumDecimalNumber());
-        expect(returned.isEqualToNumber(NSDecimalNumber.maximumDecimalNumber())).toBe(true);
+        var returned = TNSObjCTypes.alloc().init().methodWithNSDecimalNumber(NSDecimalNumber.maximumDecimalNumber);
+        expect(returned.isEqualToNumber(NSDecimalNumber.maximumDecimalNumber)).toBe(true);
         expect(TNSGetOutput()).toBe('3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000');
     });
 

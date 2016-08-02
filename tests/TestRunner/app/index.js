@@ -6,7 +6,7 @@ import "./Infrastructure/timers";
 global.UNUSED = function (param) {
 };
 
-var args = NSProcessInfo.processInfo().arguments;
+var args = NSProcessInfo.processInfo.arguments;
 var logjunit = args.containsObject("-logjunit");
 
 // Provides an output channel for jasmine JUnit test result xml.
@@ -20,7 +20,7 @@ global.__JUnitSaveResults = function (text) {
     }
 };
 
-global.__approot = NSString.stringWithString(NSBundle.mainBundle().bundlePath).stringByResolvingSymlinksInPath;
+global.__approot = NSString.stringWithString(NSBundle.mainBundle.bundlePath).stringByResolvingSymlinksInPath;
 
 import "./Infrastructure/Jasmine/jasmine-2.0.1/boot";
 

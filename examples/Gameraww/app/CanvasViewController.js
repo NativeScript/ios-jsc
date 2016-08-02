@@ -28,7 +28,7 @@ var JSCanvasViewController = UICollectionViewController.extend({
 
     prepareForSegueSender: function (segue, sender) {
         if (segue.identifier == "showDetail") {
-            var path = this.collectionView.indexPathsForSelectedItems();
+            var path = this.collectionView.indexPathsForSelectedItems;
             var itemPath = path.firstObject;
             var item = this.items[itemPath.item];
 
