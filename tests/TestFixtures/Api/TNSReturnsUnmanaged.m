@@ -1,5 +1,7 @@
 #import "TNSReturnsUnmanaged.h"
 
 CFArrayRef functionReturnsUnmanaged() {
-    return CFArrayCreate(NULL, NULL, 0, &kCFTypeArrayCallBacks);
+    CFStringRef values[] = { CFSTR("String One"), CFSTR("String Two"), CFSTR("String Three") };
+    CFArrayRef array = CFArrayCreate(NULL, (const void**)values, sizeof(values) / sizeof(values[0]), &kCFTypeArrayCallBacks);
+    return array;
 }
