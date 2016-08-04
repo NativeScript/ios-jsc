@@ -61,7 +61,7 @@ for file in $(find . -type f); do
   done
   if [[ "$stripped" != "" ]]; then
     echo "Stripped $file of architectures:$stripped"
-    if [ "${CODE_SIGNING_REQUIRED}" == "YES" ]; then
+    if [ "${CODE_SIGNING_ALLOWED}" == "YES" ]; then
       code_sign "${file}"
     fi
   fi
