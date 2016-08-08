@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 set -e
 
+function add_embedded_framework() {
+    local FRAMEWORK_NAME=$(basename "$1")
+    rsync --archive "$1" "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}" \
+        --exclude "/$FRAMEWORK_NAME/Headers" \
+        --exclude "/$FRAMEWORK_NAME/Modules"
+}
+
 # TODO: Move this to the CLI
 if [ $CONFIGURATION = "Debug" ]; then
-    rsync -a "${SRCROOT}/internal/TKLiveSync.framework" "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+    add_embedded_framework "${SRCROOT}/internal/TKLiveSync.framework"
 else
     # The CLI is using the same folder for Debug and Release builds :(
     rm -rf "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}/TKLiveSync.framework"
 fi
 
-rsync -a "${SRCROOT}/internal/NativeScript.framework" "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+add_embedded_framework "${SRCROOT}/internal/NativeScript.framework"
 
 pushd "$SRCROOT/internal"
 ./strip-dynamic-framework-architectures.sh
