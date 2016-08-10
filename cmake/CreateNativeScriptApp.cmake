@@ -35,6 +35,12 @@ function(CreateNativeScriptApp _target _main _plist _resources)
         XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Debug] "DWARF"
     )
 
+    if(DEFINED ENV{NATIVESCRIPT_APPLE_DEVELOPMENT_TEAM_ID})
+        set_target_properties(${_target} PROPERTIES
+            XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "$ENV{NATIVESCRIPT_APPLE_DEVELOPMENT_TEAM_ID}"
+        )
+    endif()
+
     include(SetActiveArchitectures)
     SetActiveArchitectures(${_target})
 
