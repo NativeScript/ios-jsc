@@ -97,6 +97,39 @@ describe(module.id, function () {
         expect(result.y).toBe(object.y);
     });
 
+    it("recordsStruct16", function() {
+        var object = { x: 1, y: 2, z: 3 };
+
+        var result = TNSTestNativeCallbacks.recordsStruct16(object);
+        expect(TNSGetOutput()).toBe('1 2 3');
+
+        expect(result.x).toBe(object.x);
+        expect(result.y).toBe(object.y);
+        expect(result.z).toBe(object.z);
+    });
+
+    it("recordsStruct24", function() {
+        var object = { x: 1, y: 2, z: 3 };
+
+        var result = TNSTestNativeCallbacks.recordsStruct24(object);
+        expect(TNSGetOutput()).toBe('1 2 3');
+
+        expect(result.x).toBe(object.x);
+        expect(result.y).toBe(object.y);
+        expect(result.z).toBe(object.z);
+    });
+
+    it("recordsStruct32", function() {
+        var object = { x: 1, y: 2, z: 3 };
+
+        var result = TNSTestNativeCallbacks.recordsStruct32(object);
+        expect(TNSGetOutput()).toBe('1 2 3');
+
+        expect(result.x).toBe(object.x);
+        expect(result.y).toBe(object.y);
+        expect(result.z).toBe(object.z);
+    });
+
     it("InvalidStruct", function () {
         expect(function() {
             TNSTestNativeCallbacks.recordsSimpleStruct(3);

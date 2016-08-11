@@ -55,10 +55,12 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
         this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
     }
 #elif defined(__x86_64__)
+    const unsigned UNIX64_FLAG_RET_IN_MEM = (1 << 10);
+
     const ffi_type* returnFFIType = this->_returnType.ffiType;
     if (returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
         this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
-    } else if (returnFFIType->type == FFI_TYPE_STRUCT && returnFFIType->size >= 32) {
+    } else if (returnFFIType->type == FFI_TYPE_STRUCT && (this->_cif->flags & UNIX64_FLAG_RET_IN_MEM)) {
         this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
         this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
     }

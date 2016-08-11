@@ -242,6 +242,21 @@
     return object;
 }
 
++ (TNSStruct16)recordsStruct16:(TNSStruct16)object {
+    TNSLog([NSString stringWithFormat:@"%lld %d %d", object.x, object.y, object.z]);
+    return object;
+}
+
++ (TNSStruct24)recordsStruct24:(TNSStruct24)object {
+    TNSLog([NSString stringWithFormat:@"%lld %d %lld", object.x, object.y, object.z]);
+    return object;
+}
+
++ (TNSStruct32)recordsStruct32:(TNSStruct32)object {
+    TNSLog([NSString stringWithFormat:@"%lld %lld %lld", object.x, object.y, object.z]);
+    return object;
+}
+
 + (TNSNestedStruct)recordsNestedStruct:(TNSNestedStruct)object {
     TNSLog([NSString stringWithFormat:@"%d %d %d %d", object.a.x, object.a.y, object.b.x, object.b.y]);
     return object;

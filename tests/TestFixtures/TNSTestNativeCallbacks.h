@@ -48,6 +48,12 @@
 
 + (TNSSimpleStruct)recordsSimpleStruct:(TNSSimpleStruct)object;
 
++ (TNSStruct16)recordsStruct16:(TNSStruct16)object;
+
++ (TNSStruct24)recordsStruct24:(TNSStruct24)object;
+
++ (TNSStruct32)recordsStruct32:(TNSStruct32)object;
+
 + (TNSNestedStruct)recordsNestedStruct:(TNSNestedStruct)object;
 
 + (TNSStructWithArray)recordsStructWithArray:(TNSStructWithArray)object;
