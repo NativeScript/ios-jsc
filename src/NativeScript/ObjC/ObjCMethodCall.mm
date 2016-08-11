@@ -47,24 +47,29 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
     this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper);
 
 #if defined(__i386__)
+    const unsigned X86_RET_STRUCTPOP = 10;
+
     const ffi_type* returnFFIType = this->_returnType.ffiType;
     if (returnFFIType->type == FFI_TYPE_FLOAT || returnFFIType->type == FFI_TYPE_DOUBLE || returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
         this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
-    } else if (returnFFIType->type == FFI_TYPE_STRUCT && returnFFIType->size > 8) {
+    } else if (this->_cif->flags == X86_RET_STRUCTPOP) {
         this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
         this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
     }
 #elif defined(__x86_64__)
+    const unsigned UNIX64_FLAG_RET_IN_MEM = (1 << 10);
+
     const ffi_type* returnFFIType = this->_returnType.ffiType;
     if (returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
         this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
-    } else if (returnFFIType->type == FFI_TYPE_STRUCT && returnFFIType->size >= 32) {
+    } else if (returnFFIType->type == FFI_TYPE_STRUCT && (this->_cif->flags & UNIX64_FLAG_RET_IN_MEM)) {
         this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
         this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
     }
 #elif defined(__arm__) && !defined(__LP64__)
-    const ffi_type* returnFFIType = this->_returnType.ffiType;
-    if (returnFFIType->type == FFI_TYPE_STRUCT) {
+    const unsigned ARM_TYPE_STRUCT = 6;
+
+    if (this->_cif->flags == ARM_TYPE_STRUCT) {
         this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
         this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
     }

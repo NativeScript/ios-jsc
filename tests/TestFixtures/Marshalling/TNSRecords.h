@@ -11,6 +11,24 @@ typedef struct TNSSimpleStruct {
     int y;
 } TNSSimpleStruct;
 
+typedef struct TNSStruct16 {
+    int64_t x;
+    int32_t y;
+    int32_t z;
+} TNSStruct16;
+
+typedef struct TNSStruct24 {
+    int64_t x;
+    int32_t y;
+    int64_t z;
+} TNSStruct24;
+
+typedef struct TNSStruct32 {
+    int64_t x;
+    int64_t y;
+    int64_t z;
+} TNSStruct32;
+
 typedef struct TNSNestedStruct {
     struct TNSSimpleStruct a;
     struct TNSSimpleStruct b;
