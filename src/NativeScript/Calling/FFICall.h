@@ -34,6 +34,8 @@ protected:
 
     ~FFICall();
 
+    ffi_cif* _cif;
+
     class Invocation {
         WTF_MAKE_NONCOPYABLE(Invocation)
         WTF_MAKE_FAST_ALLOCATED;
@@ -133,8 +135,6 @@ protected:
     WTF::Vector<FFITypeMethodTable> _parameterTypes;
 
     size_t _initialArgumentIndex;
-
-    ffi_cif* _cif;
 
     size_t _argsCount;
     size_t _stackSize;
