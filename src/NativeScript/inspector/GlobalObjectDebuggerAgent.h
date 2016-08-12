@@ -42,6 +42,7 @@ public:
     virtual ~GlobalObjectDebuggerAgent() {}
 
     virtual void enable(Inspector::ErrorString&) override;
+    virtual void setScriptSource(Inspector::ErrorString&, const String&, const String&) override;
     virtual Inspector::InjectedScript injectedScriptForEval(Inspector::ErrorString&, const int* executionContextId) override;
 
     virtual void breakpointActionLog(JSC::ExecState*, const String&) override;
