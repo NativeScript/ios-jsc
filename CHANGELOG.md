@@ -7,6 +7,11 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+2.2.1
+
+## Bug Fixes
+- Fixed struct marshalling on x86_64 architecture
+
 2.2.0
 =====
 
