@@ -210,12 +210,13 @@ if(${BUILD_SHARED_LIBS})
     set_target_properties(NativeScript PROPERTIES
         FRAMEWORK TRUE
         # FRAMEWORK_VERSION "1.0" # TODO
+        INSTALL_NAME_DIR "@executable_path/Frameworks"
         MACOSX_FRAMEWORK_BUNDLE_VERSION "${BASE_NATIVESCRIPT_VERSION}"
+        MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
         MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${BASE_NATIVESCRIPT_VERSION}"
         PUBLIC_HEADER "${NativeScript_PUBLIC_HEADERS}"
-        INSTALL_NAME_DIR "@executable_path/Frameworks"
         XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
-        MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
+        XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Debug] "DWARF"
     )
     target_link_libraries(NativeScript
         ${WEBKIT_LIBRARIES}
