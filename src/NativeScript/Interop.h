@@ -55,8 +55,15 @@ public:
     JSC::JSArrayBuffer* bufferFromData(JSC::ExecState*, NSData*) const;
 #endif
 
-    JSC::WeakGCMap<id, JSC::JSObject>& objectMap() {
-        return this->_objectMap;
+    static JSC::WeakGCMap<id, JSC::JSObject>& objectMap(JSC::VM* vm) {
+        WTF::LockHolder lockHolder(_objectMapLock);
+        for (auto it = _objectMaps.begin(); it != _objectMaps.end(); it++) {
+            if (it->first == vm) {
+                return *it->second.get();
+            }
+        }
+        _objectMaps.append(std::make_pair(vm, std::make_unique<JSC::WeakGCMap<id, JSC::JSObject>>(*vm)));
+        return *_objectMaps.last().second.get();
     }
 
 #ifdef __OBJC__
@@ -66,13 +73,16 @@ public:
 private:
     Interop(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure)
-        , _pointerToInstance(vm)
-        , _objectMap(vm) {
+        , _pointerToInstance(vm) {
     }
 
     void finishCreation(JSC::VM&, GlobalObject*);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
+
+    static WTF::Lock _objectMapLock;
+
+    static WTF::Vector<std::pair<JSC::VM*, std::unique_ptr<JSC::WeakGCMap<id, JSC::JSObject>>>> _objectMaps;
 
     JSC::WriteBarrier<JSC::Structure> _pointerInstanceStructure;
 
@@ -83,8 +93,6 @@ private:
     JSC::WriteBarrier<NSErrorWrapperConstructor> _nsErrorWrapperConstructor;
 
     JSC::WeakGCMap<const void*, PointerInstance> _pointerToInstance;
-
-    JSC::WeakGCMap<id, JSC::JSObject> _objectMap;
 };
 
 static inline Interop* interop(JSC::ExecState* execState) {

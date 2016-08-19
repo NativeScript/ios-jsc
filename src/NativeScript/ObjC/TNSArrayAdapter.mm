@@ -23,7 +23,7 @@ using namespace JSC;
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_execState = execState;
-        interop(execState)->objectMap().set(self, jsObject);
+        Interop::objectMap(&execState->vm()).set(self, jsObject);
     }
 
     return self;
@@ -77,7 +77,7 @@ using namespace JSC;
 - (void)dealloc {
     {
         JSLockHolder lock(self->_execState);
-        interop(self->_execState)->objectMap().remove(self);
+        Interop::objectMap(&_execState->vm()).remove(self);
     }
 
     [super dealloc];

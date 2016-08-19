@@ -20,7 +20,7 @@ void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* g
     this->setWrappedObject(wrappedObject);
     this->_canSetObjectAtIndexedSubscript = [wrappedObject respondsToSelector:@selector(setObject:
                                                                                   atIndexedSubscript:)];
-    this->_objectMap = &globalObject->interop()->objectMap();
+    this->_objectMap = &Interop::objectMap(&globalObject->vm());
     this->_objectMap->set(wrappedObject, this);
 }
 
