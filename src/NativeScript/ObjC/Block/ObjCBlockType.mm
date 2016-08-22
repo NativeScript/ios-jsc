@@ -98,6 +98,10 @@ JSValue ObjCBlockType::read(ExecState* execState, const void* buffer, JSCell* se
     ObjCBlockType* blockType = jsCast<ObjCBlockType*>(self);
     id block = *static_cast<const id*>(buffer);
 
+    if (block == nil) {
+        return jsNull();
+    }
+
     if (JSValue objCBlockCallback = JSBlock::getJSFunction(block)) {
         return objCBlockCallback;
     }
