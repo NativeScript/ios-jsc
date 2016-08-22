@@ -9,3 +9,7 @@ add_custom_target(libffi
 
 include(SetActiveArchitectures)
 SetActiveArchitectures(libffi)
+
+set_target_properties(libffi PROPERTIES
+    XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS[variant=Debug] YES
+)
