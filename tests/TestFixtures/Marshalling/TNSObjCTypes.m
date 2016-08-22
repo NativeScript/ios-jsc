@@ -71,7 +71,9 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 }
 
 - (void (^)(void))methodWithBlock:(void (^)(void))block {
-    block();
+    if (block) {
+        block();
+    }
     return block;
 }
 

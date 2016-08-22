@@ -52,6 +52,10 @@ describe(module.id, function () {
         expect(TNSGetOutput()).toBe('1 2 3');
     });
 
+    it("NilBlock", function () {
+        expect(TNSObjCTypes.alloc().init().methodWithBlock(null)).toBe(null);
+    });
+
     it("SimpleBlock", function () {
         TNSObjCTypes.alloc().init().methodWithSimpleBlock(function () {
             TNSLog('simple block called');
