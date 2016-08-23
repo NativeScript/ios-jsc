@@ -44,12 +44,12 @@
 
 - (void)sendMessageToBackend:(NSString*)message {
     if (self->communication_channel) {
-        uint32_t length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
+        NSUInteger length = [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
 
-        void* buffer = malloc(length);
-        [message getBytes:buffer maxLength:length usedLength:NULL encoding:NSUTF16LittleEndianStringEncoding options:0 range:NSMakeRange(0, message.length) remainingRange:NULL];
+        NSMutableData* buffer = [NSMutableData dataWithLength:length];
+        [message getBytes:buffer.mutableBytes maxLength:length usedLength:NULL encoding:NSUTF16LittleEndianStringEncoding options:0 range:NSMakeRange(0, message.length) remainingRange:NULL];
 
-        [self->communication_channel sendMessage:length message:buffer];
+        [self->communication_channel sendMessage:length message:buffer.mutableBytes];
     }
 }
 
