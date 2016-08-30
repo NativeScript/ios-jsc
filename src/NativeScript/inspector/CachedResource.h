@@ -8,11 +8,11 @@ namespace Inspector {
 class CachedResource {
 public:
     CachedResource();
-    CachedResource(WTF::String bundlePath, WTF::String filePath);
+    CachedResource(WTF::String displayName, WTF::String filePath);
 
     WTF::String mimeType() { return m_mimeType; }
+    WTF::String displayName() { return m_displayName; }
     WTF::String content(ErrorString& out_error);
-    WTF::String displayName();
     bool hasTextContent();
     Inspector::Protocol::Page::ResourceType type() { return m_type; }
 

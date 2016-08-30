@@ -2,26 +2,50 @@
 #include "MimeTypeHelper.h"
 
 namespace Inspector {
+static Inspector::CachedResource createCacheResource(NSString* basePath, NSString* filePath, NSString* prefix) {
+    NSString* path = [NSString pathWithComponents:@[ prefix, [filePath substringFromIndex:[basePath length]] ]];
+    NSString* displayName = [[NSURL fileURLWithPath:path] absoluteString];
+
+    return Inspector::CachedResource(displayName, filePath);
+}
+
+static void createCachedResourcesOfDirectory(WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources, NSString* bundlePath, NSString* prefix) {
+    BOOL isDirectory;
+    if ([[NSFileManager defaultManager] fileExistsAtPath:bundlePath isDirectory:&isDirectory]) {
+        if (isDirectory) {
+            NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey, NSURLIsSymbolicLinkKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
+
+            NSURL* file;
+            NSError* error;
+            for (file in directoryEnumerator) {
+                NSNumber* isDirectory;
+                NSNumber* isSymbolicLink;
+                [file getResourceValue:&isSymbolicLink forKey:NSURLIsSymbolicLinkKey error:&error];
+                [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
+
+                if ([isSymbolicLink boolValue]) {
+                    NSString* originalPath = [[NSFileManager defaultManager] destinationOfSymbolicLinkAtPath:[file path] error:&error];
+                    createCachedResourcesOfDirectory(cachedResources, originalPath, [NSString pathWithComponents:@[ prefix, [file lastPathComponent] ]]);
+                } else if (![isDirectory boolValue]) {
+                    Inspector::CachedResource resource = createCacheResource(bundlePath, [file path], prefix);
+                    cachedResources.add(resource.displayName(), resource);
+                }
+            }
+        } else {
+            Inspector::CachedResource resource = createCacheResource(bundlePath, bundlePath, prefix);
+            cachedResources.add(resource.displayName(), resource);
+        }
+    }
+}
+
 WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources(NativeScript::GlobalObject& globalObject) {
     static WTF::HashMap<WTF::String, Inspector::CachedResource> cachedResources;
 
     static std::once_flag flag;
     std::call_once(flag, [&globalObject]() {
-        NSString* applicationPath = globalObject.applicationPath();
-        NSString* bundlePath = [NSString stringWithFormat:@"%@/%@", applicationPath, @"app"];
-        NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
+        NSString* bundlePath = [NSString pathWithComponents:@[ globalObject.applicationPath(), @"app" ]];
 
-        NSURL* file;
-        NSError* error;
-        for (file in directoryEnumerator) {
-            NSNumber* isDirectory;
-            [file getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:&error];
-            if (![isDirectory boolValue]) {
-                Inspector::CachedResource resource(bundlePath, [file path]);
-
-                cachedResources.add(resource.displayName(), resource);
-            }
-        }
+        createCachedResourcesOfDirectory(cachedResources, bundlePath, @"app");
     });
     return cachedResources;
 }
@@ -46,9 +70,9 @@ WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResourc
 
 CachedResource::CachedResource() {}
 
-CachedResource::CachedResource(WTF::String bundlePath, WTF::String filePath)
+CachedResource::CachedResource(WTF::String displayName, WTF::String filePath)
     : m_filePath([filePath stringByResolvingSymlinksInPath])
-    , m_bundlePath([bundlePath stringByResolvingSymlinksInPath])
+    , m_displayName(displayName)
     , m_content(WTF::emptyString()) {
     m_mimeType = WTF::String(NativeScript::mimeTypeByExtension([filePath pathExtension]));
     Inspector::Protocol::Page::ResourceType resourceType = Inspector::Protocol::Page::ResourceType::Document;
@@ -61,14 +85,6 @@ CachedResource::CachedResource(WTF::String bundlePath, WTF::String filePath)
 
 bool CachedResource::hasTextContent() {
     return m_type == Inspector::Protocol::Page::ResourceType::Document || m_type == Inspector::Protocol::Page::ResourceType::Stylesheet || m_type == Inspector::Protocol::Page::ResourceType::Script || m_type == Inspector::Protocol::Page::ResourceType::XHR;
-}
-
-WTF::String CachedResource::displayName() {
-    if (m_displayName.isEmpty()) {
-        m_displayName = [NSString stringWithFormat:@"file:///app%@", [m_filePath substringFromIndex:[m_bundlePath length]]];
-    }
-
-    return m_displayName;
 }
 
 Inspector::Protocol::Page::ResourceType CachedResource::resourceTypeByMimeType(WTF::String mimeType) {
