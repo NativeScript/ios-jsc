@@ -7,26 +7,26 @@
 //
 
 #include "GlobalObject.h"
+#include "Interop.h"
+#include "LiveEdit/EditableSourceProvider.h"
+#include "ObjCTypes.h"
 #include <JavaScriptCore/BuiltinNames.h>
-#include <JavaScriptCore/JSNativeStdFunction.h>
-#include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/Exception.h>
-#include <JavaScriptCore/ModuleLoaderObject.h>
-#include <JavaScriptCore/JSInternalPromiseDeferred.h>
-#include <JavaScriptCore/JSModuleRecord.h>
-#include <JavaScriptCore/JSModuleEnvironment.h>
-#include <JavaScriptCore/ModuleAnalyzer.h>
+#include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
-#include <JavaScriptCore/ObjectConstructor.h>
+#include <JavaScriptCore/JSInternalPromise.h>
+#include <JavaScriptCore/JSInternalPromiseDeferred.h>
+#include <JavaScriptCore/JSModuleEnvironment.h>
+#include <JavaScriptCore/JSModuleRecord.h>
+#include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/LiteralParser.h>
+#include <JavaScriptCore/ModuleAnalyzer.h>
+#include <JavaScriptCore/ModuleLoaderObject.h>
 #include <JavaScriptCore/Nodes.h>
+#include <JavaScriptCore/ObjectConstructor.h>
 #include <JavaScriptCore/Parser.h>
 #include <JavaScriptCore/ParserError.h>
 #include <JavaScriptCore/tools/CodeProfiling.h>
-#include <JavaScriptCore/FunctionConstructor.h>
-#include <JavaScriptCore/LiteralParser.h>
-#include "LiveEdit/EditableSourceProvider.h"
-#include "ObjCTypes.h"
-#include "Interop.h"
 #include <sys/stat.h>
 
 namespace NativeScript {
@@ -316,10 +316,12 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                                                   record = jsCast<JSModuleRecord*>(entry.get(execState, Identifier::fromString(execState, "module")));
 
                                                   return JSValue::encode(jsUndefined());
-                                              }), errorHandler);
+                                              }),
+                                              errorHandler);
 
                       return JSValue::encode(promise);
-                  }), errorHandler);
+                  }),
+                  errorHandler);
     globalObject->drainMicrotasks();
 
     if (exception) {

@@ -6,8 +6,8 @@
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
 //
 
-#import <JavaScriptCore/JSBase.h>
 #import <Foundation/NSObjCRuntime.h>
+#import <JavaScriptCore/JSBase.h>
 
 typedef void (*TNSUncaughtErrorHandler)(JSContextRef ctx, JSValueRef error);
 

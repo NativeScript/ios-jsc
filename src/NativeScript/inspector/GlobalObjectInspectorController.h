@@ -76,7 +76,7 @@ class GlobalObjectInspectorController final
       ,
       public Inspector::AugmentableInspectorController
 #endif
-      {
+{
     WTF_MAKE_NONCOPYABLE(GlobalObjectInspectorController);
     WTF_MAKE_FAST_ALLOCATED;
 
@@ -139,16 +139,16 @@ private:
     Ref<WTF::Stopwatch> m_executionStopwatch;
     Inspector::JSGlobalObjectScriptDebugServer m_scriptDebugServer;
     Inspector::AgentRegistry m_agents;
-    Inspector::InspectorAgent* m_inspectorAgent { nullptr };
-    Inspector::InspectorConsoleAgent* m_consoleAgent { nullptr };
-    Inspector::InspectorDebuggerAgent* m_debuggerAgent { nullptr };
-    Inspector::InspectorTimelineAgent* m_timelineAgent { nullptr };
+    Inspector::InspectorAgent* m_inspectorAgent{ nullptr };
+    Inspector::InspectorConsoleAgent* m_consoleAgent{ nullptr };
+    Inspector::InspectorDebuggerAgent* m_debuggerAgent{ nullptr };
+    Inspector::InspectorTimelineAgent* m_timelineAgent{ nullptr };
 
     Ref<Inspector::FrontendRouter> m_frontendRouter;
     Ref<Inspector::BackendDispatcher> m_backendDispatcher;
 
-    bool m_includeNativeCallStackWithExceptions { false };
-    bool m_isAutomaticInspection { false };
+    bool m_includeNativeCallStackWithExceptions{ false };
+    bool m_isAutomaticInspection{ false };
 
     GlobalObject& m_globalObject;
 
@@ -156,7 +156,7 @@ private:
     Inspector::JSAgentContext m_jsAgentContext;
 
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-    Inspector::AugmentableInspectorControllerClient* m_augmentingClient { nullptr };
+    Inspector::AugmentableInspectorControllerClient* m_augmentingClient{ nullptr };
 #endif
 };
 

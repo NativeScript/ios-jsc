@@ -7,8 +7,8 @@
 //
 
 #include "ObjCExtend.h"
-#include "ObjCConstructorDerived.h"
 #include "ObjCClassBuilder.h"
+#include "ObjCConstructorDerived.h"
 
 namespace NativeScript {
 using namespace JSC;

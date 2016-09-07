@@ -7,11 +7,11 @@
 //
 
 #include "ReferenceConstructor.h"
-#include "ReferencePrototype.h"
-#include "ReferenceInstance.h"
-#include "ReferenceTypeInstance.h"
-#include "RecordInstance.h"
 #include "Interop.h"
+#include "RecordInstance.h"
+#include "ReferenceInstance.h"
+#include "ReferencePrototype.h"
+#include "ReferenceTypeInstance.h"
 
 namespace NativeScript {
 using namespace JSC;

@@ -7,15 +7,15 @@
 //
 
 #include "ObjCPrimitiveTypes.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
-#include "ObjCTypes.h"
-#include "ObjCConstructorCall.h"
-#include "ObjCSuperObject.h"
-#include "ObjCConstructorBase.h"
-#include "ObjCProtocolWrapper.h"
-#include "ObjCWrapperObject.h"
-#include "Interop.h"
 #include "AllocatedPlaceholder.h"
+#include "Interop.h"
+#include "ObjCConstructorBase.h"
+#include "ObjCConstructorCall.h"
+#include "ObjCProtocolWrapper.h"
+#include "ObjCSuperObject.h"
+#include "ObjCTypes.h"
+#include "ObjCWrapperObject.h"
+#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 
 namespace NativeScript {
 using namespace JSC;

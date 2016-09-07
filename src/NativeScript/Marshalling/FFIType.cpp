@@ -8,12 +8,12 @@
 
 #include "FFIType.h"
 #include "FFISimpleType.h"
+#include "FunctionReferenceTypeInstance.h"
+#include "ObjCBlockType.h"
 #include "ObjCConstructorBase.h"
+#include "PointerConstructor.h"
 #include "RecordConstructor.h"
 #include "ReferenceTypeInstance.h"
-#include "ObjCBlockType.h"
-#include "FunctionReferenceTypeInstance.h"
-#include "PointerConstructor.h"
 #include "UnmanagedType.h"
 
 namespace NativeScript {

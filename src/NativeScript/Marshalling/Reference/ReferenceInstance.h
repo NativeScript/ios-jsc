@@ -9,8 +9,8 @@
 #ifndef __NativeScript__ReferenceInstance__
 #define __NativeScript__ReferenceInstance__
 
-#include "PointerInstance.h"
 #include "FFIType.h"
+#include "PointerInstance.h"
 
 namespace NativeScript {
 class ReferenceType;

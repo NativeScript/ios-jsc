@@ -7,11 +7,11 @@
 //
 
 #include "RecordPrototype.h"
-#include <JavaScriptCore/ObjectConstructor.h>
-#include "RecordPrototypeFunctions.h"
 #include "RecordConstructor.h"
-#include "RecordInstance.h"
 #include "RecordField.h"
+#include "RecordInstance.h"
+#include "RecordPrototypeFunctions.h"
+#include <JavaScriptCore/ObjectConstructor.h>
 
 namespace NativeScript {
 using namespace JSC;

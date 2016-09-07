@@ -8,12 +8,12 @@
 
 #include "ObjCMethodCallback.h"
 #include "FFICallbackInlines.h"
+#include "FFISimpleType.h"
 #include "Metadata.h"
-#include "TypeFactory.h"
+#include "ObjCConstructorNative.h"
 #include "ObjCTypes.h"
 #include "ReferenceTypeInstance.h"
-#include "ObjCConstructorNative.h"
-#include "FFISimpleType.h"
+#include "TypeFactory.h"
 
 namespace NativeScript {
 using namespace JSC;

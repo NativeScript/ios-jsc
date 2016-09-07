@@ -6,10 +6,10 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
-#include <JavaScriptCore/ScriptValue.h>
-#include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ConsoleClient.h>
 #include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
+#include <JavaScriptCore/ScriptArguments.h>
+#include <JavaScriptCore/ScriptValue.h>
 
 namespace NativeScript {
 using namespace JSC;

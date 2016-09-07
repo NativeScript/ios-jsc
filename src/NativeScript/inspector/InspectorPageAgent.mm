@@ -1,10 +1,10 @@
 #include "InspectorPageAgent.h"
 #include "CachedResource.h"
 #include "GlobalObjectInspectorController.h"
-#include <JavaScriptCore/inspector/ContentSearchUtilities.h>
-#include <JavaScriptCore/yarr/RegularExpression.h>
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/Exception.h>
+#include <JavaScriptCore/inspector/ContentSearchUtilities.h>
+#include <JavaScriptCore/yarr/RegularExpression.h>
 #include <map>
 #include <vector>
 
@@ -49,7 +49,7 @@ void InspectorPageAgent::reload(ErrorString&, const bool* in_ignoreCache, const 
         m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), JSC::Exception::create(m_globalObject.globalExec()->vm(), error));
         return;
     }
-    
+
     WTF::NakedPtr<JSC::Exception> exception;
     JSC::MarkedArgumentBuffer liveSyncArguments;
     call(m_globalObject.globalExec(), liveSyncCallback, callType, callData, JSC::jsUndefined(), liveSyncArguments, exception);

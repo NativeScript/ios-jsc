@@ -1,9 +1,9 @@
 #ifndef __NativeScript__TimelineRecordFactory__
 #define __NativeScript__TimelineRecordFactory__
 
-#include <inspector/InspectorValues.h>
-#include <JavaScriptCore/profiler/Profile.h>
 #include <JavaScriptCore/InspectorProtocolObjects.h>
+#include <JavaScriptCore/profiler/Profile.h>
+#include <inspector/InspectorValues.h>
 
 namespace Inspector {
 

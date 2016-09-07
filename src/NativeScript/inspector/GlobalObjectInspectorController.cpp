@@ -26,6 +26,12 @@
 #include "GlobalObjectInspectorController.h"
 #include <JavaScriptCore/config.h>
 
+#include "DomainInspectorAgent.h"
+#include "GlobalObjectConsoleClient.h"
+#include "GlobalObjectDebuggerAgent.h"
+#include "InspectorNetworkAgent.h"
+#include "InspectorPageAgent.h"
+#include "InspectorTimelineAgent.h"
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/ConsoleMessage.h>
 #include <JavaScriptCore/ErrorHandlingScope.h>
@@ -43,12 +49,6 @@
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <wtf/Stopwatch.h>
-#include "GlobalObjectDebuggerAgent.h"
-#include "GlobalObjectConsoleClient.h"
-#include "InspectorPageAgent.h"
-#include "InspectorTimelineAgent.h"
-#include "InspectorNetworkAgent.h"
-#include "DomainInspectorAgent.h"
 
 #include <cxxabi.h>
 #if OS(DARWIN) || (OS(LINUX) && !PLATFORM(GTK))
@@ -157,7 +157,7 @@ void GlobalObjectInspectorController::connectFrontend(FrontendChannel* frontendC
 
     if (!connectedFirstFrontend)
         return;
-    
+
     m_agents.didCreateFrontendAndBackend(m_frontendRouter.ptr(), m_backendDispatcher.ptr());
 
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
@@ -170,29 +170,28 @@ void GlobalObjectInspectorController::connectFrontend(FrontendChannel* frontendC
 
 void GlobalObjectInspectorController::disconnectFrontend(FrontendChannel* frontendChannel) {
     ASSERT_ARG(frontendChannel, frontendChannel);
-    
+
     // FIXME: change this to notify agents which frontend has disconnected (by id).
     m_agents.willDestroyFrontendAndBackend(DisconnectReason::InspectorDestroyed);
-    
+
     m_frontendRouter->disconnectFrontend(frontendChannel);
-    
+
     m_isAutomaticInspection = false;
-    
+
     bool disconnectedLastFrontend = !m_frontendRouter->hasFrontends();
     if (!disconnectedLastFrontend)
         return;
-    
+
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
     if (m_augmentingClient)
         m_augmentingClient->inspectorDisconnected();
 #endif
 }
 
-void GlobalObjectInspectorController::disconnectAllFrontends()
-{
+void GlobalObjectInspectorController::disconnectAllFrontends() {
     // FIXME: change this to notify agents which frontend has disconnected (by id).
     m_agents.willDestroyFrontendAndBackend(DisconnectReason::InspectedTargetDestroyed);
-    
+
     m_frontendRouter->disconnectAllFrontends();
 
     m_isAutomaticInspection = false;
@@ -299,7 +298,7 @@ void GlobalObjectInspectorController::frontendInitialized() {
 Ref<Stopwatch> GlobalObjectInspectorController::executionStopwatch() {
     return m_executionStopwatch.copyRef();
 }
-    
+
 Inspector::ScriptDebugServer& GlobalObjectInspectorController::scriptDebugServer() {
     return m_scriptDebugServer;
 }

@@ -7,8 +7,8 @@
 //
 
 #include "JSWeakRefConstructor.h"
-#include "JSWeakRefPrototype.h"
 #include "JSWeakRefInstance.h"
+#include "JSWeakRefPrototype.h"
 
 namespace NativeScript {
 using namespace JSC;

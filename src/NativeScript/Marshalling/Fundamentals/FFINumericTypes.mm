@@ -6,8 +6,8 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
-#include <string.h>
 #include "FFINumericTypes.h"
+#include <string.h>
 
 namespace NativeScript {
 using namespace JSC;

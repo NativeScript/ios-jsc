@@ -7,20 +7,20 @@
 //
 
 #include "ObjCClassBuilder.h"
-#include <JavaScriptCore/StrongInlines.h>
-#include <sstream>
-#include "Metadata.h"
-#include "TypeFactory.h"
-#include "ObjCConstructorNative.h"
-#include "ObjCConstructorDerived.h"
-#include "ObjCMethodCallback.h"
-#include "ObjCSuperObject.h"
-#include "ObjCProtocolWrapper.h"
-#include "ObjCWrapperObject.h"
-#include "ObjCTypes.h"
 #include "FFIType.h"
 #include "Interop.h"
+#include "Metadata.h"
+#include "ObjCConstructorDerived.h"
+#include "ObjCConstructorNative.h"
+#include "ObjCMethodCallback.h"
+#include "ObjCProtocolWrapper.h"
+#include "ObjCSuperObject.h"
+#include "ObjCTypes.h"
+#include "ObjCWrapperObject.h"
 #include "TNSFastEnumerationAdapter.h"
+#include "TypeFactory.h"
+#include <JavaScriptCore/StrongInlines.h>
+#include <sstream>
 
 @protocol TNSDerivedClass
 

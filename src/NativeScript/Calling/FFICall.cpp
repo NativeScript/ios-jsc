@@ -7,10 +7,10 @@
 //
 
 #include "FFICall.h"
-#include <malloc/malloc.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <dispatch/dispatch.h>
+#include <malloc/malloc.h>
 
 namespace NativeScript {
 using namespace JSC;
