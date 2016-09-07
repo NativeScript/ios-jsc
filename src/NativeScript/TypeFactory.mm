@@ -242,8 +242,19 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     }
 
     VM& vm = globalObject->vm();
+
     const InterfaceMeta* metadata = static_cast<const InterfaceMeta*>(MetaFile::instance()->globalTable()->findMeta(klassName.impl()));
-    if (!metadata) {
+    Class klass = Nil;
+
+    if (metadata) {
+        klass = objc_getClass(metadata->name());
+        if (!klass) {
+            SymbolLoader::instance().ensureModule(metadata->topLevelModule());
+            klass = objc_getClass(metadata->name());
+        }
+    }
+
+    if (!metadata || !klass) {
 #ifdef DEBUG
         NSLog(@"** Can not create constructor for \"%@\". Casting it to \"NSObject\". **", klassName.createCFString().autorelease());
 #endif
@@ -272,12 +283,6 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
 
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
     ObjCPrototype* prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata);
-
-    Class klass = objc_getClass(metadata->name());
-    if (!klass) {
-        SymbolLoader::instance().ensureModule(metadata->topLevelModule());
-        klass = objc_getClass(metadata->name());
-    }
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
     ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, klass);
