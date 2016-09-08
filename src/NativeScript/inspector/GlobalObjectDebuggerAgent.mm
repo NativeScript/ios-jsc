@@ -72,11 +72,19 @@ void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
     }
 }
 
-void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString&, const String& scriptIdStr, const String& scriptSource) {
+void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, const String& scriptIdStr, const String& scriptSource) {
+
     JSValue registry = this->m_globalObject->moduleLoader()->get(this->m_globalObject->globalExec(), Identifier::fromString(&this->m_globalObject->vm(), "registry"));
     JSMap* map = jsCast<JSMap*>(registry);
-    JSValue value = map->get(this->m_globalObject->globalExec(), JSC::jsString(&this->m_globalObject->vm(), scriptIdStr));
+    WTF::String scriptAbsolutePath = [NSString pathWithComponents:@[ this->m_globalObject->applicationPath(), @"app", scriptIdStr ]];
+    JSValue value = map->get(this->m_globalObject->globalExec(), JSC::jsString(&this->m_globalObject->vm(), scriptAbsolutePath));
     Identifier moduleIdentifier = Identifier::fromString(&this->m_globalObject->vm(), "module");
+
+    if (value.isUndefined()) {
+        error = ASCIILiteral("Could not find module at path: '%s'") + scriptAbsolutePath;
+
+        return;
+    }
 
     if (JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(value.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
         SourceCode& sourceCode = const_cast<SourceCode&>(moduleRecord->sourceCode());
