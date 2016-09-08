@@ -103,7 +103,7 @@ set(SOURCE_FILES
     inspector/DomainBackendDispatcher.cpp
     inspector/DomainInspectorAgent.cpp
     inspector/GlobalObjectConsoleClient.cpp
-    inspector/GlobalObjectDebuggerAgent.cpp
+    inspector/GlobalObjectDebuggerAgent.mm
     inspector/GlobalObjectInspectorController.cpp
     inspector/InspectorNetworkAgent.cpp
     inspector/InspectorPageAgent.mm
