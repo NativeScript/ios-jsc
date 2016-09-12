@@ -3,10 +3,11 @@
 
 namespace Inspector {
 static Inspector::CachedResource createCacheResource(NSString* basePath, NSString* filePath, NSString* prefix) {
-    NSString* path = [NSString pathWithComponents:@[ prefix, [filePath substringFromIndex:[basePath length]] ]];
-    NSString* displayName = [[NSURL fileURLWithPath:path] absoluteString];
+    NSString* symLinksResolvedFilePath = [filePath stringByResolvingSymlinksInPath];
+    NSString* relativePath = [symLinksResolvedFilePath substringFromIndex:[[basePath stringByResolvingSymlinksInPath] length]];
+    NSString* displayName = [NSURL fileURLWithPath:[NSString pathWithComponents:@[ prefix, relativePath ]]].absoluteString;
 
-    return Inspector::CachedResource(displayName, filePath);
+    return Inspector::CachedResource(displayName, symLinksResolvedFilePath);
 }
 
 static void createCachedResourcesOfDirectory(WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources, NSString* bundlePath, NSString* prefix) {
@@ -71,7 +72,7 @@ WTF::HashMap<WTF::String, Inspector::Protocol::Page::ResourceType> CachedResourc
 CachedResource::CachedResource() {}
 
 CachedResource::CachedResource(WTF::String displayName, WTF::String filePath)
-    : m_filePath([filePath stringByResolvingSymlinksInPath])
+    : m_filePath(filePath)
     , m_displayName(displayName)
     , m_content(WTF::emptyString()) {
     m_mimeType = WTF::String(NativeScript::mimeTypeByExtension([filePath pathExtension]));
