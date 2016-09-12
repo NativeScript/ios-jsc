@@ -81,7 +81,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
     Identifier moduleIdentifier = Identifier::fromString(&this->m_globalObject->vm(), "module");
 
     if (value.isUndefined()) {
-        error = ASCIILiteral("Could not find module at path: '%s'") + scriptAbsolutePath;
+        error = String::format("Could not find module at path: '%s'", scriptAbsolutePath.utf8().data());
 
         return;
     }
