@@ -23,6 +23,7 @@ sed 's/#import <NativeScript.h>/#import <NativeScript\/NativeScript.h>/g' "$WORK
 cp -R "$DIST_DIR/metadataGenerator" "$INTERNAL_DIR/metadata-generator"
 cp -R "$BUILD_DIR/project-template/" "$FRAMEWORK_DIR"
 cp -R "$BUILD_DIR/npm/runtime_package.json" "$PACKAGE_DIR/package.json"
+cp -R "$WORKSPACE/README.md" "$PACKAGE_DIR"
 
 python "$BUILD_DIR/scripts/update-version.py" "$PACKAGE_DIR/package.json"
 
