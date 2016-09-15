@@ -2,5 +2,5 @@
 set -e
 
 pushd "$SRCROOT/internal/metadata-generator/bin"
-./metadata-generation-build-step
+./build-step-metadata-generator.py
 popd
