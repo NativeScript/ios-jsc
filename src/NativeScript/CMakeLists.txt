@@ -215,7 +215,6 @@ if(${BUILD_SHARED_LIBS})
         MACOSX_FRAMEWORK_IDENTIFIER "org.nativescript.NativeScript"
         MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${BASE_NATIVESCRIPT_VERSION}"
         PUBLIC_HEADER "${NativeScript_PUBLIC_HEADERS}"
-        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
         XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Debug] "DWARF"
     )
     target_link_libraries(NativeScript
