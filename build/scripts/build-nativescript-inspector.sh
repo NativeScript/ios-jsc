@@ -70,6 +70,7 @@ zip -r \
     "NativeScript Inspector.app"
 popd
 
+mkdir -p "$DIST_DIR"
 cp "$INSPECTOR_BUILD_OUTPUT_PATH/NativeScript Inspector.zip" "$DIST_DIR"
 
 checkpoint "Inspector build finished - $DIST_DIR/NativeScript Inspector.zip"
