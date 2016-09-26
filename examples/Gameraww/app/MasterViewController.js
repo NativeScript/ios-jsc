@@ -1,7 +1,7 @@
 import fetch from './fetch';
 
 var dateFormatter = new NSDateFormatter();
-dateFormatter.locale = NSLocale.currentLocale();
+dateFormatter.locale = NSLocale.currentLocale;
 //dateFormatter.dateStyle = NSDateFormatterStyle.NSDateFormatterShortStyle;
 //dateFormatter.timeStyle = NSDateFormatterStyle.NSDateFormatterShortStyle;
 dateFormatter.doesRelativeDateFormatting = true;

@@ -615,6 +615,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty1: calledinstance baseProtocolProperty1 called');
     });
+    it('Base_BaseProtocolProperty1', function () {
+        TNSBaseInterface.baseProtocolProperty1 = 1;
+        UNUSED(TNSBaseInterface.baseProtocolProperty1);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty1: calledstatic baseProtocolProperty1 called');
+    });
     it('Base_BaseProtocolProperty1Optional', function () {
         var instance = TNSBaseInterface.alloc().init();
         instance.baseProtocolProperty1Optional = 1;
@@ -622,6 +629,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty1Optional: calledinstance baseProtocolProperty1Optional called');
+    });
+    it('Base_BaseProtocolProperty1Optional', function () {
+        TNSBaseInterface.baseProtocolProperty1Optional = 1;
+        UNUSED(TNSBaseInterface.baseProtocolProperty1Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty1Optional: calledstatic baseProtocolProperty1Optional called');
     });
     it('Base_BaseProtocolProperty2', function () {
         var instance = TNSBaseInterface.alloc().init();
@@ -631,6 +645,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty2: calledinstance baseProtocolProperty2 called');
     });
+    it('Base_BaseProtocolProperty2', function () {
+        TNSBaseInterface.baseProtocolProperty2 = 1;
+        UNUSED(TNSBaseInterface.baseProtocolProperty2);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty2: calledstatic baseProtocolProperty2 called');
+    });
     it('Base_BaseProtocolProperty2Optional', function () {
         var instance = TNSBaseInterface.alloc().init();
         instance.baseProtocolProperty2Optional = 1;
@@ -638,6 +659,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty2Optional: calledinstance baseProtocolProperty2Optional called');
+    });
+    it('Base_BaseProtocolProperty2Optional', function () {
+        TNSBaseInterface.baseProtocolProperty2Optional = 1;
+        UNUSED(TNSBaseInterface.baseProtocolProperty2Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty2Optional: calledstatic baseProtocolProperty2Optional called');
     });
     it('Base_BaseProperty', function () {
         var instance = TNSBaseInterface.alloc().init();
@@ -647,6 +675,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProperty: calledinstance baseProperty called');
     });
+    it('Base_BaseProperty', function () {
+        TNSBaseInterface.baseProperty = 1;
+        UNUSED(TNSBaseInterface.baseProperty);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProperty: calledstatic baseProperty called');
+    });
     it('Base_BaseCategoryProtocolProperty1', function () {
         var instance = TNSBaseInterface.alloc().init();
         instance.baseCategoryProtocolProperty1 = 1;
@@ -654,6 +689,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty1: calledinstance baseCategoryProtocolProperty1 called');
+    });
+    it('Base_BaseCategoryProtocolProperty1', function () {
+        TNSBaseInterface.baseCategoryProtocolProperty1 = 1;
+        UNUSED(TNSBaseInterface.baseCategoryProtocolProperty1);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty1: calledstatic baseCategoryProtocolProperty1 called');
     });
     it('Base_BaseCategoryProtocolProperty1Optional', function () {
         var instance = TNSBaseInterface.alloc().init();
@@ -663,6 +705,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty1Optional: calledinstance baseCategoryProtocolProperty1Optional called');
     });
+    it('Base_BaseCategoryProtocolProperty1Optional', function () {
+        TNSBaseInterface.baseCategoryProtocolProperty1Optional = 1;
+        UNUSED(TNSBaseInterface.baseCategoryProtocolProperty1Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty1Optional: calledstatic baseCategoryProtocolProperty1Optional called');
+    });
     it('Base_BaseCategoryProtocolProperty2', function () {
         var instance = TNSBaseInterface.alloc().init();
         instance.baseCategoryProtocolProperty2 = 1;
@@ -670,6 +719,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty2: calledinstance baseCategoryProtocolProperty2 called');
+    });
+    it('Base_BaseCategoryProtocolProperty2', function () {
+        TNSBaseInterface.baseCategoryProtocolProperty2 = 1;
+        UNUSED(TNSBaseInterface.baseCategoryProtocolProperty2);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty2: calledstatic baseCategoryProtocolProperty2 called');
     });
     it('Base_BaseCategoryProtocolProperty2Optional', function () {
         var instance = TNSBaseInterface.alloc().init();
@@ -679,6 +735,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty2Optional: calledinstance baseCategoryProtocolProperty2Optional called');
     });
+    it('Base_BaseCategoryProtocolProperty2Optional', function () {
+        TNSBaseInterface.baseCategoryProtocolProperty2Optional = 1;
+        UNUSED(TNSBaseInterface.baseCategoryProtocolProperty2Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty2Optional: calledstatic baseCategoryProtocolProperty2Optional called');
+    });
     it('Base_BaseCategoryProperty', function () {
         var instance = TNSBaseInterface.alloc().init();
         instance.baseCategoryProperty = 1;
@@ -686,6 +749,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProperty: calledinstance baseCategoryProperty called');
+    });
+    it('Base_BaseCategoryProperty', function () {
+        TNSBaseInterface.baseCategoryProperty = 1;
+        UNUSED(TNSBaseInterface.baseCategoryProperty);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProperty: calledstatic baseCategoryProperty called');
     });
 
 
@@ -697,6 +767,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty1: calledinstance baseProtocolProperty1 called');
     });
+    it('Derived_BaseProtocolProperty1', function () {
+        TNSDerivedInterface.baseProtocolProperty1 = 1;
+        UNUSED(TNSDerivedInterface.baseProtocolProperty1);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty1: calledstatic baseProtocolProperty1 called');
+    });
     it('Derived_BaseProtocolProperty1Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.baseProtocolProperty1Optional = 1;
@@ -704,6 +781,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty1Optional: calledinstance baseProtocolProperty1Optional called');
+    });
+    it('Derived_BaseProtocolProperty1Optional', function () {
+        TNSDerivedInterface.baseProtocolProperty1Optional = 1;
+        UNUSED(TNSDerivedInterface.baseProtocolProperty1Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty1Optional: calledstatic baseProtocolProperty1Optional called');
     });
     it('Derived_BaseProtocolProperty2', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -713,6 +797,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty2: calledinstance baseProtocolProperty2 called');
     });
+    it('Derived_BaseProtocolProperty2', function () {
+        TNSDerivedInterface.baseProtocolProperty2 = 1;
+        UNUSED(TNSDerivedInterface.baseProtocolProperty2);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty2: calledstatic baseProtocolProperty2 called');
+    });
     it('Derived_BaseProtocolProperty2Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.baseProtocolProperty2Optional = 1;
@@ -720,6 +811,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProtocolProperty2Optional: calledinstance baseProtocolProperty2Optional called');
+    });
+    it('Derived_BaseProtocolProperty2Optional', function () {
+        TNSDerivedInterface.baseProtocolProperty2Optional = 1;
+        UNUSED(TNSDerivedInterface.baseProtocolProperty2Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProtocolProperty2Optional: calledstatic baseProtocolProperty2Optional called');
     });
     it('Derived_BaseProperty', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -729,6 +827,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseProperty: calledinstance baseProperty called');
     });
+    it('Derived_BaseProperty', function () {
+        TNSDerivedInterface.baseProperty = 1;
+        UNUSED(TNSDerivedInterface.baseProperty);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseProperty: calledstatic baseProperty called');
+    });
     it('Derived_BaseCategoryProtocolProperty1', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.baseCategoryProtocolProperty1 = 1;
@@ -736,6 +841,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty1: calledinstance baseCategoryProtocolProperty1 called');
+    });
+    it('Derived_BaseCategoryProtocolProperty1', function () {
+        TNSDerivedInterface.baseCategoryProtocolProperty1 = 1;
+        UNUSED(TNSDerivedInterface.baseCategoryProtocolProperty1);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty1: calledstatic baseCategoryProtocolProperty1 called');
     });
     it('Derived_BaseCategoryProtocolProperty1Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -745,6 +857,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty1Optional: calledinstance baseCategoryProtocolProperty1Optional called');
     });
+    it('Derived_BaseCategoryProtocolProperty1Optional', function () {
+        TNSDerivedInterface.baseCategoryProtocolProperty1Optional = 1;
+        UNUSED(TNSDerivedInterface.baseCategoryProtocolProperty1Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty1Optional: calledstatic baseCategoryProtocolProperty1Optional called');
+    });
     it('Derived_BaseCategoryProtocolProperty2', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.baseCategoryProtocolProperty2 = 1;
@@ -752,6 +871,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty2: calledinstance baseCategoryProtocolProperty2 called');
+    });
+    it('Derived_BaseCategoryProtocolProperty2', function () {
+        TNSDerivedInterface.baseCategoryProtocolProperty2 = 1;
+        UNUSED(TNSDerivedInterface.baseCategoryProtocolProperty2);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty2: calledstatic baseCategoryProtocolProperty2 called');
     });
     it('Derived_BaseCategoryProtocolProperty2Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -761,6 +887,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProtocolProperty2Optional: calledinstance baseCategoryProtocolProperty2Optional called');
     });
+    it('Derived_BaseCategoryProtocolProperty2Optional', function () {
+        TNSDerivedInterface.baseCategoryProtocolProperty2Optional = 1;
+        UNUSED(TNSDerivedInterface.baseCategoryProtocolProperty2Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProtocolProperty2Optional: calledstatic baseCategoryProtocolProperty2Optional called');
+    });
     it('Derived_BaseCategoryProperty', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.baseCategoryProperty = 1;
@@ -768,6 +901,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setBaseCategoryProperty: calledinstance baseCategoryProperty called');
+    });
+    it('Derived_BaseCategoryProperty', function () {
+        TNSDerivedInterface.baseCategoryProperty = 1;
+        UNUSED(TNSDerivedInterface.baseCategoryProperty);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setBaseCategoryProperty: calledstatic baseCategoryProperty called');
     });
     it('Derived_DerivedProtocolProperty1', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -777,6 +917,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedProtocolProperty1: calledinstance derivedProtocolProperty1 called');
     });
+    it('Derived_DerivedProtocolProperty1', function () {
+        TNSDerivedInterface.derivedProtocolProperty1 = 1;
+        UNUSED(TNSDerivedInterface.derivedProtocolProperty1);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedProtocolProperty1: calledstatic derivedProtocolProperty1 called');
+    });
     it('Derived_DerivedProtocolProperty1Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.derivedProtocolProperty1Optional = 1;
@@ -784,6 +931,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedProtocolProperty1Optional: calledinstance derivedProtocolProperty1Optional called');
+    });
+    it('Derived_DerivedProtocolProperty1Optional', function () {
+        TNSDerivedInterface.derivedProtocolProperty1Optional = 1;
+        UNUSED(TNSDerivedInterface.derivedProtocolProperty1Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedProtocolProperty1Optional: calledstatic derivedProtocolProperty1Optional called');
     });
     it('Derived_DerivedProtocolProperty2', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -793,6 +947,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedProtocolProperty2: calledinstance derivedProtocolProperty2 called');
     });
+    it('Derived_DerivedProtocolProperty2', function () {
+        TNSDerivedInterface.derivedProtocolProperty2 = 1;
+        UNUSED(TNSDerivedInterface.derivedProtocolProperty2);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedProtocolProperty2: calledstatic derivedProtocolProperty2 called');
+    });
     it('Derived_DerivedProtocolProperty2Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.derivedProtocolProperty2Optional = 1;
@@ -800,6 +961,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedProtocolProperty2Optional: calledinstance derivedProtocolProperty2Optional called');
+    });
+    it('Derived_DerivedProtocolProperty2Optional', function () {
+        TNSDerivedInterface.derivedProtocolProperty2Optional = 1;
+        UNUSED(TNSDerivedInterface.derivedProtocolProperty2Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedProtocolProperty2Optional: calledstatic derivedProtocolProperty2Optional called');
     });
     it('Derived_DerivedProperty', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -809,6 +977,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedProperty: calledinstance derivedProperty called');
     });
+    it('Derived_DerivedProperty', function () {
+        TNSDerivedInterface.derivedProperty = 1;
+        UNUSED(TNSDerivedInterface.derivedProperty);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedProperty: calledstatic derivedProperty called');
+    });
     it('Derived_DerivedCategoryProtocolProperty1', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.derivedCategoryProtocolProperty1 = 1;
@@ -816,6 +991,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProtocolProperty1: calledinstance derivedCategoryProtocolProperty1 called');
+    });
+    it('Derived_DerivedCategoryProtocolProperty1', function () {
+        TNSDerivedInterface.derivedCategoryProtocolProperty1 = 1;
+        UNUSED(TNSDerivedInterface.derivedCategoryProtocolProperty1);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedCategoryProtocolProperty1: calledstatic derivedCategoryProtocolProperty1 called');
     });
     it('Derived_DerivedCategoryProtocolProperty1Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -825,6 +1007,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProtocolProperty1Optional: calledinstance derivedCategoryProtocolProperty1Optional called');
     });
+    it('Derived_DerivedCategoryProtocolProperty1Optional', function () {
+        TNSDerivedInterface.derivedCategoryProtocolProperty1Optional = 1;
+        UNUSED(TNSDerivedInterface.derivedCategoryProtocolProperty1Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedCategoryProtocolProperty1Optional: calledstatic derivedCategoryProtocolProperty1Optional called');
+    });
     it('Derived_DerivedCategoryProtocolProperty2', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.derivedCategoryProtocolProperty2 = 1;
@@ -832,6 +1021,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProtocolProperty2: calledinstance derivedCategoryProtocolProperty2 called');
+    });
+    it('Derived_DerivedCategoryProtocolProperty2', function () {
+        TNSDerivedInterface.derivedCategoryProtocolProperty2 = 1;
+        UNUSED(TNSDerivedInterface.derivedCategoryProtocolProperty2);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedCategoryProtocolProperty2: calledstatic derivedCategoryProtocolProperty2 called');
     });
     it('Derived_DerivedCategoryProtocolProperty2Optional', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -841,6 +1037,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProtocolProperty2Optional: calledinstance derivedCategoryProtocolProperty2Optional called');
     });
+    it('Derived_DerivedCategoryProtocolProperty2Optional', function () {
+        TNSDerivedInterface.derivedCategoryProtocolProperty2Optional = 1;
+        UNUSED(TNSDerivedInterface.derivedCategoryProtocolProperty2Optional);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedCategoryProtocolProperty2Optional: calledstatic derivedCategoryProtocolProperty2Optional called');
+    });
     it('Derived_DerivedCategoryProperty', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.derivedCategoryProperty = 1;
@@ -849,61 +1052,11 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProperty: calledinstance derivedCategoryProperty called');
     });
-    it('methods can be recursively called', function() {
-        var result = TNSTestNativeCallbacks.callRecursively(function() {
-            return TNSTestNativeCallbacks.callRecursively(function() {
-                 return "InnerRecursiveResult";
-            });
-        });
-        expect(result).toBe("InnerRecursiveResult");
-    });
-    it('methods returning blocks can be recursively called', function() {
-        var i = 0;
-        var stack = null;
-        var log = function(message) {
-            if (stack) {
-                stack += " > " + message;
-            } else {
-                stack = message;
-            }
-        }
+    it('Derived_DerivedCategoryProperty', function () {
+        TNSDerivedInterface.derivedCategoryProperty = 1;
+        UNUSED(TNSDerivedInterface.derivedCategoryProperty);
 
-        log("start");
-        var Derived = TNSTestNativeCallbacks.extend({
-            getBlock: function() {
-                i++;
-                var that = this;
-                if (i == 1) {
-                    log("get recurse");
-                    that.getBlockFromNative()();
-                    return function() {
-                        log("f1");
-                    }
-                } else if (i == 2) {
-                    log("get recurse");
-                    that.getBlockFromNative()();
-                    return function() {
-                        log("f2");
-                    }
-                } else {
-                    log("get bottom");
-                    return function() {
-                        log("f3");
-                    }
-                }
-            }
-        });
-
-        var inst = Derived.alloc().init();
-
-        log("get");
-        var block = inst.getBlock();
-        log("exec");
-        var blockResult = block();
-        log("end");
-
-        var expectedStack = "start > get > get recurse > get recurse > get bottom > f3 > f2 > exec > f1 > end";
-
-        expect(stack).toBe(expectedStack);
+        var actual = TNSGetOutput();
+        expect(actual).toBe('static setDerivedCategoryProperty: calledstatic derivedCategoryProperty called');
     });
 });

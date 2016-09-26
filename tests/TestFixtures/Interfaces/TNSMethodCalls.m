@@ -17,12 +17,26 @@
 - (void)setBaseProtocolProperty1:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)baseProtocolProperty1 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseProtocolProperty1:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 - (int)baseProtocolProperty1Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
     return 0;
 }
 - (void)setBaseProtocolProperty1Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)baseProtocolProperty1Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseProtocolProperty1Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 - (int)baseProtocolProperty2 {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -31,6 +45,13 @@
 - (void)setBaseProtocolProperty2:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)baseProtocolProperty2 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseProtocolProperty2:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 - (int)baseProtocolProperty2Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
     return 0;
@@ -38,12 +59,26 @@
 - (void)setBaseProtocolProperty2Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)baseProtocolProperty2Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseProtocolProperty2Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 - (int)baseProperty {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
     return 0;
 }
 - (void)setBaseProperty:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)baseProperty {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseProperty:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 
 + (void)baseProtocolMethod1 {
@@ -110,6 +145,13 @@
 - (void)setBaseCategoryProtocolProperty1:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)baseCategoryProtocolProperty1 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseCategoryProtocolProperty1:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 
 - (int)baseCategoryProtocolProperty1Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -117,6 +159,13 @@
 }
 - (void)setBaseCategoryProtocolProperty1Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)baseCategoryProtocolProperty1Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseCategoryProtocolProperty1Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 
 - (int)baseCategoryProtocolProperty2 {
@@ -126,6 +175,13 @@
 - (void)setBaseCategoryProtocolProperty2:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)baseCategoryProtocolProperty2 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseCategoryProtocolProperty2:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 
 - (int)baseCategoryProtocolProperty2Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -134,6 +190,13 @@
 - (void)setBaseCategoryProtocolProperty2Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)baseCategoryProtocolProperty2Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseCategoryProtocolProperty2Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 
 - (int)baseCategoryProperty {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -141,6 +204,13 @@
 }
 - (void)setBaseCategoryProperty:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)baseCategoryProperty {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setBaseCategoryProperty:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 
 + (void)baseCategoryProtocolMethod1 {
@@ -204,12 +274,26 @@
 - (void)setDerivedProtocolProperty1:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)derivedProtocolProperty1 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedProtocolProperty1:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 - (int)derivedProtocolProperty1Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
     return 0;
 }
 - (void)setDerivedProtocolProperty1Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)derivedProtocolProperty1Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedProtocolProperty1Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 - (int)derivedProtocolProperty2 {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -218,6 +302,13 @@
 - (void)setDerivedProtocolProperty2:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)derivedProtocolProperty2 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedProtocolProperty2:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 - (int)derivedProtocolProperty2Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
     return 0;
@@ -225,12 +316,26 @@
 - (void)setDerivedProtocolProperty2Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)derivedProtocolProperty2Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedProtocolProperty2Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 - (int)derivedProperty {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
     return 0;
 }
 - (void)setDerivedProperty:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)derivedProperty {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedProperty:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 
 + (void)derivedProtocolMethod1 {
@@ -294,6 +399,13 @@
 - (void)setDerivedCategoryProtocolProperty1:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)derivedCategoryProtocolProperty1 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedCategoryProtocolProperty1:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 
 - (int)derivedCategoryProtocolProperty1Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -301,6 +413,13 @@
 }
 - (void)setDerivedCategoryProtocolProperty1Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)derivedCategoryProtocolProperty1Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedCategoryProtocolProperty1Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 
 - (int)derivedCategoryProtocolProperty2 {
@@ -310,6 +429,13 @@
 - (void)setDerivedCategoryProtocolProperty2:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)derivedCategoryProtocolProperty2 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedCategoryProtocolProperty2:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 
 - (int)derivedCategoryProtocolProperty2Optional {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -318,6 +444,13 @@
 - (void)setDerivedCategoryProtocolProperty2Optional:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
++ (int)derivedCategoryProtocolProperty2Optional {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedCategoryProtocolProperty2Optional:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
 
 - (int)derivedCategoryProperty {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -325,6 +458,13 @@
 }
 - (void)setDerivedCategoryProperty:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
++ (int)derivedCategoryProperty {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
++ (void)setDerivedCategoryProperty:(int)value {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
 
 + (void)derivedCategoryProtocolMethod1 {
