@@ -2,7 +2,7 @@ macro(GenerateMetadata _target)
     add_dependencies(${_target} MetadataGenerator)
     add_custom_command(TARGET ${_target}
         PRE_BUILD
-        COMMAND "${CMAKE_SOURCE_DIR}/build/scripts/metadata-generation-build-step"
+        COMMAND "${CMAKE_SOURCE_DIR}/build/scripts/build-step-metadata-generator.py"
         WORKING_DIRECTORY "${MetadataGenerator_BINARY_DIR}/bin"
     )
     target_link_libraries(${_target}

@@ -57,7 +57,7 @@ ExternalProject_Add(
     SOURCE_DIR ${WEBKIT_SOURCE_DIR}
     CMAKE_GENERATOR ${CMAKE_GENERATOR}
     CMAKE_ARGS ${WEBKIT_CMAKE_ARGS}
-    BUILD_COMMAND ${CMAKE_SOURCE_DIR}/build/scripts/buildWebKitFromWithinXcode.sh
+    BUILD_COMMAND ${CMAKE_SOURCE_DIR}/build/scripts/build-step-webkit.sh
     INSTALL_COMMAND ""
 )
 
