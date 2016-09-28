@@ -6,6 +6,8 @@ import shlex
 import sys
 
 
+print("Python version: " + sys.version)
+
 def env(env_name):
     return os.environ[env_name]
 
@@ -20,6 +22,13 @@ def env_or_empty(env_name):
         return ""
     return result
 
+def map_and_list(func, iterable):
+    result = map(func, iterable)
+    if sys.version_info[0] >= 3:
+        return list(result)
+    return result
+
+
 # process environment variables
 conf_build_dir = env("CONFIGURATION_BUILD_DIR")
 sdk_root = env("SDKROOT")
@@ -27,13 +36,13 @@ deployment_target_flag_name = env("DEPLOYMENT_TARGET_CLANG_FLAG_NAME")
 deployment_target = env(env("DEPLOYMENT_TARGET_CLANG_ENV_NAME"))
 std = env("GCC_C_LANGUAGE_STANDARD")
 header_search_paths = env_or_empty("HEADER_SEARCH_PATHS")
-header_search_paths_parsed = map((lambda s: "-I" + s), shlex.split(header_search_paths))
+header_search_paths_parsed = map_and_list((lambda s: "-I" + s), shlex.split(header_search_paths))
 framework_search_paths = env_or_empty("FRAMEWORK_SEARCH_PATHS")
-framework_search_paths_parsed = map((lambda s: "-F" + s), shlex.split(framework_search_paths))
+framework_search_paths_parsed = map_and_list((lambda s: "-F" + s), shlex.split(framework_search_paths))
 other_cflags = env_or_empty("OTHER_CFLAGS")
 other_cflags_parsed = shlex.split(other_cflags)
 preprocessor_defs = env_or_empty("GCC_PREPROCESSOR_DEFINITIONS")
-preprocessor_defs_parsed = map((lambda s: "-D" + s), shlex.split(preprocessor_defs, '\''))
+preprocessor_defs_parsed = map_and_list((lambda s: "-D" + s), shlex.split(preprocessor_defs, '\''))
 typescript_output_folder = env_or_none("TNS_TYPESCRIPT_DECLARATIONS_PATH")
 docset_platform = "iOS"
 effective_platofrm_name = env("EFFECTIVE_PLATFORM_NAME")
