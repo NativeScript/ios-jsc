@@ -52,7 +52,7 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
 
         WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
 
-        this.contentTreeOutline.onselect = this._treeElementSelected.bind(this);
+        this.contentTreeOutline.addEventListener(WebInspector.TreeOutline.Event.SelectionDidChange, this._treeSelectionDidChange, this);
     }
 
     // Public
@@ -124,14 +124,14 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
             if (error)
                 return;
 
-            function resourceCallback(url, error, resourceMatches)
+            function resourceCallback(frameId, url, error, resourceMatches)
             {
                 updateEmptyContentPlaceholderSoon.call(this);
 
                 if (error || !resourceMatches || !resourceMatches.length)
                     return;
 
-                var frame = WebInspector.frameResourceManager.frameForIdentifier(searchResult.frameId);
+                var frame = WebInspector.frameResourceManager.frameForIdentifier(frameId);
                 if (!frame)
                     return;
 
@@ -160,7 +160,8 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
                 if (!searchResult.url || !searchResult.frameId)
                     continue;
 
-                PageAgent.searchInResource(searchResult.frameId, searchResult.url, searchQuery, isCaseSensitive, isRegex, resourceCallback.bind(this, searchResult.url));
+                // COMPATIBILITY (iOS 9): Page.searchInResources did not have the optional requestId parameter.
+                PageAgent.searchInResource(searchResult.frameId, searchResult.url, searchQuery, isCaseSensitive, isRegex, searchResult.requestId, resourceCallback.bind(this, searchResult.frameId, searchResult.url));
             }
         }
 
@@ -270,7 +271,7 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
         if (window.PageAgent)
             PageAgent.searchInResources(searchQuery, isCaseSensitive, isRegex, resourcesCallback.bind(this));
 
-        setTimeout(searchScripts.bind(this, WebInspector.debuggerManager.knownNonResourceScripts), 0);
+        setTimeout(searchScripts.bind(this, WebInspector.debuggerManager.searchableScripts), 0);
 
         if (window.DOMAgent) {
             if (this._domSearchIdentifier) {
@@ -346,9 +347,10 @@ WebInspector.SearchSidebarPanel = class SearchSidebarPanel extends WebInspector.
             this.focusSearchField();
     }
 
-    _treeElementSelected(treeElement, selectedByUser)
+    _treeSelectionDidChange(event)
     {
-        if (treeElement instanceof WebInspector.FolderTreeElement)
+        let treeElement = event.data.selectedElement;
+        if (!treeElement || treeElement instanceof WebInspector.FolderTreeElement)
             return;
 
         if (treeElement instanceof WebInspector.ResourceTreeElement || treeElement instanceof WebInspector.ScriptTreeElement) {

@@ -23,21 +23,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.object-tree-array-index {
+.tree-outline .item.object-tree-array-index {
     position: relative;
     left: -12px;
     margin-top: 2px;
     margin-bottom: 1px;
 }
 
-.object-tree .object-tree-array-index > .disclosure-button,
 .object-tree .object-tree-array-index > .icon {
     display: none;
 }
 
 .object-tree-array-index .index-name {
-    font-family: -apple-system-monospaced-numbers, sans-serif;
+    font-family: -apple-system, sans-serif;
     font-size: 11px;
+    font-variant-numeric: tabular-nums;
     vertical-align: top;
     color: var(--console-secondary-text-color);
 
@@ -46,12 +46,11 @@
 
     display: inline-block;
     width: 30px;
-    margin-right: 7px;
     text-align: right;
 }
 
 /* An array inside an array we should reduce the padding-start. */
-.object-tree-array-index .index-value .object-tree .object-tree-outline {
+.object-tree-array-index .index-value .object-tree .tree-outline.object {
     -webkit-padding-start: 6px;
 }
 
@@ -61,6 +60,6 @@
 }
 
 /* A node inside an array we should reduce the padding-start. */
-.object-tree-array-index .index-value .formatted-node .dom-tree-outline {
+.object-tree-array-index .index-value .formatted-node .tree-outline.dom {
     -webkit-padding-start: 0px;
 }

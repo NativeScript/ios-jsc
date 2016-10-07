@@ -42,6 +42,7 @@ WebInspector.loaded = function()
     InspectorBackend.registerNetworkDispatcher(new WebInspector.NetworkObserver);
     InspectorBackend.registerDebuggerDispatcher(new WebInspector.DebuggerObserver);
     InspectorBackend.registerHeapDispatcher(new WebInspector.HeapObserver);
+    InspectorBackend.registerDOMStorageDispatcher(new WebInspector.DOMStorageObserver);
     InspectorBackend.registerTimelineDispatcher(new WebInspector.TimelineObserver);
     InspectorBackend.registerCSSDispatcher(new WebInspector.CSSObserver);
     InspectorBackend.registerRuntimeDispatcher(new WebInspector.RuntimeObserver);
@@ -50,19 +51,18 @@ WebInspector.loaded = function()
 
     // Instantiate controllers used by tests.
     this.frameResourceManager = new WebInspector.FrameResourceManager;
+    this.storageManager = new WebInspector.StorageManager;
     this.domTreeManager = new WebInspector.DOMTreeManager;
     this.cssStyleManager = new WebInspector.CSSStyleManager;
     this.logManager = new WebInspector.LogManager;
     this.issueManager = new WebInspector.IssueManager;
     this.runtimeManager = new WebInspector.RuntimeManager;
     this.heapManager = new WebInspector.HeapManager;
+    this.memoryManager = new WebInspector.MemoryManager;
     this.timelineManager = new WebInspector.TimelineManager;
     this.debuggerManager = new WebInspector.DebuggerManager;
     this.probeManager = new WebInspector.ProbeManager;
     this.replayManager = new WebInspector.ReplayManager;
-
-    // Global controllers.
-    this.quickConsole = {executionContextIdentifier: undefined};
 
     document.addEventListener("DOMContentLoaded", this.contentLoaded);
 
@@ -75,7 +75,7 @@ WebInspector.loaded = function()
 
     // Global settings.
     this.showShadowDOMSetting = new WebInspector.Setting("show-shadow-dom", true);
-}
+};
 
 WebInspector.contentLoaded = function()
 {
@@ -85,13 +85,16 @@ WebInspector.contentLoaded = function()
     // Tell the InspectorFrontendHost we loaded, which causes the window to display
     // and pending InspectorFrontendAPI commands to be sent.
     InspectorFrontendHost.loaded();
-}
+};
+
+WebInspector.isDebugUIEnabled = () => false;
 
 WebInspector.UIString = (string) => string;
 
 // Add stubs that are called by the frontend API.
 WebInspector.updateDockedState = () => {};
 WebInspector.updateDockingAvailability = () => {};
+WebInspector.updateVisibilityState = () => {};
 
 window.InspectorTest = new FrontendTestHarness();
 

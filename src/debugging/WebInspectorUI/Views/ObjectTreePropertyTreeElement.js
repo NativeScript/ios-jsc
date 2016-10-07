@@ -272,7 +272,7 @@ WebInspector.ObjectTreePropertyTreeElement = class ObjectTreePropertyTreeElement
             }
 
             // Native DOM constructor or on native objects that are not functions.
-            if (parentDescription.endsWith("Constructor") || parentDescription === "Math" || parentDescription === "JSON") {
+            if (parentDescription.endsWith("Constructor") || ["Math", "JSON", "Reflect", "Console"].includes(parentDescription)) {
                 var name = parentDescription;
                 if (WebInspector.NativeConstructorFunctionParameters[name]) {
                     var params = WebInspector.NativeConstructorFunctionParameters[name][this._property.name];
@@ -344,10 +344,10 @@ WebInspector.ObjectTreePropertyTreeElement = class ObjectTreePropertyTreeElement
 
         // Show the prototype so users can see the API.
         var resolvedValue = this.resolvedValue();
-        resolvedValue.getOwnPropertyDescriptor("__proto__", function(propertyDescriptor) {
+        resolvedValue.getOwnPropertyDescriptor("__proto__", (propertyDescriptor) => {
             if (propertyDescriptor)
                 this.appendChild(new WebInspector.ObjectTreePropertyTreeElement(propertyDescriptor, propertyPath, mode));
-        }.bind(this));
+        });
     }
 
     _updateProperties(properties, propertyPath, mode)

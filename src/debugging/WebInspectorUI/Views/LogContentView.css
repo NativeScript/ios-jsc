@@ -58,7 +58,7 @@
 }
 
 .content-view.log {
-    overflow-y: overlay;
+    overflow-y: auto;
     overflow-x: hidden;
 }
 
@@ -107,7 +107,7 @@
     content: "";
     left: 0;
     top: -1px;
-    bottom: -1px;
+    bottom: 0;
     background: hsl(0, 0%, 60%);
     width: 2px;
     z-index: 10;
@@ -164,8 +164,22 @@
     position: relative;
 }
 
-.console-session + .console-session {
-    border-top: 3px dashed hsl(0, 0%, 94%);
+.console-session-header {
+    text-align: center;
+    padding: 6px 0;
+}
+
+.console-session:first-of-type .console-session-header {
+    color: hsl(0, 0%, 60%);
+}
+
+.console-session:not(:first-of-type) {
+    border-top: 0.5px dashed var(--border-color);
+}
+
+.console-session:not(:first-of-type) .console-session-header {
+    color: hsl(0, 0%, 30%);
+    background-color: hsl(0, 0%, 95%);
 }
 
 .console-messages a {
@@ -197,6 +211,14 @@
 
 .search-in-progress .console-item:not(.filtered-out-by-search) .highlighted.selected {
     background-color: hsla(53, 83%, 53%, 0.75);
+}
+
+.search-in-progress .console-item:not(.filtered-out-by-search).special-user-log .console-message-text .highlighted {
+    color: var(--selected-foreground-color);
+    background-color: var(--selected-background-color-highlight);
+
+    border-bottom: none;
+    text-decoration: underline;
 }
 
 .console-user-command::before,

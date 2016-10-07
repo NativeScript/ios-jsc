@@ -40,8 +40,7 @@ WebInspector.BreakpointPopoverController = class BreakpointPopoverController ext
     {
         console.assert(document.body.contains(breakpointDisplayElement), "Breakpoint popover display element must be in the DOM.");
 
-        function editBreakpoint()
-        {
+        const editBreakpoint = () => {
             console.assert(!this._popover, "Breakpoint popover already exists.");
             if (this._popover)
                 return;
@@ -53,50 +52,46 @@ WebInspector.BreakpointPopoverController = class BreakpointPopoverController ext
             let bounds = WebInspector.Rect.rectFromClientRect(breakpointDisplayElement.getBoundingClientRect());
             bounds.origin.x -= 1; // Move the anchor left one pixel so it looks more centered.
             this._popover.present(bounds.pad(2), [WebInspector.RectEdge.MAX_Y]);
-        }
+        };
 
-        function removeBreakpoint()
-        {
+        const removeBreakpoint = () => {
             WebInspector.debuggerManager.removeBreakpoint(breakpoint);
-        }
+        };
 
-        function toggleBreakpoint()
-        {
+        const toggleBreakpoint = () => {
             breakpoint.disabled = !breakpoint.disabled;
-        }
+        };
 
-        function toggleAutoContinue()
-        {
+        const toggleAutoContinue = () => {
             breakpoint.autoContinue = !breakpoint.autoContinue;
-        }
+        };
 
-        function revealOriginalSourceCodeLocation()
-        {
+        const revealOriginalSourceCodeLocation = () => {
             WebInspector.showOriginalOrFormattedSourceCodeLocation(breakpoint.sourceCodeLocation);
-        }
+        };
 
         if (WebInspector.debuggerManager.isBreakpointEditable(breakpoint))
-            contextMenu.appendItem(WebInspector.UIString("Edit Breakpoint…"), editBreakpoint.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Edit Breakpoint…"), editBreakpoint);
 
         if (breakpoint.autoContinue && !breakpoint.disabled) {
-            contextMenu.appendItem(WebInspector.UIString("Disable Breakpoint"), toggleBreakpoint.bind(this));
-            contextMenu.appendItem(WebInspector.UIString("Cancel Automatic Continue"), toggleAutoContinue.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Disable Breakpoint"), toggleBreakpoint);
+            contextMenu.appendItem(WebInspector.UIString("Cancel Automatic Continue"), toggleAutoContinue);
         } else if (!breakpoint.disabled)
-            contextMenu.appendItem(WebInspector.UIString("Disable Breakpoint"), toggleBreakpoint.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Disable Breakpoint"), toggleBreakpoint);
         else
-            contextMenu.appendItem(WebInspector.UIString("Enable Breakpoint"), toggleBreakpoint.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Enable Breakpoint"), toggleBreakpoint);
 
         if (!breakpoint.autoContinue && !breakpoint.disabled && breakpoint.actions.length)
-            contextMenu.appendItem(WebInspector.UIString("Set to Automatically Continue"), toggleAutoContinue.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Set to Automatically Continue"), toggleAutoContinue);
 
         if (WebInspector.debuggerManager.isBreakpointRemovable(breakpoint)) {
             contextMenu.appendSeparator();
-            contextMenu.appendItem(WebInspector.UIString("Delete Breakpoint"), removeBreakpoint.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Delete Breakpoint"), removeBreakpoint);
         }
 
         if (breakpoint._sourceCodeLocation.hasMappedLocation()) {
             contextMenu.appendSeparator();
-            contextMenu.appendItem(WebInspector.UIString("Reveal in Original Resource"), revealOriginalSourceCodeLocation.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Reveal in Original Resource"), revealOriginalSourceCodeLocation);
         }
     }
 
@@ -166,10 +161,10 @@ WebInspector.BreakpointPopoverController = class BreakpointPopoverController ext
         completionController.addExtendedCompletionProvider("javascript", WebInspector.javaScriptRuntimeCompletionProvider);
 
         // CodeMirror needs a refresh after the popover displays, to layout, otherwise it doesn't appear.
-        setTimeout(function() {
+        setTimeout(() => {
             this._conditionCodeMirror.refresh();
             this._conditionCodeMirror.focus();
-        }.bind(this), 0);
+        }, 0);
 
         // COMPATIBILITY (iOS 7): Debugger.setBreakpoint did not support options.
         if (DebuggerAgent.setBreakpoint.supports("options")) {
@@ -185,13 +180,14 @@ WebInspector.BreakpointPopoverController = class BreakpointPopoverController ext
                 this._ignoreCountInput.id = "edit-breakpoint-popover-ignore";
                 this._ignoreCountInput.type = "number";
                 this._ignoreCountInput.min = 0;
-                this._ignoreCountInput.value = this._ignoreCount || 0;
+                this._ignoreCountInput.value = 0;
                 this._ignoreCountInput.addEventListener("change", this._popoverIgnoreInputChanged.bind(this));
 
-                let ignoreCountText = ignoreCountData.appendChild(document.createElement("span"));
                 ignoreCountLabel.setAttribute("for", this._ignoreCountInput.id);
                 ignoreCountLabel.textContent = WebInspector.UIString("Ignore");
-                ignoreCountText.textContent = WebInspector.UIString("times before stopping");
+
+                this._ignoreCountText = ignoreCountData.appendChild(document.createElement("span"));
+                this._updateIgnoreCountText();
             }
 
             let actionRow = table.appendChild(document.createElement("tr"));
@@ -243,13 +239,19 @@ WebInspector.BreakpointPopoverController = class BreakpointPopoverController ext
 
     _conditionCodeMirrorBeforeChange(codeMirror, change)
     {
-        let newText = change.text.join("").replace(/\n/g, "");
-        change.update(change.from, change.to, [newText]);
+        if (change.update) {
+            let newText = change.text.join("").replace(/\n/g, "");
+            change.update(change.from, change.to, [newText]);
+        }
+
         return true;
     }
 
     _conditionCodeMirrorEscapeOrEnterKey()
     {
+        if (!this._popover)
+            return;
+
         this._popover.dismiss();
     }
 
@@ -264,6 +266,8 @@ WebInspector.BreakpointPopoverController = class BreakpointPopoverController ext
 
         this._ignoreCountInput.value = ignoreCount;
         this._breakpoint.ignoreCount = ignoreCount;
+
+        this._updateIgnoreCountText();
     }
 
     _popoverToggleAutoContinueCheckboxChanged(event)
@@ -301,6 +305,14 @@ WebInspector.BreakpointPopoverController = class BreakpointPopoverController ext
             let nextElement = this._actionsContainer.children[index + 1] || null;
             this._actionsContainer.insertBefore(breakpointActionView.element, nextElement);
         }
+    }
+
+    _updateIgnoreCountText()
+    {
+        if (this._breakpoint.ignoreCount === 1)
+            this._ignoreCountText.textContent = WebInspector.UIString("time before stopping");
+        else
+            this._ignoreCountText.textContent = WebInspector.UIString("times before stopping");
     }
 
     breakpointActionViewAppendActionView(breakpointActionView, newAction)

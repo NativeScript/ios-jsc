@@ -23,9 +23,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 .sidebar > .panel.navigation.debugger > :matches(.content, .empty-content-placeholder) {
-    top: 29px;
+    top: var(--navigation-bar-height);
 }
 
 .sidebar > .panel.navigation.debugger > .navigation-bar {
@@ -33,6 +32,22 @@
     top: 0;
     left: 0;
     right: 0;
+}
+
+.sidebar > .panel.navigation.debugger .warning-banner {
+    text-align: center;
+    font-size: 11px;
+
+    padding: 11px 6px;
+    margin-bottom: 6px;
+
+    border-bottom: 1px solid var(--border-color);
+    background-color: hsl(50, 100%, 94%);
+}
+
+.sidebar > .panel.navigation.debugger .warning-banner > a {
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .sidebar > .panel.navigation.debugger .details-section {
@@ -47,31 +62,10 @@
     display: none;
 }
 
-
 .sidebar > .panel.navigation.debugger .details-section > .content > .group {
     display: block;
 }
 
-.sidebar > .panel.navigation.debugger .details-section.scripts {
+.sidebar > .panel.navigation.debugger .details-section.scripts:not(.collapsed) {
     border-bottom: none;
-}
-
-.sidebar > .panel.navigation.debugger.paused .details-section.scripts {
-    border-bottom: 1px solid hsl(0, 0%, 70%);
-}
-
-.sidebar > .panel.navigation.debugger .details-section.scripts .header {
-    display: none;
-}
-
-.sidebar > .panel.navigation.debugger.paused .details-section.scripts .header {
-    display: block;
-}
-
-.sidebar > .panel.navigation.debugger .details-section.scripts.collapsed > .content {
-    display: block;
-}
-
-.sidebar > .panel.navigation.debugger.paused .details-section.scripts.collapsed > .content {
-    display: none;
 }

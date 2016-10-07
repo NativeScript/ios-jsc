@@ -31,7 +31,7 @@ WebInspector.ApplicationCacheFrameContentView = class ApplicationCacheFrameConte
 
         super(representedObject);
 
-        this.element.classList.add("application-cache-frame", "table");
+        this.element.classList.add("application-cache-frame");
 
         this._frame = representedObject.frame;
 
@@ -164,6 +164,7 @@ WebInspector.ApplicationCacheFrameContentView = class ApplicationCacheFrameConte
 
         this._dataGrid.sortColumnIdentifier = "url";
         this._dataGrid.sortOrder = WebInspector.DataGrid.SortOrder.Ascending;
+        this._dataGrid.createSettings("application-cache-frame-content-view");
 
         this.addSubview(this._dataGrid);
         this._dataGrid.updateLayout();
@@ -185,7 +186,7 @@ WebInspector.ApplicationCacheFrameContentView = class ApplicationCacheFrameConte
             case "type": comparator = localeCompare.bind(this, "type"); break;
             case "size": comparator = numberCompare.bind(this, "size"); break;
             case "url":
-            default:  comparator = localeCompare.bind(this, "url"); break;
+            default: comparator = localeCompare.bind(this, "url"); break;
         }
 
         this._dataGrid.sortNodes(comparator);

@@ -52,7 +52,7 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
             else {
                 this._possibleValues.basic = canonicalizeValues(possibleValues.basic);
                 this._possibleValues.advanced = canonicalizeValues(possibleValues.advanced);
-            } 
+            }
         }
         this._possibleUnits = null;
         if (possibleUnits) {
@@ -62,36 +62,31 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
             else
                 this._possibleUnits = possibleUnits;
         }
+        this._dependencies = new Map;
 
         this._element = document.createElement("div");
         this._element.classList.add("visual-style-property-container", className);
         this._element.classList.toggle("layout-reversed", !!layoutReversed);
 
         if (label && label.length) {
-            let titleContainer = document.createElement("div");
-            titleContainer.classList.add("visual-style-property-title");
+            let titleContainer = this._element.createChild("div", "visual-style-property-title");
 
-            this._titleElement = document.createElement("span");
-            this._titleElement.appendChild(document.createTextNode(label));
+            this._titleElement = titleContainer.createChild("span");
+            this._titleElement.append(label);
+            this._titleElement.title = label;
             this._titleElement.addEventListener("mouseover", this._titleElementMouseOver.bind(this));
             this._titleElement.addEventListener("mouseout", this._titleElementMouseOut.bind(this));
             this._titleElement.addEventListener("click", this._titleElementClick.bind(this));
-            titleContainer.appendChild(this._titleElement);
-
-            this._element.appendChild(titleContainer);
 
             this._boundTitleElementPrepareForClick = this._titleElementPrepareForClick.bind(this);
         }
 
-        this._contentElement = document.createElement("div");
-        this._contentElement.classList.add("visual-style-property-value-container");
+        this._contentElement = this._element.createChild("div", "visual-style-property-value-container");
 
-        this._specialPropertyPlaceholderElement = document.createElement("span");
-        this._specialPropertyPlaceholderElement.classList.add("visual-style-special-property-placeholder");
+        this._specialPropertyPlaceholderElement = this._contentElement.createChild("span", "visual-style-special-property-placeholder");
         this._specialPropertyPlaceholderElement.hidden = true;
-        this._contentElement.appendChild(this._specialPropertyPlaceholderElement);
 
-        this._element.appendChild(this._contentElement);
+        this._warningElement = this._element.createChild("div", "visual-style-property-editor-warning");
 
         this._updatedValues = {};
         this._lastValue = null;
@@ -110,7 +105,7 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
                 name,
                 textContainsNameRegExp: new RegExp("(?:(?:^|;)\\s*" + name + "\\s*:)"),
                 replacementRegExp: new RegExp("((?:^|;)\\s*)(" + name + ")(.+?(?:;|$))")
-            })
+            });
         }
 
         this._propertyReferenceName = propertyNames[0];
@@ -295,6 +290,13 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
             if (!propertyMissing && property && property.anonymous)
                 this._representedProperty = property;
 
+            if (!propertyMissing && property && !property.valid) {
+                this._element.classList.add("invalid-value");
+                this._warningElement.title = WebInspector.UIString("The value “%s” is not supported for this property.").format(propertyText);
+                this.specialPropertyPlaceholderElementText = propertyText;
+                return;
+            }
+
             let newValues = this.getValuesFromText(propertyText, propertyMissing);
             if (this._updatedValues.placeholder && this._updatedValues.placeholder !== newValues.placeholder)
                 propertyValuesConflict = true;
@@ -304,7 +306,7 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
 
             if (propertyValuesConflict) {
                 this._updatedValues.conflictingValues = true;
-                this._specialPropertyPlaceholderElement.textContent = WebInspector.UIString("(multiple)");
+                this.specialPropertyPlaceholderElementText = WebInspector.UIString("(multiple)");
                 break;
             }
         }
@@ -323,6 +325,9 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
 
         this._lastValue = this.synthesizedValue;
         this.disabled = false;
+
+        this._element.classList.remove("invalid-value");
+        this._checkDependencies();
     }
 
     resetEditorValues(value)
@@ -379,7 +384,6 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
         if (!this._possibleValues)
             return false;
 
-        value = value || this.value;
         if (Object.keys(this._possibleValues.basic).includes(value))
             return true;
 
@@ -391,11 +395,22 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
         if (!this._possibleUnits)
             return false;
 
-        unit = unit || this.units;
         if (this._possibleUnits.basic.includes(unit))
             return true;
 
         return this._valueIsSupportedAdvancedUnit(unit);
+    }
+
+    addDependency(propertyNames, propertyValues)
+    {
+        if (!propertyNames || !propertyNames.length || !propertyValues || !propertyValues.length)
+            return;
+
+        if (!Array.isArray(propertyNames))
+            propertyNames = [propertyNames];
+
+        for (let property of propertyNames)
+            this._dependencies.set(property, propertyValues);
     }
 
     // Protected
@@ -410,6 +425,15 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
         return this._specialPropertyPlaceholderElement;
     }
 
+    set specialPropertyPlaceholderElementText(text)
+    {
+        if (!text || !text.length)
+            return;
+
+        this._specialPropertyPlaceholderElement.hidden = false;
+        this._specialPropertyPlaceholderElement.textContent = text;
+    }
+
     parseValue(text)
     {
         return /^([^;]+)\s*;?$/.exec(text);
@@ -419,12 +443,12 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
 
     _valueIsSupportedAdvancedKeyword(value)
     {
-        return this._possibleValues.advanced && Object.keys(this._possibleValues.advanced).includes(value || this.value);
+        return this._possibleValues.advanced && Object.keys(this._possibleValues.advanced).includes(value);
     }
 
     _valueIsSupportedAdvancedUnit(unit)
     {
-        return this._possibleUnits.advanced && this._possibleUnits.advanced.includes(unit || this.units);
+        return this._possibleUnits.advanced && this._possibleUnits.advanced.includes(unit);
     }
 
     _canonicalizedKeywordForKey(value)
@@ -476,6 +500,9 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
         this._ignoreNextUpdate = true;
         this._specialPropertyPlaceholderElement.hidden = true;
 
+        this._checkDependencies();
+        this._element.classList.remove("invalid-value");
+
         this.dispatchEventToListeners(WebInspector.VisualStylePropertyEditor.Event.ValueDidChange);
         return true;
     }
@@ -495,6 +522,34 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
                 longhandText += longhandProperty.synthesizedText;
         }
         return longhandText ? text.replace(shorthand.text, longhandText) : text;
+    }
+
+    _hasMultipleConflictingValues()
+    {
+        return this._hasMultipleProperties && !this._specialPropertyPlaceholderElement.hidden;
+    }
+
+    _checkDependencies()
+    {
+        if (!this._dependencies.size || !this._style || !this.synthesizedValue) {
+            this._element.classList.remove("missing-dependency");
+            return;
+        }
+
+        let title = "";
+
+        let dependencies = this._style.nodeStyles.computedStyle.properties.filter((property) => {
+            return this._dependencies.has(property.name) || this._dependencies.has(property.canonicalName);
+        });
+
+        for (let property of dependencies) {
+            let dependencyValues = this._dependencies.get(property.name);
+            if (!dependencyValues.includes(property.value))
+                title += "\n " + property.name + ": " + dependencyValues.join("/");
+        }
+
+        this._element.classList.toggle("missing-dependency", !!title.length);
+        this._warningElement.title = title.length ? WebInspector.UIString("Missing Dependencies:%s").format(title) : null;
     }
 
     _titleElementPrepareForClick(event)
@@ -528,11 +583,6 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
             this._showPropertyInfoPopover();
     }
 
-    _hasMultipleConflictingValues()
-    {
-        return this._hasMultipleProperties && !this._specialPropertyPlaceholderElement.hidden;
-    }
-
     _showPropertyInfoPopover()
     {
         if (!this._hasPropertyReference)
@@ -551,6 +601,10 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
         let popover = new WebInspector.Popover(this);
         popover.content = propertyInfoElement;
         popover.present(bounds.pad(2), [WebInspector.RectEdge.MIN_Y]);
+        popover.windowResizeHandler = () => {
+            let bounds = WebInspector.Rect.rectFromClientRect(this._titleElement.getBoundingClientRect());
+            popover.present(bounds.pad(2), [WebInspector.RectEdge.MIN_Y]);
+        };
     }
 
     _toggleTabbingOfSelectableElements(disabled)
@@ -561,4 +615,4 @@ WebInspector.VisualStylePropertyEditor = class VisualStylePropertyEditor extends
 
 WebInspector.VisualStylePropertyEditor.Event = {
     ValueDidChange: "visual-style-property-editor-value-changed"
-}
+};

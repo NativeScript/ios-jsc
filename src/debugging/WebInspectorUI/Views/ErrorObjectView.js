@@ -33,6 +33,9 @@ WebInspector.ErrorObjectView = class ErrorObjectView extends WebInspector.Object
 
         this._object = object;
 
+        this._expanded = false;
+        this._hasStackTrace = false;
+
         this._element = document.createElement("div");
         this._element.classList.add("error-object");
         var previewElement = WebInspector.FormattedValue.createElementForError(this._object);
@@ -40,7 +43,6 @@ WebInspector.ErrorObjectView = class ErrorObjectView extends WebInspector.Object
         previewElement.addEventListener("click", this._handlePreviewOrTitleElementClick.bind(this));
 
         this._outlineElement = this._element.appendChild(document.createElement("div"));
-        this._outlineElement.classList.add("error-object-outline");
         this._outline = new WebInspector.TreeOutline(this._outlineElement);
     }
 
@@ -86,14 +88,14 @@ WebInspector.ErrorObjectView = class ErrorObjectView extends WebInspector.Object
 
     update()
     {
-        this._object.getOwnPropertyDescriptorsAsObject(function(properties) {
+        this._object.getOwnPropertyDescriptorsAsObject((properties) => {
             console.assert(properties && properties.stack && properties.stack.value);
 
             if (!this._hasStackTrace)
                 this._buildStackTrace(properties.stack.value.value);
 
             this._hasStackTrace = true;
-        }.bind(this));
+        });
     }
 
     expand()
@@ -103,9 +105,6 @@ WebInspector.ErrorObjectView = class ErrorObjectView extends WebInspector.Object
 
         this._expanded = true;
         this._element.classList.add("expanded");
-
-        if (this._previewView)
-            this._previewView.showTitle();
 
         this.update();
     }
@@ -117,9 +116,11 @@ WebInspector.ErrorObjectView = class ErrorObjectView extends WebInspector.Object
 
         this._expanded = false;
         this._element.classList.remove("expanded");
+    }
 
-        if (this._previewView)
-            this._previewView.showPreview();
+    appendTitleSuffix(suffixElement)
+    {
+        this._element.insertBefore(suffixElement, this._outlineElement);
     }
 
     // Private

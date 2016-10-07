@@ -50,6 +50,7 @@
     width: 1px; /* Shrink to fit. */
     vertical-align: top;
     line-height: 23px;
+    white-space: nowrap;
 }
 
 .popover .edit-breakpoint-popover-content > table > tr > td {
@@ -67,6 +68,10 @@
 .edit-breakpoint-popover-condition > .CodeMirror {
     width: 320px; /* NOTE: Fixed value, manually tuned to .edit-breakpoint-popover-content width. */
     height: auto;
+}
+
+.wide .edit-breakpoint-popover-condition > .CodeMirror {
+    width: 360px; /* NOTE: Fixed value, manually tuned to .edit-breakpoint-popover-content width. */
 }
 
 #edit-breakpoint-popover-ignore {

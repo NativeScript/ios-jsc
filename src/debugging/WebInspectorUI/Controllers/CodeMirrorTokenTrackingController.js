@@ -164,6 +164,8 @@ WebInspector.CodeMirrorTokenTrackingController = class CodeMirrorTokenTrackingCo
         // Nothing to do if we're trying to highlight the same range.
         if (this._codeMirrorMarkedText && this._codeMirrorMarkedText.className === this._classNameForHighlightedRange) {
             var highlightedRange = this._codeMirrorMarkedText.find();
+            if (!highlightedRange)
+                return;
             if (WebInspector.compareCodeMirrorPositions(highlightedRange.from, range.start) === 0 &&
                 WebInspector.compareCodeMirrorPositions(highlightedRange.to, range.end) === 0)
                 return;
@@ -274,8 +276,6 @@ WebInspector.CodeMirrorTokenTrackingController = class CodeMirrorTokenTrackingCo
             const forceHidePopover = true;
             this._delegate.tokenTrackingControllerHighlightedRangeReleased(this, forceHidePopover);
         }
-
-        this._candidate = null;
     }
 
     _mouseEntered(event)
@@ -509,9 +509,11 @@ WebInspector.CodeMirrorTokenTrackingController = class CodeMirrorTokenTrackingCo
             // Peek ahead to see if the next token is "}" or ",". If it is, we are a shorthand and therefore a variable.
             let shorthand = false;
             let mode = tokenInfo.innerMode.mode;
-            let position =  {line: tokenInfo.position.line, ch: tokenInfo.token.end};
+            let position = {line: tokenInfo.position.line, ch: tokenInfo.token.end};
             WebInspector.walkTokens(this._codeMirror, mode, position, function(tokenType, string) {
                 if (tokenType)
+                    return false;
+                if (string === "(")
                     return false;
                 if (string === "," || string === "}") {
                     shorthand = true;

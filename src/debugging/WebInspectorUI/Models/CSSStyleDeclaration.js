@@ -85,7 +85,7 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
             return this._ownerRule && this._ownerRule.editable;
 
         if (this._type === WebInspector.CSSStyleDeclaration.Type.Inline)
-            return !this._node.isInShadowTree();
+            return !this._node.isInUserAgentShadowTree();
 
         return false;
     }
@@ -186,11 +186,11 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
         if (this._text === text)
             return;
 
-        let trimmedText = text.trim();
+        let trimmedText = WebInspector.CSSStyleDeclarationTextEditor.PrefixWhitespace + text.trim();
         if (this._text === trimmedText)
             return;
 
-        if (!trimmedText.length || this._type === WebInspector.CSSStyleDeclaration.Type.Inline)
+        if (trimmedText === WebInspector.CSSStyleDeclarationTextEditor.PrefixWhitespace || this._type === WebInspector.CSSStyleDeclaration.Type.Inline)
             text = trimmedText;
 
         let modified = text !== this._initialText;
@@ -330,6 +330,16 @@ WebInspector.CSSStyleDeclaration = class CSSStyleDeclaration extends WebInspecto
         styleText += "}";
 
         return styleText;
+    }
+
+    isInspectorRule()
+    {
+        return this._ownerRule && this._ownerRule.type === WebInspector.CSSStyleSheet.Type.Inspector;
+    }
+
+    hasProperties()
+    {
+        return !!this._properties.length;
     }
 
     // Protected

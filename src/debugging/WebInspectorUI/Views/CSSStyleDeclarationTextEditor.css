@@ -37,7 +37,7 @@
 }
 
 .css-style-text-editor > .CodeMirror .CodeMirror-placeholder {
-    padding: 0 5px 0 25px;
+    text-indent: 0;
 }
 
 .css-style-text-editor > .CodeMirror pre {
@@ -91,32 +91,6 @@
     filter: brightness(0.9);
 }
 
-.css-style-text-editor > .CodeMirror .CodeMirror-lines .cubic-bezier-marker {
-    width: 11px;
-    height: 11px;
-    margin-right: 2px;
-    vertical-align: -2px;
-    content: url(../Images/CubicBezier.svg);
-    cursor: default;
-}
-
-@media (-webkit-max-device-pixel-ratio: 1) {
-    /* Ensure the bezier marker is even by even so it looks a bit less blurry. */
-    .css-style-text-editor > .CodeMirror .CodeMirror-lines .cubic-bezier-marker {
-        vertical-align: -1px;
-        width: 10px;
-        height: 10px;
-    }
-}
-
-.css-style-text-editor > .CodeMirror .CodeMirror-lines .cubic-bezier-marker:hover {
-    filter: brightness(0.9);
-}
-
-.css-style-text-editor > .CodeMirror .CodeMirror-lines .cubic-bezier-marker:active {
-    filter: brightness(0.8);
-}
-
 .computed .css-style-text-editor > .CodeMirror .CodeMirror-lines .css-style-declaration-property.implicit,
 .css-style-text-editor > .CodeMirror .CodeMirror-lines .css-style-declaration-property.not-inherited {
     opacity: 0.5;
@@ -148,55 +122,6 @@
 .css-style-text-editor > .CodeMirror.CodeMirror-focused .CodeMirror-lines input[type=checkbox],
 .css-style-text-editor:hover > .CodeMirror .CodeMirror-lines input[type=checkbox] {
     visibility: visible;
-}
-
-.css-style-text-editor > .CodeMirror .CodeMirror-lines .color-swatch {
-    display: inline-block;
-
-    margin-right: 3px;
-    vertical-align: -2px;
-
-    width: 1em;
-    height: 1em;
-
-    position: relative;
-
-    /* Make a checkered background for transparent colors to show against. */
-    background-image: linear-gradient(to bottom, hsl(0, 0%, 80%), hsl(0, 0%, 80%)),
-        linear-gradient(to bottom, hsl(0, 0%, 80%), hsl(0, 0%, 80%));
-    background-color: white;
-    background-size: calc(50%);
-    background-position: top left, bottom right;
-    background-repeat: no-repeat;
-
-    cursor: default;
-}
-
-@media (-webkit-max-device-pixel-ratio: 1) {
-    /* Ensure the color swatch is even by even so that it looks okay checkered. */
-    .css-style-text-editor > .CodeMirror .CodeMirror-lines .color-swatch {
-        vertical-align: -1px;
-        width: 10px;
-        height: 10px;
-    }
-}
-
-.css-style-text-editor > .CodeMirror .CodeMirror-lines .color-swatch > span {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    border: 1px solid hsla(0, 0%, 25%, 0.4);
-}
-
-.css-style-text-editor > .CodeMirror .CodeMirror-lines .color-swatch:hover > span {
-    border: 1px solid hsla(0, 0%, 25%, 0.8);
-}
-
-.css-style-text-editor > .CodeMirror .CodeMirror-lines .color-swatch:active > span {
-    border: 1px solid hsl(0, 0%, 25%);
 }
 
 .css-style-text-editor > .CodeMirror .cm-link {

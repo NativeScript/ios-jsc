@@ -29,20 +29,14 @@ WebInspector.VisualStyleColorPicker = class VisualStyleColorPicker extends WebIn
     {
         super(propertyNames, text, null, null, "input-color-picker", layoutReversed);
 
-        this._swatchElement = document.createElement("span");
-        this._swatchElement.classList.add("color-swatch");
-        this._swatchElement.title = WebInspector.UIString("Click to select a color. Shift-click to switch color formats.");
-        this._swatchElement.addEventListener("click", this._colorSwatchClicked.bind(this));
-
-        this._swatchInnerElement = document.createElement("span");
-        this._swatchElement.appendChild(this._swatchInnerElement);
-
-        this.contentElement.appendChild(this._swatchElement);
+        this._colorSwatch = new WebInspector.InlineSwatch(WebInspector.InlineSwatch.Type.Color);
+        this._colorSwatch.addEventListener(WebInspector.InlineSwatch.Event.ValueChanged, this._colorSwatchColorChanged, this);
+        this.contentElement.appendChild(this._colorSwatch.element);
 
         this._textInputElement = document.createElement("input");
         this._textInputElement.spellcheck = false;
         this._textInputElement.addEventListener("keydown", this._textInputKeyDown.bind(this));
-        this._textInputElement.addEventListener("keyup", this._textInputKeyUp.bind(this));
+        this._textInputElement.addEventListener("keyup", this.debounce(250)._textInputKeyUp);
         this._textInputElement.addEventListener("blur", this._hideCompletions.bind(this));
         this.contentElement.appendChild(this._textInputElement);
 
@@ -103,48 +97,20 @@ WebInspector.VisualStyleColorPicker = class VisualStyleColorPicker extends WebIn
 
     // Private
 
+    _colorSwatchColorChanged(event)
+    {
+        let colorString = event && event.data && event.data.value && event.data.value.toString();
+        if (!colorString)
+            return;
+
+        this.value = colorString;
+        this._valueDidChange();
+    }
+
     _updateColorSwatch()
     {
         let value = this._textInputElement.value;
-        this._color = WebInspector.Color.fromString(value || "transparent");
-        this._swatchInnerElement.style.backgroundColor = this._color ? value : null;
-    }
-
-    _colorSwatchClicked(event)
-    {
-        let color = this._color;
-        if (event.shiftKey) {
-            let nextFormat = color.nextFormat();
-
-            console.assert(nextFormat);
-            if (!nextFormat)
-                return;
-
-            color.format = nextFormat;
-            this.value = color.toString();
-
-            this._formatChanged = true;
-            this._valueDidChange();
-            return;
-        }
-
-        let bounds = WebInspector.Rect.rectFromClientRect(this._swatchElement.getBoundingClientRect());
-
-        let colorPicker = new WebInspector.ColorPicker;
-        colorPicker.addEventListener(WebInspector.ColorPicker.Event.ColorChanged, this._colorPickerColorDidChange, this);
-
-        let popover = new WebInspector.Popover(this);
-        popover.content = colorPicker.element;
-        popover.present(bounds.pad(2), [WebInspector.RectEdge.MIN_X]);
-
-        colorPicker.color = color;
-    }
-
-    _colorPickerColorDidChange(event)
-    {
-        let format = !this._formatChanged ? WebInspector.Color.Format.HEX : null;
-        this.value = event.data.color.toString(format);
-        this._valueDidChange();
+        this._colorSwatch.value = WebInspector.Color.fromString(value);
     }
 
     _completionClicked(event)

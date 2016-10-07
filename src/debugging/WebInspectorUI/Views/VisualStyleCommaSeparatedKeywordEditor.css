@@ -24,33 +24,23 @@
  */
 
 .visual-style-property-container.comma-separated-keyword-editor {
-    margin-left: 11px;
     margin-bottom: 5px;
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container {
     border: 1px solid hsl(0, 0%, 83%);
     overflow: auto;
-    font-size: 11px;
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list {
     min-height: 51px;
     max-height: 94px;
-    margin: 0;
-    padding: 0;
     background-color: hsl(0, 0%, 95%);
-    overflow: auto;
-    outline: none;
-    list-style-type: none;
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item {
     position: relative;
-    width: 100%;
     height: 17px;
-    line-height: 17px;
-    overflow: hidden;
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item:nth-child(odd) {
@@ -58,16 +48,12 @@
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item.selected {
-    background-color: hsl(213, 92%, 55%) !important;
-    color: white;
+    background-color: var(--selected-background-color) !important;
+    color: var(--selected-foreground-color);
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item > :matches(button, img) {
     display: none;
-}
-
-.visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item > .titles {
-    padding-left: 3px;
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item.visual-style-font-family-list-item.selected:not(.editor-hidden) > .titles > * {
@@ -77,16 +63,16 @@
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item.visual-style-font-family-list-item > .visual-style-comma-separated-keyword-item-editor {
     position: absolute;
     top: 0;
-    right: 3px;
+    right: 0;
     bottom: 0;
-    left: 3px;
-    margin: 0;
+    left: 5px;
     padding: 0;
-    line-height: 13px;
+    line-height: 17px;
+    font-family: inherit;
+    font-size: inherit;
+    color: white;
     border: none;
     background-color: transparent;
-    font-family: inherit;
-    color: white;
     z-index: 1;
 }
 
@@ -94,9 +80,19 @@
     display: none;
 }
 
+.visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item > .titles {
+    top: 1px;
+    line-height: 15px;
+}
+
+.visual-style-property-container .visual-style-comma-separated-keyword-item-editor::placeholder,
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item > .titles > .subtitle {
-    font-size: 9px;
-    color: hsl(0, 0%, 83%);
+    font-size: 10px;
+    color: hsla(0, 0%, 100%, 0.7);
+}
+
+.visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item > .titles > .subtitle::before {
+    content: none;
 }
 
 .visual-style-property-container.comma-separated-keyword-editor > .visual-style-property-value-container > .visual-style-comma-separated-keyword-list > .visual-style-comma-separated-keyword-item:not(.no-value) > .titles > .subtitle {

@@ -157,7 +157,9 @@ WebInspector.TimelineRecord.Type = {
     Network: "timeline-record-type-network",
     Layout: "timeline-record-type-layout",
     Script: "timeline-record-type-script",
-    RenderingFrame: "timeline-record-type-rendering-frame"
+    RenderingFrame: "timeline-record-type-rendering-frame",
+    Memory: "timeline-record-type-memory",
+    HeapAllocations: "timeline-record-type-heap-allocations",
 };
 
 WebInspector.TimelineRecord.TypeIdentifier = "timeline-record";

@@ -37,13 +37,14 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
         representedObject.addEventListener(WebInspector.DOMStorageObject.Event.ItemRemoved, this.itemRemoved, this);
         representedObject.addEventListener(WebInspector.DOMStorageObject.Event.ItemUpdated, this.itemUpdated, this);
 
-        var columns = {};
+        let columns = {};
         columns.key = {title: WebInspector.UIString("Key"), sortable: true};
         columns.value = {title: WebInspector.UIString("Value"), sortable: true};
 
         this._dataGrid = new WebInspector.DataGrid(columns, this._editingCallback.bind(this), this._deleteCallback.bind(this));
         this._dataGrid.sortOrder = WebInspector.DataGrid.SortOrder.Ascending;
         this._dataGrid.sortColumnIdentifier = "key";
+        this._dataGrid.createSettings("dom-storage-content-view");
         this._dataGrid.addEventListener(WebInspector.DataGrid.Event.SortChanged, this._sortDataGrid, this);
 
         this.addSubview(this._dataGrid);
@@ -60,6 +61,11 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
         cookie.host = this.representedObject.host;
     }
 
+    get scrollableElements()
+    {
+        return [this._dataGrid.scrollContainer];
+    }
+
     itemsCleared(event)
     {
         this._dataGrid.removeChildren();
@@ -68,35 +74,36 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
 
     itemRemoved(event)
     {
-        for (var node of this._dataGrid.children) {
+        for (let node of this._dataGrid.children) {
             if (node.data.key === event.data.key)
                 return this._dataGrid.removeChild(node);
         }
+
+        return null;
     }
 
     itemAdded(event)
     {
-        var key = event.data.key;
-        var value = event.data.value;
+        let {key, value} = event.data;
+        value = this._truncateValue(value);
 
         // Enforce key uniqueness.
-        for (var node of this._dataGrid.children) {
+        for (let node of this._dataGrid.children) {
             if (node.data.key === key)
                 return;
         }
 
-        var data = {key, value};
-        this._dataGrid.appendChild(new WebInspector.DataGridNode(data, false));
+        this._dataGrid.appendChild(new WebInspector.DataGridNode({key, value}, false));
         this._sortDataGrid();
     }
 
     itemUpdated(event)
     {
-        var key = event.data.key;
-        var value = event.data.value;
+        let {key, value} = event.data;
+        value = this._truncateValue(value);
 
-        var keyFound = false;
-        for (var childNode of this._dataGrid.children) {
+        let keyFound = false;
+        for (let childNode of this._dataGrid.children) {
             if (childNode.data.key === key) {
                 // Remove any rows that are now duplicates.
                 if (keyFound) {
@@ -112,14 +119,12 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
         this._sortDataGrid();
     }
 
-    get scrollableElements()
-    {
-        if (!this._dataGrid)
-            return [];
-        return [this._dataGrid.scrollContainer];
-    }
-
     // Private
+
+    _truncateValue(value)
+    {
+        return value.truncate(200);
+    }
 
     _populate()
     {
@@ -127,12 +132,12 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
             if (error)
                 return;
 
-            var nodes = [];
-            for (var entry of entries) {
-                if (!entry[0] || !entry[1])
+            for (let [key, value] of entries) {
+                if (!key || !value)
                     continue;
-                var data = {key: entry[0], value: entry[1]};
-                var node = new WebInspector.DataGridNode(data, false);
+
+                value = this._truncateValue(value);
+                let node = new WebInspector.DataGridNode({key, value}, false);
                 this._dataGrid.appendChild(node);
             }
 
@@ -144,7 +149,7 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
 
     _sortDataGrid()
     {
-        var sortColumnIdentifier = this._dataGrid.sortColumnIdentifier || "key";
+        let sortColumnIdentifier = this._dataGrid.sortColumnIdentifier || "key";
 
         function comparator(a, b)
         {
@@ -196,14 +201,6 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
             editingNode.__originalValue = undefined;
         }
 
-        function restoreOriginalValues()
-        {
-            editingNode.data.key = editingNode.__originalKey;
-            editingNode.data.value = editingNode.__originalValue;
-            editingNode.refresh();
-            cleanup();
-        }
-
         // If the key/value field was cleared, add "missing" style.
         if (isEditingKey) {
             if (key.length)
@@ -240,7 +237,7 @@ WebInspector.DOMStorageContentView = class DOMStorageContentView extends WebInsp
         if (!key.length && !value.length && !editingNode.isPlaceholderNode) {
             this._dataGrid.removeChild(editingNode);
             domStorage.removeItem(editingNode.__originalKey);
-            return;                
+            return;
         }
 
         // Done editing but leaving the row in an invalid state. Leave in uncommitted state.

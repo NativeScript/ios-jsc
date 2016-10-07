@@ -27,9 +27,13 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
 {
     constructor(propertyNames, text, possibleValues, possibleUnits, allowNegativeValues, layoutReversed)
     {
-        super(propertyNames, text, possibleValues, possibleUnits || [WebInspector.UIString("Number")], "number-input-box", layoutReversed);
+        let unitlessNumberUnit = WebInspector.UIString("Number");
 
-        this._hasUnits = !!possibleUnits;
+        super(propertyNames, text, possibleValues, possibleUnits || [unitlessNumberUnit], "number-input-box", layoutReversed);
+
+        this._unitlessNumberUnit = unitlessNumberUnit;
+
+        this._hasUnits = this._possibleUnits.basic.some((unit) => unit !== unitlessNumberUnit);
         this._allowNegativeValues = !!allowNegativeValues || false;
 
         this.contentElement.classList.toggle("no-values", !possibleValues || !possibleValues.length);
@@ -75,9 +79,9 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
         this._valueNumberInputElement.spellcheck = false;
         this._valueNumberInputElement.addEventListener("focus", this._focusContentElement.bind(this));
         this._valueNumberInputElement.addEventListener("keydown", this._valueNumberInputKeyDown.bind(this));
-        this._valueNumberInputElement.addEventListener("keyup", this._valueNumberInputKeyUp.bind(this));
+        this._valueNumberInputElement.addEventListener("keyup", this.debounce(250)._valueNumberInputKeyUp);
         this._valueNumberInputElement.addEventListener("blur", this._blurContentElement.bind(this));
-        this._valueNumberInputElement.addEventListener("change", this._valueNumberInputChanged.bind(this));
+        this._valueNumberInputElement.addEventListener("change", this.debounce(250)._valueNumberInputChanged);
         this._numberUnitsContainer.appendChild(this._valueNumberInputElement);
 
         this._unitsElement = document.createElement("span");
@@ -85,12 +89,10 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
 
         this.contentElement.appendChild(this._numberUnitsContainer);
 
-        this._numberInputIsEditable = true;
-        this.contentElement.classList.add("number-input-editable");
+        this._setNumberInputIsEditable(true);
         this._valueNumberInputElement.value = null;
         this._valueNumberInputElement.setAttribute("placeholder", 0);
-        if (this._hasUnits && this.valueIsSupportedUnit("px"))
-            this._unitsElementTextContent = this._keywordSelectElement.value = "px";
+        this._unitsElementTextContent = this._keywordSelectElement.value = this.valueIsSupportedUnit("px") ? "px" : this._possibleUnits.basic[0];
     }
 
     // Public
@@ -99,11 +101,7 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
     {
         if (this._numberInputIsEditable)
             return parseFloat(this._valueNumberInputElement.value);
-
-        if (!this._numberInputIsEditable)
-            return this._keywordSelectElement.value;
-
-        return null;
+        return this._keywordSelectElement.value || null;
     }
 
     set value(value)
@@ -111,7 +109,7 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
         if (value && value === this.value)
             return;
 
-        if (this._updatedValues.propertyMissing) {
+        if (this._propertyMissing) {
             if (value || this._updatedValues.placeholder)
                 this.specialPropertyPlaceholderElement.textContent = (value || this._updatedValues.placeholder) + (this._updatedValues.units || "");
 
@@ -159,20 +157,17 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
 
     set units(unit)
     {
-        if (this._unchangedOptionElement.selected)
+        if (this._unchangedOptionElement.selected || unit === this.units)
             return;
 
-        if (!unit || unit === this.units)
-            return;
-
-        if (!this.valueIsSupportedUnit(unit))
+        if (!unit && !this._possibleUnits.basic.includes(this._unitlessNumberUnit) && !this.valueIsSupportedUnit(unit))
             return;
 
         if (this._valueIsSupportedAdvancedUnit(unit))
             this._addAdvancedUnits();
 
         this._setNumberInputIsEditable(true);
-        this._keywordSelectElement.value = unit;
+        this._keywordSelectElement.value = unit || this._unitlessNumberUnit;
         this._unitsElementTextContent = unit;
     }
 
@@ -203,7 +198,7 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
             return null;
 
         let keyword = this._keywordSelectElement.value;
-        return this.valueIsSupportedUnit(keyword) ? value + (this._hasUnits ? keyword : "") : keyword;
+        return this.valueIsSupportedUnit(keyword) ? value + (keyword === this._unitlessNumberUnit ? "" : keyword) : keyword;
     }
 
     updateValueFromText(text, value)
@@ -215,6 +210,13 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
     }
 
     // Protected
+
+    set specialPropertyPlaceholderElementText(text)
+    {
+        this._unchangedOptionElement.selected = true;
+
+        super.specialPropertyPlaceholderElementText = text;
+    }
 
     parseValue(text)
     {
@@ -228,7 +230,7 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
         if (!this._hasUnits)
             return;
 
-        this._unitsElement.textContent = text;
+        this._unitsElement.textContent = text === this._unitlessNumberUnit ? "" : text;
         this._markUnitsContainerIfInputHasValue();
     }
 
@@ -279,7 +281,7 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
             if (!this._allowNegativeValues && newValue < 0)
                 newValue = 0;
 
-            this._updatedValues.propertyMissing = false;
+            this._propertyMissing = false;
             this.value = Math.round(newValue * 100) / 100;
             this._valueDidChange();
         }
@@ -307,7 +309,7 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
         }
 
         this._markUnitsContainerIfInputHasValue();
-        this._valueDidChange();
+        this.debounce(250)._valueDidChange();
     }
 
     _valueNumberInputKeyUp(event)
@@ -323,7 +325,7 @@ WebInspector.VisualStyleNumberInputBox = class VisualStyleNumberInputBox extends
     {
         if (event.altKey)
             this._addAdvancedUnits();
-        else if (!this._valueIsSupportedAdvancedUnit())
+        else if (!this._valueIsSupportedAdvancedUnit(this._keywordSelectElement.value))
             this._removeAdvancedUnits();
     }
 

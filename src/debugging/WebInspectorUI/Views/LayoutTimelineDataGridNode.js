@@ -35,11 +35,6 @@ WebInspector.LayoutTimelineDataGridNode = class LayoutTimelineDataGridNode exten
 
     // Public
 
-    get record()
-    {
-        return this._record;
-    }
-
     get records()
     {
         return [this._record];
@@ -47,30 +42,43 @@ WebInspector.LayoutTimelineDataGridNode = class LayoutTimelineDataGridNode exten
 
     get data()
     {
-        return {eventType: this._record.eventType, width: this._record.width, height: this._record.height, area: this._record.width * this._record.height, startTime: this._record.startTime, totalTime: this._record.duration, location: this._record.initiatorCallFrame};
+        if (!this._cachedData) {
+            this._cachedData = {
+                type: this._record.eventType,
+                name: this.displayName(),
+                width: this._record.width,
+                height: this._record.height,
+                area: this._record.width * this._record.height,
+                startTime: this._record.startTime,
+                totalTime: this._record.duration,
+                location: this._record.initiatorCallFrame,
+            };
+        }
+
+        return this._cachedData;
     }
 
     createCellContent(columnIdentifier, cell)
     {
-        const emptyValuePlaceholderString = "\u2014";
         var value = this.data[columnIdentifier];
 
         switch (columnIdentifier) {
-        case "eventType":
-            return WebInspector.LayoutTimelineRecord.displayNameForEventType(value);
+        case "name":
+            cell.classList.add(...this.iconClassNames());
+            return value;
 
         case "width":
         case "height":
-            return isNaN(value) ? emptyValuePlaceholderString : WebInspector.UIString("%fpx").format(value);
+            return isNaN(value) ? emDash : WebInspector.UIString("%dpx").format(value);
 
         case "area":
-            return isNaN(value) ? emptyValuePlaceholderString : WebInspector.UIString("%fpx²").format(value);
+            return isNaN(value) ? emDash : WebInspector.UIString("%dpx²").format(value);
 
         case "startTime":
-            return isNaN(value) ? emptyValuePlaceholderString : Number.secondsToString(value - this._baseStartTime, true);
+            return isNaN(value) ? emDash : Number.secondsToString(value - this._baseStartTime, true);
 
         case "totalTime":
-            return isNaN(value) ? emptyValuePlaceholderString : Number.secondsToString(value, true);
+            return isNaN(value) ? emDash : Number.secondsToString(value, true);
         }
 
         return super.createCellContent(columnIdentifier, cell);

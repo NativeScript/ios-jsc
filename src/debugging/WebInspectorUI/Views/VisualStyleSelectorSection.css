@@ -29,7 +29,7 @@
 }
 
 .details-section.visual-style-selector-section:not(.collapsed) > .header {
-    border-bottom: 1px solid hsl(0, 0%, 70%);
+    border-bottom: 1px solid var(--border-color);
 }
 
 @media (-webkit-min-device-pixel-ratio: 2) {
@@ -42,9 +42,6 @@
     width: calc(100% - 95px);
     margin-left: 10px;
     font-weight: normal;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .visual-style-selector-section.details-section:not(.collapsed) > .header > .current-selector {
@@ -102,23 +99,16 @@
 .details-section.visual-style-selector-section > .content > .selectors > .selector-list > .section-divider {
     position: -webkit-sticky;
     top: -1px;
-    height: 17px;
-    padding: 2px;
+    height: 19px;
     background-color: hsl(0, 0%, 95%);
-    border-color: hsl(0, 0%, 70%);
+    border-color: var(--border-color);
     border-style: solid;
     border-width: 1px 0;
-    z-index: 100;
+    z-index: var(--z-index-header);
 }
 
 .details-section.visual-style-selector-section > .content > .selectors > .selector-list > .section-divider > :matches(.disclosure-button, .icon) {
     display: none;
-}
-
-.details-section.visual-style-selector-section > .content > .selectors > .selector-list > .section-divider > .titles {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
 }
 
 .details-section.visual-style-selector-section > .content > .selectors > .selector-list > .section-divider ~ .visual-style-selector-item:nth-child(even) {

@@ -31,39 +31,25 @@
     display: none;
 }
 
-.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .color-swatch {
-    display: block;
-    position: relative;
+.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .inline-swatch.color {
     width: 22px;
     height: 18px;
     margin-top: 1px;
-    /* Make a checkered background for transparent colors to show against. */
-    background-image: linear-gradient(to bottom, hsl(0, 0%, 80%), hsl(0, 0%, 80%)),
-        linear-gradient(to bottom, hsl(0, 0%, 80%), hsl(0, 0%, 80%));
-    background-color: white;
-    background-size: 50%;
-    background-position: top left, bottom right;
-    background-repeat: no-repeat;
+    margin-right: 0;
     border: 1px solid hsla(0, 0%, 25%, 0.4);
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: default;
+    border-radius: 4px 0 0 4px;
 }
 
-.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .color-swatch:hover {
+.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .inline-swatch.color:hover {
     border-color: hsla(0, 0%, 25%, 0.8);
 }
 
-.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .color-swatch:active {
+.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .inline-swatch.color:active {
     border-color: hsl(0, 0%, 25%);
 }
 
-.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .color-swatch > span {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+.visual-style-property-container.input-color-picker > .visual-style-property-value-container > .inline-swatch.color > span {
+    border: none;
 }
 
 .visual-style-property-container.input-color-picker > .visual-style-property-value-container > input {

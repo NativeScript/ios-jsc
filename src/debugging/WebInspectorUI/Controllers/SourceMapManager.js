@@ -44,6 +44,16 @@ WebInspector.SourceMapManager = class SourceMapManager extends WebInspector.Obje
 
     downloadSourceMap(sourceMapURL, baseURL, originalSourceCode)
     {
+        // The baseURL could have come from a "//# sourceURL". Attempt to get a
+        // reasonable absolute URL for the base by using the main resource's URL.
+        if (WebInspector.frameResourceManager.mainFrame)
+            baseURL = absoluteURL(baseURL, WebInspector.frameResourceManager.mainFrame.url);
+
+        if (sourceMapURL.startsWith("data:")) {
+            this._loadAndParseSourceMap(sourceMapURL, baseURL, originalSourceCode);
+            return;
+        }
+
         sourceMapURL = absoluteURL(sourceMapURL, baseURL);
         if (!sourceMapURL)
             return;
@@ -103,9 +113,23 @@ WebInspector.SourceMapManager = class SourceMapManager extends WebInspector.Obje
                 var baseURL = sourceMapURL.startsWith("data:") ? originalSourceCode.url : sourceMapURL;
                 var sourceMap = new WebInspector.SourceMap(baseURL, payload, originalSourceCode);
                 this._loadAndParseSucceeded(sourceMapURL, sourceMap);
-            } catch(e) {
+            } catch (e) {
                 this._loadAndParseFailed(sourceMapURL);
             }
+        }
+
+        if (sourceMapURL.startsWith("data:")) {
+            let {mimeType, base64, data} = parseDataURL(sourceMapURL);
+            let content = base64 ? atob(data) : data;
+            sourceMapLoaded.call(this, null, content, mimeType, 0);
+            return;
+        }
+
+        // COMPATIBILITY (iOS 7): Network.loadResource did not exist.
+        // Also, JavaScript Debuggable may reach this.
+        if (!window.NetworkAgent || !NetworkAgent.loadResource) {
+            this._loadAndParseFailed(sourceMapURL);
+            return;
         }
 
         var frameIdentifier = null;
@@ -114,12 +138,6 @@ WebInspector.SourceMapManager = class SourceMapManager extends WebInspector.Obje
 
         if (!frameIdentifier)
             frameIdentifier = WebInspector.frameResourceManager.mainFrame.id;
-
-        // COMPATIBILITY (iOS 7): Network.loadResource did not exist.
-        if (!NetworkAgent.loadResource) {
-            this._loadAndParseFailed(sourceMapURL);
-            return;
-        }
 
         NetworkAgent.loadResource(frameIdentifier, sourceMapURL, sourceMapLoaded.bind(this));
     }

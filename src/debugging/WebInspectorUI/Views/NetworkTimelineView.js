@@ -31,16 +31,18 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
 
         console.assert(timeline.type === WebInspector.TimelineRecord.Type.Network);
 
-        this.navigationSidebarTreeOutline.element.classList.add(WebInspector.NavigationSidebarPanel.HideDisclosureButtonsStyleClassName);
-        this.navigationSidebarTreeOutline.element.classList.add("network");
+        let columns = {name: {}, domain: {}, type: {}, method: {}, scheme: {}, statusCode: {}, cached: {}, size: {}, transferSize: {}, requestSent: {}, latency: {}, duration: {}, graph: {}};
 
-        var columns = {domain: {}, type: {}, method: {}, scheme: {}, statusCode: {}, cached: {}, size: {}, transferSize: {}, requestSent: {}, latency: {}, duration: {}};
+        columns.name.title = WebInspector.UIString("Name");
+        columns.name.icon = true;
+        columns.name.width = "10%";
+        columns.name.locked = true;
 
         columns.domain.title = WebInspector.UIString("Domain");
-        columns.domain.width = "10%";
+        columns.domain.width = "8%";
 
         columns.type.title = WebInspector.UIString("Type");
-        columns.type.width = "8%";
+        columns.type.width = "7%";
 
         var typeToLabelMap = new Map;
         for (var key in WebInspector.Resource.Type) {
@@ -52,22 +54,22 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         this._scopeBar = columns.type.scopeBar;
 
         columns.method.title = WebInspector.UIString("Method");
-        columns.method.width = "6%";
+        columns.method.width = "4%";
 
         columns.scheme.title = WebInspector.UIString("Scheme");
-        columns.scheme.width = "6%";
+        columns.scheme.width = "4%";
 
         columns.statusCode.title = WebInspector.UIString("Status");
-        columns.statusCode.width = "6%";
+        columns.statusCode.width = "4%";
 
         columns.cached.title = WebInspector.UIString("Cached");
-        columns.cached.width = "6%";
+        columns.cached.width = "4%";
 
         columns.size.title = WebInspector.UIString("Size");
         columns.size.width = "8%";
         columns.size.aligned = "right";
 
-        columns.transferSize.title = WebInspector.UIString("Transfered");
+        columns.transferSize.title = WebInspector.UIString("Transferred");
         columns.transferSize.width = "8%";
         columns.transferSize.aligned = "right";
 
@@ -86,11 +88,21 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         for (var column in columns)
             columns[column].sortable = true;
 
-        this._dataGrid = new WebInspector.TimelineDataGrid(this.navigationSidebarTreeOutline, columns);
-        this._dataGrid.addEventListener(WebInspector.TimelineDataGrid.Event.FiltersDidChange, this._dataGridFiltersDidChange, this);
-        this._dataGrid.addEventListener(WebInspector.DataGrid.Event.SelectedNodeChanged, this._dataGridNodeSelected, this);
+        this._timelineRuler = new WebInspector.TimelineRuler;
+        this._timelineRuler.allowsClippedLabels = true;
+
+        columns.graph.title = WebInspector.UIString("Timeline");
+        columns.graph.width = "15%";
+        columns.graph.headerView = this._timelineRuler;
+        columns.graph.sortable = false;
+
+        this._dataGrid = new WebInspector.TimelineDataGrid(columns);
+        this._dataGrid.sortDelegate = this;
         this._dataGrid.sortColumnIdentifier = "requestSent";
         this._dataGrid.sortOrder = WebInspector.DataGrid.SortOrder.Ascending;
+        this._dataGrid.createSettings("network-timeline-view");
+
+        this.setupDataGrid(this._dataGrid);
 
         this.element.classList.add("network");
         this.addSubview(this._dataGrid);
@@ -98,13 +110,23 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         timeline.addEventListener(WebInspector.Timeline.Event.RecordAdded, this._networkTimelineRecordAdded, this);
 
         this._pendingRecords = [];
+        this._resourceDataGridNodeMap = new Map;
     }
 
     // Public
 
-    get navigationSidebarTreeOutlineLabel()
+    get secondsPerPixel() { return this._timelineRuler.secondsPerPixel; }
+
+    get selectionPathComponents()
     {
-        return WebInspector.UIString("Resources");
+        if (!this._dataGrid.selectedNode || this._dataGrid.selectedNode.hidden)
+            return null;
+
+        console.assert(this._dataGrid.selectedNode instanceof WebInspector.ResourceTimelineDataGridNode);
+
+        let pathComponent = new WebInspector.TimelineDataGridNodePathComponent(this._dataGrid.selectedNode, this._dataGrid.selectedNode.resource);
+        pathComponent.addEventListener(WebInspector.HierarchicalPathComponent.Event.SiblingWasSelected, this.dataGridNodePathComponentSelected, this);
+        return [pathComponent];
     }
 
     shown()
@@ -129,11 +151,6 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         this._dataGrid.closed();
     }
 
-    matchTreeElementAgainstCustomFilters(treeElement)
-    {
-        return this._dataGrid.treeElementMatchesActiveScopeFilters(treeElement);
-    }
-
     reset()
     {
         super.reset();
@@ -141,6 +158,22 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         this._dataGrid.reset();
 
         this._pendingRecords = [];
+        this._resourceDataGridNodeMap.clear();
+    }
+
+    // TimelineDataGrid sort delegate
+
+    dataGridSortComparator(sortColumnIdentifier, sortDirection, node1, node2)
+    {
+        if (sortColumnIdentifier !== "name")
+            return null;
+
+        let displayName1 = node1.displayName();
+        let displayName2 = node2.displayName();
+        if (displayName1 !== displayName2)
+            return displayName1.localeCompare(displayName2) * sortDirection;
+
+        return node1.resource.url.localeCompare(node2.resource.url) * sortDirection;
     }
 
     // Protected
@@ -162,24 +195,35 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         console.error("Unknown tree element selected.", treeElement);
     }
 
-    treeElementPathComponentSelected(event)
+    dataGridNodePathComponentSelected(event)
     {
-        var dataGridNode = this._dataGrid.dataGridNodeForTreeElement(event.data.pathComponent.generalTreeElement);
-        if (!dataGridNode)
-            return;
+        let pathComponent = event.data.pathComponent;
+        console.assert(pathComponent instanceof WebInspector.TimelineDataGridNodePathComponent);
+
+        let dataGridNode = pathComponent.timelineDataGridNode;
+        console.assert(dataGridNode.dataGrid === this._dataGrid);
+
         dataGridNode.revealAndSelect();
-    }
-
-    treeElementSelected(treeElement, selectedByUser)
-    {
-        if (this._dataGrid.shouldIgnoreSelectionEvent())
-            return;
-
-        super.treeElementSelected(treeElement, selectedByUser);
     }
 
     layout()
     {
+        this.endTime = Math.min(this.endTime, this.currentTime);
+
+        let oldZeroTime = this._timelineRuler.zeroTime;
+        let oldStartTime = this._timelineRuler.startTime;
+        let oldEndTime = this._timelineRuler.endTime;
+
+        this._timelineRuler.zeroTime = this.zeroTime;
+        this._timelineRuler.startTime = this.startTime;
+        this._timelineRuler.endTime = this.endTime;
+
+        // We only need to refresh the graphs when the any of the times change.
+        if (this.zeroTime !== oldZeroTime || this.startTime !== oldStartTime || this.endTime !== oldEndTime) {
+            for (let dataGridNode of this._resourceDataGridNodeMap.values())
+                dataGridNode.refreshGraph();
+        }
+
         this._processPendingRecords();
     }
 
@@ -190,16 +234,19 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         if (!this._pendingRecords.length)
             return;
 
-        for (var resourceTimelineRecord of this._pendingRecords) {
-            // Skip the record if it already exists in the tree.
-            var treeElement = this.navigationSidebarTreeOutline.findTreeElement(resourceTimelineRecord.resource);
-            if (treeElement)
+        for (let resourceTimelineRecord of this._pendingRecords) {
+            // Skip the record if it already exists in the grid.
+            // FIXME: replace with this._dataGrid.findDataGridNode(resourceTimelineRecord.resource) once <https://webkit.org/b/155305> is fixed.
+            let dataGridNode = this._resourceDataGridNodeMap.get(resourceTimelineRecord.resource);
+            if (dataGridNode)
                 continue;
 
-            treeElement = new WebInspector.ResourceTreeElement(resourceTimelineRecord.resource);
-            var dataGridNode = new WebInspector.ResourceTimelineDataGridNode(resourceTimelineRecord, false, this);
+            const includesGraph = false;
+            const shouldShowPopover = true;
+            dataGridNode = new WebInspector.ResourceTimelineDataGridNode(resourceTimelineRecord, includesGraph, this, shouldShowPopover);
+            this._resourceDataGridNodeMap.set(resourceTimelineRecord.resource, dataGridNode);
 
-            this._dataGrid.addRowInSortOrder(treeElement, dataGridNode);
+            this._dataGrid.addRowInSortOrder(null, dataGridNode);
         }
 
         this._pendingRecords = [];
@@ -213,15 +260,5 @@ WebInspector.NetworkTimelineView = class NetworkTimelineView extends WebInspecto
         this._pendingRecords.push(resourceTimelineRecord);
 
         this.needsLayout();
-    }
-
-    _dataGridFiltersDidChange(event)
-    {
-        this.timelineSidebarPanel.updateFilter();
-    }
-
-    _dataGridNodeSelected(event)
-    {
-        this.dispatchEventToListeners(WebInspector.ContentView.Event.SelectionPathComponentsDidChange);
     }
 };

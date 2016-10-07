@@ -57,7 +57,7 @@
 
 .source-code.text-editor > .CodeMirror .issue-widget.inline > .arrow {
     position: absolute;
-    left: -5.5px;
+    left: -5px;
     display: block;
 
     top: 0px;
@@ -67,6 +67,12 @@
     border-top: 6.5px solid transparent;
     border-bottom: 6.5px solid transparent; 
     border-right: 5.5px solid transparent;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .source-code.text-editor > .CodeMirror .issue-widget.inline > .arrow {
+        left: -5.5px;
+    }
 }
 
 .source-code.text-editor > .CodeMirror .issue-widget > .icon {
@@ -140,8 +146,8 @@
 .popover .debugger-popover-content > .title {
     font-family: -apple-system, sans-serif;
     font-weight: 500;
-    padding: 2px 0 4px 10px;
 
+    padding: 2px 6px 4px 6px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -162,8 +168,18 @@
 }
 
 .popover .debugger-popover-content.function > .body {
-    padding-left: 10px;
-    padding-right: 10px;
+    min-width: 200px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.popover .debugger-popover-content.function > .body .CodeMirror {
+    height: auto;
+    background-color: inherit;
+}
+
+.popover .debugger-popover-content.function > .body .CodeMirror pre {
+    padding-left: 0;
 }
 
 /* Custom styling for the hover menu attached to color tokens */
@@ -175,7 +191,7 @@
 .hover-menu.color > img {
     width: 16px;
     height: 16px;
-    content: -webkit-image-set(url(../Images/ColorIcon.png) 1x, url(../Images/ColorIcon@2x.png) 2x);
+    content: image-set(url(../Images/ColorIcon.png) 1x, url(../Images/ColorIcon@2x.png) 2x);
     transform: translateY(0.5px);
 }
 

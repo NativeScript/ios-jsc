@@ -49,8 +49,12 @@ WebInspector.LogManager = class LogManager extends WebInspector.Object
         if (parameters)
             parameters = parameters.map(WebInspector.RemoteObject.fromPayload);
 
-        var message = new WebInspector.ConsoleMessage(source, level, text, type, url, line, column, repeatCount, parameters, stackTrace, null);
+        let message = new WebInspector.ConsoleMessage(source, level, text, type, url, line, column, repeatCount, parameters, stackTrace, null);
+
         this.dispatchEventToListeners(WebInspector.LogManager.Event.MessageAdded, {message});
+
+        if (message.level === "warning" || message.level === "error")
+            WebInspector.issueManager.issueWasAdded(message);
     }
 
     messagesCleared()
@@ -110,8 +114,9 @@ WebInspector.LogManager = class LogManager extends WebInspector.Object
 
         this._isNewPageOrReload = true;
 
-        if (event.data.oldMainResource.url === event.target.mainResource.url)
-            this.dispatchEventToListeners(WebInspector.LogManager.Event.SessionStarted);
+        let timestamp = Date.now();
+        let wasReloaded = event.data.oldMainResource && event.data.oldMainResource.url === event.target.mainResource.url;
+        this.dispatchEventToListeners(WebInspector.LogManager.Event.SessionStarted, {timestamp, wasReloaded});
 
         WebInspector.ConsoleCommandResultMessage.clearMaximumSavedResultIndex();
     }

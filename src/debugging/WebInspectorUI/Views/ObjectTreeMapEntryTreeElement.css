@@ -26,16 +26,14 @@
 .object-tree-array-index.object-tree-map-entry > .titles > .title > .index-name {
     width: 40px;
     text-align: right;
-    margin-right: 5px;
 }
 
 .object-tree-map-entry.key:not(:first-child) {
     border-top: 1px solid hsla(0, 0%, 0%, 0.05);
 }
 
-.object-tree-map-entry {
+.tree-outline .item.object-tree-map-entry {
     padding-top: 2px;
-    padding-bottom: 2px;
     left: -2px;
 }
 

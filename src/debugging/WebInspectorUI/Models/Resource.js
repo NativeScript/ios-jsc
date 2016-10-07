@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2011 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +48,7 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
         this._responseHeaders = {};
         this._parentFrame = null;
         this._initiatorSourceCodeLocation = initiatorSourceCodeLocation || null;
+        this._initiatedResources = [];
         this._originalRequestWillBeSentTimestamp = originalRequestWillBeSentTimestamp || null;
         this._requestSentTimestamp = requestSentTimestamp || NaN;
         this._responseReceivedTimestamp = NaN;
@@ -57,6 +59,10 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
         this._size = NaN;
         this._transferSize = NaN;
         this._cached = false;
+        this._timingData = new WebInspector.ResourceTimingData(this);
+
+        if (this._initiatorSourceCodeLocation && this._initiatorSourceCodeLocation.sourceCode instanceof WebInspector.Resource)
+            this._initiatorSourceCodeLocation.sourceCode.addInitiatedResource(this);
     }
 
     // Static
@@ -82,7 +88,7 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
 
     static displayNameForType(type, plural)
     {
-        switch(type) {
+        switch (type) {
         case WebInspector.Resource.Type.Document:
             if (plural)
                 return WebInspector.UIString("Documents");
@@ -121,6 +127,8 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
 
     // Public
 
+    get timingData() { return this._timingData; }
+
     get url()
     {
         return this._url;
@@ -148,6 +156,11 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
     get initiatorSourceCodeLocation()
     {
         return this._initiatorSourceCodeLocation;
+    }
+
+    get initiatedResources()
+    {
+        return this._initiatedResources;
     }
 
     get originalRequestWillBeSentTimestamp()
@@ -213,6 +226,16 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
     isMainResource()
     {
         return this._parentFrame ? this._parentFrame.mainResource === this : false;
+    }
+
+    addInitiatedResource(resource)
+    {
+        if (!(resource instanceof WebInspector.Resource))
+            return;
+
+        this._initiatedResources.push(resource);
+
+        this.dispatchEventToListeners(WebInspector.Resource.Event.InitiatedResourcesDidChange);
     }
 
     get parentFrame()
@@ -297,27 +320,27 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
 
     get firstTimestamp()
     {
-        return this.requestSentTimestamp || this.lastRedirectReceivedTimestamp || this.responseReceivedTimestamp || this.lastDataReceivedTimestamp || this.finishedOrFailedTimestamp;
+        return this.timingData.startTime || this.lastRedirectReceivedTimestamp || this.responseReceivedTimestamp || this.lastDataReceivedTimestamp || this.finishedOrFailedTimestamp;
     }
 
     get lastTimestamp()
     {
-        return this.finishedOrFailedTimestamp || this.lastDataReceivedTimestamp || this.responseReceivedTimestamp || this.lastRedirectReceivedTimestamp || this.requestSentTimestamp;
+        return this.timingData.responseEnd || this.lastDataReceivedTimestamp || this.responseReceivedTimestamp || this.lastRedirectReceivedTimestamp || this.requestSentTimestamp;
     }
 
     get duration()
     {
-        return this._finishedOrFailedTimestamp - this._requestSentTimestamp;
+        return this.timingData.responseEnd - this.timingData.requestStart;
     }
 
     get latency()
     {
-        return this._responseReceivedTimestamp - this._requestSentTimestamp;
+        return this.timingData.responseStart - this.timingData.requestStart;
     }
 
     get receiveDuration()
     {
-        return this._finishedOrFailedTimestamp - this._responseReceivedTimestamp;
+        return this.timingData.responseEnd - this.timingData.responseStart;
     }
 
     get cached()
@@ -427,7 +450,7 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
         this.dispatchEventToListeners(WebInspector.Resource.Event.TimestampsDidChange);
     }
 
-    updateForResponse(url, mimeType, type, responseHeaders, statusCode, statusText, elapsedTime)
+    updateForResponse(url, mimeType, type, responseHeaders, statusCode, statusText, elapsedTime, timingData)
     {
         console.assert(!this._finished);
         console.assert(!this._failed);
@@ -447,6 +470,7 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
         this._statusText = statusText;
         this._responseHeaders = responseHeaders || {};
         this._responseReceivedTimestamp = elapsedTime || NaN;
+        this._timingData = WebInspector.ResourceTimingData.fromPayload(timingData, this);
 
         this._responseHeadersSize = String(this._statusCode).length + this._statusText.length + 12; // Extra length is for "HTTP/1.1 ", " ", and "\r\n".
         for (var name in this._responseHeaders)
@@ -552,6 +576,7 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
 
         this._finished = true;
         this._finishedOrFailedTimestamp = elapsedTime || NaN;
+        this._timingData.markResponseEndTime(elapsedTime || NaN);
 
         if (this._finishThenRequestContentPromise)
             this._finishThenRequestContentPromise = null;
@@ -631,10 +656,10 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
             return Promise.resolve({error: WebInspector.UIString("An error occurred trying to load the resource.")});
 
         if (!this._finishThenRequestContentPromise) {
-            this._finishThenRequestContentPromise = new Promise(function (resolve, reject) {
+            this._finishThenRequestContentPromise = new Promise((resolve, reject) => {
                 this.addEventListener(WebInspector.Resource.Event.LoadingDidFinish, resolve);
                 this.addEventListener(WebInspector.Resource.Event.LoadingDidFail, reject);
-            }.bind(this)).then(WebInspector.SourceCode.prototype.requestContent.bind(this));
+            }).then(WebInspector.SourceCode.prototype.requestContent.bind(this));
         }
 
         return this._finishThenRequestContentPromise;
@@ -659,6 +684,48 @@ WebInspector.Resource = class Resource extends WebInspector.SourceCode
         cookie[WebInspector.Resource.URLCookieKey] = this.url.hash;
         cookie[WebInspector.Resource.MainResourceCookieKey] = this.isMainResource();
     }
+
+    generateCURLCommand()
+    {
+        function escapeStringPosix(str) {
+            function escapeCharacter(x) {
+                let code = x.charCodeAt(0);
+                let hex = code.toString(16);
+                if (code < 256)
+                    return "\\x" + hex.padStart(2, "0");
+                return "\\u" + hex.padStart(4, "0");
+            }
+
+            if (/[^\x20-\x7E]|'/.test(str)) {
+                // Use ANSI-C quoting syntax.
+                return "$'" + str.replace(/\\/g, "\\\\")
+                                 .replace(/'/g, "\\'")
+                                 .replace(/\n/g, "\\n")
+                                 .replace(/\r/g, "\\r")
+                                 .replace(/[^\x20-\x7E]/g, escapeCharacter) + "'";
+            } else {
+                // Use single quote syntax.
+                return `'${str}'`;
+            }
+        }
+
+        let command = ["curl " + escapeStringPosix(this.url).replace(/[[{}\]]/g, "\\$&")];
+        command.push(`-X${this.requestMethod}`);
+
+        for (let key in this.requestHeaders)
+            command.push("-H " + escapeStringPosix(`${key}: ${this.requestHeaders[key]}`));
+
+        if (this.requestDataContentType && this.requestMethod !== "GET" && this.requestData) {
+            if (this.requestDataContentType.match(/^application\/x-www-form-urlencoded\s*(;.*)?$/i))
+                command.push("--data " + escapeStringPosix(this.requestData));
+            else
+                command.push("--data-binary " + escapeStringPosix(this.requestData));
+        }
+
+        let curlCommand = command.join(" \\\n");
+        InspectorFrontendHost.copyText(curlCommand);
+        return curlCommand;
+    }
 };
 
 WebInspector.Resource.TypeIdentifier = "resource";
@@ -676,7 +743,8 @@ WebInspector.Resource.Event = {
     TimestampsDidChange: "resource-timestamps-did-change",
     SizeDidChange: "resource-size-did-change",
     TransferSizeDidChange: "resource-transfer-size-did-change",
-    CacheStatusDidChange: "resource-cached-did-change"
+    CacheStatusDidChange: "resource-cached-did-change",
+    InitiatedResourcesDidChange: "resource-initiated-resources-did-change",
 };
 
 // Keep these in sync with the "ResourceType" enum defined by the "Page" domain.

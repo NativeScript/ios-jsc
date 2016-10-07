@@ -37,11 +37,6 @@ WebInspector.ScriptTimelineDataGridNode = class ScriptTimelineDataGridNode exten
 
     // Public
 
-    get record()
-    {
-        return this._record;
-    }
-
     get records()
     {
         return [this._record];
@@ -64,28 +59,50 @@ WebInspector.ScriptTimelineDataGridNode = class ScriptTimelineDataGridNode exten
 
     get data()
     {
-        var startTime = this._record.startTime;
-        var duration = this._record.startTime + this._record.duration - startTime;
-        var callFrameOrSourceCodeLocation = this._record.initiatorCallFrame || this._record.sourceCodeLocation;
+        if (!this._cachedData) {
+            var startTime = this._record.startTime;
+            var duration = this._record.startTime + this._record.duration - startTime;
+            var callFrameOrSourceCodeLocation = this._record.initiatorCallFrame || this._record.sourceCodeLocation;
 
-        // COMPATIBILITY (iOS 8): Profiles included per-call information and can be finely partitioned.
-        if (this._record.profile) {
-            var oneRootNode = this._record.profile.topDownRootNodes[0];
-            if (oneRootNode && oneRootNode.calls) {
-                startTime = Math.max(this._rangeStartTime, this._record.startTime);
-                duration = Math.min(this._record.startTime + this._record.duration, this._rangeEndTime) - startTime;
+            // COMPATIBILITY (iOS 8): Profiles included per-call information and can be finely partitioned.
+            if (this._record.profile) {
+                var oneRootNode = this._record.profile.topDownRootNodes[0];
+                if (oneRootNode && oneRootNode.calls) {
+                    startTime = Math.max(this._rangeStartTime, this._record.startTime);
+                    duration = Math.min(this._record.startTime + this._record.duration, this._rangeEndTime) - startTime;
+                }
             }
+
+            this._cachedData = {
+                eventType: this._record.eventType,
+                startTime,
+                selfTime: duration,
+                totalTime: duration,
+                averageTime: duration,
+                callCount: this._record.callCountOrSamples,
+                location: callFrameOrSourceCodeLocation,
+            };
         }
 
-        return {
-            eventType: this._record.eventType,
-            startTime,
-            selfTime: duration,
-            totalTime: duration,
-            averageTime: duration,
-            callCount: NaN,
-            location: callFrameOrSourceCodeLocation
-        };
+        return this._cachedData;
+    }
+
+    get subtitle()
+    {
+        if (this._subtitle !== undefined)
+            return this._subtitle;
+
+        this._subtitle = "";
+
+        if (this._record.eventType === WebInspector.ScriptTimelineRecord.EventType.TimerInstalled) {
+            let timeoutString = Number.secondsToString(this._record.details.timeout / 1000);
+            if (this._record.details.repeating)
+                this._subtitle = WebInspector.UIString("%s interval").format(timeoutString);
+            else
+                this._subtitle = WebInspector.UIString("%s delay").format(timeoutString);
+        }
+
+        return this._subtitle;
     }
 
     updateRangeTimes(startTime, endTime)
@@ -117,25 +134,52 @@ WebInspector.ScriptTimelineDataGridNode = class ScriptTimelineDataGridNode exten
 
     createCellContent(columnIdentifier, cell)
     {
-        const emptyValuePlaceholderString = "\u2014";
         var value = this.data[columnIdentifier];
 
         switch (columnIdentifier) {
-        case "eventType":
-            return WebInspector.ScriptTimelineRecord.EventType.displayName(value, this._record.details);
+        case "name":
+            cell.classList.add(...this.iconClassNames());
+            return this._createNameCellDocumentFragment();
 
         case "startTime":
-            return isNaN(value) ? emptyValuePlaceholderString : Number.secondsToString(value - this._baseStartTime, true);
+            return isNaN(value) ? emDash : Number.secondsToString(value - this._baseStartTime, true);
 
         case "selfTime":
         case "totalTime":
         case "averageTime":
-            return isNaN(value) ? emptyValuePlaceholderString : Number.secondsToString(value, true);
+            return isNaN(value) ? emDash : Number.secondsToString(value, true);
 
         case "callCount":
-            return isNaN(value) ? emptyValuePlaceholderString : value;
+            return isNaN(value) ? emDash : value;
         }
 
         return super.createCellContent(columnIdentifier, cell);
+    }
+
+    // Protected
+
+    filterableDataForColumn(columnIdentifier)
+    {
+        if (columnIdentifier === "name")
+            return [this.displayName(), this.subtitle];
+
+        return super.filterableDataForColumn(columnIdentifier);
+    }
+
+    // Private
+
+    _createNameCellDocumentFragment(cellElement)
+    {
+        let fragment = document.createDocumentFragment();
+        fragment.append(this.displayName());
+
+        if (this.subtitle) {
+            let subtitleElement = document.createElement("span");
+            subtitleElement.classList.add("subtitle");
+            subtitleElement.textContent = this.subtitle;
+            fragment.append(subtitleElement);
+        }
+
+        return fragment;
     }
 };

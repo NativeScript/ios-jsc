@@ -42,6 +42,7 @@ WebInspector.DOMTreeManager = class DOMTreeManager extends WebInspector.Object
         this._flows = new Map;
         this._contentNodesToFlowsMap = new Map;
         this._restoreSelectedNodeIsAllowed = true;
+        this._loadNodeAttributesTimeout = 0;
 
         WebInspector.Frame.addEventListener(WebInspector.Frame.Event.MainResourceDidChange, this._mainResourceDidChange, this);
     }
@@ -150,7 +151,7 @@ WebInspector.DOMTreeManager = class DOMTreeManager extends WebInspector.Object
     {
         for (var nodeId of nodeIds)
             this._attributeLoadNodeIds[nodeId] = true;
-        if ("_loadNodeAttributesTimeout" in this)
+        if (this._loadNodeAttributesTimeout)
             return;
         this._loadNodeAttributesTimeout = setTimeout(this._loadNodeAttributes.bind(this), 0);
     }
@@ -166,12 +167,12 @@ WebInspector.DOMTreeManager = class DOMTreeManager extends WebInspector.Object
             var node = this._idToDOMNode[nodeId];
             if (node) {
                 node._setAttributesPayload(attributes);
-                this.dispatchEventToListeners(WebInspector.DOMTreeManager.Event.AttributeModified, { node, name: "style" });
+                this.dispatchEventToListeners(WebInspector.DOMTreeManager.Event.AttributeModified, {node, name: "style"});
                 node.dispatchEventToListeners(WebInspector.DOMNode.Event.AttributeModified, {name: "style"});
             }
         }
 
-        this._loadNodeAttributesTimeout = undefined;
+        this._loadNodeAttributesTimeout = 0;
 
         for (var nodeId in this._attributeLoadNodeIds) {
             var nodeIdAsNumber = parseInt(nodeId);
@@ -335,8 +336,8 @@ WebInspector.DOMTreeManager = class DOMTreeManager extends WebInspector.Object
                 if (!remoteObject)
                     return;
                 let specialLogStyles = true;
-                let synthetic = true;
-                WebInspector.consoleLogViewController.appendImmediateExecutionWithResult(WebInspector.UIString("Selected Element"), remoteObject, specialLogStyles, synthetic);
+                let shouldRevealConsole = false;
+                WebInspector.consoleLogViewController.appendImmediateExecutionWithResult(WebInspector.UIString("Selected Element"), remoteObject, specialLogStyles, shouldRevealConsole);
             });
         }
 
@@ -448,13 +449,13 @@ WebInspector.DOMTreeManager = class DOMTreeManager extends WebInspector.Object
 
     set inspectModeEnabled(enabled)
     {
-        function callback(error)
-        {
+        if (enabled === this._inspectModeEnabled)
+            return;
+
+        DOMAgent.setInspectModeEnabled(enabled, this._buildHighlightConfig(), (error) => {
             this._inspectModeEnabled = error ? false : enabled;
             this.dispatchEventToListeners(WebInspector.DOMTreeManager.Event.InspectModeStateChanged);
-        }
-
-        DOMAgent.setInspectModeEnabled(enabled, this._buildHighlightConfig(), callback.bind(this));
+        });
     }
 
     _buildHighlightConfig(mode = "all")
@@ -492,7 +493,7 @@ WebInspector.DOMTreeManager = class DOMTreeManager extends WebInspector.Object
     _updateContentFlowFromPayload(contentFlow, flowPayload)
     {
         console.assert(contentFlow.contentNodes.length === flowPayload.content.length);
-        console.assert(contentFlow.contentNodes.every(function(node, i) { return node.id === flowPayload.content[i]; }));
+        console.assert(contentFlow.contentNodes.every((node, i) => node.id === flowPayload.content[i]));
 
         // FIXME: Collect the regions from the payload.
         contentFlow.overset = flowPayload.overset;

@@ -41,27 +41,33 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         this._element.classList.add("style-declaration-section");
 
         new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl, "S", this._save.bind(this), this._element);
+        new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.CommandOrControl | WebInspector.KeyboardShortcut.Modifier.Shift, "S", this._save.bind(this), this._element);
 
         this._headerElement = document.createElement("div");
         this._headerElement.classList.add("header");
 
-        this._iconElement = document.createElement("img");
-        this._iconElement.classList.add("icon");
-        this._headerElement.appendChild(this._iconElement);
+        this._iconElement = this._headerElement.createChild("img", "icon");
 
-        this._selectorElement = document.createElement("span");
-        this._selectorElement.classList.add("selector");
-        this._selectorElement.setAttribute("spellcheck", "false");
-        this._selectorElement.addEventListener("mouseover", this._handleMouseOver.bind(this));
-        this._selectorElement.addEventListener("mouseout", this._handleMouseOut.bind(this));
-        this._selectorElement.addEventListener("keydown", this._handleKeyDown.bind(this));
-        this._selectorElement.addEventListener("keyup", this._handleKeyUp.bind(this));
-        this._selectorElement.addEventListener("paste", this._handleSelectorPaste.bind(this));
-        this._headerElement.appendChild(this._selectorElement);
+        if (this.selectorEditable) {
+            this._selectorInput = this._headerElement.createChild("textarea");
+            this._selectorInput.spellcheck = false;
+            this._selectorInput.tabIndex = -1;
+            this._selectorInput.addEventListener("mouseover", this._handleMouseOver.bind(this));
+            this._selectorInput.addEventListener("mouseout", this._handleMouseOut.bind(this));
+            this._selectorInput.addEventListener("keydown", this._handleKeyDown.bind(this));
+            this._selectorInput.addEventListener("keypress", this._handleKeyPress.bind(this));
+            this._selectorInput.addEventListener("input", this._handleInput.bind(this));
+            this._selectorInput.addEventListener("paste", this._handleSelectorPaste.bind(this));
+            this._selectorInput.addEventListener("blur", this._handleBlur.bind(this));
+        }
 
-        this._originElement = document.createElement("span");
-        this._originElement.classList.add("origin");
-        this._headerElement.appendChild(this._originElement);
+        this._selectorElement = this._headerElement.createChild("span", "selector");
+        if (!this.selectorEditable) {
+            this._selectorElement.addEventListener("mouseover", this._handleMouseOver.bind(this));
+            this._selectorElement.addEventListener("mouseout", this._handleMouseOut.bind(this));
+        }
+
+        this._originElement = this._headerElement.createChild("span", "origin");
 
         this._propertiesElement = document.createElement("div");
         this._propertiesElement.classList.add("properties");
@@ -75,7 +81,7 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         this._element.appendChild(this._headerElement);
         this._element.appendChild(this._propertiesElement);
 
-        var iconClassName;
+        let iconClassName = null;
         switch (style.type) {
         case WebInspector.CSSStyleDeclaration.Type.Rule:
             console.assert(style.ownerRule);
@@ -104,7 +110,7 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         if (style.editable) {
             this._iconElement.classList.add("toggle-able");
             this._iconElement.title = WebInspector.UIString("Comment All Properties");
-            this._iconElement.addEventListener("click", this._toggleRuleOnOff.bind(this));
+            this._iconElement.addEventListener("click", this._handleIconElementClicked.bind(this));
         }
 
         console.assert(iconClassName);
@@ -112,11 +118,9 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
 
         if (!style.editable)
             this._element.classList.add(WebInspector.CSSStyleDeclarationSection.LockedStyleClassName);
-        else if (style.ownerRule) {
-            this._style.ownerRule.addEventListener(WebInspector.CSSRule.Event.SelectorChanged, this._markSelector.bind(this));
-            this._commitSelectorKeyboardShortcut = new WebInspector.KeyboardShortcut(null, WebInspector.KeyboardShortcut.Key.Enter, this._commitSelector.bind(this), this._selectorElement);
-            this._selectorElement.addEventListener("blur", this._commitSelector.bind(this));
-        } else
+        else if (style.ownerRule)
+            this._style.ownerRule.addEventListener(WebInspector.CSSRule.Event.SelectorChanged, this.refresh.bind(this));
+        else
             this._element.classList.add(WebInspector.CSSStyleDeclarationSection.SelectorLockedStyleClassName);
 
         this.refresh();
@@ -165,21 +169,21 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         this._originElement.removeChildren();
         this._selectorElements = [];
 
-        this._originElement.append(" \u2014 ");
+        this._originElement.append(` ${emDash} `);
 
         function appendSelector(selector, matched)
         {
             console.assert(selector instanceof WebInspector.CSSSelector);
 
-            var selectorElement = document.createElement("span");
+            let selectorElement = document.createElement("span");
             selectorElement.textContent = selector.text;
 
             if (matched)
                 selectorElement.classList.add(WebInspector.CSSStyleDeclarationSection.MatchedSelectorElementStyleClassName);
 
-            var specificity = selector.specificity;
+            let specificity = selector.specificity;
             if (specificity) {
-                var tooltip = WebInspector.UIString("Specificity: (%d, %d, %d)").format(specificity[0], specificity[1], specificity[2]);
+                let tooltip = WebInspector.UIString("Specificity: (%d, %d, %d)").format(specificity[0], specificity[1], specificity[2]);
                 if (selector.dynamic) {
                     tooltip += "\n";
                     if (this._style.inherited)
@@ -189,7 +193,7 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
                 }
                 selectorElement.title = tooltip;
             } else if (selector.dynamic) {
-                var tooltip = WebInspector.UIString("Specificity: No value for selected element");
+                let tooltip = WebInspector.UIString("Specificity: No value for selected element");
                 tooltip += "\n";
                 tooltip += WebInspector.UIString("Dynamically calculated for the selected element and did not match");
                 selectorElement.title = tooltip;
@@ -201,7 +205,7 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
 
         function appendSelectorTextKnownToMatch(selectorText)
         {
-            var selectorElement = document.createElement("span");
+            let selectorElement = document.createElement("span");
             selectorElement.textContent = selectorText;
             selectorElement.classList.add(WebInspector.CSSStyleDeclarationSection.MatchedSelectorElementStyleClassName);
             this._selectorElement.appendChild(selectorElement);
@@ -211,23 +215,28 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         case WebInspector.CSSStyleDeclaration.Type.Rule:
             console.assert(this._style.ownerRule);
 
-            var selectors = this._style.ownerRule.selectors;
-            var matchedSelectorIndices = this._style.ownerRule.matchedSelectorIndices;
-            var alwaysMatch = !matchedSelectorIndices.length;
+            let selectors = this._style.ownerRule.selectors;
+            let matchedSelectorIndices = this._style.ownerRule.matchedSelectorIndices;
+            let alwaysMatch = !matchedSelectorIndices.length;
             if (selectors.length) {
-                for (var i = 0; i < selectors.length; ++i) {
+                let hasMatchingPseudoElementSelector = false;
+                for (let i = 0; i < selectors.length; ++i) {
                     appendSelector.call(this, selectors[i], alwaysMatch || matchedSelectorIndices.includes(i));
                     if (i < selectors.length - 1)
                         this._selectorElement.append(", ");
+
+                    if (matchedSelectorIndices.includes(i) && selectors[i].isPseudoElementSelector())
+                        hasMatchingPseudoElementSelector = true;
                 }
+                this._element.classList.toggle(WebInspector.CSSStyleDeclarationSection.PseudoElementSelectorStyleClassName, hasMatchingPseudoElementSelector);
             } else
                 appendSelectorTextKnownToMatch.call(this, this._style.ownerRule.selectorText);
 
             if (this._style.ownerRule.sourceCodeLocation) {
-                var sourceCodeLink = WebInspector.createSourceCodeLocationLink(this._style.ownerRule.sourceCodeLocation, true);
+                let sourceCodeLink = WebInspector.createSourceCodeLocationLink(this._style.ownerRule.sourceCodeLocation, true);
                 this._originElement.appendChild(sourceCodeLink);
             } else {
-                var originString;
+                let originString;
                 switch (this._style.ownerRule.type) {
                 case WebInspector.CSSStyleSheet.Type.Author:
                     originString = WebInspector.UIString("Author Stylesheet");
@@ -254,15 +263,18 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
             break;
 
         case WebInspector.CSSStyleDeclaration.Type.Inline:
-            appendSelectorTextKnownToMatch.call(this, WebInspector.displayNameForNode(this._style.node));
+            appendSelectorTextKnownToMatch.call(this, this._style.node.displayName);
             this._originElement.append(WebInspector.UIString("Style Attribute"));
             break;
 
         case WebInspector.CSSStyleDeclaration.Type.Attribute:
-            appendSelectorTextKnownToMatch.call(this, WebInspector.displayNameForNode(this._style.node));
+            appendSelectorTextKnownToMatch.call(this, this._style.node.displayName);
             this._originElement.append(WebInspector.UIString("HTML Attributes"));
             break;
         }
+
+        if (this._selectorInput)
+            this._selectorInput.value = this._selectorElement.textContent;
     }
 
     highlightProperty(property)
@@ -334,7 +346,7 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
 
     focusRuleSelector(reverse)
     {
-        if (this.selectorLocked) {
+        if (!this.selectorEditable && !this.locked) {
             this.focus();
             return;
         }
@@ -344,14 +356,20 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
             return;
         }
 
-        var selection = window.getSelection();
+        let selection = window.getSelection();
         selection.removeAllRanges();
 
         this._element.scrollIntoViewIfNeeded();
 
-        var range = document.createRange();
-        range.selectNodeContents(this._selectorElement);
-        selection.addRange(range);
+        if (this._selectorInput) {
+            this._selectorInput.focus();
+            this._selectorInput.selectionStart = 0;
+            this._selectorInput.selectionEnd = this._selectorInput.value.length;
+        } else {
+            let range = document.createRange();
+            range.selectNodeContents(this._selectorElement);
+            selection.addRange(range);
+        }
     }
 
     selectLastProperty()
@@ -359,9 +377,9 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         this._propertiesTextEditor.selectLastProperty();
     }
 
-    get selectorLocked()
+    get selectorEditable()
     {
-        return !this.locked && !this._style.ownerRule;
+        return !this.locked && this._style.ownerRule;
     }
 
     get locked()
@@ -378,10 +396,10 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
 
     get _currentSelectorText()
     {
-        var selectorText = this._selectorElement.textContent;
+        let selectorText = this.selectorEditable ? this._selectorInput.value : this._selectorElement.textContent;
         if (!selectorText || !selectorText.length) {
             if (!this._style.ownerRule)
-                return;
+                return "";
 
             selectorText = this._style.ownerRule.selectorText;
         }
@@ -397,17 +415,17 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         if (!event || !event.clipboardData)
             return;
 
-        var data = event.clipboardData.getData("text/plain");
+        let data = event.clipboardData.getData("text/plain");
         if (!data)
             return;
 
         function parseTextForRule(text)
         {
-            var containsBraces = /[\{\}]/;
+            let containsBraces = /[\{\}]/;
             if (!containsBraces.test(text))
                 return null;
 
-            var match = text.match(/([^{]+){(.*)}/);
+            let match = text.match(/([^{]+){(.*)}/);
             if (!match)
                 return null;
 
@@ -416,13 +434,11 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
             return containsBraces.test(match[2]) ? parseTextForRule(match[2]) : match;
         }
 
-        var match = parseTextForRule(data);
-        if (!match)
+        let [selector, value] = parseTextForRule(data);
+        if (!selector || !value)
             return;
 
-        var selector = match[1].trim();
-        this._selectorElement.textContent = selector;
-        this._style.nodeStyles.changeRule(this._style.ownerRule, selector, match[2]);
+        this._style.nodeStyles.changeRule(this._style.ownerRule, selector.trim(), value);
         event.preventDefault();
     }
 
@@ -431,29 +447,91 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         if (window.getSelection().toString().length)
             return;
 
-        var contextMenu = new WebInspector.ContextMenu(event);
+        let contextMenu = WebInspector.ContextMenu.createFromEvent(event);
 
-        if (!this._style.inherited) {
-            contextMenu.appendItem(WebInspector.UIString("Duplicate Selector"), function() {
-                if (this._delegate && typeof this._delegate.cssStyleDeclarationSectionFocusNextNewInspectorRule === "function")
-                    this._delegate.cssStyleDeclarationSectionFocusNextNewInspectorRule();
-
-                this._style.nodeStyles.addRuleWithSelector(this._currentSelectorText);
-            }.bind(this));
-        }
-
-        contextMenu.appendItem(WebInspector.UIString("Copy Rule"), function() {
+        contextMenu.appendItem(WebInspector.UIString("Copy Rule"), () => {
             InspectorFrontendHost.copyText(this._style.generateCSSRuleString());
-        }.bind(this));
+        });
 
-        contextMenu.show();
-    }
-
-    _toggleRuleOnOff()
-    {
-        if (this._hasInvalidSelector)
+        if (this._style.inherited)
             return;
 
+        contextMenu.appendItem(WebInspector.UIString("Duplicate Selector"), () => {
+            if (this._delegate && typeof this._delegate.focusEmptySectionWithStyle === "function") {
+                let existingRules = this._style.nodeStyles.rulesForSelector(this._currentSelectorText);
+                for (let rule of existingRules) {
+                    if (this._delegate.focusEmptySectionWithStyle(rule.style))
+                        return;
+                }
+            }
+
+            this._style.nodeStyles.addRule(this._currentSelectorText);
+        });
+
+        // Only used one colon temporarily since single-colon pseudo elements are valid CSS.
+        if (WebInspector.CSSStyleManager.PseudoElementNames.some((className) => this._style.selectorText.includes(":" + className)))
+            return;
+
+        if (WebInspector.CSSStyleManager.ForceablePseudoClasses.every((className) => !this._style.selectorText.includes(":" + className))) {
+            contextMenu.appendSeparator();
+
+            for (let pseudoClass of WebInspector.CSSStyleManager.ForceablePseudoClasses) {
+                if (pseudoClass === "visited" && this._style.node.nodeName() !== "A")
+                    continue;
+
+                let pseudoClassSelector = ":" + pseudoClass;
+
+                contextMenu.appendItem(WebInspector.UIString("Add %s Rule").format(pseudoClassSelector), () => {
+                    this._style.node.setPseudoClassEnabled(pseudoClass, true);
+
+                    let selector;
+                    if (this._style.ownerRule)
+                        selector = this._style.ownerRule.selectors.map((selector) => selector.text + pseudoClassSelector).join(", ");
+                    else
+                        selector = this._currentSelectorText + pseudoClassSelector;
+
+                    this._style.nodeStyles.addRule(selector);
+                });
+            }
+        }
+
+        contextMenu.appendSeparator();
+
+        for (let pseudoElement of WebInspector.CSSStyleManager.PseudoElementNames) {
+            let pseudoElementSelector = "::" + pseudoElement;
+            const styleText = "content: \"\";";
+
+            let existingSection = null;
+            if (this._delegate && typeof this._delegate.sectionForStyle === "function") {
+                let existingRules = this._style.nodeStyles.rulesForSelector(this._currentSelectorText + pseudoElementSelector);
+                if (existingRules.length) {
+                    // There shouldn't really ever be more than one pseudo-element rule
+                    // that is not in a media query. As such, just focus the first rule
+                    // on the assumption that it is the only one necessary.
+                    existingSection = this._delegate.sectionForStyle(existingRules[0].style);
+                }
+            }
+
+            let title = existingSection ? WebInspector.UIString("Focus %s Rule") : WebInspector.UIString("Create %s Rule");
+            contextMenu.appendItem(title.format(pseudoElementSelector), () => {
+                if (existingSection) {
+                    existingSection.focus();
+                    return;
+                }
+
+                let selector;
+                if (this._style.ownerRule)
+                    selector = this._style.ownerRule.selectors.map((selector) => selector.text + pseudoElementSelector).join(", ");
+                else
+                    selector = this._currentSelectorText + pseudoElementSelector;
+
+                this._style.nodeStyles.addRule(selector, styleText);
+            });
+        }
+    }
+
+    _handleIconElementClicked()
+    {
         this._ruleDisabled = this._ruleDisabled ? !this._propertiesTextEditor.uncommentAllProperties() : this._propertiesTextEditor.commentAllProperties();
         this._iconElement.title = this._ruleDisabled ? WebInspector.UIString("Uncomment All Properties") : WebInspector.UIString("Comment All Properties");
         this._element.classList.toggle("rule-disabled", this._ruleDisabled);
@@ -519,7 +597,12 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
 
     _handleKeyDown(event)
     {
-        if (event.keyCode !== 9) {
+        if (event.keyCode === WebInspector.KeyboardShortcut.Key.Enter.keyCode) {
+            this._selectorInput.blur();
+            return;
+        }
+
+        if (event.keyCode !== WebInspector.KeyboardShortcut.Key.Tab.keyCode) {
             this._highlightNodesWithSelector();
             return;
         }
@@ -538,18 +621,29 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         }
     }
 
-    _handleKeyUp(event)
+    _handleKeyPress(event)
     {
+        if (!event.altGraphKey && !event.altKey && !event.ctrlKey && !event.metaKey) {
+            // Ensures that <textarea> does not scroll with added characters.  Since a
+            // <textarea> does not expand to fit its content, appending the pressed character to the
+            // end of the original (non-editable) selector element will ensure that the <textarea>
+            // will be large enough to fit the selector without scrolling.
+            this._selectorElement.append(String.fromCharCode(event.keyCode));
+        }
+    }
+
+    _handleInput(event)
+    {
+        this._selectorElement.textContent = this._selectorInput.value;
+
         this._highlightNodesWithSelector();
     }
 
-    _commitSelector(mutations)
+    _handleBlur()
     {
-        console.assert(this._style.ownerRule);
-        if (!this._style.ownerRule)
-            return;
+        this._hideDOMNodeHighlight();
 
-        var newSelectorText = this._selectorElement.textContent.trim();
+        let newSelectorText = this._currentSelectorText.trim();
         if (!newSelectorText) {
             // Revert to the current selector (by doing a refresh) since the new selector is empty.
             this.refresh();
@@ -557,27 +651,6 @@ WebInspector.CSSStyleDeclarationSection = class CSSStyleDeclarationSection exten
         }
 
         this._style.ownerRule.selectorText = newSelectorText;
-    }
-
-    _markSelector(event)
-    {
-        var valid = event && event.data && event.data.valid;
-        this._element.classList.toggle(WebInspector.CSSStyleDeclarationSection.SelectorInvalidClassName, !valid);
-        if (valid) {
-            this._iconElement.title = this._ruleDisabled ? WebInspector.UIString("Uncomment All Properties") : WebInspector.UIString("Comment All Properties");
-            this._selectorElement.title = null;
-            return;
-        }
-
-        this._iconElement.title = WebInspector.UIString("The selector '%s' is invalid.").format(this._selectorElement.textContent.trim());
-        this._selectorElement.title = WebInspector.UIString("Using the previous selector '%s'.").format(this._style.ownerRule.selectorText);
-        for (var i = 0; i < this._selectorElement.children.length; ++i)
-            this._selectorElement.children[i].title = null;
-    }
-
-    get _hasInvalidSelector()
-    {
-        return this._element.classList.contains(WebInspector.CSSStyleDeclarationSection.SelectorInvalidClassName);
     }
 
     _editorContentChanged(event)
@@ -598,9 +671,9 @@ WebInspector.CSSStyleDeclarationSection.Event = {
 
 WebInspector.CSSStyleDeclarationSection.LockedStyleClassName = "locked";
 WebInspector.CSSStyleDeclarationSection.SelectorLockedStyleClassName = "selector-locked";
-WebInspector.CSSStyleDeclarationSection.SelectorInvalidClassName = "invalid-selector";
 WebInspector.CSSStyleDeclarationSection.LastInGroupStyleClassName = "last-in-group";
 WebInspector.CSSStyleDeclarationSection.MatchedSelectorElementStyleClassName = "matched";
+WebInspector.CSSStyleDeclarationSection.PseudoElementSelectorStyleClassName = "pseudo-element-selector";
 
 WebInspector.CSSStyleDeclarationSection.AuthorStyleRuleIconStyleClassName = "author-style-rule-icon";
 WebInspector.CSSStyleDeclarationSection.UserStyleRuleIconStyleClassName = "user-style-rule-icon";

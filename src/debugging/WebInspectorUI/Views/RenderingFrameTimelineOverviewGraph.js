@@ -95,8 +95,16 @@ WebInspector.RenderingFrameTimelineOverviewGraph = class RenderingFrameTimelineO
 
     // Protected
 
+    get height()
+    {
+        return 108;
+    }
+
     layout()
     {
+        if (!this.visible)
+            return;
+
         if (!this._renderingFrameTimeline.records.length)
             return;
 
@@ -170,7 +178,7 @@ WebInspector.RenderingFrameTimelineOverviewGraph = class RenderingFrameTimelineO
         if (this.graphHeightSeconds === 0)
             return;
 
-        var overviewGraphHeight = this.element.offsetHeight;
+        let overviewGraphHeight = this.height;
 
         function createDividerAtPosition(framesPerSecond)
         {
@@ -211,8 +219,6 @@ WebInspector.RenderingFrameTimelineOverviewGraph = class RenderingFrameTimelineO
         if (!this.selectedRecord) {
             if (this._selectedFrameMarker.parentElement)
                 this.element.removeChild(this._selectedFrameMarker);
-
-            this.dispatchSelectedRecordChangedEvent();
             return;
         }
 
@@ -236,8 +242,6 @@ WebInspector.RenderingFrameTimelineOverviewGraph = class RenderingFrameTimelineO
 
         this._selectedTimelineRecordFrame = this._timelineRecordFrames[index];
         this._selectedTimelineRecordFrame.selected = true;
-
-        this.dispatchSelectedRecordChangedEvent();
     }
 
     _mouseClicked(event)
@@ -251,9 +255,8 @@ WebInspector.RenderingFrameTimelineOverviewGraph = class RenderingFrameTimelineO
         if (newSelectedRecord[WebInspector.RenderingFrameTimelineOverviewGraph.RecordWasFilteredSymbol])
             return;
 
-        // Clicking the selected frame causes it to be deselected.
         if (this.selectedRecord === newSelectedRecord)
-            newSelectedRecord = null;
+            return;
 
         if (frameIndex >= this.timelineOverview.selectionStartTime && frameIndex < this.timelineOverview.selectionStartTime + this.timelineOverview.selectionDuration) {
             this.selectedRecord = newSelectedRecord;
