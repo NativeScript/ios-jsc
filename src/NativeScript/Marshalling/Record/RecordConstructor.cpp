@@ -45,13 +45,16 @@ static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeC
             for (RecordField* field : recordPrototype->fields()) {
                 Identifier fieldName = Identifier::fromString(execState, field->fieldName());
 
+                JSC::VM& vm = execState->vm();
+                auto scope = DECLARE_THROW_SCOPE(vm);
+
                 JSValue fieldValue1 = v1.get(execState, fieldName);
-                if (execState->hadException()) {
+                if (scope.exception()) {
                     return false;
                 }
 
                 JSValue fieldValue2 = v2.get(execState, fieldName);
-                if (execState->hadException()) {
+                if (scope.exception()) {
                     return false;
                 }
 
@@ -70,9 +73,11 @@ static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeC
 static EncodedJSValue JSC_HOST_CALL recordConstructorFuncEquals(ExecState* execState) {
     JSValue arg1 = execState->argument(0);
     JSValue arg2 = execState->argument(1);
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() != 2) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Two arguments required."))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Two arguments required."))));
     }
 
     RecordConstructor* recordConstructor = jsCast<RecordConstructor*>(execState->thisValue());
@@ -108,25 +113,28 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
     } else {
         memset(buffer, 0, ffiType->size);
 
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
             const WTF::Vector<RecordField*> fields = jsCast<RecordPrototype*>(constructor->get(execState, execState->vm().propertyNames->prototype))->fields();
             for (RecordField* field : fields) {
                 Identifier propertyName = Identifier::fromString(execState, field->fieldName());
                 if (object->hasProperty(execState, propertyName)) {
                     JSValue fieldValue = object->get(execState, propertyName);
-                    if (execState->hadException()) {
+                    if (scope.exception()) {
                         return;
                     }
 
                     field->ffiTypeMethodTable().write(execState, fieldValue, reinterpret_cast<void*>(reinterpret_cast<char*>(buffer) + field->offset()), field->fieldType());
-                    if (execState->hadException()) {
+                    if (scope.exception()) {
                         return;
                     }
                 }
             }
         } else if (!value.isUndefinedOrNull()) {
-            JSValue exception = createError(execState, WTF::String::format("Could not marshall \"%s\" to \"%s\" type.", value.toWTFString(execState).utf8().data(), constructor->name(execState).utf8().data()));
-            throwVMError(execState, exception);
+            JSValue exception = createError(execState, WTF::String::format("Could not marshall \"%s\" to \"%s\" type.", value.toWTFString(execState).utf8().data(), constructor->name().utf8().data()));
+            throwVMError(execState, scope, exception);
             return;
         }
     }
@@ -201,18 +209,21 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecStat
 
 ConstructType RecordConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = &constructRecordInstance;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* execState) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     if (execState->argumentCount() != 1) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("One argument required."))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("One argument required."))));
     }
 
     const JSValue value = execState->argument(0);
     if (!value.inherits(PointerInstance::info())) {
         const WTF::String message = WTF::String::format("Argument must be a %s.", PointerInstance::info()->className);
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, message)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, message)));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(value);
@@ -226,7 +237,7 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* 
 
 CallType RecordConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &createRecordInstance;
-    return CallTypeHost;
+    return CallType::Host;
 }
 
 void RecordConstructor::visitChildren(JSCell* cell, SlotVisitor& visitor) {

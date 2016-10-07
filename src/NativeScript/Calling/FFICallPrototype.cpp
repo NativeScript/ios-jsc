@@ -8,6 +8,7 @@
 
 #include "FFICallPrototype.h"
 #include "FFICall.h"
+#include <JavaScriptCore/Interpreter.h>
 
 namespace NativeScript {
 using namespace JSC;
@@ -25,21 +26,23 @@ void FFICallPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
 
 EncodedJSValue JSC_HOST_CALL FFICallPrototypeFuncAsync(ExecState* execState) {
     auto call = jsCast<FFICall*>(execState->thisValue());
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     JSValue array = execState->argument(1);
 
     MarkedArgumentBuffer applyArgs;
     if (!array.isUndefinedOrNull()) {
         if (!array.isObject())
-            return throwVMTypeError(execState);
+            return throwVMTypeError(execState, scope);
         if (isJSArray(array)) {
             if (asArray(array)->length() > JSC::maxArguments)
-                return JSValue::encode(throwStackOverflowError(execState));
+                return JSValue::encode(throwStackOverflowError(execState, scope));
             asArray(array)->fillArgList(execState, applyArgs);
         } else {
             unsigned length = asObject(array)->get(execState, execState->propertyNames().length).toUInt32(execState);
             if (length > JSC::maxArguments)
-                return JSValue::encode(throwStackOverflowError(execState));
+                return JSValue::encode(throwStackOverflowError(execState, scope));
 
             for (unsigned i = 0; i < length; ++i)
                 applyArgs.append(asObject(array)->get(execState, i));

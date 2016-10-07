@@ -8,8 +8,8 @@
 
 namespace Inspector {
 
-JSC::EncodedJSValue JSC_HOST_CALL startProfile(JSC::ExecState* execState);
-JSC::EncodedJSValue JSC_HOST_CALL stopProfile(JSC::ExecState* execState);
+//JSC::EncodedJSValue JSC_HOST_CALL startProfile(JSC::ExecState* execState);
+//JSC::EncodedJSValue JSC_HOST_CALL stopProfile(JSC::ExecState* execState);
 
 enum class TimelineRecordType {
     EventDispatch,

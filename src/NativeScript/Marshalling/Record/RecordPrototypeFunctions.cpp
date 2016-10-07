@@ -38,7 +38,7 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldSetter(ExecState* execSt
 
 CallType RecordProtoFieldSetter::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = recordProtoFuncFieldSetter;
-    return CallTypeHost;
+    return CallType::Host;
 }
 
 void RecordProtoFieldSetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {
@@ -73,7 +73,7 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldGetter(ExecState* execSt
 
 CallType RecordProtoFieldGetter::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = recordProtoFuncFieldGetter;
-    return CallTypeHost;
+    return CallType::Host;
 }
 
 void RecordProtoFieldGetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {

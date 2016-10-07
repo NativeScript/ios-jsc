@@ -25,16 +25,19 @@ void ObjCFastEnumerationIteratorPrototype::finishCreation(VM& vm, JSGlobalObject
 }
 
 EncodedJSValue JSC_HOST_CALL FastEnumerationIteratorPrototypeFuncNext(ExecState* execState) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     auto iterator = jsDynamicCast<ObjCFastEnumerationIterator*>(execState->thisValue());
     if (!iterator)
-        return JSValue::encode(throwTypeError(execState, ASCIILiteral("Cannot call NSFastEnumerationIterator.next() on a non-NSFastEnumerationIterator object")));
+        return JSValue::encode(throwTypeError(execState, scope, ASCIILiteral("Cannot call NSFastEnumerationIterator.next() on a non-NSFastEnumerationIterator object")));
 
     JSValue result;
     if (iterator->next(execState, result)) {
         return JSValue::encode(createIteratorResultObject(execState, result, false));
     }
 
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 

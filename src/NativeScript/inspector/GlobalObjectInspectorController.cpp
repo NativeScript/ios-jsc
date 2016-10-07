@@ -24,14 +24,14 @@
  */
 
 #include "GlobalObjectInspectorController.h"
-#include <JavaScriptCore/config.h>
+//#include <JavaScriptCore/config.h>
 
 #include "DomainInspectorAgent.h"
 #include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectDebuggerAgent.h"
 #include "InspectorNetworkAgent.h"
 #include "InspectorPageAgent.h"
-#include "InspectorTimelineAgent.h"
+//#include "InspectorTimelineAgent.h"
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/ConsoleMessage.h>
 #include <JavaScriptCore/ErrorHandlingScope.h>
@@ -42,6 +42,7 @@
 #include <JavaScriptCore/InspectorBackendDispatcher.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
+#include <JavaScriptCore/InspectorHeapAgent.h>
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/JSGlobalObjectConsoleAgent.h>
 #include <JavaScriptCore/JSGlobalObjectRuntimeAgent.h>
@@ -105,15 +106,16 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, DontEnum);
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, DontEnum);
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, DontEnum);
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__startProfile")), 1, &startProfile, JSC::NoIntrinsic, JSC::DontEnum);
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__stopProfile")), 1, &stopProfile, JSC::NoIntrinsic, JSC::DontEnum);
+    //    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__startProfile")), 1, &startProfile, JSC::NoIntrinsic, JSC::DontEnum);
+    //    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__stopProfile")), 1, &stopProfile, JSC::NoIntrinsic, JSC::DontEnum);
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);
-    auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_jsAgentContext);
+    auto heapAgent = std::make_unique<InspectorHeapAgent>(m_jsAgentContext);
+    auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_jsAgentContext, heapAgent.get()); // TODO Add InspectorHeapAgent
     auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_jsAgentContext, consoleAgent.get());
     auto pageAgent = std::make_unique<InspectorPageAgent>(m_jsAgentContext);
-    auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_jsAgentContext);
+    //auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_jsAgentContext);
     auto networkAgent = std::make_unique<InspectorNetworkAgent>(m_jsAgentContext);
 
     m_inspectorAgent = inspectorAgent.get();
@@ -121,13 +123,14 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_consoleAgent = consoleAgent.get();
     m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent);
 
-    m_agents.append(WTF::move(inspectorAgent));
-    m_agents.append(WTF::move(timelineAgent));
-    m_agents.append(WTF::move(pageAgent));
-    m_agents.append(WTF::move(runtimeAgent));
-    m_agents.append(WTF::move(consoleAgent));
-    m_agents.append(WTF::move(debuggerAgent));
-    m_agents.append(WTF::move(networkAgent));
+    m_agents.append(WTFMove(inspectorAgent));
+    //    m_agents.append(WTF::move(timelineAgent));
+    m_agents.append(WTFMove(pageAgent));
+    m_agents.append(WTFMove(runtimeAgent));
+    m_agents.append(WTFMove(consoleAgent));
+    m_agents.append(WTFMove(debuggerAgent));
+    m_agents.append(WTFMove(networkAgent));
+    //    m_agents.append(WTFMove(heapAgent));
 
     m_executionStopwatch->start();
 }
@@ -138,11 +141,11 @@ GlobalObjectInspectorController::~GlobalObjectInspectorController() {
 void GlobalObjectInspectorController::registerDomainDispatcher(WTF::String domainIdentifier, JSC::JSCell* constructorFunction) {
     std::unique_ptr<DomainInspectorAgent> domainInspectorAgent = std::make_unique<DomainInspectorAgent>(domainIdentifier, constructorFunction, this->m_jsAgentContext);
 
-    appendExtraAgent(WTF::move(domainInspectorAgent));
+    appendExtraAgent(WTFMove(domainInspectorAgent));
 }
 
 void GlobalObjectInspectorController::globalObjectDestroyed() {
-    disconnectAllFrontends();
+    ASSERT(!m_frontendRouter->hasFrontends());
 
     m_injectedScriptManager->disconnect();
 }
@@ -188,20 +191,6 @@ void GlobalObjectInspectorController::disconnectFrontend(FrontendChannel* fronte
 #endif
 }
 
-void GlobalObjectInspectorController::disconnectAllFrontends() {
-    // FIXME: change this to notify agents which frontend has disconnected (by id).
-    m_agents.willDestroyFrontendAndBackend(DisconnectReason::InspectedTargetDestroyed);
-
-    m_frontendRouter->disconnectAllFrontends();
-
-    m_isAutomaticInspection = false;
-
-#if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-    if (m_augmentingClient)
-        m_augmentingClient->inspectorDisconnected();
-#endif
-}
-
 void GlobalObjectInspectorController::dispatchMessageFromFrontend(const String& message) {
     m_backendDispatcher->dispatch(message);
 }
@@ -232,9 +221,9 @@ void GlobalObjectInspectorController::appendAPIBacktrace(ScriptCallStack* callSt
         if (mangledName)
             cxaDemangled = abi::__cxa_demangle(mangledName, nullptr, nullptr, nullptr);
         if (mangledName || cxaDemangled)
-            callStack->append(ScriptCallFrame(cxaDemangled ? cxaDemangled : mangledName, ASCIILiteral("[native code]"), 0, 0));
+            callStack->append(ScriptCallFrame(cxaDemangled ? cxaDemangled : mangledName, ASCIILiteral("[native code]"), noSourceID, 0, 0));
         else
-            callStack->append(ScriptCallFrame(ASCIILiteral("?"), ASCIILiteral("[native code]"), 0, 0));
+            callStack->append(ScriptCallFrame(ASCIILiteral("?"), ASCIILiteral("[native code]"), noSourceID, 0, 0));
         free(cxaDemangled);
     }
 #else
@@ -246,7 +235,9 @@ void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Except
     if (isTerminatedExecutionException(exception))
         return;
 
-    ErrorHandlingScope errorScope(exec->vm());
+    VM& vm = exec->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+    ErrorHandlingScope errorScope(vm);
 
     RefPtr<ScriptCallStack> callStack = createScriptCallStackFromException(exec, exception, ScriptCallStack::maxCallStackSizeToCapture);
     if (includesNativeCallStackWhenReportingExceptions())
@@ -255,7 +246,7 @@ void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Except
     // FIXME: <http://webkit.org/b/115087> Web Inspector: Should not evaluate JavaScript handling exceptions
     // If this is a custom exception object, call toString on it to try and get a nice string representation for the exception.
     String errorMessage = exception->value().toString(exec)->value(exec);
-    exec->clearException();
+    scope.clearException();
 
     if (GlobalObjectConsoleClient::logToSystemConsole()) {
         if (callStack->size()) {
@@ -314,7 +305,7 @@ void GlobalObjectInspectorController::appendExtraAgent(std::unique_ptr<Inspector
     // FIXME: change this to notify agents which frontend has connected (by id).
     agent->didCreateFrontendAndBackend(nullptr, nullptr);
 
-    m_agents.appendExtraAgent(WTF::move(agent));
+    m_agents.appendExtraAgent(WTFMove(agent));
 
     m_inspectorAgent->activateExtraDomain(domainName);
 }

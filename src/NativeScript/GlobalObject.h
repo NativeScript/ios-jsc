@@ -162,7 +162,7 @@ public:
         return this->_commonJSModuleFunctionIdentifier;
     }
 
-    WTF::HashMap<WTF::String, WTF::String, WTF::CaseFoldingHash>& modulePathCache() {
+    WTF::HashMap<WTF::String, WTF::String, WTF::ASCIICaseInsensitiveHash>& modulePathCache() {
         return this->_modulePathCache;
     }
 
@@ -176,19 +176,19 @@ private:
     static void destroy(JSC::JSCell* cell);
 
     WTF::Deque<WTF::RefPtr<JSC::Microtask>> _microtasksQueue;
-    static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::PassRefPtr<JSC::Microtask> task);
+    static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::Ref<JSC::Microtask>&& task);
 
-    static bool supportsProfiling(const JSGlobalObject*);
+    static JSC::JSInternalPromise* moduleLoaderResolve(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue referrerValue, JSC::JSValue initiator);
 
-    static JSC::JSInternalPromise* moduleLoaderResolve(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue referrerValue);
+    static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue initiator);
 
-    static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue);
+    static JSC::JSInternalPromise* moduleLoaderTranslate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSValue initiator);
 
-    static JSC::JSInternalPromise* moduleLoaderTranslate(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue sourceValue);
+    static JSC::JSInternalPromise* moduleLoaderInstantiate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSValue initiator);
 
-    static JSC::JSInternalPromise* moduleLoaderInstantiate(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue sourceValue);
+    static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue, JSC::JSValue initiator);
 
-    static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject* globalObject, JSC::ExecState* execState, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue);
+    static WTF::String defaultLanguage();
 
     static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
 
@@ -236,7 +236,7 @@ private:
 
     JSC::Identifier _commonJSModuleFunctionIdentifier;
 
-    WTF::HashMap<WTF::String, WTF::String, WTF::CaseFoldingHash> _modulePathCache;
+    WTF::HashMap<WTF::String, WTF::String, WTF::ASCIICaseInsensitiveHash> _modulePathCache;
 };
 }
 

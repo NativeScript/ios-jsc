@@ -28,6 +28,6 @@ WTF::String FFISimpleType::className(const JSObject* object) {
 
 CallType FFISimpleType::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &readFromPointer;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

@@ -14,10 +14,10 @@ using namespace JSC;
 const ClassInfo FunctionReferenceInstance::s_info = { "FunctionReference", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceInstance) };
 
 void FunctionReferenceInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function) {
-    JSObject* object = jsCast<JSObject*>(function);
+    JSFunction* object = jsCast<JSFunction*>(function);
 
     ExecState* execState = globalObject->globalExec();
-    Base::finishCreation(vm, object->get(execState, vm.propertyNames->name).toString(execState)->value(execState));
+    Base::finishCreation(vm, object->jsExecutable()->ecmaName().string());
 
     size_t length = object->get(execState, vm.propertyNames->length).toUInt32(execState);
     this->putDirect(vm, vm.propertyNames->length, jsNumber(length), ReadOnly | DontEnum | DontDelete);
@@ -35,7 +35,7 @@ static EncodedJSValue JSC_HOST_CALL callFunc(ExecState* execState) {
 
 CallType FunctionReferenceInstance::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &callFunc;
-    return CallTypeHost;
+    return JSC::CallType::Host;
 }
 
 void FunctionReferenceInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {

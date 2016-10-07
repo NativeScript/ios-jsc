@@ -42,12 +42,12 @@ static EncodedJSValue JSC_HOST_CALL constructPointerInstance(ExecState* execStat
 
 ConstructType PointerConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = &constructPointerInstance;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType PointerConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructPointerInstance;
-    return CallTypeHost;
+    return CallType::Host;
 }
 
 JSValue PointerConstructor::read(ExecState* execState, const void* buffer, JSCell* self) {
@@ -70,8 +70,11 @@ void PointerConstructor::write(ExecState* execState, const JSValue& value, void*
     bool hasHandle;
     void* handle = tryHandleofValue(value, &hasHandle);
     if (!hasHandle) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a pointer."));
-        execState->vm().throwException(execState, exception);
+        scope.throwException(execState, exception);
         return;
     }
 

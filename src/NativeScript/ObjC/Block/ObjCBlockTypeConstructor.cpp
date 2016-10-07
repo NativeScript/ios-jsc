@@ -24,22 +24,25 @@ void ObjCBlockTypeConstructor::finishCreation(VM& vm, JSObject* objCBlockTypePro
 static EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     if (execState->argumentCount() < 1) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("ObjCBlockTypeConstructor constructor expects at least one argument.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("ObjCBlockTypeConstructor constructor expects at least one argument.")));
     }
 
     JSValue returnType = execState->uncheckedArgument(0);
 
     const FFITypeMethodTable* methodTable;
     if (!tryGetFFITypeMethodTable(returnType, &methodTable)) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as return type of block type.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as return type of block type.")));
     }
 
     WTF::Vector<JSCell*> parametersTypes;
     for (size_t i = 1; i < execState->argumentCount(); i++) {
         JSValue currentParameter = execState->uncheckedArgument(i);
         if (!tryGetFFITypeMethodTable(currentParameter, &methodTable)) {
-            return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter of block type.")));
+            return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter of block type.")));
         }
         parametersTypes.append(currentParameter.asCell());
     }
@@ -49,11 +52,11 @@ static EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState*
 
 ConstructType ObjCBlockTypeConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = &constructObjCBlockTypeConstructor;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType ObjCBlockTypeConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructObjCBlockTypeConstructor;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

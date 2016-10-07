@@ -104,7 +104,9 @@ id toObject(ExecState* execState, const JSValue& value) {
                                                      execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
-    throwVMError(execState, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));
+    VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+    throwVMError(execState, scope, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));
     return nil;
 }
 

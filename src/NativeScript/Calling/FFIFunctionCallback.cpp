@@ -18,9 +18,12 @@ const ClassInfo FFIFunctionCallback::s_info = { "FFIFunctionCallback", &Base::s_
 void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     FFIFunctionCallback* functionCallback = reinterpret_cast<FFIFunctionCallback*>(userData);
 
+    JSC::VM& vm = functionCallback->_globalExecState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     MarkedArgumentBuffer arguments;
     functionCallback->marshallArguments(argValues, arguments, functionCallback);
-    if (functionCallback->_globalExecState->hadException()) {
+    if (scope.exception()) {
         return;
     }
 

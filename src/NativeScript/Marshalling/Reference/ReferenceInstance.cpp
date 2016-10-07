@@ -34,7 +34,7 @@ void ReferenceInstance::createBackingStorage(VM& vm, GlobalObject* globalObject,
     this->_pointer.set(vm, this, jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(vm, data)));
     this->_pointer->setAdopted(true);
 
-    PropertySlot propertySlot(this);
+    PropertySlot propertySlot(this, PropertySlot::InternalMethodType::GetOwnProperty);
     if (this->methodTable()->getOwnPropertySlot(this, execState, execState->vm().propertyNames->value, propertySlot)) {
         this->_ffiTypeMethodTable.write(execState, propertySlot.getValue(execState, execState->vm().propertyNames->value), this->data(), this->_innerTypeCell.get());
 
@@ -71,10 +71,12 @@ bool ReferenceInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* e
     return true;
 }
 
-void ReferenceInstance::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
+bool ReferenceInstance::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
     ReferenceInstance* reference = jsCast<ReferenceInstance*>(cell);
 
     void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
     reference->_ffiTypeMethodTable.write(execState, value, element, reference->_innerTypeCell.get());
+
+    return true;
 }
 };

@@ -30,7 +30,7 @@ public:
     virtual void deleteCookie(ErrorString&, const String& in_cookieName, const String& in_url) override;
     virtual void getResourceTree(ErrorString&, RefPtr<Inspector::Protocol::Page::FrameResourceTree>& out_frameTree) override;
     virtual void getResourceContent(ErrorString&, const String& in_frameId, const String& in_url, String* out_content, bool* out_base64Encoded) override;
-    virtual void searchInResource(ErrorString&, const String& in_frameId, const String& in_url, const String& in_query, const bool* in_caseSensitive, const bool* in_isRegex, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>>& out_result) override;
+    virtual void searchInResource(ErrorString&, const String& frameId, const String& url, const String& query, const bool* optionalCaseSensitive, const bool* optionalIsRegex, const String* optionalRequestId, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>>&) override;
     virtual void searchInResources(ErrorString&, const String& in_text, const bool* in_caseSensitive, const bool* in_isRegex, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::SearchResult>>& out_result) override;
     virtual void setDocumentContent(ErrorString&, const String& in_frameId, const String& in_html) override;
     virtual void setShowPaintRects(ErrorString&, bool in_result) override;

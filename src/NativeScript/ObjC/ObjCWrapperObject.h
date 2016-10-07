@@ -54,7 +54,7 @@ private:
 
     static bool getOwnPropertySlotByIndex(JSC::JSObject* object, JSC::ExecState* execState, unsigned propertyName, JSC::PropertySlot& propertySlot);
 
-    static void putByIndex(JSC::JSCell* cell, JSC::ExecState* execState, unsigned propertyName, JSC::JSValue value, bool shouldThrow);
+    static bool putByIndex(JSC::JSCell* cell, JSC::ExecState* execState, unsigned propertyName, JSC::JSValue value, bool shouldThrow);
 
     WTF::RetainPtr<id> _wrappedObject;
     JSC::WeakGCMap<id, JSC::JSObject>* _objectMap;

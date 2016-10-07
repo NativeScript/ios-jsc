@@ -26,14 +26,17 @@ void ReferenceTypeConstructor::finishCreation(VM& vm, JSObject* referenceTypePro
 static EncodedJSValue JSC_HOST_CALL constructReferenceType(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     if (execState->argumentCount() != 1) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("ReferenceType constructor expects one argument.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("ReferenceType constructor expects one argument.")));
     }
 
     JSValue type = execState->uncheckedArgument(0);
     const FFITypeMethodTable* methodTable;
     if (!tryGetFFITypeMethodTable(type, &methodTable)) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
     }
 
     return JSValue::encode(globalObject->typeFactory()->getReferenceType(globalObject, type.asCell()));
@@ -41,11 +44,11 @@ static EncodedJSValue JSC_HOST_CALL constructReferenceType(ExecState* execState)
 
 ConstructType ReferenceTypeConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = &constructReferenceType;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType ReferenceTypeConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructReferenceType;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

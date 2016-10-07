@@ -12,12 +12,15 @@ ClearChangedCellsFunctor::ClearChangedCellsFunctor(WTF::String url, WTF::Vector<
     , m_diff(diff) {
 }
 
-JSC::IterationStatus ClearChangedCellsFunctor::operator()(JSC::JSCell* cell) {
-    visit(cell);
+JSC::IterationStatus ClearChangedCellsFunctor::operator()(JSC::HeapCell* cell, JSC::HeapCell::Kind kind) const {
+    if (kind == JSC::HeapCell::JSCell) {
+        visit(cell);
+    }
     return JSC::IterationStatus::Continue;
 }
 
-void ClearChangedCellsFunctor::visit(JSC::JSCell* cell) {
+void ClearChangedCellsFunctor::visit(JSC::HeapCell* heapCell) const {
+    JSC::JSCell* cell = static_cast<JSC::JSCell*>(heapCell);
     if (!cell->inherits(JSC::JSFunction::info()))
         return;
 

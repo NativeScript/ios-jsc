@@ -75,6 +75,6 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
         }
     }
 
-    m_backendDispatcher->sendResponse(callId, WTF::move(messageObject));
+    m_backendDispatcher->sendResponse(callId, WTFMove(messageObject));
 }
 }

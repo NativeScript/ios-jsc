@@ -13,13 +13,16 @@ namespace NativeScript {
 using namespace JSC;
 
 EncodedJSValue JSC_HOST_CALL readFromPointer(ExecState* execState) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     if (execState->argumentCount() < 1) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("At least one argument is expected.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("At least one argument is expected.")));
     }
 
     JSValue arg = execState->uncheckedArgument(0);
     if (!arg.isCell()) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Invalid first argument. Pointer expected.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Invalid first argument. Pointer expected.")));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(arg.asCell());
@@ -38,7 +41,7 @@ const ClassInfo PointerInstance::s_info = { "Pointer", &Base::s_info, 0, CREATE_
 
 void PointerInstance::finishCreation(VM& vm, void* value) {
     Base::finishCreation(vm);
-    this->preventExtensions(vm);
+    this->preventExtensions(this, vm.topCallFrame);
     this->_data = value;
 }
 

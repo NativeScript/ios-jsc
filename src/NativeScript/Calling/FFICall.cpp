@@ -7,6 +7,7 @@
 //
 
 #include "FFICall.h"
+#include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <dispatch/dispatch.h>
@@ -79,7 +80,7 @@ void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 
 CallType FFICall::getCallData(JSCell*, CallData& callData) {
     callData.native.function = &call;
-    return CallTypeHost;
+    return JSC::CallType::Host;
 }
 
 EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
@@ -87,10 +88,13 @@ EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
     Invocation invocation(callee);
     ReleasePoolHolder releasePoolHolder(execState);
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     callee->preCall(execState, invocation);
     callee->_invocationHooks.pre(callee, execState, invocation);
-    if (execState->hadException()) {
-        return JSValue::encode(execState->exception());
+    if (scope.exception()) {
+        return JSValue::encode(scope.exception());
     }
 
     {
@@ -111,9 +115,11 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     __block std::unique_ptr<Invocation> invocation(new Invocation(this));
     ReleasePoolHolder releasePoolHolder(execState);
 
-    Register* fakeCallFrame = new Register[JSStack::CallFrameHeaderSize + execState->argumentCount() + 1];
+    Register* fakeCallFrame = new Register[CallFrame::headerSizeInRegisters + execState->argumentCount() + 1];
     ExecState* fakeExecState = ExecState::create(fakeCallFrame);
-    fakeExecState->init(nullptr, nullptr, CallFrame::noCaller(), arguments.size() + 1, this);
+
+    fakeExecState->setArgumentCountIncludingThis(arguments.size() + 1);
+    fakeExecState->setCallee(this);
     fakeExecState->setThisValue(thisValue);
     fakeExecState->setCallerFrame(execState->callerFrame());
     for (size_t i = 0; i < arguments.size(); i++) {
@@ -122,10 +128,13 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     ASSERT(fakeExecState->argumentCount() == arguments.size());
 
     {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         TopCallFrameSetter frameSetter(execState->vm(), fakeExecState);
         this->preCall(fakeExecState, *invocation);
         this->_invocationHooks.pre(this, fakeExecState, *invocation);
-        if (Exception* exception = fakeExecState->exception()) {
+        if (Exception* exception = scope.exception()) {
             delete[] fakeCallFrame;
             return exception;
         }
@@ -136,6 +145,10 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     __block Strong<FFICall> callee(execState->vm(), this);
 
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
+
+      JSC::VM& vm = fakeExecState->vm();
+      auto scope = DECLARE_CATCH_SCOPE(vm);
+
       ffi_call(callee->_cif, FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
 
       JSLockHolder lockHolder(fakeExecState);
@@ -152,8 +165,8 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
           }
       }
 
-      if (Exception* exception = fakeExecState->exception()) {
-          fakeExecState->clearException();
+      if (Exception* exception = scope.exception()) {
+          scope.clearException();
           CallData rejectCallData;
           CallType rejectCallType = JSC::getCallData(deferred->reject(), rejectCallData);
 

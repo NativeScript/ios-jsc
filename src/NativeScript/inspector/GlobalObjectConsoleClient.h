@@ -22,6 +22,7 @@ protected:
     virtual void count(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) override;
     virtual void profile(JSC::ExecState*, const String& title) override;
     virtual void profileEnd(JSC::ExecState*, const String& title) override;
+    virtual void takeHeapSnapshot(JSC::ExecState*, const String& title) override;
     virtual void time(JSC::ExecState*, const String& title) override;
     virtual void timeEnd(JSC::ExecState*, const String& title) override;
     virtual void timeStamp(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) override;

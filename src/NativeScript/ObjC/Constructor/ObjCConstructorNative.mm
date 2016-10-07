@@ -51,7 +51,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
     return false;
 }
 
-void ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
+bool ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
 
     if (WTF::StringImpl* publicName = propertyName.publicName()) {
@@ -71,7 +71,7 @@ void ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName
         }
     }
 
-    Base::put(cell, execState, propertyName, value, propertySlot);
+    return Base::put(cell, execState, propertyName, value, propertySlot);
 }
 
 void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {

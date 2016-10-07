@@ -13,7 +13,9 @@ const ClassInfo UnmanagedPrototype::s_info = { "Unmanaged", &Base::s_info, 0, CR
 static EncodedJSValue takeValue(ExecState* execState, bool retained) {
     UnmanagedInstance* instance = jsDynamicCast<UnmanagedInstance*>(execState->thisValue());
     if (instance->data() == &consumedUnmanagedCheck) {
-        return throwVMTypeError(execState, WTF::ASCIILiteral("Unmanaged value has already been consumed."));
+        VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+        return throwVMTypeError(execState, scope, WTF::ASCIILiteral("Unmanaged value has already been consumed."));
     }
 
     id result = static_cast<id>(instance->data());

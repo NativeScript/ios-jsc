@@ -19,6 +19,7 @@
 #include "PointerInstance.h"
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/JSMap.h>
+#include <wtf/text/StringBuilder.h>
 
 #import "TNSArrayAdapter.h"
 #import "TNSDataAdapter.h"
@@ -97,7 +98,7 @@ const Metadata::InterfaceMeta* ObjCConstructorBase::metadata() {
         JSObject* proto = this->_prototype.get();
         ObjCPrototype* objcPrototype = nullptr;
         while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(proto))) {
-            proto = jsDynamicCast<JSObject*>(proto->prototype());
+            proto = jsDynamicCast<JSObject*>(proto->getPrototypeDirect());
         }
         ASSERT(objcPrototype != nullptr);
         const Metadata::BaseClassMeta* metadata = objcPrototype->metadata();
@@ -241,7 +242,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
         if (initializer && initializer.isCell()) {
             CallData callData;
             CallType callType = JSC::getCallData(initializer, callData);
-            ASSERT(callType != CallTypeNone);
+            ASSERT(callType != CallType::None);
 
             if (initializerArguments.size() == 1 && initializerArguments.at(0).isUndefined()) {
                 // methods such as -[MDLTransform initWithIdentity] are called as new MDLTransform({ identity: void 0 })
@@ -275,8 +276,11 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
         }
     }
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     if (candidateInitializers.size() == 0) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("No initializer found that matches constructor invocation."))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("No initializer found that matches constructor invocation."))));
     } else if (candidateInitializers.size() > 1) {
         WTF::StringBuilder errorMessage;
         errorMessage.append("More than one initializer found that matches constructor invocation:");
@@ -284,7 +288,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
             errorMessage.append(" ");
             errorMessage.append(sel_getName(initializer->selector()));
         }
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, errorMessage.toString())));
+        return JSValue::encode(scope.throwException(execState, createError(execState, errorMessage.toString())));
     } else {
         ObjCConstructorCall* initializer = candidateInitializers[0];
 
@@ -297,7 +301,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
 ConstructType ObjCConstructorBase::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = constructObjCClass;
 
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
@@ -306,8 +310,11 @@ static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
     bool hasHandle;
     void* handle = tryHandleofValue(argument, &hasHandle);
     if (!handle) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         WTF::String message = WTF::String::format("Value must be a %s.", PointerInstance::info()->className);
-        return throwVMError(execState, createError(execState, message));
+        return throwVMError(execState, scope, createError(execState, message));
     }
 
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
@@ -320,6 +327,6 @@ static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
 CallType ObjCConstructorBase::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = createObjCClass;
 
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

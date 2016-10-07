@@ -24,14 +24,14 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToString(ExecState* execState
 
     const RecordType type = recordConstructor->recordType();
     const char* typeName = type == RecordType::Struct ? "struct" : type == RecordType::Union ? "union" : "record";
-    CString name = recordConstructor->name(execState).utf8();
+    CString name = recordConstructor->name().utf8();
 
     return JSValue::encode(jsString(execState, WTF::String::format("<%s %s: %p>", typeName, name.data(), record->data())));
 }
 
 static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) {
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
-    RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(record->prototype());
+    RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(record->getPrototypeDirect());
 
     JSObject* result = constructEmptyObject(execState);
 

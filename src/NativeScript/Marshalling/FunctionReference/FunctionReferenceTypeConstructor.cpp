@@ -23,23 +23,25 @@ void FunctionReferenceTypeConstructor::finishCreation(VM& vm, JSObject* function
 
 static EncodedJSValue JSC_HOST_CALL constructFunctionReferenceTypeInstance(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() < 1) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("FunctionReferenceType constructor expects at least one argument.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("FunctionReferenceType constructor expects at least one argument.")));
     }
 
     JSValue returnType = execState->uncheckedArgument(0);
 
     const FFITypeMethodTable* methodTable;
     if (!tryGetFFITypeMethodTable(returnType, &methodTable)) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as return type of function reference.")));
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as return type of function reference.")));
     }
 
     WTF::Vector<JSCell*> parametersTypes;
     for (size_t i = 1; i < execState->argumentCount(); i++) {
         JSValue currentParameter = execState->uncheckedArgument(i);
         if (!tryGetFFITypeMethodTable(currentParameter, &methodTable)) {
-            return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter of function reference.")));
+            return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter of function reference.")));
         }
         parametersTypes.append(currentParameter.asCell());
     }
@@ -49,11 +51,11 @@ static EncodedJSValue JSC_HOST_CALL constructFunctionReferenceTypeInstance(ExecS
 
 ConstructType FunctionReferenceTypeConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = &constructFunctionReferenceTypeInstance;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType FunctionReferenceTypeConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructFunctionReferenceTypeInstance;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

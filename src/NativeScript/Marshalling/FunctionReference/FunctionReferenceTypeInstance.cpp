@@ -43,8 +43,11 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
     bool hasHandle;
     void* handle = tryHandleofValue(value, &hasHandle);
     if (!hasHandle) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a function reference."));
-        execState->vm().throwException(execState, exception);
+        scope.throwException(execState, exception);
         return;
     }
 
@@ -85,6 +88,6 @@ void FunctionReferenceTypeInstance::visitChildren(JSCell* cell, SlotVisitor& vis
 
 CallType FunctionReferenceTypeInstance::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &readFromPointer;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

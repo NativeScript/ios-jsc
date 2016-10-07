@@ -13,13 +13,13 @@ Ref<InspectorObject> TimelineRecordFactory::createGenericRecord(JSC::ExecState* 
         if (stackTrace && stackTrace->size())
             record->setValue("stackTrace", stackTrace->buildInspectorArray());
     }
-    return WTF::move(record);
+    return record;
 }
 
 Ref<InspectorObject> TimelineRecordFactory::createConsoleProfileData(const String& title) {
     Ref<InspectorObject> data = InspectorObject::create();
     data->setString("title", title);
-    return WTF::move(data);
+    return WTFMove(data);
 }
 
 static Ref<Protocol::Timeline::CPUProfileNodeAggregateCallInfo> buildAggregateCallInfoInspectorObject(const JSC::ProfileNode* node) {
@@ -60,7 +60,7 @@ static Ref<Protocol::Timeline::CPUProfileNode> buildInspectorObject(const JSC::P
         result->setChildren(WTF::move(children));
     }
 
-    return WTF::move(result);
+    return WTFMove(result);
 }
 
 Ref<InspectorValue> TimelineRecordFactory::buildProfileInspectorObject(const JSC::Profile* profile) {

@@ -23,8 +23,12 @@ void FunctionReferenceConstructor::finishCreation(VM& vm, JSValue prototype) {
 
 static EncodedJSValue JSC_HOST_CALL constructFunctionReferenceInstance(ExecState* execState) {
     CallData callData;
-    if (!(execState->argumentCount() == 1 && getCallData(execState->uncheckedArgument(0), callData) != CallTypeNone)) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Function required."))));
+
+    if (!(execState->argumentCount() == 1 && getCallData(execState->uncheckedArgument(0), callData) != CallType::None)) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Function required."))));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -35,11 +39,11 @@ static EncodedJSValue JSC_HOST_CALL constructFunctionReferenceInstance(ExecState
 
 ConstructType FunctionReferenceConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = &constructFunctionReferenceInstance;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType FunctionReferenceConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructFunctionReferenceInstance;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

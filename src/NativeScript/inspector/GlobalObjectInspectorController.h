@@ -46,7 +46,7 @@ class InjectedScriptManager;
 class InspectorAgent;
 class InspectorConsoleAgent;
 class InspectorDebuggerAgent;
-class InspectorTimelineAgent;
+//class InspectorTimelineAgent;
 class JSGlobalObjectConsoleClient;
 class ScriptCallStack;
 }
@@ -86,7 +86,6 @@ public:
 
     void connectFrontend(Inspector::FrontendChannel*, bool isAutomaticInspection);
     void disconnectFrontend(Inspector::FrontendChannel*);
-    void disconnectAllFrontends();
     void dispatchMessageFromFrontend(const String&);
 
     void globalObjectDestroyed();
@@ -102,20 +101,18 @@ public:
         return m_consoleClient.get();
     }
 
-    Inspector::InspectorTimelineAgent* timelineAgent() const {
-        return m_timelineAgent;
-    }
+    //    Inspector::InspectorTimelineAgent* timelineAgent() const {
+    //        return m_timelineAgent;
+    //    }
 
-    void setTimelineAgent(Inspector::InspectorTimelineAgent* timelineAgent) {
-        m_timelineAgent = timelineAgent;
-    }
+    //    void setTimelineAgent(Inspector::InspectorTimelineAgent* timelineAgent) {
+    //        m_timelineAgent = timelineAgent;
+    //    }
 
     virtual bool developerExtrasEnabled() const override;
     virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override { return true; }
     virtual Inspector::InspectorFunctionCallHandler functionCallHandler() const override;
     virtual Inspector::InspectorEvaluateHandler evaluateHandler() const override;
-    virtual void willCallInjectedScriptFunction(JSC::ExecState*, const String&, int) override {}
-    virtual void didCallInjectedScriptFunction(JSC::ExecState*) override {}
     virtual void frontendInitialized() override;
     virtual Ref<WTF::Stopwatch> executionStopwatch() override;
     virtual Inspector::ScriptDebugServer& scriptDebugServer() override;
@@ -142,7 +139,7 @@ private:
     Inspector::InspectorAgent* m_inspectorAgent{ nullptr };
     Inspector::InspectorConsoleAgent* m_consoleAgent{ nullptr };
     Inspector::InspectorDebuggerAgent* m_debuggerAgent{ nullptr };
-    Inspector::InspectorTimelineAgent* m_timelineAgent{ nullptr };
+    //    Inspector::InspectorTimelineAgent* m_timelineAgent{ nullptr };
 
     Ref<Inspector::FrontendRouter> m_frontendRouter;
     Ref<Inspector::BackendDispatcher> m_backendDispatcher;

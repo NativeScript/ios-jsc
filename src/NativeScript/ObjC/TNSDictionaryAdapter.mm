@@ -11,7 +11,6 @@
 #include "ObjCTypes.h"
 #include <JavaScriptCore/JSMap.h>
 #include <JavaScriptCore/JSMapIterator.h>
-#include <JavaScriptCore/MapDataInlines.h>
 #include <JavaScriptCore/StrongInlines.h>
 
 using namespace JSC;
@@ -28,7 +27,7 @@ using namespace NativeScript;
 
 - (instancetype)initWithMap:(JSMap*)map execState:(ExecState*)execState {
     if (self) {
-        _iterator.set(execState->vm(), JSMapIterator::create(execState->vm(), execState->lexicalGlobalObject()->mapIteratorStructure(), map, JSC::MapIterateKey));
+        _iterator.set(execState->vm(), JSMapIterator::create(execState->vm(), execState->lexicalGlobalObject()->mapIteratorStructure(), map, JSC::IterateKey));
         self->_execState = execState;
     }
 
@@ -39,7 +38,7 @@ using namespace NativeScript;
     JSLockHolder lock(self->_execState);
 
     JSValue key, value;
-    if (_iterator->nextKeyValue(key, value)) {
+    if (_iterator->nextKeyValue(self->_execState, key, value)) {
         return toObject(_execState, key);
     }
 

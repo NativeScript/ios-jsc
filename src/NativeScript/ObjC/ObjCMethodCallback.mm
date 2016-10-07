@@ -70,9 +70,12 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
     NSLog(@"< %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(selector));
 #endif
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+
     MarkedArgumentBuffer arguments;
     methodCallback->marshallArguments(argValues, arguments, methodCallback);
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return;
     }
 
@@ -82,9 +85,9 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
     if (methodCallback->_hasErrorOutParameter) {
         size_t methodCallbackLength = jsDynamicCast<JSObject*>(methodCallback->function())->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
         if (methodCallbackLength == methodCallback->parametersCount() - 1) {
-            if (execState->hadException()) {
-                Exception* exception = execState->exception();
-                execState->clearException();
+            Exception* exception = scope.exception();
+            if (exception) {
+                scope.clearException();
                 memset(retValue, 0, methodCallback->_returnType.ffiType->size);
                 NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:@{ @"TNSJavaScriptError" : NativeScript::toObject(execState, exception->value()) }];
 

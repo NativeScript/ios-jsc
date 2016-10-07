@@ -14,9 +14,9 @@
 namespace NativeScript {
 void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*) NO_RETURN_DUE_TO_CRASH;
 
-inline void reportErrorIfAny(JSC::ExecState* execState) {
-    if (JSC::Exception* exception = execState->exception()) {
-        execState->clearException();
+inline void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
+    if (JSC::Exception* exception = scope.exception()) {
+        scope.clearException();
         reportFatalErrorBeforeShutdown(execState, exception);
     }
 }

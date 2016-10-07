@@ -35,6 +35,7 @@
 #include "ReferenceTypeConstructor.h"
 #include "ReferenceTypeInstance.h"
 #include "TypeFactory.h"
+#include <JavaScriptCore/BuiltinNames.h>
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/ObjectConstructor.h>
@@ -155,15 +156,18 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAlloc(ExecState* execState) {
 
 static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
     JSValue pointerValue = execState->argument(0);
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     if (!pointerValue.inherits(PointerInstance::info())) {
         const char* className = PointerInstance::info()->className;
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::String::format("Argument must be a %s.", className))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("Argument must be a %s.", className))));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(pointerValue);
     if (pointer->isAdopted()) {
         const char* className = PointerInstance::info()->className;
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::String::format("%s is adopted.", className))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("%s is adopted.", className))));
     }
 
     free(pointer->data());
@@ -173,9 +177,13 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
 
 static EncodedJSValue JSC_HOST_CALL interopFuncAdopt(ExecState* execState) {
     JSValue pointerValue = execState->argument(0);
+
     if (!pointerValue.inherits(PointerInstance::info())) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         const char* className = PointerInstance::info()->className;
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::String::format("Argument must be a %s", className))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("Argument must be a %s", className))));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(pointerValue);
@@ -190,7 +198,10 @@ static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
     bool hasHandle;
     void* handle = tryHandleofValue(value, &hasHandle);
     if (!hasHandle) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -203,15 +214,21 @@ static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
     size_t size = sizeofValue(value);
 
     if (size == 0) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
     }
 
     return JSValue::encode(jsNumber(size));
 }
 
 static EncodedJSValue JSC_HOST_CALL interopFuncBufferFromData(ExecState* execState) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     id object = toObject(execState, execState->argument(0));
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 
@@ -220,7 +237,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncBufferFromData(ExecState* execSta
         return JSValue::encode(buffer);
     }
 
-    return throwVMTypeError(execState, WTF::ASCIILiteral("Argument must be an NSData instance."));
+    return throwVMTypeError(execState, scope, WTF::ASCIILiteral("Argument must be an NSData instance."));
 }
 
 void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
@@ -228,20 +245,20 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
 
     PointerConstructor* pointerConstructor = globalObject->typeFactory()->pointerConstructor();
     this->_pointerInstanceStructure.set(vm, this, PointerInstance::createStructure(globalObject, pointerConstructor->get(globalObject->globalExec(), vm.propertyNames->prototype)));
-    this->putDirect(vm, Identifier::fromString(&vm, pointerConstructor->name(globalObject->globalExec())), pointerConstructor, ReadOnly | DontDelete);
+    this->putDirect(vm, Identifier::fromString(&vm, pointerConstructor->name()), pointerConstructor, ReadOnly | DontDelete);
 
     ReferencePrototype* referencePrototype = ReferencePrototype::create(vm, globalObject, ReferencePrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_referenceInstanceStructure.set(vm, this, ReferenceInstance::createStructure(vm, globalObject, referencePrototype));
 
     ReferenceConstructor* referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype);
-    this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name(globalObject->globalExec())), referenceConstructor, ReadOnly | DontDelete);
+    this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor, ReadOnly | DontDelete);
     referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor, DontEnum);
 
     JSObject* functionReferencePrototype = jsCast<JSObject*>(constructEmptyObject(globalObject->globalExec(), globalObject->functionPrototype()));
     this->_functionReferenceInstanceStructure.set(vm, this, FunctionReferenceInstance::createStructure(vm, globalObject, functionReferencePrototype));
 
     FunctionReferenceConstructor* functionReferenceConstructor = FunctionReferenceConstructor::create(vm, FunctionReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferencePrototype);
-    this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name(globalObject->globalExec())), functionReferenceConstructor, ReadOnly | DontDelete);
+    this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name()), functionReferenceConstructor, ReadOnly | DontDelete);
     functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, DontEnum);
 
     this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
@@ -297,17 +314,17 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
 
     JSObject* referenceTypePrototype = constructEmptyObject(globalObject->globalExec());
     ReferenceTypeConstructor* referenceTypeConstructor = ReferenceTypeConstructor::create(vm, ReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referenceTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, referenceTypeConstructor->name(globalObject->globalExec())), referenceTypeConstructor, ReadOnly | DontDelete);
+    types->putDirect(vm, Identifier::fromString(&vm, referenceTypeConstructor->name()), referenceTypeConstructor, ReadOnly | DontDelete);
     referenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, referenceTypeConstructor, DontEnum);
 
     JSObject* functionReferenceTypePrototype = constructEmptyObject(globalObject->globalExec());
     FunctionReferenceTypeConstructor* functionReferenceTypeConstructor = FunctionReferenceTypeConstructor::create(vm, FunctionReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferenceTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, functionReferenceTypeConstructor->name(globalObject->globalExec())), functionReferenceTypeConstructor, ReadOnly | DontDelete);
+    types->putDirect(vm, Identifier::fromString(&vm, functionReferenceTypeConstructor->name()), functionReferenceTypeConstructor, ReadOnly | DontDelete);
     functionReferenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceTypeConstructor, DontEnum);
 
     JSObject* objCBlockTypePrototype = constructEmptyObject(globalObject->globalExec());
     ObjCBlockTypeConstructor* objCBlockTypeConstructor = ObjCBlockTypeConstructor::create(vm, ObjCBlockTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), objCBlockTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, objCBlockTypeConstructor->name(globalObject->globalExec())), objCBlockTypeConstructor, ReadOnly | DontDelete);
+    types->putDirect(vm, Identifier::fromString(&vm, objCBlockTypeConstructor->name()), objCBlockTypeConstructor, ReadOnly | DontDelete);
     objCBlockTypePrototype->putDirect(vm, vm.propertyNames->constructor, objCBlockTypeConstructor, DontEnum);
 }
 
@@ -340,10 +357,10 @@ ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
 }
 
 JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const {
-    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(), ArrayBuffer::createAdopted([data bytes], [data length], false));
+    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(), ArrayBuffer::createFromBytes([data bytes], [data length], WTFMove(arrayBufferDestructorNull)));
 
     // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
-    arrayBuffer->putDirect(execState->vm(), execState->propertyNames().homeObjectPrivateName, NativeScript::toValue(execState, data));
+    arrayBuffer->putDirect(execState->vm(), execState->propertyNames().builtinNames().homeObjectPrivateName(), NativeScript::toValue(execState, data));
     return arrayBuffer;
 }
 }
