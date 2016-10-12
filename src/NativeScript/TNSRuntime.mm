@@ -7,13 +7,13 @@
 //
 
 #include <JavaScriptCore/APICast.h>
-#include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/InitializeThreading.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/ModuleLoaderObject.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <iostream>
 
@@ -21,15 +21,26 @@
 #import <UIKit/UIApplication.h>
 #endif
 
+#import "TNSRuntime.h"
+#import "TNSRuntime+Private.h"
 #include "JSErrors.h"
 #include "Metadata/Metadata.h"
 #include "ObjCTypes.h"
-#import "TNSRuntime+Private.h"
-#import "TNSRuntime.h"
-#include "inlineFunctions.h"
+#include "Workers/JSWorkerGlobalObject.h"
 
 using namespace JSC;
 using namespace NativeScript;
+
+JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer) {
+    JSLockHolder lock(exec);
+    RELEASE_ASSERT(exec->vm().atomicStringTable() == wtfThreadData().atomicStringTable());
+    RELEASE_ASSERT(!exec->vm().isCollectorBusy());
+
+    JSGlobalObject* globalObject = exec->vmEntryGlobalObject();
+    JSValue moduleNameJsValue = jsString(&exec->vm(), Identifier::fromString(exec, moduleName).impl());
+    JSValue referrerJsValue = referrer.isEmpty() ? jsUndefined() : jsString(&exec->vm(), Identifier::fromString(exec, referrer).impl());
+    return globalObject->moduleLoader()->loadAndEvaluateModule(exec, moduleNameJsValue, referrerJsValue);
+}
 
 @implementation TNSRuntime
 
@@ -58,7 +69,6 @@ using namespace NativeScript;
 #endif
 
         JSLockHolder lock(*self->_vm);
-        self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(self->_applicationPath, *self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
 
 #if PLATFORM(IOS)
         NakedPtr<Exception> exception;
@@ -70,9 +80,14 @@ using namespace NativeScript;
         }
 #endif
 #endif
+        self->_globalObject = Strong<GlobalObject>(*self->_vm, [self createGlobalObjectInstance]);
     }
 
     return self;
+}
+
+- (GlobalObject*)createGlobalObjectInstance {
+    return GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
 
 - (void)scheduleInRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
@@ -102,8 +117,12 @@ using namespace NativeScript;
 #endif
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier {
+    return [self executeModule:entryPointModuleIdentifier referredBy:@""];
+}
+
+- (void)executeModule:(NSString*)entryPointModuleIdentifier referredBy:(NSString*)referrer {
     JSLockHolder lock(*self->_vm);
-    JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier);
+    JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier, referrer);
 
     JSValue error;
     JSFunction* errorHandler = JSNativeStdFunction::create(*self->_vm.get(), self->_globalObject.get(), 1, String(), [&](ExecState* execState) {
@@ -143,6 +162,14 @@ using namespace NativeScript;
     }
 
     [super dealloc];
+}
+
+@end
+
+@implementation TNSWorkerRuntime
+
+- (GlobalObject*)createGlobalObjectInstance {
+    return JSWorkerGlobalObject::create(*self->_vm, JSWorkerGlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
 
 @end

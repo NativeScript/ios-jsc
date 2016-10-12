@@ -495,6 +495,7 @@ describe(module.id, function () {
         });
         expect(result).toBe("InnerRecursiveResult");
     });
+
     it('methods returning blocks can be recursively called', function() {
         var i = 0;
         var stack = null;
@@ -543,6 +544,14 @@ describe(module.id, function () {
         var expectedStack = "start > get > get recurse > get recurse > get bottom > f3 > f2 > exec > f1 > end";
 
         expect(stack).toBe(expectedStack);
+    });
+
+    it("should allow calling callbacks from another thread", function () {
+        var result = TNSTestNativeCallbacks.callOnThread(function() {
+            return 'method called';
+        });
+
+        expect(result).toBe('method called');
     });
 
     it("ApiIterator", function () {

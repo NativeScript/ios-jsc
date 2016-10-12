@@ -12,7 +12,7 @@
 #include <JavaScriptCore/Exception.h>
 
 namespace NativeScript {
-void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*) NO_RETURN_DUE_TO_CRASH;
+void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*, bool callJsUncaughtErrorCallback = true);
 
 inline void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
     if (JSC::Exception* exception = scope.exception()) {

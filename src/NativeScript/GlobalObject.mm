@@ -224,6 +224,9 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
 
     this->putDirect(vm, Identifier::fromString(&vm, "__runtimeVersion"), jsString(&vm, STRINGIZE_VALUE_OF(NATIVESCRIPT_VERSION)), DontEnum | ReadOnly | DontDelete);
+
+    _jsUncaughtErrorCallbackIdentifier = Identifier::fromString(&vm, "onerror"); // Keep in sync with TNSExceptionHandler.h
+    _jsUncaughtErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onUncaughtError"); // Keep in sync with TNSExceptionHandler.h
 }
 
 void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
@@ -449,6 +452,33 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, DontDelete | ReadOnly);
 
     return protocolWrapper;
+}
+
+bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* exception, NakedPtr<Exception>& outException) {
+    outException = nullptr;
+    JSValue callback = this->get(execState, _jsUncaughtErrorCallbackIdentifier);
+
+    CallData callData;
+    CallType callType = JSC::getCallData(callback, callData);
+    if (callType == JSC::CallType::None) {
+        callback = execState->lexicalGlobalObject()->get(execState, _jsUncaughtErrorCallbackIdentifierFallback);
+        callType = JSC::getCallData(callback, callData);
+        if (callType == JSC::CallType::None) {
+            return false;
+        }
+    }
+
+    MarkedArgumentBuffer uncaughtErrorArguments;
+    uncaughtErrorArguments.append(exception->value());
+
+    JSValue result = call(execState, callback, callType, callData, jsUndefined(), uncaughtErrorArguments, outException);
+
+    if (outException) {
+        warn(execState, outException->value().toWTFString(execState));
+        return false;
+    }
+
+    return result.toBoolean(execState);
 }
 
 void GlobalObject::queueTaskToEventLoop(const JSGlobalObject* globalObject, WTF::Ref<Microtask>&& task) {

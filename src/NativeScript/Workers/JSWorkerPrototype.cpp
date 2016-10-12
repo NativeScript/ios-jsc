@@ -15,37 +15,30 @@ using namespace JSC;
 
 const ClassInfo JSWorkerPrototype::s_info = { "WorkerPrototype", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerPrototype) };
 
-// TODO: Since JSWorkerInstance is no longer an EventTarget it should somehow dispatch event and call attached eventListeners when a message arrives
-EncodedJSValue jsWorkerOnmessage(ExecState* state, JSObject* slotBase, EncodedJSValue thisValue, PropertyName) {
-    // TODO: Provide implemention
-    return JSValue::encode(jsNull());
+static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec) {
+    JSValue thisValue = exec->thisValue();
+    JSWorkerInstance* workerInstance = jsDynamicCast<JSWorkerInstance*>(thisValue);
+    if (UNLIKELY(!workerInstance))
+        return throwVMError(exec, createTypeError(exec, makeString("Can only call Worker.postMessage, on instances of Worker")));
+
+    if (exec->argumentCount() < 1)
+        return throwVMError(exec, createError(exec, WTF::ASCIILiteral("postMessage function expects at least one argument.")));
+
+    JSValue message = exec->argument(0);
+    JSArray* transferList = nullptr;
+
+    if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
+        JSValue arg2 = exec->argument(1);
+        if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(arg2.asCell()))) {
+            return throwVMError(exec, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
+        }
+    }
+
+    workerInstance->postMessage(exec, message, transferList);
+    return JSValue::encode(jsUndefined());
 }
 
-void setJSWorkerOnmessage(ExecState* state, JSObject* baseObject, EncodedJSValue thisValue, EncodedJSValue encodedValue) {
-    // TODO: Provide implemention
-}
-
-EncodedJSValue jsWorkerOnerror(ExecState* state, JSObject* slotBase, EncodedJSValue thisValue, PropertyName) {
-    // TODO: Provide implemention
-    return JSValue::encode(jsNull());
-}
-
-void setJSWorkerOnerror(ExecState* state, JSObject* baseObject, EncodedJSValue thisValue, EncodedJSValue encodedValue) {
-    // TODO: Provide implemention
-}
-
-EncodedJSValue JSC_HOST_CALL jsWorkerPrototypeFunctionPostMessage(ExecState* state) {
-    /* TODO: Provide implementation. It should validate/prepare all arguments and call castedThis->postMessage()
-    JSValue thisValue = state->thisValue();
-    JSWorkerInstance* castedThis = jsDynamicCast<JSWorkerInstance*>(thisValue);
-    if (UNLIKELY(!castedThis))
-        return throwVMError(state, createTypeError(state, makeString("Can only call Worker.postMessage, on instances of Worker")));
-    return JSValue::encode(castedThis->postMessage(*state));
-     */
-    return JSValue::encode(jsNull());
-}
-
-EncodedJSValue JSC_HOST_CALL jsWorkerPrototypeFunctionTerminate(ExecState* state) {
+static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncTerminate(ExecState* state) {
     JSValue thisValue = state->thisValue();
     JSWorkerInstance* castedThis = jsDynamicCast<JSWorkerInstance*>(thisValue);
     if (UNLIKELY(!castedThis))
@@ -54,15 +47,10 @@ EncodedJSValue JSC_HOST_CALL jsWorkerPrototypeFunctionTerminate(ExecState* state
     return JSValue::encode(jsUndefined());
 }
 
-static const HashTableValue JSWorkerPrototypeTableValues[] = {
-    { "onmessage", CustomAccessor, NoIntrinsic, { (intptr_t) static_cast<PropertySlot::GetValueFunc>(jsWorkerOnmessage), (intptr_t) static_cast<PutPropertySlot::PutValueFunc>(setJSWorkerOnmessage) } },
-    { "onerror", CustomAccessor, NoIntrinsic, { (intptr_t) static_cast<PropertySlot::GetValueFunc>(jsWorkerOnerror), (intptr_t) static_cast<PutPropertySlot::PutValueFunc>(setJSWorkerOnerror) } },
-    { "postMessage", JSC::Function, NoIntrinsic, { (intptr_t) static_cast<NativeFunction>(jsWorkerPrototypeFunctionPostMessage), (intptr_t)(1) } },
-    { "terminate", JSC::Function, NoIntrinsic, { (intptr_t) static_cast<NativeFunction>(jsWorkerPrototypeFunctionTerminate), (intptr_t)(0) } },
-};
-
 void JSWorkerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
-    reifyStaticProperties(vm, JSWorkerPrototypeTableValues, *this);
+
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("postMessage")), 2, jsWorkerProtoFuncPostMessage, NoIntrinsic, DontDelete | ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("terminate")), 0, jsWorkerProtoFuncTerminate, NoIntrinsic, DontDelete | ReadOnly);
 }
 }

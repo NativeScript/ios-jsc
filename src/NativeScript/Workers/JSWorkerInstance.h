@@ -10,18 +10,17 @@
 #define __NativeScript__JSWorkerInstance__
 
 namespace NativeScript {
+class WorkerMessagingProxy;
+
 class JSWorkerInstance : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
     DECLARE_INFO;
 
-    static JSWorkerInstance* create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& moduleName) {
-        // We don't currently support nested workers, so workers can only be created from the main thread.
-        ASSERT(isMainThread());
-
+    static JSWorkerInstance* create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& applicationPath, const WTF::String& entryModuleId, const WTF::String referrer) {
         JSWorkerInstance* object = new (NotNull, JSC::allocateCell<JSWorkerInstance>(vm.heap)) JSWorkerInstance(vm, structure);
-        object->finishCreation(vm, moduleName);
+        object->finishCreation(vm, applicationPath, entryModuleId, referrer);
         return object;
     }
 
@@ -29,31 +28,32 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    /* TODO: Implement postMessage communication
-    void postMessage(PassRefPtr<SerializedScriptValue> message, const MessagePortArray*, ExceptionCode&);
-    
-    void postMessage(PassRefPtr<SerializedScriptValue> message, MessagePort*, ExceptionCode&);
-     */
+    void postMessage(JSC::ExecState* exec, JSC::JSValue message, JSC::JSArray* transferList);
 
-    void terminate() {
-        //contextProxy->terminateWorkerGlobalScope();
+    void onmessage(JSC::ExecState* exec, JSC::JSValue message);
+
+    void onerror(JSC::ExecState* exec, JSObject* error);
+
+    void terminate();
+
+    std::shared_ptr<WorkerMessagingProxy> workerMessagingProxy() {
+        return _workerMessagingProxy;
     }
 
 private:
-    WTF::String moduleName;
-
     JSWorkerInstance(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
 
-    ~JSWorkerInstance() {
-    }
+    void finishCreation(JSC::VM& vm, const WTF::String& applicationPath, const WTF::String& entryModuleId, const WTF::String referer);
 
-    void finishCreation(JSC::VM& vm, const WTF::String& moduleName);
+    WTF::String _applicationPath;
+    WTF::String _entryModuleId;
+    WTF::String _referrer;
+    std::shared_ptr<WorkerMessagingProxy> _workerMessagingProxy;
 
-    static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<JSWorkerInstance*>(cell)->~JSWorkerInstance();
-    }
+    JSC::Identifier _onmessageIdentifier;
+    JSC::Identifier _onerrorIdentifier;
 };
 }
 

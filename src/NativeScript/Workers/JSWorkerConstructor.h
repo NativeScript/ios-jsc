@@ -31,10 +31,13 @@ public:
     }
 
 private:
+    JSWorkerConstructor(JSC::VM& vm, JSC::Structure* structure)
+        : Base(vm, structure) {
+    }
+
     static JSC::ConstructType getConstructData(JSC::JSCell* cell, JSC::ConstructData& constructData);
     static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
-    JSWorkerConstructor(JSC::VM& vm, JSC::Structure* structure);
     void finishCreation(JSC::VM& vm, JSWorkerPrototype* prototype);
 };
 }

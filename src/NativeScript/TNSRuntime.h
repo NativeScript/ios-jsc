@@ -29,6 +29,10 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier;
 
-- (JSValueRef)convertObject:(id)object;
+- (void)executeModule:(NSString*)entryPointModuleIdentifier referredBy:(NSString*)referer;
 
+- (JSValueRef)convertObject:(id)object;
+@end
+
+@interface TNSWorkerRuntime : TNSRuntime
 @end

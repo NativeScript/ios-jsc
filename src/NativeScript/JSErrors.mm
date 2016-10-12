@@ -11,15 +11,16 @@
 #include <iomanip>
 #include <iostream>
 
-#import "JSWarnings.h"
-#import "TNSRuntime+Diagnostics.h"
-#import "TNSRuntime+Inspector.h"
-#import "TNSRuntime+Private.h"
-#include "inspector/GlobalObjectConsoleClient.h"
-#include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
+#include "inspector/GlobalObjectInspectorController.h"
+#include "inspector/GlobalObjectConsoleClient.h"
+#import "TNSRuntime+Private.h"
+#import "TNSRuntime+Inspector.h"
+#import "TNSRuntime+Diagnostics.h"
+#import "JSWarnings.h"
+#import "JSWorkerGlobalObject.h"
 
 static TNSUncaughtErrorHandler uncaughtErrorHandler;
 void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler) {
@@ -30,36 +31,22 @@ namespace NativeScript {
 
 using namespace JSC;
 
-static void handleJsUncaughtErrorCallback(ExecState* execState, Exception* exception) {
-    JSValue callback = execState->lexicalGlobalObject()->get(execState, Identifier::fromString(execState, "__onUncaughtError")); // Keep in sync with TNSExceptionHandler.h
-
-    CallData callData;
-    CallType callType = getCallData(callback, callData);
-    if (callType == JSC::CallType::None) {
-        return;
-    }
-
-    MarkedArgumentBuffer uncaughtErrorArguments;
-    uncaughtErrorArguments.append(exception->value());
-
-    WTF::NakedPtr<Exception> outException;
-    call(execState, callback, callType, callData, jsUndefined(), uncaughtErrorArguments, outException);
-
-    if (outException) {
-        warn(execState, outException->value().toWTFString(execState));
-    }
-}
-
-void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception) {
+void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks) {
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    handleJsUncaughtErrorCallback(execState, exception);
-
-    if (uncaughtErrorHandler) {
-        uncaughtErrorHandler(toRef(execState), toRef(execState, exception->value()));
+    NakedPtr<Exception> errorCallbackException;
+    bool errorCallbackResult = false;
+    if (callUncaughtErrorCallbacks) {
+        errorCallbackResult = globalObject->callJsUncaughtErrorCallback(execState, exception, errorCallbackException);
+        if (uncaughtErrorHandler) {
+            uncaughtErrorHandler(toRef(execState), toRef(execState, exception->value()));
+        }
     }
 
-    WTF::ASCIILiteral closingMessage("Fatal JavaScript exception - application has been terminated.");
+    JSWorkerGlobalObject* workerGlobalObject = jsDynamicCast<JSWorkerGlobalObject*>(globalObject);
+    bool isWorker = workerGlobalObject != nullptr;
+
+    WTF::ASCIILiteral closingMessage(isWorker ? "Fatal JavaScript exception on worker thread - worker thread has been terminated." : "Fatal JavaScript exception - application has been terminated.");
 
     if (globalObject->debugger()) {
         warn(execState, closingMessage);
@@ -92,8 +79,22 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception) 
         GlobalObjectConsoleClient::setLogToSystemConsole(true);
         globalObject->inspectorController().reportAPIException(execState, exception);
 
-        *(int*)(uintptr_t)0xDEADDEAD = 0;
-        __builtin_trap();
+        if (isWorker) {
+            if (!errorCallbackResult) {
+                const Inspector::ScriptCallFrame* frame = callStack->firstNonNativeCallFrame();
+                String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
+                if (frame != nullptr) {
+                    workerGlobalObject->uncaughtErrorReported(message, frame->sourceURL(), frame->lineNumber(), frame->columnNumber());
+                } else {
+                    workerGlobalObject->uncaughtErrorReported(message);
+                }
+                if (errorCallbackException)
+                    reportFatalErrorBeforeShutdown(execState, errorCallbackException, false);
+            }
+        } else {
+            *(int*)(uintptr_t)0xDEADDEAD = 0;
+            __builtin_trap();
+        }
     }
 }
 }

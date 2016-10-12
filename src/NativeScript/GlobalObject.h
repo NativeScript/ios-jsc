@@ -189,6 +189,8 @@ protected:
 
     void finishCreation(WTF::String applicationPath, JSC::VM& vm);
 
+    bool callJsUncaughtErrorCallback(JSC::ExecState* execState, JSC::Exception* exception, WTF::NakedPtr<JSC::Exception>& outException);
+
 private:
     WTF::Deque<WTF::RefPtr<JSC::Microtask>> _microtasksQueue;
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::Ref<JSC::Microtask>&& task);
@@ -204,6 +206,9 @@ private:
     static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue, JSC::JSValue initiator);
 
     static WTF::String defaultLanguage();
+
+    JSC::Identifier _jsUncaughtErrorCallbackIdentifier;
+    JSC::Identifier _jsUncaughtErrorCallbackIdentifierFallback;
 
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 

@@ -94,6 +94,7 @@ set(HEADER_FILES
     Workers/JSWorkerGlobalObject.h
     Workers/JSWorkerInstance.h
     Workers/JSWorkerPrototype.h
+    Workers/WorkerMessagingProxy.h
 )
 
 set(SOURCE_FILES
@@ -180,9 +181,10 @@ set(SOURCE_FILES
     TNSRuntime.mm
     TypeFactory.mm
     Workers/JSWorkerConstructor.cpp
-    Workers/JSWorkerGlobalObject.cpp
-    Workers/JSWorkerInstance.cpp
+    Workers/JSWorkerGlobalObject.mm
+    Workers/JSWorkerInstance.mm
     Workers/JSWorkerPrototype.cpp
+    Workers/WorkerMessagingProxy.mm
 )
 
 set(NativeScript_PUBLIC_HEADERS
