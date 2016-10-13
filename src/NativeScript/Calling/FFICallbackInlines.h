@@ -28,12 +28,7 @@ inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void*
     JSC::JSLockHolder lock(execState->vm());
     static_cast<DerivedCallback*>(callback)->ffiClosureCallback(retValue, argValues, userData);
 
-    if (scope.exception()) {
-        JSC::Exception* exception = scope.exception();
-        scope.clearException();
-
-        reportFatalErrorBeforeShutdown(execState, exception);
-    }
+    reportErrorIfAny(execState, scope);
 }
 
 template <class DerivedCallback>

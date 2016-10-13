@@ -38,7 +38,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
 const ClassInfo JSWorkerGlobalObject::s_info = { "NativeScriptWorkerGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerGlobalObject) };
 
 void JSWorkerGlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
-    Base::finishCreation(applicationPath, vm);
+    Base::finishCreation(vm, applicationPath);
 
     _onmessageIdentifier = Identifier::fromString(&vm, "onmessage");
 

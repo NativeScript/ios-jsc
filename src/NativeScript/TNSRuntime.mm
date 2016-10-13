@@ -69,17 +69,6 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 #endif
 
         JSLockHolder lock(*self->_vm);
-
-#if PLATFORM(IOS)
-        NakedPtr<Exception> exception;
-        evaluate(self->_globalObject->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)), JSValue(), exception);
-#ifdef DEBUG
-        if (exception) {
-            std::cerr << "Error while evaluating inlineFunctions.js: " << exception->value().toWTFString(self->_globalObject->globalExec()).utf8().data() << "\n";
-            ASSERT_NOT_REACHED();
-        }
-#endif
-#endif
         self->_globalObject = Strong<GlobalObject>(*self->_vm, [self createGlobalObjectInstance]);
     }
 

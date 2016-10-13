@@ -39,6 +39,7 @@
 #include "TypeFactory.h"
 #include "UnmanagedType.h"
 #include "__extends.h"
+#include "inlineFunctions.h"
 #include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/FunctionConstructor.h>
@@ -98,17 +99,6 @@ GlobalObject::~GlobalObject() {
     this->_inspectorController->globalObjectDestroyed();
 }
 
-Structure* GlobalObject::createStructure(VM& vm, JSValue prototype) {
-    return Structure::create(vm, 0, prototype, TypeInfo(GlobalObjectType, GlobalObject::StructureFlags), GlobalObject::info());
-}
-
-GlobalObject* GlobalObject::create(WTF::String applicationPath, VM& vm, Structure* structure) {
-    GlobalObject* object = new (NotNull, allocateCell<GlobalObject>(vm.heap)) GlobalObject(vm, structure);
-    object->finishCreation(applicationPath, vm);
-    vm.heap.addFinalizer(object, destroy);
-    return object;
-}
-
 extern "C" void JSSynchronousGarbageCollectForDebugging(ExecState*);
 static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
@@ -142,7 +132,7 @@ static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRun
     }
 }
 
-void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
+void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     Base::finishCreation(vm);
 
     ExecState* globalExec = this->globalExec();
@@ -225,6 +215,10 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
 
     this->putDirect(vm, Identifier::fromString(&vm, "__runtimeVersion"), jsString(&vm, STRINGIZE_VALUE_OF(NATIVESCRIPT_VERSION)), DontEnum | ReadOnly | DontDelete);
 
+    NakedPtr<Exception> exception;
+    evaluate(this->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)), JSValue(), exception);
+    ASSERT_WITH_MESSAGE(!exception, "Error while evaluating inlineFunctions.js: %s", exception->value().toWTFString(this->globalExec()).utf8().data());
+
     _jsUncaughtErrorCallbackIdentifier = Identifier::fromString(&vm, "onerror"); // Keep in sync with TNSExceptionHandler.h
     _jsUncaughtErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onUncaughtError"); // Keep in sync with TNSExceptionHandler.h
 }
@@ -254,10 +248,6 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_workerInstanceStructure);
     visitor.append(&globalObject->_workerPrototypeStructure);
     visitor.append(&globalObject->_fastEnumerationIteratorStructure);
-}
-
-void GlobalObject::destroy(JSCell* cell) {
-    static_cast<GlobalObject*>(cell)->GlobalObject::~GlobalObject();
 }
 
 bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {

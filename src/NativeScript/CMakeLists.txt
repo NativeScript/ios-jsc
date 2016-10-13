@@ -75,6 +75,7 @@ set(HEADER_FILES
     ObjC/TNSArrayAdapter.h
     ObjC/TNSDataAdapter.h
     ObjC/TNSDictionaryAdapter.h
+    ObjC/TNSExceptionHandler.h
     ObjC/Unmanaged/UnmanagedInstance.h
     ObjC/Unmanaged/UnmanagedPrototype.h
     ObjC/Unmanaged/UnmanagedType.h
