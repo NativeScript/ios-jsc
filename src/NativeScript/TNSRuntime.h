@@ -15,9 +15,13 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 @interface TNSRuntime : NSObject
 
+@property(nonatomic, readonly) uint32_t threadId;
+
 @property(nonatomic, retain, readonly) NSString* applicationPath;
 
 + (void)initializeMetadata:(void*)metadataPtr;
+
++ (TNSRuntime*)current;
 
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath;
 

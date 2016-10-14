@@ -44,10 +44,24 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 
 @implementation TNSRuntime
 
+static WTF::Lock _runtimesLock;
+static NSPointerArray* _runtimes;
+
++ (TNSRuntime*)current {
+    WTF::LockHolder lock(_runtimesLock);
+    ThreadIdentifier currentThreadId = WTF::currentThread();
+    for (TNSRuntime* runtime in _runtimes) {
+        if (runtime.threadId == currentThreadId)
+            return runtime;
+    }
+    return nil;
+}
+
 + (void)initialize {
     if (self == [TNSRuntime self]) {
         initializeThreading();
         JSC::Options::useJIT() = false;
+        _runtimes = [[NSPointerArray alloc] initWithOptions:NSPointerFunctionsOpaquePersonality | NSPointerFunctionsOpaqueMemory];
     }
 }
 
@@ -58,6 +72,7 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath {
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
+        self->_threadId = WTF::currentThread();
         self->_applicationPath = [[applicationPath stringByStandardizingPath] retain];
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
@@ -70,6 +85,11 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 
         JSLockHolder lock(*self->_vm);
         self->_globalObject = Strong<GlobalObject>(*self->_vm, [self createGlobalObjectInstance]);
+
+        {
+            WTF::LockHolder lock(_runtimesLock);
+            [_runtimes addPointer:self];
+        }
     }
 
     return self;
@@ -148,6 +168,14 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
         JSLockHolder lock(*self->_vm);
         self->_globalObject.clear();
         self->_vm = nullptr;
+    }
+
+    {
+        WTF::LockHolder lock(_runtimesLock);
+        for (NSInteger i = _runtimes.count - 1; i >= 0; i--) {
+            if ([_runtimes pointerAtIndex:i] == self)
+                [_runtimes removePointerAtIndex:i];
+        }
     }
 
     [super dealloc];

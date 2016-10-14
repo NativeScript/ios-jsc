@@ -12,13 +12,12 @@ static NSString *toString(JSContextRef context, JSValueRef value) {
   return [NSString stringWithUTF8String:errorMessage];
 }
 
-TNSRuntime *runtime = nil;
 extern char startOfMetadataSection __asm("section$start$__DATA$__TNSMetadata");
 
 int main(int argc, char *argv[]) {
   @autoreleasepool {
     [TNSRuntime initializeMetadata:&startOfMetadataSection];
-    runtime = [[TNSRuntime alloc]
+    TNSRuntime *runtime = [[TNSRuntime alloc]
         initWithApplicationPath:[NSBundle mainBundle].bundlePath];
     [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
                        forMode:NSRunLoopCommonModes];

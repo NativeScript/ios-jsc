@@ -12,11 +12,10 @@
 #import <JavaScriptCore/JavaScriptCore.h>
 #import <NativeScript.h>
 
-TNSRuntime* runtime;
-
 static NSUncaughtExceptionHandler* oldExceptionHandler = NULL;
 
 static void TNSObjectiveCUncaughtExceptionHandler(NSException* currentException) {
+    TNSRuntime* runtime = [TNSRuntime current];
     JSGlobalContextRef context = runtime.globalContext;
     JSObjectRef globalObject = JSContextGetGlobalObject(context);
 
