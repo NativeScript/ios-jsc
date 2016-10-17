@@ -107,10 +107,10 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
             moduleSource = moduleFunctionSource.toString();
 
             SourceCode updatedSourceCode = makeSource(moduleSource).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
-            //            program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, SourceParseMode::GeneratorBodyMode, parseError);
+            program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::GeneratorBodyMode, SuperBinding::NotNeeded, parseError);
         } else {
             moduleSource = scriptSource;
-            //            program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserScriptMode::Classic, JSParserStrictMode::Strict, SourceParseMode::ModuleEvaluateMode, parseError, SuperBinding::NotNeeded);
+            program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::GeneratorBodyMode, SuperBinding::NotNeeded, parseError);
         }
 
         WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source().toString());

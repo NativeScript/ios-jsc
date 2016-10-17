@@ -24,7 +24,6 @@
  */
 
 #include "GlobalObjectInspectorController.h"
-//#include <JavaScriptCore/config.h>
 
 #include "DomainInspectorAgent.h"
 #include "GlobalObjectConsoleClient.h"
@@ -107,8 +106,6 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, DontEnum);
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, DontEnum);
     globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, DontEnum);
-    //    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__startProfile")), 1, &startProfile, JSC::NoIntrinsic, JSC::DontEnum);
-    //    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, JSC::Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__stopProfile")), 1, &stopProfile, JSC::NoIntrinsic, JSC::DontEnum);
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);
