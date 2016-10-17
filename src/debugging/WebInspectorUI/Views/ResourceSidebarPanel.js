@@ -23,6 +23,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * Copyright (C) 2016 Telerik AD. All rights reserved. (as modified)
+ */
+
 WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspector.NavigationSidebarPanel
 {
     constructor(contentBrowser)
@@ -250,7 +254,7 @@ WebInspector.ResourceSidebarPanel = class ResourceSidebarPanel extends WebInspec
         if (!mainFrame)
             return;
 
-        this._mainFrameTreeElement = new WebInspector.FrameTreeElement(mainFrame);
+        this._mainFrameTreeElement = new WebInspector.FileSystemRepresentationTreeElement(mainFrame);
         this.contentTreeOutline.insertChild(this._mainFrameTreeElement, 0);
 
         function delayedWork()

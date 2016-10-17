@@ -1,6 +1,6 @@
 #include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectInspectorController.h"
-//#include "InspectorTimelineAgent.h"
+#include "InspectorTimelineAgent.h"
 #include <JavaScriptCore/ConsoleMessage.h>
 #include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/ScriptArguments.h>
@@ -91,22 +91,20 @@ void GlobalObjectConsoleClient::count(JSC::ExecState* exec, RefPtr<Inspector::Sc
     m_consoleAgent->count(exec, arguments);
 }
 
-void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String&) {
-    //    NativeScript::GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    //    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
-    //    if (timelineAgent) {
-    //        Inspector::ErrorString unused;
-    //        timelineAgent->start(unused, nullptr);
-    //    }
+void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String& title) {
+    NativeScript::GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
+    if (timelineAgent) {
+        timelineAgent->startFromConsole(execState, title);
+    }
 }
 
-void GlobalObjectConsoleClient::profileEnd(JSC::ExecState* execState, const String&) {
-    //    NativeScript::GlobalObject* globalObject = JSC::jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
-    //    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
-    //    if (timelineAgent) {
-    //        Inspector::ErrorString unused;
-    //        timelineAgent->stop(unused);
-    //    }
+void GlobalObjectConsoleClient::profileEnd(JSC::ExecState* execState, const String& title) {
+    NativeScript::GlobalObject* globalObject = JSC::jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
+    Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
+    if (timelineAgent) {
+        timelineAgent->stopFromConsole(execState, title);
+    }
 }
 
 void GlobalObjectConsoleClient::takeHeapSnapshot(JSC::ExecState*, const String& title) {

@@ -1,15 +1,14 @@
-#ifndef __NativeScript__InspectorTimelineAgent__
-#define __NativeScript__InspectorTimelineAgent__
+#pragma once
 
 #include <JavaScriptCore/Inspector/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/Inspector/InspectorFrontendDispatchers.h>
 #include <JavaScriptCore/InspectorAgentBase.h>
-#include <JavaScriptCore/profiler/LegacyProfiler.h>
 
 namespace Inspector {
 
-//JSC::EncodedJSValue JSC_HOST_CALL startProfile(JSC::ExecState* execState);
-//JSC::EncodedJSValue JSC_HOST_CALL stopProfile(JSC::ExecState* execState);
+class InspectorScriptProfilerAgent;
+
+typedef String ErrorString;
 
 enum class TimelineRecordType {
     EventDispatch,
@@ -18,6 +17,7 @@ enum class TimelineRecordType {
     InvalidateLayout,
     Layout,
     Paint,
+    Composite,
     RenderingFrame,
 
     TimerInstall,
@@ -36,7 +36,7 @@ enum class TimelineRecordType {
 
     RequestAnimationFrame,
     CancelAnimationFrame,
-    FireAnimationFrame
+    FireAnimationFrame,
 };
 
 class InspectorTimelineAgent final
@@ -46,16 +46,18 @@ class InspectorTimelineAgent final
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    InspectorTimelineAgent(JSAgentContext&);
-
-    static inline void startProfiling(JSC::ExecState* exec, const String& title, PassRefPtr<Stopwatch> stopwatch);
-    static inline PassRefPtr<JSC::Profile> stopProfiling(JSC::ExecState* exec, const String& title);
+    InspectorTimelineAgent(JSAgentContext&, Inspector::InspectorScriptProfilerAgent*);
 
     virtual void didCreateFrontendAndBackend(FrontendRouter*, BackendDispatcher*) override;
     virtual void willDestroyFrontendAndBackend(DisconnectReason) override;
 
-    virtual void start(ErrorString&, const int* in_maxCallStackDepth) override;
-    virtual void stop(ErrorString&) override;
+    void startFromConsole(JSC::ExecState*, const String& title);
+    void stopFromConsole(JSC::ExecState*, const String& title);
+
+    void start(ErrorString&, const int* maxCallStackDepth = nullptr) final;
+    void stop(ErrorString&) final;
+    void setAutoCaptureEnabled(ErrorString&, bool) final;
+    void setInstruments(ErrorString&, const Inspector::InspectorArray&) final;
 
 private:
     struct TimelineRecordEntry {
@@ -75,6 +77,16 @@ private:
     };
 
     void sendEvent(RefPtr<Inspector::InspectorObject>&&);
+    void startProgrammaticCapture();
+    void stopProgrammaticCapture();
+    void internalStart(const int* maxCallStackDepth = nullptr);
+    void internalStop();
+
+    enum class InstrumentState { Start,
+                                 Stop };
+    void toggleScriptProfilerInstrument(InstrumentState);
+    void toggleTimelineInstrument(InstrumentState);
+    void toggleInstruments(InstrumentState);
 
     TimelineRecordEntry createRecordEntry(RefPtr<Inspector::InspectorObject>&& data, TimelineRecordType, bool captureCallStack);
 
@@ -85,11 +97,16 @@ private:
     double timestamp();
     std::unique_ptr<TimelineFrontendDispatcher> m_frontendDispatcher;
     RefPtr<TimelineBackendDispatcher> m_backendDispatcher;
+    Vector<TimelineRecordEntry> m_pendingConsoleProfileRecords;
+    Vector<Inspector::Protocol::Timeline::Instrument> m_instruments;
 
+    Inspector::InspectorScriptProfilerAgent* m_scriptProfilerAgent;
     NativeScript::GlobalObject& m_globalObject;
     TimelineRecordEntry m_consoleRecordEntry;
     int m_maxCallStackDepth;
+
     bool m_enabled;
+    bool m_enabledFromFrontend;
+    bool m_programmaticCaptureRestoreBreakpointActiveValue{ false };
 };
 }
-#endif /* defined(__NativeScript__InspectorTimelineAgent__) */

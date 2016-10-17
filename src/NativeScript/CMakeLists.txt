@@ -14,7 +14,7 @@ set(HEADER_FILES
     inspector/GlobalObjectInspectorController.h
     inspector/InspectorNetworkAgent.h
     inspector/InspectorPageAgent.h
-    # inspector/InspectorTimelineAgent.h
+    inspector/InspectorTimelineAgent.h
     inspector/MimeTypeHelper.h
     inspector/SuppressAllPauses.h
     Interop.h
@@ -83,7 +83,7 @@ set(HEADER_FILES
     Runtime/JSWeakRefPrototype.h
     Runtime/ReleasePool.h
     SymbolLoader.h
-    # TimelineRecordFactory.h
+    TimelineRecordFactory.h
     TNSRuntime+Diagnostics.h
     TNSRuntime+Inspector.h
     TNSRuntime+Private.h
@@ -107,7 +107,7 @@ set(SOURCE_FILES
     inspector/GlobalObjectInspectorController.cpp
     inspector/InspectorNetworkAgent.cpp
     inspector/InspectorPageAgent.mm
-    # inspector/InspectorTimelineAgent.cpp
+    inspector/InspectorTimelineAgent.cpp
     inspector/SuppressAllPauses.cpp
     Interop.mm
     JSErrors.mm
@@ -170,7 +170,7 @@ set(SOURCE_FILES
     Runtime/JSWeakRefInstance.cpp
     Runtime/JSWeakRefPrototype.cpp
     SymbolLoader.mm
-    # TimelineRecordFactory.cpp
+    TimelineRecordFactory.cpp
     TNSRuntime+Diagnostics.mm
     TNSRuntime+Inspector.mm
     TNSRuntime.mm

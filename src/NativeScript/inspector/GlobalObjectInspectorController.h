@@ -46,7 +46,7 @@ class InjectedScriptManager;
 class InspectorAgent;
 class InspectorConsoleAgent;
 class InspectorDebuggerAgent;
-//class InspectorTimelineAgent;
+class InspectorTimelineAgent;
 class JSGlobalObjectConsoleClient;
 class ScriptCallStack;
 }
@@ -101,13 +101,21 @@ public:
         return m_consoleClient.get();
     }
 
-    //    Inspector::InspectorTimelineAgent* timelineAgent() const {
-    //        return m_timelineAgent;
-    //    }
+    Inspector::InspectorConsoleAgent* consoleAgent() const {
+        return m_consoleAgent;
+    }
 
-    //    void setTimelineAgent(Inspector::InspectorTimelineAgent* timelineAgent) {
-    //        m_timelineAgent = timelineAgent;
-    //    }
+    Inspector::InspectorDebuggerAgent* debuggerAgent() const {
+        return m_debuggerAgent;
+    }
+
+    Inspector::InspectorTimelineAgent* timelineAgent() const {
+        return m_timelineAgent;
+    }
+
+    void setTimelineAgent(Inspector::InspectorTimelineAgent* timelineAgent) {
+        m_timelineAgent = timelineAgent;
+    }
 
     virtual bool developerExtrasEnabled() const override;
     virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override { return true; }
@@ -139,7 +147,7 @@ private:
     Inspector::InspectorAgent* m_inspectorAgent{ nullptr };
     Inspector::InspectorConsoleAgent* m_consoleAgent{ nullptr };
     Inspector::InspectorDebuggerAgent* m_debuggerAgent{ nullptr };
-    //    Inspector::InspectorTimelineAgent* m_timelineAgent{ nullptr };
+    Inspector::InspectorTimelineAgent* m_timelineAgent{ nullptr };
 
     Ref<Inspector::FrontendRouter> m_frontendRouter;
     Ref<Inspector::BackendDispatcher> m_backendDispatcher;

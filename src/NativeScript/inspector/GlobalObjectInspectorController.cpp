@@ -31,7 +31,7 @@
 #include "GlobalObjectDebuggerAgent.h"
 #include "InspectorNetworkAgent.h"
 #include "InspectorPageAgent.h"
-//#include "InspectorTimelineAgent.h"
+#include "InspectorTimelineAgent.h"
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/ConsoleMessage.h>
 #include <JavaScriptCore/ErrorHandlingScope.h>
@@ -43,6 +43,7 @@
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
 #include <JavaScriptCore/InspectorHeapAgent.h>
+#include <JavaScriptCore/InspectorScriptProfilerAgent.h>
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/JSGlobalObjectConsoleAgent.h>
 #include <JavaScriptCore/JSGlobalObjectRuntimeAgent.h>
@@ -115,7 +116,8 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_jsAgentContext, heapAgent.get()); // TODO Add InspectorHeapAgent
     auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_jsAgentContext, consoleAgent.get());
     auto pageAgent = std::make_unique<InspectorPageAgent>(m_jsAgentContext);
-    //auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_jsAgentContext);
+    auto scriptProfilerAgent = std::make_unique<InspectorScriptProfilerAgent>(m_jsAgentContext);
+    auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_jsAgentContext, scriptProfilerAgent.get());
     auto networkAgent = std::make_unique<InspectorNetworkAgent>(m_jsAgentContext);
 
     m_inspectorAgent = inspectorAgent.get();
@@ -124,13 +126,14 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent);
 
     m_agents.append(WTFMove(inspectorAgent));
-    //    m_agents.append(WTF::move(timelineAgent));
     m_agents.append(WTFMove(pageAgent));
     m_agents.append(WTFMove(runtimeAgent));
     m_agents.append(WTFMove(consoleAgent));
     m_agents.append(WTFMove(debuggerAgent));
     m_agents.append(WTFMove(networkAgent));
-    //    m_agents.append(WTFMove(heapAgent));
+    m_agents.append(WTFMove(heapAgent));
+    m_agents.append(WTFMove(scriptProfilerAgent));
+    m_agents.append(WTFMove(timelineAgent));
 
     m_executionStopwatch->start();
 }
