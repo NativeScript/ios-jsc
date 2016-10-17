@@ -95,22 +95,25 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         ParserError parseError;
         std::unique_ptr<ScopeNode> program;
 
-        if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
-            sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
-            sourceCode = *moduleFunction->sourceCode();
+        JSValue value = moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
+        if (!value.isEmpty()) {
+            if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(value)) {
+                sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
+                sourceCode = *moduleFunction->sourceCode();
 
-            WTF::StringBuilder moduleFunctionSource;
-            moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
-            moduleFunctionSource.append(scriptSource);
-            moduleFunctionSource.append("\n}}");
+                WTF::StringBuilder moduleFunctionSource;
+                moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
+                moduleFunctionSource.append(scriptSource);
+                moduleFunctionSource.append("\n}}");
 
-            moduleSource = moduleFunctionSource.toString();
+                moduleSource = moduleFunctionSource.toString();
 
-            SourceCode updatedSourceCode = makeSource(moduleSource).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
-            program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::GeneratorBodyMode, SuperBinding::NotNeeded, parseError);
+                SourceCode updatedSourceCode = makeSource(moduleSource).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
+                program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
+            }
         } else {
             moduleSource = scriptSource;
-            program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::GeneratorBodyMode, SuperBinding::NotNeeded, parseError);
+            program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::ModuleEvaluateMode, SuperBinding::NotNeeded, parseError);
         }
 
         WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source().toString());
