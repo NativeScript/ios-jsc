@@ -15,17 +15,18 @@ namespace NativeScript {
 using namespace JSC;
 
 static EncodedJSValue JSC_HOST_CALL constructJSWorker(ExecState* exec) {
+    auto scope = DECLARE_THROW_SCOPE(exec->vm());
     if (exec->argumentCount() < 1)
-        return throwVMError(exec, createNotEnoughArgumentsError(exec));
+        return throwVMError(exec, scope, createNotEnoughArgumentsError(exec));
 
     if (exec->argumentCount() > 1)
-        return throwVMError(exec, createError(exec, "Too much arguments passed."));
+        return throwVMError(exec, scope, createError(exec, "Too much arguments passed."));
 
     if (!exec->argument(0).isString())
-        return throwVMError(exec, createError(exec, "The first argument must be string."));
+        return throwVMError(exec, scope, createError(exec, "The first argument must be string."));
 
     String entryModule = exec->argument(0).toString(exec)->value(exec);
-    if (exec->hadException())
+    if (scope.exception())
         return JSValue::encode(JSValue());
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(exec->lexicalGlobalObject());
@@ -46,7 +47,8 @@ static EncodedJSValue JSC_HOST_CALL constructJSWorker(ExecState* exec) {
 }
 
 static EncodedJSValue JSC_HOST_CALL callJSWorker(ExecState* exec) {
-    return throwVMError(exec, createError(exec, "Worker function must be called as a constructor."));
+    auto scope = DECLARE_THROW_SCOPE(exec->vm());
+    return throwVMError(exec, scope, createError(exec, "Worker function must be called as a constructor."));
 }
 
 const ClassInfo JSWorkerConstructor::s_info = { "WorkerConstructor", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerConstructor) };
@@ -60,11 +62,11 @@ void JSWorkerConstructor::finishCreation(VM& vm, JSWorkerPrototype* prototype) {
 
 ConstructType JSWorkerConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = constructJSWorker;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType JSWorkerConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = callJSWorker;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

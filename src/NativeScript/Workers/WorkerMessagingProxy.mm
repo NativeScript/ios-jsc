@@ -65,8 +65,9 @@ void WorkerMessagingProxy::parentPerformWork() {
         }
 
         JSLockHolder lock = JSLockHolder(_parentData->globalObject->vm());
+        auto scope = DECLARE_CATCH_SCOPE(_parentData->globalObject->vm());
         function();
-        reportErrorIfAny(_parentData->globalObject->globalExec());
+        reportErrorIfAny(_parentData->globalObject->globalExec(), scope);
     }
 }
 
@@ -88,8 +89,9 @@ void WorkerMessagingProxy::workerPerformWork() {
         }
 
         JSLockHolder lock = JSLockHolder(_workerData->globalObject()->vm());
+        auto scope = DECLARE_CATCH_SCOPE(_workerData->globalObject()->vm());
         function();
-        reportErrorIfAny(_workerData->globalObject()->globalExec());
+        reportErrorIfAny(_workerData->globalObject()->globalExec(), scope);
     }
 }
 
@@ -238,7 +240,7 @@ void WorkerMessagingProxy::workerClosed() {
 
         JSC::CallData callData;
         JSC::CallType callType = JSC::getCallData(onClose.asCell(), callData);
-        if (callType != JSC::CallTypeNone) {
+        if (callType != JSC::CallType::None) {
             MarkedArgumentBuffer args;
             JSC::call(execState, onClose.asCell(), callType, callData, jsUndefined(), args);
         }

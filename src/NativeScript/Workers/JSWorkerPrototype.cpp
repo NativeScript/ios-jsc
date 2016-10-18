@@ -18,11 +18,12 @@ const ClassInfo JSWorkerPrototype::s_info = { "WorkerPrototype", &Base::s_info, 
 static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec) {
     JSValue thisValue = exec->thisValue();
     JSWorkerInstance* workerInstance = jsDynamicCast<JSWorkerInstance*>(thisValue);
+    auto scope = DECLARE_THROW_SCOPE(exec->vm());
     if (UNLIKELY(!workerInstance))
-        return throwVMError(exec, createTypeError(exec, makeString("Can only call Worker.postMessage, on instances of Worker")));
+        return throwVMError(exec, scope, createTypeError(exec, makeString("Can only call Worker.postMessage, on instances of Worker")));
 
     if (exec->argumentCount() < 1)
-        return throwVMError(exec, createError(exec, WTF::ASCIILiteral("postMessage function expects at least one argument.")));
+        return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("postMessage function expects at least one argument.")));
 
     JSValue message = exec->argument(0);
     JSArray* transferList = nullptr;
@@ -30,7 +31,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec
     if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
         JSValue arg2 = exec->argument(1);
         if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(arg2.asCell()))) {
-            return throwVMError(exec, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
+            return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
         }
     }
 
@@ -41,8 +42,9 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec
 static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncTerminate(ExecState* state) {
     JSValue thisValue = state->thisValue();
     JSWorkerInstance* castedThis = jsDynamicCast<JSWorkerInstance*>(thisValue);
+    auto scope = DECLARE_THROW_SCOPE(state->vm());
     if (UNLIKELY(!castedThis))
-        return throwVMError(state, createTypeError(state, makeString("Can only call Worker.terminate, on instances of Worker")));
+        return throwVMError(state, scope, createTypeError(state, makeString("Can only call Worker.terminate, on instances of Worker")));
     castedThis->terminate();
     return JSValue::encode(jsUndefined());
 }

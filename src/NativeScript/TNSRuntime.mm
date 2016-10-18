@@ -13,7 +13,7 @@
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
-#include <JavaScriptCore/ModuleLoaderObject.h>
+#include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <iostream>
 
@@ -31,7 +31,7 @@
 using namespace JSC;
 using namespace NativeScript;
 
-JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer) {
+JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer, JSValue initiator = jsUndefined()) {
     JSLockHolder lock(exec);
     RELEASE_ASSERT(exec->vm().atomicStringTable() == wtfThreadData().atomicStringTable());
     RELEASE_ASSERT(!exec->vm().isCollectorBusy());
@@ -39,7 +39,7 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
     JSGlobalObject* globalObject = exec->vmEntryGlobalObject();
     JSValue moduleNameJsValue = jsString(&exec->vm(), Identifier::fromString(exec, moduleName).impl());
     JSValue referrerJsValue = referrer.isEmpty() ? jsUndefined() : jsString(&exec->vm(), Identifier::fromString(exec, referrer).impl());
-    return globalObject->moduleLoader()->loadAndEvaluateModule(exec, moduleNameJsValue, referrerJsValue);
+    return globalObject->moduleLoader()->loadAndEvaluateModule(exec, moduleNameJsValue, referrerJsValue, initiator);
 }
 
 @implementation TNSRuntime

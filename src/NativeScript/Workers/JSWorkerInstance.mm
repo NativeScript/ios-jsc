@@ -18,8 +18,9 @@ const ClassInfo JSWorkerInstance::s_info = { "Worker", &Base::s_info, 0, CREATE_
 
 void JSWorkerInstance::postMessage(ExecState* exec, JSValue message, JSArray* transferList) {
     UNUSED_PARAM(transferList);
+    auto scope = DECLARE_THROW_SCOPE(exec->vm());
     String strMessage = JSONStringify(exec, message, 0);
-    if (exec->hadException())
+    if (scope.exception())
         return;
     _workerMessagingProxy->parentPostMessageToWorkerThread(strMessage);
 }
@@ -29,7 +30,7 @@ void JSWorkerInstance::onmessage(JSC::ExecState* exec, JSC::JSValue message) {
 
     CallData callData;
     CallType callType = JSC::getCallData(onMessageCallback, callData);
-    if (callType == CallTypeNone) {
+    if (callType == JSC::CallType::None) {
         return;
     }
 
@@ -48,7 +49,7 @@ void JSWorkerInstance::onerror(ExecState* execState, JSObject* error) {
 
     CallData callData;
     CallType callType = JSC::getCallData(onErrorCallback, callData);
-    if (callType == CallTypeNone) {
+    if (callType == JSC::CallType::None) {
         return;
     }
 

@@ -17,9 +17,10 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectClose(ExecState* execSta
 
 static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* exec) {
     JSWorkerGlobalObject* globalObject = jsCast<JSWorkerGlobalObject*>(exec->lexicalGlobalObject());
+    auto scope = DECLARE_THROW_SCOPE(exec->vm());
 
     if (exec->argumentCount() < 1)
-        return throwVMError(exec, createError(exec, WTF::ASCIILiteral("postMessage function expects at least one argument.")));
+        return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("postMessage function expects at least one argument.")));
 
     JSValue message = exec->argument(0);
     JSArray* transferList = nullptr;
@@ -27,7 +28,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
     if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
         JSValue arg2 = exec->argument(1);
         if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(arg2.asCell()))) {
-            return throwVMError(exec, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
+            return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
         }
     }
 
@@ -49,8 +50,9 @@ void JSWorkerGlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
 void JSWorkerGlobalObject::postMessage(JSC::ExecState* exec, JSC::JSValue message, JSC::JSArray* transferList) {
     UNUSED_PARAM(transferList);
+    auto scope = DECLARE_THROW_SCOPE(exec->vm());
     String strMessage = JSONStringify(exec, message, 0);
-    if (exec->hadException())
+    if (scope.exception())
         return;
     _workerMessagingProxy->workerPostMessageToParent(strMessage);
 }
@@ -60,7 +62,7 @@ void JSWorkerGlobalObject::onmessage(ExecState* exec, JSValue message) {
 
     CallData callData;
     CallType callType = JSC::getCallData(onMessageCallback, callData);
-    if (callType == CallTypeNone) {
+    if (callType == JSC::CallType::None) {
         return;
     }
 
