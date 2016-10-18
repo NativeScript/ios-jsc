@@ -36,8 +36,10 @@ WebInspector.Popover = class Popover extends WebInspector.Object
         this._targetFrame = new WebInspector.Rect;
         this._anchorPoint = new WebInspector.Point;
         this._preferredEdges = null;
+        this._resizeHandler = null;
 
         this._contentNeedsUpdate = false;
+        this._dismissing = false;
 
         this._element = document.createElement("div");
         this._element.className = "popover";
@@ -89,6 +91,12 @@ WebInspector.Popover = class Popover extends WebInspector.Object
             this._update(true);
     }
 
+    set windowResizeHandler(resizeHandler)
+    {
+        console.assert(typeof resizeHandler === "function");
+        this._resizeHandler = resizeHandler;
+    }
+
     update(shouldAnimate = true)
     {
         if (!this.visible)
@@ -132,13 +140,16 @@ WebInspector.Popover = class Popover extends WebInspector.Object
 
     dismiss()
     {
-        if (this._element.parentNode !== document.body)
+        if (this._dismissing || this._element.parentNode !== document.body)
             return;
+
+        this._dismissing = true;
 
         console.assert(this._isListeningForPopoverEvents);
         this._isListeningForPopoverEvents = false;
         window.removeEventListener("mousedown", this, true);
         window.removeEventListener("scroll", this, true);
+        window.removeEventListener("resize", this, true);
 
         this._element.classList.add(WebInspector.Popover.FadeOutClassName);
 
@@ -154,6 +165,10 @@ WebInspector.Popover = class Popover extends WebInspector.Object
             if (!this._element.contains(event.target) && !event.target.enclosingNodeOrSelfWithClass(WebInspector.Popover.IgnoreAutoDismissClassName))
                 this.dismiss();
             break;
+        case "resize":
+            if (this._resizeHandler)
+                this._resizeHandler();
+            break;
         case "transitionend":
             if (event.target === this._element) {
                 document.body.removeChild(this._element);
@@ -161,8 +176,11 @@ WebInspector.Popover = class Popover extends WebInspector.Object
                 this._container.textContent = "";
                 if (this.delegate && typeof this.delegate.didDismissPopover === "function")
                     this.delegate.didDismissPopover(this);
+
+                this._dismissing = false;
                 break;
             }
+            break;
         }
     }
 
@@ -182,6 +200,8 @@ WebInspector.Popover = class Popover extends WebInspector.Object
             document.body.appendChild(this._element);
         else
             this._element.classList.remove(WebInspector.Popover.FadeOutClassName);
+
+        this._dismissing = false;
 
         if (this._contentNeedsUpdate) {
             // Reset CSS properties on element so that the element may be sized to fit its content.
@@ -303,7 +323,8 @@ WebInspector.Popover = class Popover extends WebInspector.Object
         return "arrow-up";
     }
 
-    _setAnchorPoint(anchorPoint) {
+    _setAnchorPoint(anchorPoint)
+    {
         anchorPoint.x = Math.floor(anchorPoint.x);
         anchorPoint.y = Math.floor(anchorPoint.y);
         this._anchorPoint = anchorPoint;
@@ -486,51 +507,58 @@ WebInspector.Popover = class Popover extends WebInspector.Object
 
     _drawFrame(ctx, bounds, anchorEdge)
     {
-        var r = WebInspector.Popover.CornerRadius;
-        var arrowHalfLength = WebInspector.Popover.AnchorSize.width / 2;
-        var anchorPoint = this._anchorPoint;
+        let cornerRadius = WebInspector.Popover.CornerRadius;
+        let arrowHalfLength = WebInspector.Popover.AnchorSize.width * 0.5;
+        let anchorPoint = this._anchorPoint;
+
+        // Prevent the arrow from being positioned against one of the popover's rounded corners.
+        let arrowPadding = cornerRadius + arrowHalfLength;
+        if (anchorEdge === WebInspector.RectEdge.MIN_Y || anchorEdge === WebInspector.RectEdge.MAX_Y)
+            anchorPoint.x = Number.constrain(anchorPoint.x, bounds.minX() + arrowPadding, bounds.maxX() - arrowPadding);
+        else
+            anchorPoint.y = Number.constrain(anchorPoint.y, bounds.minY() + arrowPadding, bounds.maxY() - arrowPadding);
 
         ctx.beginPath();
         switch (anchorEdge) {
         case WebInspector.RectEdge.MIN_X: // Displayed on the left of the target, arrow points right.
-            ctx.moveTo(bounds.maxX(), bounds.minY() + r);
+            ctx.moveTo(bounds.maxX(), bounds.minY() + cornerRadius);
             ctx.lineTo(bounds.maxX(), anchorPoint.y - arrowHalfLength);
             ctx.lineTo(anchorPoint.x, anchorPoint.y);
             ctx.lineTo(bounds.maxX(), anchorPoint.y + arrowHalfLength);
-            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), r);
-            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), r);
-            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), r);
-            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), r);
+            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), cornerRadius);
+            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), cornerRadius);
+            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), cornerRadius);
+            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), cornerRadius);
             break;
         case WebInspector.RectEdge.MAX_X: // Displayed on the right of the target, arrow points left.
-            ctx.moveTo(bounds.minX(), bounds.maxY() - r);
+            ctx.moveTo(bounds.minX(), bounds.maxY() - cornerRadius);
             ctx.lineTo(bounds.minX(), anchorPoint.y + arrowHalfLength);
             ctx.lineTo(anchorPoint.x, anchorPoint.y);
             ctx.lineTo(bounds.minX(), anchorPoint.y - arrowHalfLength);
-            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), r);
-            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), r);
-            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), r);
-            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), r);
+            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), cornerRadius);
+            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), cornerRadius);
+            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), cornerRadius);
+            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), cornerRadius);
             break;
         case WebInspector.RectEdge.MIN_Y: // Displayed above the target, arrow points down.
-            ctx.moveTo(bounds.maxX() - r, bounds.maxY());
+            ctx.moveTo(bounds.maxX() - cornerRadius, bounds.maxY());
             ctx.lineTo(anchorPoint.x + arrowHalfLength, bounds.maxY());
             ctx.lineTo(anchorPoint.x, anchorPoint.y);
             ctx.lineTo(anchorPoint.x - arrowHalfLength, bounds.maxY());
-            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), r);
-            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), r);
-            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), r);
-            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), r);
+            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), cornerRadius);
+            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), cornerRadius);
+            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), cornerRadius);
+            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), cornerRadius);
             break;
         case WebInspector.RectEdge.MAX_Y: // Displayed below the target, arrow points up.
-            ctx.moveTo(bounds.minX() + r, bounds.minY());
+            ctx.moveTo(bounds.minX() + cornerRadius, bounds.minY());
             ctx.lineTo(anchorPoint.x - arrowHalfLength, bounds.minY());
             ctx.lineTo(anchorPoint.x, anchorPoint.y);
             ctx.lineTo(anchorPoint.x + arrowHalfLength, bounds.minY());
-            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), r);
-            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), r);
-            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), r);
-            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), r);
+            ctx.arcTo(bounds.maxX(), bounds.minY(), bounds.maxX(), bounds.maxY(), cornerRadius);
+            ctx.arcTo(bounds.maxX(), bounds.maxY(), bounds.minX(), bounds.maxY(), cornerRadius);
+            ctx.arcTo(bounds.minX(), bounds.maxY(), bounds.minX(), bounds.minY(), cornerRadius);
+            ctx.arcTo(bounds.minX(), bounds.minY(), bounds.maxX(), bounds.minY(), cornerRadius);
             break;
         }
         ctx.closePath();
@@ -542,6 +570,7 @@ WebInspector.Popover = class Popover extends WebInspector.Object
             this._isListeningForPopoverEvents = true;
             window.addEventListener("mousedown", this, true);
             window.addEventListener("scroll", this, true);
+            window.addEventListener("resize", this, true);
         }
     }
 };

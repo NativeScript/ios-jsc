@@ -40,11 +40,13 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         this._contentPopulated = false;
         this._invalidLineNumbers = {0: true};
         this._ignoreContentDidChange = 0;
+        this._requestingScriptContent = false;
 
         this._typeTokenScrollHandler = null;
         this._typeTokenAnnotator = null;
         this._basicBlockAnnotator = null;
 
+        this._autoFormat = false;
         this._isProbablyMinified = false;
 
         // FIXME: Currently this just jumps between resources and related source map resources. It doesn't "jump to symbol" yet.
@@ -80,9 +82,9 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
         sourceCode.requestContent().then(this._contentAvailable.bind(this));
 
-        // FIXME: Cmd+L shorcut doesn't actually work.
-        new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.Command, "L", this.showGoToLineDialog.bind(this), this.element);
         new WebInspector.KeyboardShortcut(WebInspector.KeyboardShortcut.Modifier.Control, "G", this.showGoToLineDialog.bind(this), this.element);
+
+        WebInspector.logManager.addEventListener(WebInspector.LogManager.Event.Cleared, this._logCleared, this);
     }
 
     // Public
@@ -99,13 +101,21 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         if (WebInspector.showJavaScriptTypeInformationSetting.value) {
             if (this._typeTokenAnnotator)
                 this._typeTokenAnnotator.resume();
-            if (this._basicBlockAnnotator)
-                this._basicBlockAnnotator.resume();
-            if (!this._typeTokenScrollHandler && (this._typeTokenAnnotator || this._basicBlockAnnotator))
+            if (!this._typeTokenScrollHandler && this._typeTokenAnnotator)
                 this._enableScrollEventsForTypeTokenAnnotator();
         } else {
-            if (this._typeTokenAnnotator || this._basicBlockAnnotator)
+            if (this._typeTokenAnnotator)
                 this._setTypeTokenAnnotatorEnabledState(false);
+        }
+
+        if (WebInspector.enableControlFlowProfilerSetting.value) {
+            if (this._basicBlockAnnotator)
+                this._basicBlockAnnotator.resume();
+
+            if (!this._controlFlowScrollHandler && this._basicBlockAnnotator)
+                this._enableScrollEventsForControlFlowAnnotator();
+        } else {
+            this._basicBlockAnnotatorEnabled = false;
         }
     }
 
@@ -139,8 +149,10 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
         WebInspector.issueManager.removeEventListener(WebInspector.IssueManager.Event.IssueWasAdded, this._issueWasAdded, this);
 
-        WebInspector.notifications.removeEventListener(WebInspector.Notification.GlobalModifierKeysDidChange, this._updateTokenTrackingControllerState, this);
-        this._sourceCode.removeEventListener(WebInspector.SourceCode.Event.SourceMapAdded, this._sourceCodeSourceMapAdded, this);
+        if (this._sourceCode instanceof WebInspector.SourceMapResource || this._sourceCode.sourceMaps.length > 0)
+            WebInspector.notifications.removeEventListener(WebInspector.Notification.GlobalModifierKeysDidChange, this._updateTokenTrackingControllerState, this);
+        else
+            this._sourceCode.removeEventListener(WebInspector.SourceCode.Event.SourceMapAdded, this._sourceCodeSourceMapAdded, this);
     }
 
     canBeFormatted()
@@ -157,7 +169,14 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
     canShowTypeAnnotations()
     {
-        return !!this._typeTokenAnnotator;
+        // Type annotations for modified scripts are currently unsupported.
+        return !!this._getAssociatedScript() && !this.hasModified;
+    }
+
+    canShowCoverageHints()
+    {
+        // Code coverage hints for modified scripts are currently unsupported.
+        return !!this._getAssociatedScript() && !this.hasModified;
     }
 
     customPerformSearch(query)
@@ -214,28 +233,24 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
     showGoToLineDialog()
     {
-        if (!this._goToLineDialog) {
-            this._goToLineDialog = new WebInspector.GoToLineDialog;
-            this._goToLineDialog.delegate = this;
-        }
+        if (!this._goToLineDialog)
+            this._goToLineDialog = new WebInspector.GoToLineDialog(this);
 
         this._goToLineDialog.present(this.element);
     }
 
-    isGoToLineDialogValueValid(goToLineDialog, lineNumber)
+    isDialogRepresentedObjectValid(goToLineDialog, lineNumber)
     {
         return !isNaN(lineNumber) && lineNumber > 0 && lineNumber <= this.lineCount;
     }
 
-    goToLineDialogValueWasValidated(goToLineDialog, lineNumber)
+    dialogWasDismissed(goToLineDialog)
     {
-        var position = new WebInspector.SourceCodePosition(lineNumber - 1, 0);
-        var range = new WebInspector.TextRange(lineNumber - 1, 0, lineNumber, 0);
-        this.revealPosition(position, range, false, true);
-    }
+        let lineNumber = goToLineDialog.representedObject;
+        let position = new WebInspector.SourceCodePosition(lineNumber - 1, 0);
+        let range = new WebInspector.TextRange(lineNumber - 1, 0, lineNumber, 0);
 
-    goToLineDialogWasDismissed()
-    {
+        this.revealPosition(position, range, false, true);
         this.focus();
     }
 
@@ -249,10 +264,14 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         for (var range of newRanges)
             this._updateEditableMarkers(range);
 
-        if (this._typeTokenAnnotator || this._basicBlockAnnotator) {
+        if (this._basicBlockAnnotator) {
+            this._basicBlockAnnotatorEnabled = false;
+            this._basicBlockAnnotator = null;
+        }
+
+        if (this._typeTokenAnnotator) {
             this._setTypeTokenAnnotatorEnabledState(false);
             this._typeTokenAnnotator = null;
-            this._basicBlockAnnotator = null;
         }
     }
 
@@ -262,11 +281,30 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
             return false;
 
         var newActivatedState = !this._typeTokenAnnotator.isActive();
-        if (newActivatedState && this._isProbablyMinified && !this.formatted)
-            this.formatted = true;
+        if (newActivatedState && this._isProbablyMinified && !this.formatted) {
+            return this.updateFormattedState(true).then(() => {
+                this._setTypeTokenAnnotatorEnabledState(newActivatedState);
+            });
+        }
 
         this._setTypeTokenAnnotatorEnabledState(newActivatedState);
-        return newActivatedState;
+        return Promise.resolve();
+    }
+
+    toggleUnexecutedCodeHighlights()
+    {
+        if (!this._basicBlockAnnotator)
+            return false;
+
+        let newActivatedState = !this._basicBlockAnnotator.isActive();
+        if (newActivatedState && this._isProbablyMinified && !this.formatted) {
+            return this.updateFormattedState(true).then(() => {
+                this._basicBlockAnnotatorEnabled = newActivatedState;
+            });
+        }
+
+        this._basicBlockAnnotatorEnabled = newActivatedState;
+        return Promise.resolve();
     }
 
     showPopoverForTypes(typeDescription, bounds, title)
@@ -295,21 +333,30 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         // The annotators must be cleared before pretty printing takes place and resumed
         // after so that they clear their annotations in a known state and insert new annotations
         // in the new state.
-        var shouldResumeTypeTokenAnnotator = this._typeTokenAnnotator && this._typeTokenAnnotator.isActive();
+
         var shouldResumeBasicBlockAnnotator = this._basicBlockAnnotator && this._basicBlockAnnotator.isActive();
-        if (shouldResumeTypeTokenAnnotator || shouldResumeBasicBlockAnnotator)
+        if (shouldResumeBasicBlockAnnotator)
+            this._basicBlockAnnotatorEnabled = false;
+
+        let shouldResumeTypeTokenAnnotator = this._typeTokenAnnotator && this._typeTokenAnnotator.isActive();
+        if (shouldResumeTypeTokenAnnotator)
             this._setTypeTokenAnnotatorEnabledState(false);
 
-        super.prettyPrint(pretty);
+        return super.prettyPrint(pretty).then(() => {
+            if (pretty || !this._isProbablyMinified) {
+                if (shouldResumeBasicBlockAnnotator)
+                    this._basicBlockAnnotatorEnabled = true;
 
-        if (pretty || !this._isProbablyMinified) {
-            if (shouldResumeTypeTokenAnnotator || shouldResumeBasicBlockAnnotator)
-                this._setTypeTokenAnnotatorEnabledState(true);
-        } else {
-            console.assert(!pretty && this._isProbablyMinified);
-            if (this._typeTokenAnnotator || this._basicBlockAnnotator)
+                if (shouldResumeTypeTokenAnnotator)
+                    this._setTypeTokenAnnotatorEnabledState(true);
+            } else {
+                console.assert(!pretty && this._isProbablyMinified);
+                if (this._basicBlockAnnotator)
+                    this._basicBlockAnnotatorEnabled = false;
+
                 this._setTypeTokenAnnotatorEnabledState(false);
-        }
+            }
+        });
     }
 
     // Private
@@ -360,11 +407,63 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
             delete this._breakpointMap[lineInfo.lineNumber];
     }
 
-    _contentWillPopulate(content)
+    _populateWithContent(content)
+    {
+        content = content || "";
+
+        this._prepareEditorForInitialContent(content);
+
+        // If we can auto format, format the TextEditor before showing it.
+        if (this._autoFormat) {
+            console.assert(!this.formatted);
+            this._autoFormat = false;
+            this.deferReveal = true;
+            this.string = content;
+            this.deferReveal = false;
+            this.updateFormattedState(true).then(() => {
+                this._proceedPopulateWithContent(this.string);
+            });
+            return;
+        }
+
+        this._proceedPopulateWithContent(content);
+    }
+
+    _proceedPopulateWithContent(content)
     {
         this.dispatchEventToListeners(WebInspector.SourceCodeTextEditor.Event.ContentWillPopulate);
 
-        // We only do the rest of this work before the first populate.
+        this.string = content;
+
+        this._createBasicBlockAnnotator();
+        if (WebInspector.enableControlFlowProfilerSetting.value && this._basicBlockAnnotator)
+            this._basicBlockAnnotatorEnabled = true;
+
+        this._createTypeTokenAnnotator();
+        if (WebInspector.showJavaScriptTypeInformationSetting.value)
+            this._setTypeTokenAnnotatorEnabledState(true);
+
+        this._contentDidPopulate();
+    }
+
+    _contentDidPopulate()
+    {
+        this._contentPopulated = true;
+
+        this.dispatchEventToListeners(WebInspector.SourceCodeTextEditor.Event.ContentDidPopulate);
+
+        // We add the issues each time content is populated. This is needed because lines might not exist
+        // if we tried added them before when the full content wasn't available. (When populating with
+        // partial script content this can be called multiple times.)
+
+        this._reinsertAllIssues();
+
+        this._updateEditableMarkers();
+    }
+
+    _prepareEditorForInitialContent(content)
+    {
+        // Only do this work before the first populate.
         if (this._contentPopulated)
             return;
 
@@ -386,65 +485,12 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         else if (this._sourceCode instanceof WebInspector.Script)
             this.mimeType = "text/javascript";
 
-        // Automatically format the content if it looks minified and it can be formatted.
+        // Decide to automatically format the content if it looks minified and it can be formatted.
         console.assert(!this.formatted);
-        if (this.canBeFormatted() && this._isLikelyMinified(content)) {
-            this.autoFormat = true;
+        if (this.canBeFormatted() && isTextLikelyMinified(content)) {
+            this._autoFormat = true;
             this._isProbablyMinified = true;
         }
-    }
-
-    _isLikelyMinified(content)
-    {
-        let whiteSpaceCount = 0;
-        let ratio = 0;
-
-        for (let i = 0, size = Math.min(5000, content.length); i < size; i++) {
-            let char = content[i];
-            if (char === " " || char === "\n" || char === "\t")
-                whiteSpaceCount++;
-
-            if (i >= 500) {
-                ratio = whiteSpaceCount / i;
-                if (ratio < 0.05)
-                    return true;
-            }
-        }
-
-        return ratio < 0.1;
-    }
-
-    _contentDidPopulate()
-    {
-        this._contentPopulated = true;
-
-        this.dispatchEventToListeners(WebInspector.SourceCodeTextEditor.Event.ContentDidPopulate);
-
-        // We add the issues each time content is populated. This is needed because lines might not exist
-        // if we tried added them before when the full content wasn't available. (When populating with
-        // partial script content this can be called multiple times.)
-
-        this._reinsertAllIssues();
-
-        this._updateEditableMarkers();
-    }
-
-    _populateWithContent(content)
-    {
-        content = content || "";
-
-        this._contentWillPopulate(content);
-        this.string = content;
-
-        this._makeTypeTokenAnnotator();
-        this._makeBasicBlockAnnotator();
-
-        if (WebInspector.showJavaScriptTypeInformationSetting.value) {
-            if (this._basicBlockAnnotator || this._typeTokenAnnotator)
-                this._setTypeTokenAnnotatorEnabledState(true);
-        }
-
-        this._contentDidPopulate();
     }
 
     _contentAvailable(parameters)
@@ -664,7 +710,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
             if (--pendingRequestCount)
                 return;
 
-            delete this._requestingScriptContent;
+            this._requestingScriptContent = false;
 
             // Abort if the full content populated while waiting for these async callbacks.
             if (this._fullContentPopulated)
@@ -729,7 +775,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         function scriptContentAvailable(parameters)
         {
             var content = parameters.content;
-            delete this._requestingScriptContent;
+            this._requestingScriptContent = false;
 
             // Abort if the full content populated while waiting for this async callback.
             if (this._fullContentPopulated)
@@ -763,26 +809,16 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         if (this._sourceCode instanceof WebInspector.SourceMapResource)
             return breakpoint.sourceCodeLocation.displaySourceCode === this._sourceCode;
         if (this._sourceCode instanceof WebInspector.Resource)
-            return breakpoint.url === this._sourceCode.url;
+            return breakpoint.contentIdentifier === this._sourceCode.contentIdentifier;
         if (this._sourceCode instanceof WebInspector.Script)
-            return breakpoint.url === this._sourceCode.url || breakpoint.scriptIdentifier === this._sourceCode.id;
-        return false;
-    }
-
-    _matchesIssue(issue)
-    {
-        if (this._sourceCode instanceof WebInspector.Resource)
-            return issue.url === this._sourceCode.url;
-        // FIXME: Support issues for Scripts based on id, not only by URL.
-        if (this._sourceCode instanceof WebInspector.Script)
-            return issue.url === this._sourceCode.url;
+            return breakpoint.contentIdentifier === this._sourceCode.contentIdentifier || breakpoint.scriptIdentifier === this._sourceCode.id;
         return false;
     }
 
     _issueWasAdded(event)
     {
         var issue = event.data.issue;
-        if (!this._matchesIssue(issue))
+        if (!WebInspector.IssueManager.issueMatchSourceCode(issue, this._sourceCode))
             return;
 
         this._addIssue(issue);
@@ -790,8 +826,11 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
     _addIssue(issue)
     {
-        // FIXME: Issue should have a SourceCodeLocation.
-        var sourceCodeLocation = this._sourceCode.createSourceCodeLocation(issue.lineNumber, issue.columnNumber);
+        var sourceCodeLocation = issue.sourceCodeLocation;
+        console.assert(sourceCodeLocation, "Expected source code location to place issue.");
+        if (!sourceCodeLocation)
+            return;
+
         var lineNumber = sourceCodeLocation.formattedLineNumber;
 
         var lineNumberIssues = this._issuesLineNumberMap.get(lineNumber);
@@ -802,7 +841,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
         // Avoid displaying duplicate issues on the same line.
         for (var existingIssue of lineNumberIssues) {
-            if (existingIssue.columnNumber === issue.columnNumber && existingIssue.text === issue.text)
+            if (existingIssue.sourceCodeLocation.columnNumber === sourceCodeLocation.columnNumber && existingIssue.text === issue.text)
                 return;
         }
 
@@ -971,46 +1010,36 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
         event.preventDefault();
 
-        function continueToLocation()
-        {
-            WebInspector.debuggerManager.continueToLocation(script.id, sourceCodeLocation.lineNumber, sourceCodeLocation.columnNumber);
-        }
-
-        function addBreakpoint()
-        {
-            var data = this.textEditorBreakpointAdded(this, lineNumber, columnNumber);
+        let addBreakpoint = () => {
+            let data = this.textEditorBreakpointAdded(this, lineNumber, columnNumber);
             this.setBreakpointInfoForLineAndColumn(data.lineNumber, data.columnNumber, data.breakpointInfo);
-        }
+        };
 
-        function revealInSidebar()
-        {
-            WebInspector.showDebuggerTab(breakpoint);
-        }
-
-        var contextMenu = new WebInspector.ContextMenu(event);
+        let contextMenu = WebInspector.ContextMenu.createFromEvent(event);
 
         // Paused. Add Continue to Here option only if we have a script identifier for the location.
         if (WebInspector.debuggerManager.paused) {
-            var editorLineInfo = {lineNumber, columnNumber};
-            var unformattedLineInfo = this._unformattedLineInfoForEditorLineInfo(editorLineInfo);
-            var sourceCodeLocation = this._sourceCode.createSourceCodeLocation(unformattedLineInfo.lineNumber, unformattedLineInfo.columnNumber);
+            let editorLineInfo = {lineNumber, columnNumber};
+            let unformattedLineInfo = this._unformattedLineInfoForEditorLineInfo(editorLineInfo);
+            let sourceCodeLocation = this._sourceCode.createSourceCodeLocation(unformattedLineInfo.lineNumber, unformattedLineInfo.columnNumber);
 
+            let script;
             if (sourceCodeLocation.sourceCode instanceof WebInspector.Script)
-                var script = sourceCodeLocation.sourceCode;
+                script = sourceCodeLocation.sourceCode;
             else if (sourceCodeLocation.sourceCode instanceof WebInspector.Resource)
-                var script = sourceCodeLocation.sourceCode.scriptForLocation(sourceCodeLocation);
+                script = sourceCodeLocation.sourceCode.scriptForLocation(sourceCodeLocation);
 
             if (script) {
-
-                contextMenu.appendItem(WebInspector.UIString("Continue to Here"), continueToLocation);
+                contextMenu.appendItem(WebInspector.UIString("Continue to Here"), () => {
+                    WebInspector.debuggerManager.continueToLocation(script.id, sourceCodeLocation.lineNumber, sourceCodeLocation.columnNumber);
+                });
                 contextMenu.appendSeparator();
             }
         }
 
-        var breakpoints = [];
-        for (var i = 0; i < editorBreakpoints.length; ++i) {
-            var lineInfo = editorBreakpoints[i];
-            var breakpoint = this._breakpointForEditorLineInfo(lineInfo);
+        let breakpoints = [];
+        for (let lineInfo of editorBreakpoints) {
+            let breakpoint = this._breakpointForEditorLineInfo(lineInfo);
             console.assert(breakpoint);
             if (breakpoint)
                 breakpoints.push(breakpoint);
@@ -1018,9 +1047,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
         // No breakpoints.
         if (!breakpoints.length) {
-
             contextMenu.appendItem(WebInspector.UIString("Add Breakpoint"), addBreakpoint.bind(this));
-            contextMenu.show();
             return;
         }
 
@@ -1030,43 +1057,33 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
             if (!WebInspector.isShowingDebuggerTab()) {
                 contextMenu.appendSeparator();
-                contextMenu.appendItem(WebInspector.UIString("Reveal in Debugger Tab"), revealInSidebar);
+                contextMenu.appendItem(WebInspector.UIString("Reveal in Debugger Tab"), () => {
+                    WebInspector.showDebuggerTab(breakpoints[0]);
+                });
             }
 
-            contextMenu.show();
             return;
         }
 
         // Multiple breakpoints.
-        var shouldDisable = false;
-        for (var i = 0; i < breakpoints.length; ++i) {
-            if (!breakpoints[i].disabled) {
-                shouldDisable = true;
-                break;
-            }
-        }
-
-        function removeBreakpoints()
-        {
-            for (var i = 0; i < breakpoints.length; ++i) {
-                var breakpoint = breakpoints[i];
+        let removeBreakpoints = () => {
+            for (let breakpoint of breakpoints) {
                 if (WebInspector.debuggerManager.isBreakpointRemovable(breakpoint))
                     WebInspector.debuggerManager.removeBreakpoint(breakpoint);
             }
-        }
+        };
 
-        function toggleBreakpoints()
-        {
-            for (var i = 0; i < breakpoints.length; ++i)
-                breakpoints[i].disabled = shouldDisable;
-        }
+        let shouldDisable = breakpoints.some((breakpoint) => !breakpoint.disabled);
+        let toggleBreakpoints = (shouldDisable) => {
+            for (let breakpoint of breakpoints)
+                breakpoint.disabled = shouldDisable;
+        };
 
         if (shouldDisable)
-            contextMenu.appendItem(WebInspector.UIString("Disable Breakpoints"), toggleBreakpoints.bind(this));
+            contextMenu.appendItem(WebInspector.UIString("Disable Breakpoints"), toggleBreakpoints);
         else
-            contextMenu.appendItem(WebInspector.UIString("Enable Breakpoints"), toggleBreakpoints.bind(this));
-        contextMenu.appendItem(WebInspector.UIString("Delete Breakpoints"), removeBreakpoints.bind(this));
-        contextMenu.show();
+            contextMenu.appendItem(WebInspector.UIString("Enable Breakpoints"), toggleBreakpoints);
+        contextMenu.appendItem(WebInspector.UIString("Delete Breakpoints"), removeBreakpoints);
     }
 
     textEditorBreakpointAdded(textEditor, lineNumber, columnNumber)
@@ -1161,7 +1178,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
     {
         this._ignoreAllBreakpointLocationUpdates = true;
         this._sourceCode.formatterSourceMap = this.formatterSourceMap;
-        delete this._ignoreAllBreakpointLocationUpdates;
+        this._ignoreAllBreakpointLocationUpdates = false;
 
         // Always put the source map on both the Script and Resource if both exist. For example,
         // if this SourceCode is a Resource, then there might also be a Script. In the debugger,
@@ -1209,10 +1226,8 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         this._clearWidgets();
 
         var issues = WebInspector.issueManager.issuesForSourceCode(this._sourceCode);
-        for (var issue of issues) {
-            console.assert(this._matchesIssue(issue));
+        for (var issue of issues)
             this._addIssue(issue);
-        }
     }
 
     _debuggerDidPause(event)
@@ -1466,7 +1481,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
     _showPopoverForFunction(data)
     {
-        var candidate = this.tokenTrackingController.candidate;
+        let candidate = this.tokenTrackingController.candidate;
 
         function didGetDetails(error, response)
         {
@@ -1481,18 +1496,38 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
             if (candidate !== this.tokenTrackingController.candidate)
                 return;
 
-            var wrapper = document.createElement("div");
-            wrapper.className = "body formatted-function";
-            wrapper.textContent = data.description;
+            let content = document.createElement("div");
+            content.classList.add("function");
 
-            var content = document.createElement("div");
-            content.className = "function";
+            let title = document.createElement("div");
+            title.classList.add("title");
+            title.textContent = response.name || response.displayName || WebInspector.UIString("(anonymous function)");
+            content.appendChild(title);
 
-            var title = content.appendChild(document.createElement("div"));
-            title.className = "title";
-            title.textContent = response.name || response.inferredName || response.displayName || WebInspector.UIString("(anonymous function)");
+            let location = response.location;
+            let sourceCode = WebInspector.debuggerManager.scriptForIdentifier(location.scriptId);
+            let sourceCodeLocation = sourceCode.createSourceCodeLocation(location.lineNumber, location.columnNumber);
+            let functionSourceCodeLink = WebInspector.createSourceCodeLocationLink(sourceCodeLocation);
+            title.appendChild(functionSourceCodeLink);
 
+            let wrapper = document.createElement("div");
+            wrapper.classList.add("body");
             content.appendChild(wrapper);
+
+            let codeMirror = WebInspector.CodeMirrorEditor.create(wrapper, {
+                mode: "text/javascript",
+                readOnly: "nocursor",
+            });
+            codeMirror.on("update", () => {
+                this._popover.update();
+            });
+
+            // FIXME: <rdar://problem/10593948> Provide a way to change the tab width in the Web Inspector
+            const isModule = false;
+            let workerProxy = WebInspector.FormatterWorkerProxy.singleton();
+            workerProxy.formatJavaScript(data.description, isModule, "    ", false, ({formattedText}) => {
+                codeMirror.setValue(formattedText || data.description);
+            });
 
             this._showPopover(content);
         }
@@ -1591,11 +1626,23 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         this._mouseIsOverPopover = this._popover.element.contains(event.relatedTarget);
     }
 
+    _hasStyleSheetContents()
+    {
+        let mimeType = this.mimeType;
+        return mimeType === "text/css"
+            || mimeType === "text/x-less"
+            || mimeType === "text/x-sass"
+            || mimeType === "text/x-scss";
+    }
+
     _updateEditableMarkers(range)
     {
-        this.createColorMarkers(range);
-        this.createGradientMarkers(range);
-        this.createCubicBezierMarkers(range);
+        if (this._hasStyleSheetContents()) {
+            this.createColorMarkers(range);
+            this.createGradientMarkers(range);
+            this.createCubicBezierMarkers(range);
+            this.createSpringMarkers(range);
+        }
 
         this._updateTokenTrackingControllerState();
     }
@@ -1605,7 +1652,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         // Look for the outermost editable marker.
         var editableMarker;
         for (var marker of markers) {
-            if (!marker.range || (marker.type !== WebInspector.TextMarker.Type.Color && marker.type !== WebInspector.TextMarker.Type.Gradient && marker.type !== WebInspector.TextMarker.Type.CubicBezier))
+            if (!marker.range || !Object.values(WebInspector.TextMarker.Type).includes(marker.type))
                 continue;
 
             if (!editableMarker || (marker.range.startLine < editableMarker.range.startLine || (marker.range.startLine === editableMarker.range.startLine && marker.range.startColumn < editableMarker.range.startColumn)))
@@ -1675,20 +1722,13 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
 
     _setTypeTokenAnnotatorEnabledState(shouldActivate)
     {
-        console.assert(this._typeTokenAnnotator);
         if (!this._typeTokenAnnotator)
             return;
 
         if (shouldActivate) {
             console.assert(this.visible, "Annotators should not be enabled if the TextEditor is not visible");
-
             RuntimeAgent.enableTypeProfiler();
-
             this._typeTokenAnnotator.reset();
-            if (this._basicBlockAnnotator) {
-                console.assert(!this._basicBlockAnnotator.isActive());
-                this._basicBlockAnnotator.reset();
-            }
 
             if (!this._typeTokenScrollHandler)
                 this._enableScrollEventsForTypeTokenAnnotator();
@@ -1700,8 +1740,6 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
             // provide a confusing user experience.
 
             this._typeTokenAnnotator.clear();
-            if (this._basicBlockAnnotator)
-                this._basicBlockAnnotator.clear();
 
             if (this._typeTokenScrollHandler)
                 this._disableScrollEventsForTypeTokenAnnotator();
@@ -1710,6 +1748,31 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         WebInspector.showJavaScriptTypeInformationSetting.value = shouldActivate;
 
         this._updateTokenTrackingControllerState();
+    }
+
+    set _basicBlockAnnotatorEnabled(shouldActivate)
+    {
+        if (!this._basicBlockAnnotator)
+            return;
+
+        if (shouldActivate) {
+            console.assert(this.visible, "Annotators should not be enabled if the TextEditor is not visible");
+
+            RuntimeAgent.enableControlFlowProfiler();
+
+            console.assert(!this._basicBlockAnnotator.isActive());
+            this._basicBlockAnnotator.reset();
+
+            if (!this._controlFlowScrollHandler)
+                this._enableScrollEventsForControlFlowAnnotator();
+        } else {
+            this._basicBlockAnnotator.clear();
+
+            if (this._controlFlowScrollHandler)
+                this._disableScrollEventsForControlFlowAnnotator();
+        }
+
+        WebInspector.enableControlFlowProfilerSetting.value = shouldActivate;
     }
 
     _getAssociatedScript()
@@ -1723,7 +1786,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         return script;
     }
 
-    _makeTypeTokenAnnotator()
+    _createTypeTokenAnnotator()
     {
         // COMPATIBILITY (iOS 8): Runtime.getRuntimeTypesForVariablesAtOffsets did not exist yet.
         if (!RuntimeAgent.getRuntimeTypesForVariablesAtOffsets)
@@ -1736,7 +1799,7 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         this._typeTokenAnnotator = new WebInspector.TypeTokenAnnotator(this, script);
     }
 
-    _makeBasicBlockAnnotator()
+    _createBasicBlockAnnotator()
     {
         // COMPATIBILITY (iOS 8): Runtime.getBasicBlocks did not exist yet.
         if (!RuntimeAgent.getBasicBlocks)
@@ -1753,8 +1816,15 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
     {
         // Pause updating type tokens while scrolling to prevent frame loss.
         console.assert(!this._typeTokenScrollHandler);
-        this._typeTokenScrollHandler = this._makeTypeTokenScrollEventHandler();
+        this._typeTokenScrollHandler = this._createTypeTokenScrollEventHandler();
         this.addScrollHandler(this._typeTokenScrollHandler);
+    }
+
+    _enableScrollEventsForControlFlowAnnotator()
+    {
+        console.assert(!this._controlFlowScrollHandler);
+        this._controlFlowScrollHandler = this._createControlFlowScrollEventHandler();
+        this.addScrollHandler(this._controlFlowScrollHandler);
     }
 
     _disableScrollEventsForTypeTokenAnnotator()
@@ -1764,30 +1834,62 @@ WebInspector.SourceCodeTextEditor = class SourceCodeTextEditor extends WebInspec
         this._typeTokenScrollHandler = null;
     }
 
-    _makeTypeTokenScrollEventHandler()
+    _disableScrollEventsForControlFlowAnnotator()
     {
-        var timeoutIdentifier = null;
-        function scrollHandler()
-        {
+        console.assert(this._controlFlowScrollHandler);
+        this.removeScrollHandler(this._controlFlowScrollHandler);
+        this._controlFlowScrollHandler = null;
+    }
+
+    _createTypeTokenScrollEventHandler()
+    {
+        let timeoutIdentifier = null;
+        let scrollHandler = () => {
             if (timeoutIdentifier)
                 clearTimeout(timeoutIdentifier);
             else {
                 if (this._typeTokenAnnotator)
                     this._typeTokenAnnotator.pause();
-                if (this._basicBlockAnnotator)
-                    this._basicBlockAnnotator.pause();
             }
 
-            timeoutIdentifier = setTimeout(function() {
+            timeoutIdentifier = setTimeout(() => {
                 timeoutIdentifier = null;
                 if (this._typeTokenAnnotator)
                     this._typeTokenAnnotator.resume();
+            }, WebInspector.SourceCodeTextEditor.DurationToUpdateTypeTokensAfterScrolling);
+        };
+
+        return scrollHandler;
+    }
+
+    _createControlFlowScrollEventHandler()
+    {
+        let timeoutIdentifier = null;
+        let scrollHandler = () => {
+            if (timeoutIdentifier)
+                clearTimeout(timeoutIdentifier);
+            else if (this._basicBlockAnnotator)
+                this._basicBlockAnnotator.pause();
+
+            timeoutIdentifier = setTimeout(()  => {
+                timeoutIdentifier = null;
                 if (this._basicBlockAnnotator)
                     this._basicBlockAnnotator.resume();
-            }.bind(this), WebInspector.SourceCodeTextEditor.DurationToUpdateTypeTokensAfterScrolling);
+            }, WebInspector.SourceCodeTextEditor.DurationToUpdateTypeTokensAfterScrolling);
+        };
+
+        return scrollHandler;
+    }
+
+    _logCleared(event)
+    {
+        for (let lineNumber of this._issuesLineNumberMap.keys()) {
+            this.removeStyleClassFromLine(lineNumber, WebInspector.SourceCodeTextEditor.LineErrorStyleClassName);
+            this.removeStyleClassFromLine(lineNumber, WebInspector.SourceCodeTextEditor.LineWarningStyleClassName);
         }
 
-        return scrollHandler.bind(this);
+        this._issuesLineNumberMap.clear();
+        this._clearWidgets();
     }
 };
 

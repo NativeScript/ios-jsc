@@ -67,6 +67,11 @@ struct WeakImplVectorKeyTraits {
         return WTF::Vector<JSC::WeakImpl*>();
     }
 
+    template <typename U, typename V>
+    static void assignToEmpty(U& emptyValue, V&& value) {
+        emptyValue = std::forward<V>(value);
+    }
+
     static const bool emptyValueIsZero = false;
     static const bool hasIsEmptyValueFunction = false;
     static const int minimumTableSize = 8;

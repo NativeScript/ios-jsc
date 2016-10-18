@@ -49,7 +49,10 @@ static EncodedJSValue JSC_HOST_CALL constructErrorWrapper(ExecState* execState) 
     NSError* error = NativeScript::toObject(execState, execState->argument(0));
 
     if (!error || ![error isKindOfClass:[NSError class]]) {
-        return throwVMTypeError(execState);
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        return throwVMTypeError(execState, scope);
     }
 
     return JSValue::encode(self->createError(execState, error));
@@ -57,11 +60,11 @@ static EncodedJSValue JSC_HOST_CALL constructErrorWrapper(ExecState* execState) 
 
 ConstructType NSErrorWrapperConstructor::getConstructData(JSCell*, ConstructData& constructData) {
     constructData.native.function = &constructErrorWrapper;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType NSErrorWrapperConstructor::getCallData(JSCell*, CallData& callData) {
     callData.native.function = &constructErrorWrapper;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

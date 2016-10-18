@@ -16,13 +16,15 @@ using namespace Metadata;
 
 EncodedJSValue JSC_HOST_CALL ObjCExtendFunction(ExecState* execState) {
     JSValue baseConstructor = execState->thisValue();
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     JSValue instanceMethodsValue = execState->argument(0);
     if (!instanceMethodsValue.inherits(JSObject::info())) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Parameter must be an object"))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Parameter must be an object"))));
     }
     if (instanceMethodsValue.get(execState, execState->vm().propertyNames->constructor).inherits(ObjCConstructorBase::info())) {
-        return JSValue::encode(execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("The override object is used by another derived class"))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The override object is used by another derived class"))));
     }
     JSObject* instanceMethods = instanceMethodsValue.toObject(execState);
 
@@ -41,22 +43,22 @@ EncodedJSValue JSC_HOST_CALL ObjCExtendFunction(ExecState* execState) {
     }
 
     ObjCClassBuilder classBuilder(execState, baseConstructor, instanceMethods, className);
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 
     classBuilder.implementProtocols(execState, protocolsArray);
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 
     classBuilder.addInstanceMembers(execState, instanceMethods, exposedMethods);
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 
     ObjCConstructorDerived* constructor = classBuilder.build(execState);
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 

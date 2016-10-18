@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009, 2010 Google Inc. All rights reserved.
  * Copyright (C) 2009 Joseph Pecoraro
- * Copyright (C) 2013 Apple Inc. All rights reserved.
+ * Copyright (C) 2013, 2016 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,22 +32,24 @@
 
 WebInspector.DOMNode = class DOMNode extends WebInspector.Object
 {
-    constructor(domAgent, doc, isInShadowTree, payload)
+    constructor(domTreeManager, doc, isInShadowTree, payload)
     {
         super();
 
-        this._domAgent = domAgent;
+        this._domTreeManager = domTreeManager;
         this._isInShadowTree = isInShadowTree;
 
         this.id = payload.nodeId;
-        domAgent._idToDOMNode[this.id] = this;
+        this._domTreeManager._idToDOMNode[this.id] = this;
 
         this._nodeType = payload.nodeType;
         this._nodeName = payload.nodeName;
         this._localName = payload.localName;
         this._nodeValue = payload.nodeValue;
         this._pseudoType = payload.pseudoType;
+        this._shadowRootType = payload.shadowRootType;
         this._computedRole = payload.role;
+        this._contentSecurityPolicyHash = payload.contentSecurityPolicyHash;
 
         if (this._nodeType === Node.DOCUMENT_NODE)
             this.ownerDocument = this;
@@ -70,34 +72,38 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
 
         this._enabledPseudoClasses = [];
 
+        // FIXME: The logic around this._shadowRoots and this._children is very confusing.
         this._shadowRoots = [];
         if (payload.shadowRoots) {
             for (var i = 0; i < payload.shadowRoots.length; ++i) {
                 var root = payload.shadowRoots[i];
-                var node = new WebInspector.DOMNode(this._domAgent, this.ownerDocument, true, root);
+                var node = new WebInspector.DOMNode(this._domTreeManager, this.ownerDocument, true, root);
+                node.parentNode = this;
                 this._shadowRoots.push(node);
             }
         }
 
         if (payload.templateContent) {
-            this._templateContent = new WebInspector.DOMNode(this._domAgent, this.ownerDocument, true, payload.templateContent);
+            this._templateContent = new WebInspector.DOMNode(this._domTreeManager, this.ownerDocument, false, payload.templateContent);
             this._templateContent.parentNode = this;
         }
 
         if (payload.children)
             this._setChildrenPayload(payload.children);
+        else if (!this._children && this._shadowRoots.length)
+            this._children = this._shadowRoots.slice();
 
         this._pseudoElements = new Map;
         if (payload.pseudoElements) {
             for (var i = 0; i < payload.pseudoElements.length; ++i) {
-                var node = new WebInspector.DOMNode(this._domAgent, this.ownerDocument, this._isInShadowTree, payload.pseudoElements[i]);
+                var node = new WebInspector.DOMNode(this._domTreeManager, this.ownerDocument, this._isInShadowTree, payload.pseudoElements[i]);
                 node.parentNode = this;
                 this._pseudoElements.set(node.pseudoType(), node);
             }
         }
 
         if (payload.contentDocument) {
-            this._contentDocument = new WebInspector.DOMNode(domAgent, null, false, payload.contentDocument);
+            this._contentDocument = new WebInspector.DOMNode(this._domTreeManager, null, false, payload.contentDocument);
             this._children = [this._contentDocument];
             this._renumber();
         }
@@ -116,7 +122,6 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
         } else if (this._nodeType === Node.DOCUMENT_TYPE_NODE) {
             this.publicId = payload.publicId;
             this.systemId = payload.systemId;
-            this.internalSubset = payload.internalSubset;
         } else if (this._nodeType === Node.DOCUMENT_NODE) {
             this.documentURL = payload.documentURL;
             this.xmlVersion = payload.xmlVersion;
@@ -228,6 +233,11 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
         return this._computedRole;
     }
 
+    contentSecurityPolicyHash()
+    {
+        return this._contentSecurityPolicyHash;
+    }
+
     hasAttributes()
     {
         return this._attributes.length > 0;
@@ -246,6 +256,38 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
     isInShadowTree()
     {
         return this._isInShadowTree;
+    }
+
+    isInUserAgentShadowTree()
+    {
+        return this._isInShadowTree && this.ancestorShadowRoot().isUserAgentShadowRoot();
+    }
+
+    isShadowRoot()
+    {
+        return !!this._shadowRootType;
+    }
+
+    isUserAgentShadowRoot()
+    {
+        return this._shadowRootType === WebInspector.DOMNode.ShadowRootType.UserAgent;
+    }
+
+    ancestorShadowRoot()
+    {
+        if (!this._isInShadowTree)
+            return null;
+
+        let node = this;
+        while (node && !node.isShadowRoot())
+            node = node.parentNode;
+        return node;
+    }
+
+    ancestorShadowHost()
+    {
+        let shadowRoot = this.ancestorShadowRoot();
+        return shadowRoot ? shadowRoot.parentNode : null;
     }
 
     isPseudoElement()
@@ -308,6 +350,16 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
         return this._pseudoElements.get(WebInspector.DOMNode.PseudoElementType.After) || null;
     }
 
+    shadowRoots()
+    {
+        return this._shadowRoots;
+    }
+
+    shadowRootType()
+    {
+        return this._shadowRootType;
+    }
+
     nodeValue()
     {
         return this._nodeValue;
@@ -345,7 +397,7 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
         {
             if (!error) {
                 delete this._attributesMap[name];
-                for (var i = 0;  i < this._attributes.length; ++i) {
+                for (var i = 0; i < this._attributes.length; ++i) {
                     if (this._attributes[i].name === name) {
                         this._attributes.splice(i, 1);
                         break;
@@ -356,6 +408,36 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
             this._makeUndoableCallback(callback)(error);
         }
         DOMAgent.removeAttribute(this.id, name, mycallback.bind(this));
+    }
+
+    toggleClass(className, flag)
+    {
+        if (!className || !className.length)
+            return;
+
+        if (this.isPseudoElement()) {
+            this.parentNode.toggleClass(className, flag);
+            return;
+        }
+
+        if (this.nodeType() !== Node.ELEMENT_NODE)
+            return;
+
+        function resolvedNode(object)
+        {
+            if (!object)
+                return;
+
+            function inspectedPage_node_toggleClass(className, flag)
+            {
+                this.classList.toggle(className, flag);
+            }
+
+            object.callFunction(inspectedPage_node_toggleClass, [className, flag]);
+            object.release();
+        }
+
+        WebInspector.RemoteObject.resolveNode(this, "", resolvedNode);
     }
 
     getChildNodes(callback)
@@ -468,28 +550,62 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
         return path.join(",");
     }
 
+    get escapedIdSelector()
+    {
+        let id = this.getAttribute("id");
+        if (!id)
+            return "";
+
+        id = id.trim();
+        if (!id.length)
+            return "";
+
+        id = CSS.escape(id);
+        if (/[\s'"]/.test(id))
+            return `[id=\"${id}\"]`;
+
+        return `#${id}`;
+    }
+
+    get escapedClassSelector()
+    {
+        let classes = this.getAttribute("class");
+        if (!classes)
+            return "";
+
+        classes = classes.trim();
+        if (!classes.length)
+            return "";
+
+        let foundClasses = new Set;
+        return classes.split(/\s+/).reduce((selector, className) => {
+            if (!className.length || foundClasses.has(className))
+                return selector;
+
+            foundClasses.add(className);
+            return `${selector}.${CSS.escape(className)}`;
+        }, "");
+    }
+
+    get displayName()
+    {
+        return this.nodeNameInCorrectCase() + this.escapedIdSelector + this.escapedClassSelector;
+    }
+
     appropriateSelectorFor(justSelector)
     {
         if (this.isPseudoElement())
             return this.parentNode.appropriateSelectorFor() + "::" + this._pseudoType;
 
-        var lowerCaseName = this.localName() || this.nodeName().toLowerCase();
+        let lowerCaseName = this.localName() || this.nodeName().toLowerCase();
 
-        var id = this.getAttribute("id");
-        if (id) {
-            if (/[\s'"]/.test(id)) {
-                id = id.replace(/\\/g, "\\\\").replace(/\"/g, "\\\"");
-                selector = lowerCaseName + "[id=\"" + id + "\"]";
-            } else
-                selector = "#" + id;
-            return (justSelector ? selector : lowerCaseName + selector);
-        }
+        let id = this.escapedIdSelector;
+        if (id.length)
+            return justSelector ? id : lowerCaseName + id;
 
-        var className = this.getAttribute("class");
-        if (className) {
-            var selector = "." + className.trim().replace(/\s+/g, ".");
-            return (justSelector ? selector : lowerCaseName + selector);
-        }
+        let classes = this.escapedClassSelector;
+        if (classes.length)
+            return justSelector ? classes : lowerCaseName + classes;
 
         if (lowerCaseName === "input" && this.getAttribute("type"))
             return lowerCaseName + "[type=\"" + this.getAttribute("type") + "\"]";
@@ -516,6 +632,22 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
         return descendant !== null && descendant.isAncestor(this);
     }
 
+    get ownerSVGElement()
+    {
+        if (this._nodeName === "svg")
+            return this;
+
+        if (!this.parentNode)
+            return null;
+
+        return this.parentNode.ownerSVGElement;
+    }
+
+    isSVGElement()
+    {
+        return !!this.ownerSVGElement;
+    }
+
     _setAttributesPayload(attrs)
     {
         this._attributes = [];
@@ -526,7 +658,7 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
 
     _insertChild(prev, payload)
     {
-        var node = new WebInspector.DOMNode(this._domAgent, this.ownerDocument, this._isInShadowTree, payload);
+        var node = new WebInspector.DOMNode(this._domTreeManager, this.ownerDocument, this._isInShadowTree, payload);
         if (!prev) {
             if (!this._children) {
                 // First node
@@ -560,7 +692,7 @@ WebInspector.DOMNode = class DOMNode extends WebInspector.Object
 
         this._children = this._shadowRoots.slice();
         for (var i = 0; i < payloads.length; ++i) {
-            var node = new WebInspector.DOMNode(this._domAgent, this.ownerDocument, this._isInShadowTree, payloads[i]);
+            var node = new WebInspector.DOMNode(this._domTreeManager, this.ownerDocument, this._isInShadowTree, payloads[i]);
             this._children.push(node);
         }
         this._renumber();
@@ -667,4 +799,10 @@ WebInspector.DOMNode.Event = {
 WebInspector.DOMNode.PseudoElementType = {
     Before: "before",
     After: "after",
+};
+
+WebInspector.DOMNode.ShadowRootType = {
+    UserAgent: "user-agent",
+    Closed: "closed",
+    Open: "open",
 };

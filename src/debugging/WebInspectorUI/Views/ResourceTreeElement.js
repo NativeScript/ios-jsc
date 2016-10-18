@@ -83,7 +83,15 @@ WebInspector.ResourceTreeElement = class ResourceTreeElement extends WebInspecto
 
     get filterableData()
     {
-        return {text: [this._resource.url]};
+        let urlComponents = this._resource.urlComponents;
+        return {text: [urlComponents.lastPathComponent, urlComponents.path, this._resource.url]};
+    }
+
+    onattach()
+    {
+        super.onattach();
+
+        this.element.addEventListener("contextmenu", this._handleContextMenuEvent.bind(this));
     }
 
     ondblclick()
@@ -148,6 +156,13 @@ WebInspector.ResourceTreeElement = class ResourceTreeElement extends WebInspecto
 
         if (oldMainTitle !== this.mainTitle)
             this.callFirstAncestorFunction("descendantResourceTreeElementMainTitleDidChange", [this, oldMainTitle]);
+    }
+
+    _handleContextMenuEvent(event)
+    {
+        let contextMenu = WebInspector.ContextMenu.createFromEvent(event);
+
+        WebInspector.appendContextMenuItemsForResource(contextMenu, this._resource);
     }
 
     // Private

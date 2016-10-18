@@ -54,11 +54,11 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
 
         this._watchExpressionsSectionGroup = new WebInspector.DetailsSectionGroup;
         this._watchExpressionsSection = new WebInspector.DetailsSection("watch-expressions", WebInspector.UIString("Watch Expressions"), [this._watchExpressionsSectionGroup], this._watchExpressionOptionsElement);
-        this.contentElement.appendChild(this._watchExpressionsSection.element);
+        this.contentView.element.appendChild(this._watchExpressionsSection.element);
 
         this._updateWatchExpressionsNavigationBar();
 
-        this.needsRefresh();
+        this.needsLayout();
 
         // Update on console prompt eval as objects in the scope chain may have changed.
         WebInspector.runtimeManager.addEventListener(WebInspector.RuntimeManager.Event.DidEvaluate, this._didEvaluateExpression, this);
@@ -102,10 +102,12 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
 
         this._callFrame = callFrame;
 
-        this.needsRefresh();
+        this.needsLayout();
     }
 
-    refresh()
+    // Protected
+
+    layout()
     {
         let callFrame = this._callFrame;
 
@@ -125,8 +127,8 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
                     emptyRow.showEmptyMessage();
                 }
 
-                this.contentElement.removeChildren();
-                this.contentElement.appendChild(this._watchExpressionsSection.element);
+                this.contentView.element.removeChildren();
+                this.contentView.element.appendChild(this._watchExpressionsSection.element);
 
                 // Bail if the call frame changed while we were waiting for the async response.
                 if (this._callFrame !== callFrame)
@@ -136,7 +138,7 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
                     return;
 
                 for (let callFrameSection of callFrameSections)
-                    this.contentElement.appendChild(callFrameSection.element);
+                    this.contentView.element.appendChild(callFrameSection.element);
             }
 
             // We need a timeout in place in case there are long running, pending backend dispatches. This can happen
@@ -164,7 +166,7 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         for (let type in WebInspector.ScopeChainNode.Type)
             sectionCountByType.set(WebInspector.ScopeChainNode.Type[type], 0);
 
-        let scopeChain = callFrame.scopeChain;
+        let scopeChain = callFrame.mergedScopeChain();
         for (let scope of scopeChain) {
             let title = null;
             let extraPropertyDescriptor = null;
@@ -174,59 +176,79 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
             sectionCountByType.set(scope.type, ++count);
 
             switch (scope.type) {
-                case WebInspector.ScopeChainNode.Type.Local:
-                    foundLocalScope = true;
-                    collapsedByDefault = false;
+            case WebInspector.ScopeChainNode.Type.Local:
+                foundLocalScope = true;
+                collapsedByDefault = false;
+                title = WebInspector.UIString("Local Variables");
+                if (callFrame.thisObject)
+                    extraPropertyDescriptor = new WebInspector.PropertyDescriptor({name: "this", value: callFrame.thisObject});
+                break;
 
-                    title = WebInspector.UIString("Local Variables");
-
-                    if (callFrame.thisObject)
-                        extraPropertyDescriptor = new WebInspector.PropertyDescriptor({name: "this", value: callFrame.thisObject});
-                    break;
-
-                case WebInspector.ScopeChainNode.Type.Closure:
+            case WebInspector.ScopeChainNode.Type.Closure:
+                if (scope.__baseClosureScope && scope.name)
+                    title = WebInspector.UIString("Closure Variables (%s)").format(scope.name);
+                else
                     title = WebInspector.UIString("Closure Variables");
-                    collapsedByDefault = false;
-                    break;
+                collapsedByDefault = false;
+                break;
 
-                case WebInspector.ScopeChainNode.Type.Catch:
-                    title = WebInspector.UIString("Catch Variables");
-                    collapsedByDefault = false;
-                    break;
+            case WebInspector.ScopeChainNode.Type.Block:
+                title = WebInspector.UIString("Block Variables");
+                collapsedByDefault = false;
+                break;
 
-                case WebInspector.ScopeChainNode.Type.FunctionName:
-                    title = WebInspector.UIString("Function Name Variable");
-                    collapsedByDefault = true;
-                    break;
+            case WebInspector.ScopeChainNode.Type.Catch:
+                title = WebInspector.UIString("Catch Variables");
+                collapsedByDefault = false;
+                break;
 
-                case WebInspector.ScopeChainNode.Type.With:
-                    title = WebInspector.UIString("With Object Properties");
-                    collapsedByDefault = foundLocalScope;
-                    break;
+            case WebInspector.ScopeChainNode.Type.FunctionName:
+                title = WebInspector.UIString("Function Name Variable");
+                collapsedByDefault = true;
+                break;
 
-                case WebInspector.ScopeChainNode.Type.Global:
-                    title = WebInspector.UIString("Global Variables");
-                    collapsedByDefault = true;
-                    break;
+            case WebInspector.ScopeChainNode.Type.With:
+                title = WebInspector.UIString("With Object Properties");
+                collapsedByDefault = foundLocalScope;
+                break;
+
+            case WebInspector.ScopeChainNode.Type.Global:
+                title = WebInspector.UIString("Global Variables");
+                collapsedByDefault = true;
+                break;
+
+            case WebInspector.ScopeChainNode.Type.GlobalLexicalEnvironment:
+                title = WebInspector.UIString("Global Lexical Environment");
+                collapsedByDefault = true;
+                break;
             }
 
             let detailsSectionIdentifier = scope.type + "-" + sectionCountByType.get(scope.type);
-
-            let scopePropertyPath = WebInspector.PropertyPath.emptyPropertyPathForScope(scope.object);
-            let objectTree = new WebInspector.ObjectTreeView(scope.object, WebInspector.ObjectTreeView.Mode.Properties, scopePropertyPath);
-
-            objectTree.showOnlyProperties();
-
-            if (extraPropertyDescriptor)
-                objectTree.appendExtraPropertyDescriptor(extraPropertyDescriptor);
-
-            let treeOutline = objectTree.treeOutline;
-            treeOutline.onadd = this._objectTreeAddHandler.bind(this, detailsSectionIdentifier);
-            treeOutline.onexpand = this._objectTreeExpandHandler.bind(this, detailsSectionIdentifier);
-            treeOutline.oncollapse = this._objectTreeCollapseHandler.bind(this, detailsSectionIdentifier);
-
             let detailsSection = new WebInspector.DetailsSection(detailsSectionIdentifier, title, null, null, collapsedByDefault);
-            detailsSection.groups[0].rows = [new WebInspector.DetailsSectionPropertiesRow(objectTree)];
+
+            // FIXME: This just puts two ObjectTreeViews next to each other, but that means
+            // that properties are not nicely sorted between the two separate lists.
+
+            let rows = [];
+            for (let object of scope.objects) {
+                let scopePropertyPath = WebInspector.PropertyPath.emptyPropertyPathForScope(object);
+                let objectTree = new WebInspector.ObjectTreeView(object, WebInspector.ObjectTreeView.Mode.Properties, scopePropertyPath);
+
+                objectTree.showOnlyProperties();
+
+                if (extraPropertyDescriptor) {
+                    objectTree.appendExtraPropertyDescriptor(extraPropertyDescriptor);
+                    extraPropertyDescriptor = null;
+                }
+
+                let treeOutline = objectTree.treeOutline;
+                treeOutline.addEventListener(WebInspector.TreeOutline.Event.ElementAdded, this._treeElementAdded.bind(this, detailsSectionIdentifier), this);
+                treeOutline.addEventListener(WebInspector.TreeOutline.Event.ElementDisclosureDidChanged, this._treeElementDisclosureDidChange.bind(this, detailsSectionIdentifier), this);
+
+                rows.push(new WebInspector.ObjectPropertiesDetailSectionRow(objectTree, detailsSection));
+            }
+
+            detailsSection.groups[0].rows = rows;
             detailsSections.push(detailsSection);
         }
 
@@ -254,15 +276,15 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
 
         let treeOutline = objectTree.treeOutline;
         const watchExpressionSectionIdentifier = "watch-expressions";
-        treeOutline.onadd = this._objectTreeAddHandler.bind(this, watchExpressionSectionIdentifier);
-        treeOutline.onexpand = this._objectTreeExpandHandler.bind(this, watchExpressionSectionIdentifier);
-        treeOutline.oncollapse = this._objectTreeCollapseHandler.bind(this, watchExpressionSectionIdentifier);
+        treeOutline.addEventListener(WebInspector.TreeOutline.Event.ElementAdded, this._treeElementAdded.bind(this, watchExpressionSectionIdentifier), this);
+        treeOutline.addEventListener(WebInspector.TreeOutline.Event.ElementDisclosureDidChanged, this._treeElementDisclosureDidChange.bind(this, watchExpressionSectionIdentifier), this);
         treeOutline.objectTreeElementAddContextMenuItems = this._objectTreeElementAddContextMenuItems.bind(this);
 
         let promises = [];
         for (let expression of watchExpressions) {
             promises.push(new Promise(function(resolve, reject) {
-                WebInspector.runtimeManager.evaluateInInspectedWindow(expression, WebInspector.ScopeChainDetailsSidebarPanel.WatchExpressionsObjectGroupName, false, true, false, true, false, function(object, wasThrown) {
+                let options = {objectGroup: WebInspector.ScopeChainDetailsSidebarPanel.WatchExpressionsObjectGroupName, includeCommandLineAPI: false, doNotPauseOnExceptionsAndMuteConsole: true, returnByValue: false, generatePreview: true, saveResult: false};
+                WebInspector.runtimeManager.evaluateInInspectedWindow(expression, options, function(object, wasThrown) {
                     let propertyDescriptor = new WebInspector.PropertyDescriptor({name: expression, value: object}, undefined, undefined, wasThrown);
                     objectTree.appendExtraPropertyDescriptor(propertyDescriptor);
                     resolve(propertyDescriptor);
@@ -271,7 +293,7 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         }
 
         return Promise.all(promises).then(function() {
-            return Promise.resolve(new WebInspector.DetailsSectionPropertiesRow(objectTree));
+            return Promise.resolve(new WebInspector.ObjectPropertiesDetailSectionRow(objectTree));
         });
     }
 
@@ -281,7 +303,7 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         watchExpressions.push(expression);
         this._watchExpressionsSetting.value = watchExpressions;
 
-        this.needsRefresh();
+        this.needsLayout();
     }
 
     _removeWatchExpression(expression)
@@ -290,14 +312,14 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         watchExpressions.remove(expression, true);
         this._watchExpressionsSetting.value = watchExpressions;
 
-        this.needsRefresh();
+        this.needsLayout();
     }
 
     _clearAllWatchExpressions()
     {
         this._watchExpressionsSetting.value = [];
 
-        this.needsRefresh();
+        this.needsLayout();
     }
 
     _addWatchExpressionButtonClicked(event)
@@ -328,7 +350,7 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         this._popoverCommitted = false;
 
         this._codeMirror.addKeyMap({
-            "Enter": function() { this._popoverCommitted = true; popover.dismiss(); }.bind(this),
+            "Enter": () => { this._popoverCommitted = true; popover.dismiss(); },
         });
 
         let completionController = new WebInspector.CodeMirrorCompletionController(this._codeMirror);
@@ -344,19 +366,17 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
             }
         });
 
-        // Reposition the popover when the window resizes.
-        this._windowResizeListener = presentPopoverOverTargetElement;
-        window.addEventListener("resize", this._windowResizeListener);
-
         popover.content = content;
+
+        popover.windowResizeHandler = presentPopoverOverTargetElement;
         presentPopoverOverTargetElement();
 
         // CodeMirror needs a refresh after the popover displays, to layout, otherwise it doesn't appear.
-        setTimeout(function() {
+        setTimeout(() => {
             this._codeMirror.refresh();
             this._codeMirror.focus();
             popover.update();
-        }.bind(this), 0);
+        }, 0);
     }
 
     willDismissPopover(popover)
@@ -367,14 +387,12 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
                 this._addWatchExpression(expression);
         }
 
-        window.removeEventListener("resize", this._windowResizeListener);
-        this._windowResizeListener = null;
         this._codeMirror = null;
     }
 
     _refreshAllWatchExpressionsButtonClicked(event)
     {
-        this.needsRefresh();
+        this.needsLayout();
     }
 
     _clearAllWatchExpressionsButtonClicked(event)
@@ -387,7 +405,7 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         if (event.data.objectGroup === WebInspector.ScopeChainDetailsSidebarPanel.WatchExpressionsObjectGroupName)
             return;
 
-        this.needsRefresh();
+        this.needsLayout();
     }
 
     _mainResourceDidChange(event)
@@ -395,7 +413,7 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         if (!event.target.isMainFrame())
             return;
 
-        this.needsRefresh();
+        this.needsLayout();
     }
 
     _objectTreeElementAddContextMenuItems(objectTreeElement, contextMenu)
@@ -404,10 +422,10 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         if (objectTreeElement.parent !== objectTreeElement.treeOutline)
             return;
 
-        contextMenu.appendItem(WebInspector.UIString("Remove Watch Expression"), function() {
+        contextMenu.appendItem(WebInspector.UIString("Remove Watch Expression"), () => {
             let expression = objectTreeElement.property.name;
             this._removeWatchExpression(expression);
-        }.bind(this));
+        });
     }
 
     _propertyPathIdentifierForTreeElement(identifier, objectPropertyTreeElement)
@@ -422,8 +440,9 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
         return identifier + "-" + propertyPath.fullPath;
     }
 
-    _objectTreeAddHandler(identifier, treeElement)
+    _treeElementAdded(identifier, event)
     {
+        let treeElement = event.data.element;
         let propertyPathIdentifier = this._propertyPathIdentifierForTreeElement(identifier, treeElement);
         if (!propertyPathIdentifier)
             return;
@@ -432,22 +451,17 @@ WebInspector.ScopeChainDetailsSidebarPanel = class ScopeChainDetailsSidebarPanel
             treeElement.expand();
     }
 
-    _objectTreeExpandHandler(identifier, treeElement)
+    _treeElementDisclosureDidChange(identifier, event)
     {
+        let treeElement = event.data.element;
         let propertyPathIdentifier = this._propertyPathIdentifierForTreeElement(identifier, treeElement);
         if (!propertyPathIdentifier)
             return;
 
-        WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.add(propertyPathIdentifier);
-    }
-
-    _objectTreeCollapseHandler(identifier, treeElement)
-    {
-        let propertyPathIdentifier = this._propertyPathIdentifierForTreeElement(identifier, treeElement);
-        if (!propertyPathIdentifier)
-            return;
-
-        WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.delete(propertyPathIdentifier);
+        if (treeElement.expanded)
+            WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.add(propertyPathIdentifier);
+        else
+            WebInspector.ScopeChainDetailsSidebarPanel._autoExpandProperties.delete(propertyPathIdentifier);
     }
 
     _updateWatchExpressionsNavigationBar()

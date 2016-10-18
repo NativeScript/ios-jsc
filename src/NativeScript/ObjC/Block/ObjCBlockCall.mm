@@ -38,6 +38,6 @@ void ObjCBlockCall::preInvocation(FFICall* callee, ExecState*, FFICall::Invocati
 }
 
 ObjCBlockCall::~ObjCBlockCall() {
-    Heap::heap(this)->releaseSoon(WTF::move(this->_block));
+    Heap::heap(this)->releaseSoon(WTFMove(this->_block));
 }
 }

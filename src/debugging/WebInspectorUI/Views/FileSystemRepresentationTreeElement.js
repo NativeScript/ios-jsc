@@ -11,7 +11,7 @@ WebInspector.FileSystemRepresentationTreeElement = class FileSystemRepresentatio
         this.expanded = true;
     }
 
-    populate() 
+    onpopulate() 
     {
         for(var resource of this.resources) 
         {

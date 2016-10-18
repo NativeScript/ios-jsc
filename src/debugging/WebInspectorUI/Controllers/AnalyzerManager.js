@@ -96,7 +96,7 @@ WebInspector.AnalyzerManager = class AnalyzerManager extends WebInspector.Object
                 resolve(analyzerMessages);
             }
 
-            sourceCode.requestContent().then(retrieveAnalyzerMessages.bind(this));
+            sourceCode.requestContent().then(retrieveAnalyzerMessages.bind(this)).catch(handlePromiseException);
         }.bind(this));
     }
 
@@ -117,4 +117,6 @@ WebInspector.AnalyzerManager = class AnalyzerManager extends WebInspector.Object
 };
 
 WebInspector.AnalyzerManager._typeAnalyzerMap = new Map;
-WebInspector.AnalyzerManager._typeAnalyzerMap.set(WebInspector.Resource.Type.Script, eslint);
+
+// <https://webkit.org/b/136515> Web Inspector: JavaScript source text editor should have a linter
+// WebInspector.AnalyzerManager._typeAnalyzerMap.set(WebInspector.Resource.Type.Script, eslint);

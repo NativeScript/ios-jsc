@@ -20,12 +20,18 @@ using namespace JSC;
 
 #pragma mark noopType
 static JSValue noopType_read(ExecState* execState, const void* buffer, JSCell* self) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     JSValue exception = createError(execState, WTF::ASCIILiteral("Can not read from noop type."));
-    return execState->vm().throwException(execState, exception);
+    return scope.throwException(execState, exception);
 }
 static void noopType_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     JSValue exception = createError(execState, WTF::ASCIILiteral("Can not write to noop type."));
-    execState->vm().throwException(execState, exception);
+    scope.throwException(execState, exception);
 }
 static bool noopType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return false;
@@ -86,8 +92,11 @@ static JSValue unicharType_read(ExecState* execState, const void* buffer, JSCell
 static void unicharType_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     JSString* str = value.toString(execState);
     if (str->length() != 1) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         JSValue exception = createError(execState, WTF::ASCIILiteral("Only one character string can be converted to unichar."));
-        execState->vm().throwException(execState, exception);
+        scope.throwException(execState, exception);
         return;
     }
 
@@ -141,8 +150,11 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
         return;
     }
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a string."));
-    execState->vm().throwException(execState, exception);
+    scope.throwException(execState, exception);
     return;
 }
 static bool cStringType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {

@@ -109,6 +109,8 @@ WebInspector.ObjectPreviewView = class ObjectPreviewView extends WebInspector.Ob
         // Display null / regexps as simple formatted values even in title.
         if (this._preview.subtype === "regexp" || this._preview.subtype === "null")
             this._titleElement.appendChild(WebInspector.FormattedValue.createElementForObjectPreview(this._preview));
+        else if (this._preview.subtype === "node")
+            this._titleElement.appendChild(WebInspector.FormattedValue.createElementForNodePreview(this._preview));
         else
             this._titleElement.textContent = this._preview.description || "";
     }
@@ -122,8 +124,8 @@ WebInspector.ObjectPreviewView = class ObjectPreviewView extends WebInspector.Ob
     {
         var displayObjectAsValue = false;
         if (preview.type === "object") {
-            if (preview.subtype === "regexp" || preview.subtype === "null") {
-                // Display null / regexps as simple formatted values.
+            if (preview.subtype === "regexp" || preview.subtype === "null" || preview.subtype === "node") {
+                // Display null / regexps / nodes as simple formatted values.
                 displayObjectAsValue = true;
             } else if ((preview.subtype === "array" && preview.description !== "Array") || (preview.subtype !== "array" && preview.description !== "Object")) {
                 // Class names for other non-basic-Array / non-basic-Object types.
@@ -180,7 +182,7 @@ WebInspector.ObjectPreviewView = class ObjectPreviewView extends WebInspector.Ob
         if (overflow) {
             if (limit > 0)
                 element.append(", ");
-            element.append("\u2026");
+            element.append(ellipsis);
         }
 
         element.append(isIterator ? "]" : "}");
@@ -245,7 +247,7 @@ WebInspector.ObjectPreviewView = class ObjectPreviewView extends WebInspector.Ob
         if (overflow) {
             if (limit > 0)
                 element.append(", ");
-            element.append("\u2026");
+            element.append(ellipsis);
         }
 
         element.append(isArray ? "]" : "}");
@@ -255,26 +257,30 @@ WebInspector.ObjectPreviewView = class ObjectPreviewView extends WebInspector.Ob
 
     _appendValuePreview(element, preview)
     {
+        if (preview.subtype === "node") {
+            element.appendChild(WebInspector.FormattedValue.createElementForNodePreview(preview));
+            return false;
+        }
+
         element.appendChild(WebInspector.FormattedValue.createElementForObjectPreview(preview));
         return true;
     }
 
     _contextMenuHandler(event)
     {
-        var contextMenu = new WebInspector.ContextMenu(event);
+        let contextMenu = WebInspector.ContextMenu.createFromEvent(event);
 
-        contextMenu.appendItem(WebInspector.UIString("Log Value"), function() {
-            var remoteObject = this._remoteObject;
-            var isImpossible = !this._propertyPath || this._propertyPath.isFullPathImpossible();
-            var text = isImpossible ? WebInspector.UIString("Selected Value") : this._propertyPath.displayPath(WebInspector.PropertyPath.Type.Value);
+        event.__addedObjectPreviewContextMenuItems = true;
+
+        contextMenu.appendItem(WebInspector.UIString("Log Value"), () => {
+            let isImpossible = !this._propertyPath || this._propertyPath.isFullPathImpossible();
+            let text = isImpossible ? WebInspector.UIString("Selected Value") : this._propertyPath.displayPath(WebInspector.PropertyPath.Type.Value);
 
             if (!isImpossible)
                 WebInspector.quickConsole.prompt.pushHistoryItem(text);
 
             WebInspector.consoleLogViewController.appendImmediateExecutionWithResult(text, this._remoteObject, isImpossible);
-        }.bind(this));
-
-        contextMenu.show();        
+        });
     }
 };
 

@@ -484,12 +484,17 @@
             var newLength = alteredNumberString.length;
 
             // Fix up the selection so it follows the increase or decrease in the replacement length.
-            if (previousLength !== newLength) {
-                if (selectionStart.line === from.line && selectionStart.ch > from.ch)
-                    selectionStart.ch += newLength - previousLength;
-
-                if (selectionEnd.line === from.line && selectionEnd.ch > from.ch)
-                    selectionEnd.ch += newLength - previousLength;
+            // selectionStart/End may the same object if there is no selection. If that is the case
+            // make only one modification to prevent a double adjustment, and keep it a single object
+            // to avoid CodeMirror inadvertently creating an actual selection range.
+            let diff = newLength - previousLength;
+            if (selectionStart === selectionEnd)
+                selectionStart.ch += diff;
+            else {
+                if (selectionStart.ch > from.ch)
+                    selectionStart.ch += diff;
+                if (selectionEnd.ch > from.ch)
+                    selectionEnd.ch += diff;
             }
 
             this.setSelection(selectionStart, selectionEnd);
@@ -567,10 +572,7 @@
         return lineRects;
     });
 
-    function ignoreKey(codeMirror)
-    {
-        // Do nothing to ignore the key.
-    }
+    let mac = WebInspector.Platform.name === "mac";
 
     CodeMirror.keyMap["default"] = {
         "Alt-Up": alterNumber.bind(null, 1),
@@ -584,8 +586,9 @@
         "Alt-PageDown": alterNumber.bind(null, -10),
         "Shift-Alt-PageDown": alterNumber.bind(null, -100),
         "Cmd-/": "toggleComment",
-        "Shift-Tab": ignoreKey,
-        fallthrough: "macDefault"
+        "Cmd-D": "selectNextOccurrence",
+        "Shift-Tab": "indentLess",
+        fallthrough: mac ? "macDefault" : "pcDefault"
     };
 
     // Register some extra MIME-types for CodeMirror. These are in addition to the
@@ -606,11 +609,10 @@
         CodeMirror.defineMIME(type, "javascript");
     });
 
-    var extraJSONTypes = ["application/x-json", "text/x-json"];
+    var extraJSONTypes = ["application/x-json", "text/x-json", "application/vnd.api+json"];
     extraJSONTypes.forEach(function(type) {
         CodeMirror.defineMIME(type, {name: "javascript", json: true});
     });
-
 })();
 
 WebInspector.compareCodeMirrorPositions = function(a, b)
@@ -627,17 +629,18 @@ WebInspector.compareCodeMirrorPositions = function(a, b)
 WebInspector.walkTokens = function(cm, mode, initialPosition, callback)
 {
     let state = CodeMirror.copyState(mode, cm.getTokenAt(initialPosition).state);
-    let lineCount = cm.lineCount();
+    if (state.localState)
+        state = state.localState;
 
+    let lineCount = cm.lineCount();
     let abort = false;
-    for (lineNumber = initialPosition.line; !abort && lineNumber < lineCount; ++lineNumber) {
+    for (let lineNumber = initialPosition.line; !abort && lineNumber < lineCount; ++lineNumber) {
         let line = cm.getLine(lineNumber);
         let stream = new CodeMirror.StringStream(line);
         if (lineNumber === initialPosition.line)
             stream.start = stream.pos = initialPosition.ch;
 
         while (!stream.eol()) {
-            let innerMode = CodeMirror.innerMode(mode, state);
             let tokenType = mode.token(stream, state);
             if (!callback(tokenType, stream.current())) {
                 abort = true;
@@ -649,4 +652,4 @@ WebInspector.walkTokens = function(cm, mode, initialPosition, callback)
 
     if (!abort)
         callback(null);
-}
+};

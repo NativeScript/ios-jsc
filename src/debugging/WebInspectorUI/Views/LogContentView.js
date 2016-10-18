@@ -122,15 +122,20 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
         return this.messagesElement.classList.contains(WebInspector.LogContentView.SearchInProgressStyleClassName);
     }
 
+    shown()
+    {
+        super.shown();
+
+        this._logViewController.renderPendingMessages();
+    }
+
     didAppendConsoleMessageView(messageView)
     {
         console.assert(messageView instanceof WebInspector.ConsoleMessageView || messageView instanceof WebInspector.ConsoleCommandView);
 
-        WebInspector.quickConsole.needsLayout();
-
         // Nest the message.
         var type = messageView instanceof WebInspector.ConsoleCommandView ? null : messageView.message.type;
-        if (type !== WebInspector.ConsoleMessage.MessageType.EndGroup) {
+        if (this._nestingLevel && type !== WebInspector.ConsoleMessage.MessageType.EndGroup) {
             var x = 16 * this._nestingLevel;
             var messageElement = messageView.element;
             messageElement.style.left = x + "px";
@@ -155,15 +160,14 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
         // We want to remove focusable children after those pending dispatches too.
         InspectorBackend.runAfterPendingDispatches(this._clearFocusableChildren.bind(this));
 
-        // We only auto show the console if the message is a non-synthetic result.
-        // This is when the user evaluated something directly in the prompt.
-        if (type !== WebInspector.ConsoleMessage.MessageType.Result || messageView.message.synthetic)
-            return;
+        if (type && type !== WebInspector.ConsoleMessage.MessageType.EndGroup) {
+            console.assert(messageView.message instanceof WebInspector.ConsoleMessage);
+            if (!(messageView.message instanceof WebInspector.ConsoleCommandResultMessage))
+                this._markScopeBarItemUnread(messageView.message.level);
 
-        if (!WebInspector.isShowingConsoleTab())
-            WebInspector.showSplitConsole();
-
-        this._logViewController.scrollToBottom();
+            console.assert(messageView.element instanceof Element);
+            this._filterMessageElements([messageView.element]);
+        }
     }
 
     get supportsSearch()
@@ -283,7 +287,9 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
             return;
         }
 
-        this._logViewController.startNewSession();
+        const isFirstSession = false;
+        const newSessionReason = event.data.wasReloaded ? WebInspector.ConsoleSession.NewSessionReason.PageReloaded : WebInspector.ConsoleSession.NewSessionReason.PageNavigated;
+        this._logViewController.startNewSession(isFirstSession, {newSessionReason, timestamp: event.data.timestamp});
 
         this._clearProvisionalState();
     }
@@ -292,7 +298,7 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
     {
         var messageLevel;
 
-        switch(level) {
+        switch (level) {
         case WebInspector.ConsoleMessage.MessageLevel.Warning:
             messageLevel = WebInspector.LogContentView.Scopes.Warnings;
             break;
@@ -309,15 +315,13 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
         return messageLevel;
     }
 
-    _pulseScopeBarItemBorder(level)
+    _markScopeBarItemUnread(level)
     {
-        var messageLevel = this._scopeFromMessageLevel(level);
-
+        let messageLevel = this._scopeFromMessageLevel(level);
         if (!messageLevel)
             return;
 
-        var item = this._scopeBar.item(messageLevel);
-
+        let item = this._scopeBar.item(messageLevel);
         if (item && !item.selected && !this._scopeBar.item(WebInspector.LogContentView.Scopes.All).selected)
             item.element.classList.add("unread");
     }
@@ -327,17 +331,13 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
         if (this._startedProvisionalLoad)
             this._provisionalMessages.push(event.data.message);
 
-        this._lastMessageView = this._logViewController.appendConsoleMessage(event.data.message);
-        if (this._lastMessageView.message.type !== WebInspector.ConsoleMessage.MessageType.EndGroup) {
-            this._pulseScopeBarItemBorder(this._lastMessageView.message.level);
-            this._filterMessageElements([this._lastMessageView.element]);
-        }
+        this._logViewController.appendConsoleMessage(event.data.message);
     }
 
     _previousMessageRepeatCountUpdated(event)
-    {        
+    {
         if (this._logViewController.updatePreviousMessageRepeatCount(event.data.count) && this._lastMessageView)
-            this._pulseScopeBarItemBorder(this._lastMessageView.message.level);
+            this._markScopeBarItemUnread(this._lastMessageView.message.level);
     }
 
     _handleContextMenuEvent(event)
@@ -348,24 +348,42 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
             return;
         }
 
+        // In the case that there are selected messages, only clear that selection if the right-click
+        // is not on the element or descendants of the selected messages.
+        if (this._selectedMessages.length && !this._selectedMessages.some(element => event.target.isSelfOrDescendant(element))) {
+            this._clearMessagesSelection();
+            this._mousedown(event);
+        }
+
+        // If there are no selected messages, right-clicking will not reset the current mouse state
+        // meaning that when the context menu is dismissed, console messages will be selected when
+        // the user moves the mouse even though no buttons are pressed.
+        if (!this._selectedMessages.length)
+            this._mouseup(event);
+
         // We don't want to show the custom menu for links in the console.
         if (event.target.enclosingNodeOrSelfWithNodeName("a"))
             return;
 
-        var contextMenu = new WebInspector.ContextMenu(event);
+        let contextMenu = WebInspector.ContextMenu.createFromEvent(event);
+
+        if (this._selectedMessages.length) {
+            contextMenu.appendItem(WebInspector.UIString("Copy Selected"), () => {
+                InspectorFrontendHost.copyText(this._formatMessagesAsData(true));
+            });
+            contextMenu.appendSeparator();
+        }
+
         contextMenu.appendItem(WebInspector.UIString("Clear Log"), this._clearLog.bind(this));
         contextMenu.appendSeparator();
 
-        var clearLogOnReloadUIString = WebInspector.logManager.clearLogOnNavigateSetting.value ? WebInspector.UIString("Keep Log on Navigation") : WebInspector.UIString("Clear Log on Navigation");
-
+        let clearLogOnReloadUIString = WebInspector.logManager.clearLogOnNavigateSetting.value ? WebInspector.UIString("Keep Log on Navigation") : WebInspector.UIString("Clear Log on Navigation");
         contextMenu.appendItem(clearLogOnReloadUIString, this._toggleClearLogOnNavigateSetting.bind(this));
-
-        contextMenu.show();
     }
 
     _mousedown(event)
     {
-        if (event.button !== 0 || event.ctrlKey)
+        if (this._selectedMessages.length && (event.button !== 0 || event.ctrlKey))
             return;
 
         if (event.defaultPrevented) {
@@ -449,7 +467,7 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
             this._clearMessagesSelection();
 
             // Focus the prompt. Focusing the prompt needs to happen after the click to work.
-            setTimeout(function () { this.prompt.focus(); }.bind(this), 0);
+            setTimeout(() => { this.prompt.focus(); }, 0);
         }
 
         delete this._mouseMoveIsRowSelection;
@@ -635,7 +653,11 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
 
     _logCleared(event)
     {
+        for (let item of this._scopeBar.items)
+            item.element.classList.remove("unread");
+
         this._logViewController.clear();
+        this._nestingLevel = 0;
 
         let searchQuery = this._findBanner.searchQuery;
         if (searchQuery)
@@ -654,16 +676,13 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
 
     _clearLog()
     {
-        for (var item of this._scopeBar.items)
-            item.element.classList.remove("unread");
-
         WebInspector.logManager.requestClearMessages();
     }
 
     _scopeBarSelectionDidChange(event)
     {
         var item = this._scopeBar.selectedItems[0];
-        
+
         if (item.id === WebInspector.LogContentView.Scopes.All) {
             for (var item of this._scopeBar.items)
                 item.element.classList.remove("unread");
@@ -833,6 +852,7 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
             if (this._isMessageVisible(messages[i]))
                 return messages[i];
         }
+        return null;
     }
 
     _nextMessage(message)
@@ -842,6 +862,7 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
             if (this._isMessageVisible(messages[i]))
                 return messages[i];
         }
+        return null;
     }
 
     _clearFocusableChildren()
@@ -897,7 +918,7 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
             var match = searchRegex.exec(text);
             while (match) {
                 numberOfResults++;
-                matchRanges.push({ offset: match.index, length: match[0].length });
+                matchRanges.push({offset: match.index, length: match[0].length});
                 match = searchRegex.exec(text);
             }
 
@@ -971,11 +992,8 @@ WebInspector.LogContentView = class LogContentView extends WebInspector.ContentV
 
         this._startedProvisionalLoad = false;
 
-        for (var provisionalMessage of this._provisionalMessages) {
-            var messageView = this._logViewController.appendConsoleMessage(provisionalMessage);
-            if (messageView.message.type !== WebInspector.ConsoleMessage.MessageType.EndGroup)
-                this._filterMessageElements([messageView.element]);
-        }
+        for (let provisionalMessage of this._provisionalMessages)
+            this._logViewController.appendConsoleMessage(provisionalMessage);
 
         this._provisionalMessages = [];
     }

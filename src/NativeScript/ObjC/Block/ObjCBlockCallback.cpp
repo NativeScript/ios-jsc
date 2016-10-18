@@ -19,9 +19,12 @@ const ClassInfo ObjCBlockCallback::s_info = { "ObjCBlockCallback", &Base::s_info
 void ObjCBlockCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     ObjCBlockCallback* blockCallback = reinterpret_cast<ObjCBlockCallback*>(userData);
 
+    JSC::VM& vm = blockCallback->_globalExecState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     MarkedArgumentBuffer arguments;
     blockCallback->marshallArguments(argValues, arguments, blockCallback);
-    if (blockCallback->_globalExecState->hadException()) {
+    if (scope.exception()) {
         return;
     }
 

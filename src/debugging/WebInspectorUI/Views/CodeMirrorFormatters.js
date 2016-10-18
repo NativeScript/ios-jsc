@@ -35,7 +35,7 @@ CodeMirror.extendMode("javascript", {
             if (content === "(") // Most keywords like "if (" but not "function(" or "typeof(".
                 return lastToken && /\bkeyword\b/.test(lastToken) && (lastContent !== "function" && lastContent !== "typeof" && lastContent !== "instanceof");
             if (content === ":") // Ternary.
-                return (state.lexical.type === "stat" || state.lexical.type === ")");
+                return state.lexical.type === "stat" || state.lexical.type === ")" || state.lexical.type === "]";
             return false;
         }
 
@@ -43,14 +43,18 @@ CodeMirror.extendMode("javascript", {
             return true;
 
         if (/\boperator\b/.test(token)) {
+            if (!lastToken && (content === "+" || content === "-" || content === "~") && (lastContent !== ")" && lastContent !== "]")) // Possible Unary +/-.
+                return false;
             if (content === "!") // Unary ! should not be confused with "!=".
                 return false;
-            return "+-/*&&||!===+=-=>=<=?".indexOf(content) >= 0; // Operators.
+            return "+-/*%&&||!===+=-=>=<=?".indexOf(content) >= 0; // Operators.
         }
 
         if (/\bkeyword\b/.test(token)) { // Most keywords require spaces before them, unless a '}' can come before it.
             if (content === "else" || content === "catch" || content === "finally")
                 return lastContent === "}";
+            if (content === "while" && lastContent === "}")
+                return state._jsPrettyPrint.lastContentBeforeBlock === "do";
             return false;
         }
 
@@ -86,7 +90,11 @@ CodeMirror.extendMode("javascript", {
         if (lastContent === "!") // Unary ! should not be confused with "!=".
             return false;
 
-        return ",+-/*&&||:!===+=-=>=<=?".indexOf(lastContent) >= 0; // Operators.
+        // If this unary operator did not have a leading expression it is probably unary.
+        if ((lastContent === "+" || lastContent === "-" || lastContent === "~") && !state._jsPrettyPrint.unaryOperatorHadLeadingExpr)
+            return false;
+
+        return ",+-/*%&&||:!===+=-=>=<=?".indexOf(lastContent) >= 0; // Operators.
     },
 
     newlinesAfterToken: function(lastToken, lastContent, token, state, content, isComment)
@@ -120,7 +128,7 @@ CodeMirror.extendMode("javascript", {
             if (content === ";") // "x = {};" or ";;".
                 return "};".indexOf(lastContent) >= 0;
             if (content === ":") // Ternary.
-                return lastContent === "}" && (state.lexical.type === "stat" || state.lexical.type === ")");
+                return lastContent === "}" && (state.lexical.type === "stat" || state.lexical.type === ")" || state.lexical.type === "]");
             if (",().".indexOf(content) >= 0) // "})", "}.bind", "function() { ... }()", or "}, false)".
                 return lastContent === "}";
             return false;
@@ -135,6 +143,8 @@ CodeMirror.extendMode("javascript", {
         if (/\bkeyword\b/.test(token)) {
             if (content === "else" || content === "catch" || content === "finally") // "} else", "} catch", "} finally"
                 return lastContent === "}";
+            if (content === "while" && lastContent === "}")
+                return state._jsPrettyPrint.lastContentBeforeBlock === "do";
             return false;
         }
 
@@ -194,6 +204,8 @@ CodeMirror.extendMode("javascript", {
                 lastIfIndentCount: 0, // Keep track of the indent the last time we saw an if without braces.
                 openBraceStartMarkers: [],  // Keep track of non-single statement blocks.
                 openBraceTrackingCount: -1, // Keep track of "{" and "}" in non-single statement blocks.
+                unaryOperatorHadLeadingExpr: false, // Try to detect if a unary operator had a leading expression and therefore may be binary.
+                lastContentBeforeBlock: undefined, // Used to detect if this was a do/while.
             };
         }
 
@@ -217,7 +229,7 @@ CodeMirror.extendMode("javascript", {
         if (!isComment && state.lexical.prev && state.lexical.prev.type === "form" && !state.lexical.prev._jsPrettyPrintMarker && (lastContent === ")" || lastContent === "else" || lastContent === "do") && (state.lexical.type !== ")")) {
             if (content === "{") {
                 // Save the state at the opening brace so we can return to it when we see "}".
-                var savedState = {indentCount: state._jsPrettyPrint.indentCount, openBraceTrackingCount: state._jsPrettyPrint.openBraceTrackingCount};
+                var savedState = {indentCount: state._jsPrettyPrint.indentCount, openBraceTrackingCount: state._jsPrettyPrint.openBraceTrackingCount, lastContentBeforeBlock: lastContent};
                 state._jsPrettyPrint.openBraceStartMarkers.push(savedState);
                 state._jsPrettyPrint.openBraceTrackingCount = 1;
             } else if (state.lexical.type !== "}") {
@@ -234,7 +246,6 @@ CodeMirror.extendMode("javascript", {
 
         // - Leaving:
         //   - Preconditions:
-        //     - we must be indented
         //     - ignore ";", wait for the next token instead.
         //   - Cases:
         //     1. "else"
@@ -243,7 +254,7 @@ CodeMirror.extendMode("javascript", {
         //       - dedent to the last "{"
         //     3. Token without a marker on the stack
         //       - dedent all the way
-        else if (state._jsPrettyPrint.indentCount) {
+        else {
             console.assert(!state._jsPrettyPrint.shouldDedent);
             console.assert(!state._jsPrettyPrint.dedentSize);
 
@@ -270,6 +281,7 @@ CodeMirror.extendMode("javascript", {
                 state._jsPrettyPrint.shouldDedent = true;
                 state._jsPrettyPrint.dedentSize = state._jsPrettyPrint.indentCount - savedState.indentCount;
                 state._jsPrettyPrint.openBraceTrackingCount = savedState.openBraceTrackingCount;
+                state._jsPrettyPrint.lastContentBeforeBlock = savedState.lastContentBeforeBlock;
             } else {
                 // Dedent all the way.
                 var shouldDedent = true;
@@ -303,6 +315,11 @@ CodeMirror.extendMode("javascript", {
             state._jsPrettyPrint.dedentSize = 0;
             state._jsPrettyPrint.shouldDedent = false;
         }
+
+        if ((content === "+" || content === "-" || content === "~") && (lastContent === ")" || lastContent === "]" || /\b(?:variable|number)\b/.test(lastToken)))
+            state._jsPrettyPrint.unaryOperatorHadLeadingExpr = true;
+        else
+            state._jsPrettyPrint.unaryOperatorHadLeadingExpr = false;
     }
 });
 
@@ -506,6 +523,10 @@ CodeMirror.extendMode("css-rule", {
         // Add new line before a regular property like `display`.
         if (/\bproperty\b/.test(token))
             return !(/\bmeta\b/.test(lastToken));
+
+        // Add new line before a CSS variable like `--foo`.
+        if (state.state === "maybeprop" && /\bvariable-2\b/.test(token))
+            return true;
 
         return false;
     },

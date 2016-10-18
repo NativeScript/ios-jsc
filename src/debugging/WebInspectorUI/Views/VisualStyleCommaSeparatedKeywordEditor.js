@@ -38,7 +38,7 @@ WebInspector.VisualStyleCommaSeparatedKeywordEditor = class VisualStyleCommaSepa
         this.contentElement.appendChild(listElement);
 
         this._commaSeparatedKeywords = new WebInspector.TreeOutline(listElement);
-        this._commaSeparatedKeywords.onselect = this._treeElementSelected.bind(this);
+        this._commaSeparatedKeywords.addEventListener(WebInspector.TreeOutline.Event.SelectionDidChange, this._treeSelectionDidChange, this);
 
         let controlContainer = document.createElement("div");
         controlContainer.classList.add("visual-style-comma-separated-keyword-controls");
@@ -69,7 +69,7 @@ WebInspector.VisualStyleCommaSeparatedKeywordEditor = class VisualStyleCommaSepa
     get value()
     {
         if (!this._commaSeparatedKeywords.hasChildren)
-            return;
+            return "";
 
         let value = "";
         for (let treeItem of this._commaSeparatedKeywords.children) {
@@ -102,8 +102,22 @@ WebInspector.VisualStyleCommaSeparatedKeywordEditor = class VisualStyleCommaSepa
 
         // It is necessary to add the beginning \) to ensure inner parenthesis are not matched.
         let values = commaSeparatedValue.split(/\)\s*,\s*(?![^\(\)]*\))/);
+        for (let i = 0; i < values.length; ++i) {
+            if (!values[i].includes(","))
+                continue;
+
+            let openParentheses = values[i].getMatchingIndexes("(").length;
+            let closedParenthesis = values[i].getMatchingIndexes(")").length;
+            values[i] += (openParentheses - closedParenthesis === 1) ? ")" : "";
+        }
+
+        // Allow splitting with parenthesis if the parenthesis does not have any commas.
+        let hasParenthesis = values[0] && (values[0].includes("(") || values[0].includes(")"));
+        if (values.length === 1 && (!hasParenthesis || !/\([^\)]*,[^\)]*\)/.test(values[0])))
+            values = values[0].split(/\s*,\s*/);
+
         for (let value of values)
-            this._addCommaSeparatedKeyword(value + (value.endsWith(")") ? "" : ")"));
+            this._addCommaSeparatedKeyword(value);
 
         this._commaSeparatedKeywords.children[0].select(true);
     }
@@ -111,6 +125,20 @@ WebInspector.VisualStyleCommaSeparatedKeywordEditor = class VisualStyleCommaSepa
     get synthesizedValue()
     {
         return this.value || null;
+    }
+
+    recalculateWidth(value)
+    {
+        if (this._titleElement) {
+            // 55px width and 4px margin on left and right for title element,
+            // plus the 11px margin right on the content element
+            value -= 74;
+        } else {
+            // 11px margin on left and right of the content element
+            value -= 22;
+        }
+
+        this.contentElement.style.width = Math.max(value, 0) + "px";
     }
 
     // Private
@@ -150,7 +178,7 @@ WebInspector.VisualStyleCommaSeparatedKeywordEditor = class VisualStyleCommaSepa
         let count = 0;
         while (count < valuesCount) {
             if (count > 0)
-                text += ",";
+                text += ", ";
 
             for (let valueList of valueLists)
                 text += valueList[count > valueList.length - 1 ? valueList.length - 1 : count] + " ";
@@ -185,10 +213,14 @@ WebInspector.VisualStyleCommaSeparatedKeywordEditor = class VisualStyleCommaSepa
             this._removeSelectedCommaSeparatedKeyword();
     }
 
-    _treeElementSelected(item, selectedByUser)
+    _treeSelectionDidChange(event)
     {
+        let treeElement = event.data.selectedElement;
+        if (!treeElement)
+            return;
+
         this._removeEmptyCommaSeparatedKeywords();
-        this.dispatchEventToListeners(WebInspector.VisualStyleCommaSeparatedKeywordEditor.Event.TreeItemSelected, {text: item.mainTitle});
+        this.dispatchEventToListeners(WebInspector.VisualStyleCommaSeparatedKeywordEditor.Event.TreeItemSelected, {text: treeElement.mainTitle});
     }
 
     _treeElementIsEmpty(item)
@@ -256,4 +288,4 @@ WebInspector.VisualStyleCommaSeparatedKeywordEditor.ListItemClassName = "visual-
 WebInspector.VisualStyleCommaSeparatedKeywordEditor.Event = {
     TreeItemSelected: "visual-style-comma-separated-keyword-editor-tree-item-selected",
     NoRemainingTreeItems: "visual-style-comma-separated-keyword-editor-no-remaining-tree-items"
-}
+};

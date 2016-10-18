@@ -35,7 +35,7 @@ static void handleJsUncaughtErrorCallback(ExecState* execState, Exception* excep
 
     CallData callData;
     CallType callType = getCallData(callback, callData);
-    if (callType == CallTypeNone) {
+    if (callType == JSC::CallType::None) {
         return;
     }
 

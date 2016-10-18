@@ -37,9 +37,18 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
         console.assert(message instanceof WebInspector.ConsoleMessage);
 
         this._message = message;
-
         this._expandable = false;
+        this._repeatCount = message._repeatCount || 0;
 
+        // These are the parameters unused by the messages's optional format string.
+        // Any extra parameters will be displayed as children of this message.
+        this._extraParameters = message.parameters;
+    }
+
+    // Public
+
+    render()
+    {
         this._element = document.createElement("div");
         this._element.classList.add("console-message");
 
@@ -76,10 +85,6 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             break;
         }
 
-        // These are the parameters unused by the messages's optional format string.
-        // Any extra parameters will be displayed as children of this message.
-        this._extraParameters = this._message.parameters;
-
         // FIXME: The location link should include stack trace information.
         this._appendLocationLink();
 
@@ -92,10 +97,8 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
         this._appendExtraParameters();
         this._appendStackTrace();
 
-        this.repeatCount = this._message.repeatCount;
+        this._renderRepeatCount();
     }
-
-    // Public
 
     get element()
     {
@@ -120,6 +123,14 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             return;
 
         this._repeatCount = count;
+
+        if (this._element)
+            this._renderRepeatCount();
+    }
+
+    _renderRepeatCount()
+    {
+        let count = this._repeatCount;
 
         if (count <= 1) {
             if (this._repeatCountElement) {
@@ -157,7 +168,8 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             this._element.classList.add("expanded");
 
         // Auto-expand an inner object tree if there is a single object.
-        if (this._objectTree) {
+        // For Trace messages we are auto-expanding for the call stack, don't also auto-expand an object as well.
+        if (this._objectTree && this._message.type !== WebInspector.ConsoleMessage.MessageType.Trace) {
             if (!this._extraParameters || this._extraParameters.length <= 1)
                 this._objectTree.expand();
         }
@@ -187,19 +199,10 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
     {
         let clipboardString = this._messageTextElement.innerText.removeWordBreakCharacters();
         if (this._message.savedResultIndex)
-            clipboardString = clipboardString.replace(/\s*=\s*(\$\d+)$/, " = $1");
-
-        if (this._message.type === WebInspector.ConsoleMessage.MessageType.Trace)
-            clipboardString = "console.trace()";
+            clipboardString = clipboardString.replace(/\s*=\s*(\$\d+)$/, "");
 
         let hasStackTrace = this._shouldShowStackTrace();
-        if (hasStackTrace) {
-            this._message.stackTrace.callFrames.forEach(function(frame) {
-                clipboardString += "\n\t" + (frame.functionName || WebInspector.UIString("(anonymous function)"));
-                if (frame.url)
-                    clipboardString += " (" + WebInspector.displayNameForURL(frame.url) + ", line " + frame.lineNumber + ")";
-            });
-        } else {
+        if (!hasStackTrace) {
             let repeatString = this.repeatCount > 1 ? "x" + this.repeatCount : "";
             let urlLine = "";
             if (this._message.url) {
@@ -217,6 +220,17 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             }
         }
 
+        if (this._extraElementsList)
+            clipboardString += "\n" + this._extraElementsList.innerText.removeWordBreakCharacters().trim();
+
+        if (hasStackTrace) {
+            this._message.stackTrace.callFrames.forEach(function(frame) {
+                clipboardString += "\n\t" + (frame.functionName || WebInspector.UIString("(anonymous function)"));
+                if (frame.sourceCodeLocation)
+                    clipboardString += " (" + frame.sourceCodeLocation.originalLocationString() + ")";
+            });
+        }
+
         if (!isPrefixOptional || this._enforcesClipboardPrefixString())
             return this._clipboardPrefixString() + clipboardString;
         return clipboardString;
@@ -229,16 +243,24 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
         if (this._message.source === WebInspector.ConsoleMessage.MessageSource.ConsoleAPI) {
             switch (this._message.type) {
             case WebInspector.ConsoleMessage.MessageType.Trace:
-                // FIXME: We should use a better string then console.trace.
-                element.append("console.trace()");
+                var args = [WebInspector.UIString("Trace")];
+                if (this._message.parameters) {
+                    if (this._message.parameters[0].type === "string") {
+                        var prefixedFormatString = WebInspector.UIString("Trace: %s").format(this._message.parameters[0].description);
+                        args = [prefixedFormatString].concat(this._message.parameters.slice(1));
+                    } else
+                        args = args.concat(this._message.parameters);
+                }
+                this._appendFormattedArguments(element, args);
                 break;
 
             case WebInspector.ConsoleMessage.MessageType.Assert:
                 var args = [WebInspector.UIString("Assertion Failed")];
                 if (this._message.parameters) {
-                    if (this._message.parameters[0].type === "string")
-                        args = [WebInspector.UIString("Assertion Failed: %s")].concat(this._message.parameters);
-                    else
+                    if (this._message.parameters[0].type === "string") {
+                        var prefixedFormatString = WebInspector.UIString("Assertion Failed: %s").format(this._message.parameters[0].description);
+                        args = [prefixedFormatString].concat(this._message.parameters.slice(1));
+                    } else
                         args = args.concat(this._message.parameters);
                 }
                 this._appendFormattedArguments(element, args);
@@ -300,20 +322,21 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             if (this._message.url) {
                 var anchor = WebInspector.linkifyURLAsNode(this._message.url, this._message.url, "console-message-url");
                 anchor.classList.add("console-message-location");
-                this._element.appendChild(anchor);                
+                this._element.appendChild(anchor);
             }
             return;
         }
 
-        var firstNonNativeCallFrame = this._message.stackTrace.firstNonNativeCallFrame;
+        var firstNonNativeNonAnonymousCallFrame = this._message.stackTrace.firstNonNativeNonAnonymousCallFrame;
 
         var callFrame;
-        if (firstNonNativeCallFrame) {
+        if (firstNonNativeNonAnonymousCallFrame) {
             // JavaScript errors and console.* methods.
-            callFrame = firstNonNativeCallFrame;
+            callFrame = firstNonNativeNonAnonymousCallFrame;
         } else if (this._message.url && !this._shouldHideURL(this._message.url)) {
             // CSS warnings have no stack traces.
             callFrame = WebInspector.CallFrame.fromPayload({
+                functionName: "",
                 url: this._message.url,
                 lineNumber: this._message.line,
                 columnNumber: this._message.column
@@ -325,7 +348,6 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             var locationElement = new WebInspector.CallFrameView(callFrame, showFunctionName);
             locationElement.classList.add("console-message-location");
             this._element.appendChild(locationElement);
-
             return;
         }
 
@@ -419,6 +441,9 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
 
         console.assert(this._message.type !== WebInspector.ConsoleMessage.MessageType.Result);
 
+        if (shouldFormatWithStringSubstitution && this._isStackTrace(parameters[0]))
+            shouldFormatWithStringSubstitution = false;
+
         // Format string / message / default message.
         if (shouldFormatWithStringSubstitution) {
             var result = this._formatWithSubstitutionString(parameters, builderElement);
@@ -431,16 +456,19 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
 
         // Trailing parameters.
         if (parameters.length) {
-            if (parameters.length === 1) {
+            let enclosedElement = document.createElement("span");
+
+            if (parameters.length === 1 && !this._isStackTrace(parameters[0])) {
+                let parameter = parameters[0];
+
                 // Single object. Show a preview.
-                var enclosedElement = builderElement.appendChild(document.createElement("span"));
+                builderElement.append(enclosedElement);
                 enclosedElement.classList.add("console-message-preview-divider");
                 enclosedElement.textContent = " \u2013 ";
 
                 var previewContainer = builderElement.appendChild(document.createElement("span"));
                 previewContainer.classList.add("console-message-preview");
 
-                var parameter = parameters[0];
                 var preview = WebInspector.FormattedValue.createObjectPreviewOrFormattedValueForRemoteObject(parameter, WebInspector.ObjectPreviewView.Mode.Brief);
                 var isPreviewView = preview instanceof WebInspector.ObjectPreviewView;
 
@@ -451,16 +479,28 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
                 previewContainer.appendChild(previewElement);
 
                 // If this preview is effectively lossless, we can avoid making this console message expandable.
-                if ((isPreviewView && preview.lossless) || (!isPreviewView && this._shouldConsiderObjectLossless(parameter)))
+                if ((isPreviewView && preview.lossless) || (!isPreviewView && this._shouldConsiderObjectLossless(parameter))) {
                     this._extraParameters = null;
+                    enclosedElement.classList.add("inline-lossless");
+                    previewContainer.classList.add("inline-lossless");
+                }
             } else {
                 // Multiple objects. Show an indicator.
-                builderElement.append(" ");
-                var enclosedElement = builderElement.appendChild(document.createElement("span"));
+                builderElement.append(" ", enclosedElement);
                 enclosedElement.classList.add("console-message-enclosed");
                 enclosedElement.textContent = "(" + parameters.length + ")";
             }
         }
+    }
+
+    _isStackTrace(parameter)
+    {
+        console.assert(parameter instanceof WebInspector.RemoteObject);
+
+        if (WebInspector.RemoteObject.type(parameter) !== "string")
+            return false;
+
+        return WebInspector.StackTrace.isLikelyStackTrace(parameter.description);
     }
 
     _shouldConsiderObjectLossless(object)
@@ -504,7 +544,7 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
         var formatter = formatters[type] || this._formatParameterAsValue;
 
         const fragment = document.createDocumentFragment();
-        formatter.call(this, parameter, fragment);
+        formatter.call(this, parameter, fragment, forceObjectFormat);
         return fragment;
     }
 
@@ -515,6 +555,15 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
 
     _formatParameterAsString(object, fragment)
     {
+        if (this._isStackTrace(object)) {
+            let stackTrace = WebInspector.StackTrace.fromString(object.description);
+            if (stackTrace.callFrames.length) {
+                let stackView = new WebInspector.StackTraceView(stackTrace);
+                fragment.appendChild(stackView.element);
+                return;
+            }
+        }
+
         fragment.appendChild(WebInspector.FormattedValue.createLinkifiedElementString(object.description));
     }
 
@@ -562,18 +611,16 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             return obj.description;
         }
 
-        function floatFormatter(obj)
+        function floatFormatter(obj, token)
         {
-            if (typeof obj.value !== "number")
-                return parseFloat(obj.description);
-            return obj.value;
+            let value = typeof obj.value === "number" ? obj.value : obj.description;
+            return String.standardFormatters.f(value, token);
         }
 
         function integerFormatter(obj)
         {
-            if (typeof obj.value !== "number")
-                return parseInt(obj.description);
-            return Math.floor(obj.value);
+            let value = typeof obj.value === "number" ? obj.value : obj.description;
+            return String.standardFormatters.d(value);
         }
 
         var currentStyle = null;
@@ -707,7 +754,7 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
             for (var i = 0; i < preview.propertyPreviews.length; ++i) {
                 var rowProperty = preview.propertyPreviews[i];
                 var rowPreview = rowProperty.valuePreview;
-                if (!rowPreview)
+                if (!rowPreview || !rowPreview.propertyPreviews)
                     continue;
 
                 var rowValue = {};
@@ -730,7 +777,6 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
 
         // If there were valuePreviews, convert to a flat list.
         if (rows.length) {
-            var emDash = "\u2014";
             columnNames.unshift(WebInspector.UIString("(Index)"));
             for (var i = 0; i < rows.length; ++i) {
                 var rowName = rows[i][0];
@@ -770,8 +816,12 @@ WebInspector.ConsoleMessageView = class ConsoleMessageView extends WebInspector.
         // FIXME: Should we output something extra if the preview is lossless?
 
         var dataGrid = WebInspector.DataGrid.createSortableDataGrid(columnNames, flatValues);
-        dataGrid.element.classList.add("inline");
+        dataGrid.inline = true;
+        dataGrid.variableHeightRows = true;
+
         element.appendChild(dataGrid.element);
+
+        dataGrid.updateLayoutIfNeeded();
 
         return element;
     }

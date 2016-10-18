@@ -44,7 +44,6 @@
 #include <JavaScriptCore/Microtask.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
-#include <JavaScriptCore/runtime/JSConsole.h>
 #include <JavaScriptCore/runtime/VMEntryScope.h>
 #include <string>
 
@@ -86,7 +85,7 @@ const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0,
 
 const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &allowsAccessFrom, &supportsProfiling, &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderTranslate, &moduleLoaderInstantiate, &moduleLoaderEvaluate };
+const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderTranslate, &moduleLoaderInstantiate, &moduleLoaderEvaluate, &defaultLanguage };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
     : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable) {
@@ -204,7 +203,7 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     staticDescriptionFunctionArgs.append(jsString(globalExec, WTF::ASCIILiteral("return Function.prototype.toString.call(this);")));
     NSObjectConstructor->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, staticDescriptionFunctionArgs), DontEnum);
 
-    NSObjectConstructor->setPrototype(vm, NSObjectPrototype);
+    NSObjectConstructor->setPrototypeDirect(vm, NSObjectPrototype);
 
     CFRunLoopSourceContext context = { 0, this, 0, 0, 0, 0, 0, 0, 0, microtaskRunLoopSourcePerformWork };
     CFRunLoopObserverContext observerContext = { 0, this, NULL, NULL, NULL };
@@ -345,7 +344,10 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     if (!symbolWrapper) {
         WTF::String errorMessage = WTF::String::format("Metadata for \"%s.%s\" found but symbol not available at runtime.",
                                                        symbolMeta->topLevelModule()->getName(), symbolMeta->name(), symbolMeta->name());
-        throwVMError(execState, createReferenceError(execState, errorMessage));
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        throwVMError(execState, scope, createReferenceError(execState, errorMessage));
         propertySlot.setValue(object, None, jsUndefined());
         return true;
     }
@@ -437,9 +439,9 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     return protocolWrapper;
 }
 
-void GlobalObject::queueTaskToEventLoop(const JSGlobalObject* globalObject, WTF::PassRefPtr<Microtask> task) {
+void GlobalObject::queueTaskToEventLoop(const JSGlobalObject* globalObject, WTF::Ref<Microtask>&& task) {
     GlobalObject* self = jsCast<GlobalObject*>(const_cast<JSGlobalObject*>(globalObject));
-    self->_microtasksQueue.append(task);
+    self->_microtasksQueue.append(WTFMove(task));
     CFRunLoopSourceSignal(self->_microtaskRunLoopSource.get());
     for (auto runLoop : self->microtaskRunLoops()) {
         CFRunLoopWakeUp(runLoop.get());
@@ -452,9 +454,7 @@ void GlobalObject::drainMicrotasks() {
     }
 }
 
-bool GlobalObject::supportsProfiling(const JSGlobalObject* globalObject) {
-    GlobalObject* self = jsCast<GlobalObject*>(const_cast<JSGlobalObject*>(globalObject));
-
-    return self->inspectorController().timelineAgent();
+WTF::String GlobalObject::defaultLanguage() {
+    return "en";
 }
 }

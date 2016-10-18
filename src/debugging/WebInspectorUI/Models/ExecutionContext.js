@@ -29,7 +29,7 @@ WebInspector.ExecutionContext = class ExecutionContext extends WebInspector.Obje
     {
         super();
 
-        console.assert(typeof id === "number" || id === WebInspector.QuickConsole.MainFrameContextExecutionIdentifier);
+        console.assert(typeof id === "number" || id === WebInspector.RuntimeManager.TopLevelExecutionContextIdentifier);
         console.assert(typeof name === "string");
 
         this._id = id;
@@ -40,23 +40,8 @@ WebInspector.ExecutionContext = class ExecutionContext extends WebInspector.Obje
 
     // Public
 
-    get id()
-    {
-        return this._id;
-    }
-
-    get name()
-    {
-        return this._name;
-    }
-
-    get isPageContext()
-    {
-        return this._isPageContext;
-    }
-
-    get frame()
-    {
-        return this._frame;
-    }
+    get id() { return this._id; }
+    get name() { return this._name; }
+    get isPageContext() { return this._isPageContext; }
+    get frame() { return this._frame; }
 };

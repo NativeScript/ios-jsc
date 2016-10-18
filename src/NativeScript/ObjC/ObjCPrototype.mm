@@ -16,6 +16,7 @@
 #include "ObjCTypes.h"
 #include "SymbolLoader.h"
 #include "TypeFactory.h"
+#include <JavaScriptCore/BuiltinNames.h>
 #include <objc/runtime.h>
 
 namespace NativeScript {
@@ -45,7 +46,7 @@ void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const B
     this->_metadata = metadata;
 
     if ([objc_getClass(metadata->name()) instancesRespondToSelector:@selector(countByEnumeratingWithState:objects:count:)]) {
-        this->putDirect(vm, vm.propertyNames->iteratorSymbol, JSFunction::create(vm, globalObject, 0, vm.propertyNames->values.string(), getIterator), DontEnum);
+        this->putDirect(vm, vm.propertyNames->iteratorSymbol, JSFunction::create(vm, globalObject, 0, vm.propertyNames->builtinNames().valuesPublicName().string(), getIterator), DontEnum);
     }
 }
 
@@ -73,7 +74,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
     return false;
 }
 
-void ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
+bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(cell);
 
     if (WTF::StringImpl* publicName = propertyName.publicName()) {
@@ -93,7 +94,7 @@ void ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
         }
     }
 
-    Base::put(cell, execState, propertyName, value, propertySlot);
+    return Base::put(cell, execState, propertyName, value, propertySlot);
 }
 
 bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, PropertyName propertyName, const PropertyDescriptor& propertyDescriptor, bool shouldThrow) {

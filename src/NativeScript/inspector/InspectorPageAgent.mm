@@ -44,7 +44,7 @@ void InspectorPageAgent::reload(ErrorString&, const bool* in_ignoreCache, const 
     JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&m_globalObject.vm(), "__onLiveSync"));
     JSC::CallData callData;
     JSC::CallType callType = getCallData(liveSyncCallback, callData);
-    if (callType == JSC::CallType::CallTypeNone) {
+    if (callType == JSC::CallType::None) {
         JSC::JSValue error = JSC::createError(m_globalObject.globalExec(), "global.__onLiveSync is not a function.");
         m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), JSC::Exception::create(m_globalObject.globalExec()->vm(), error));
         return;
@@ -96,25 +96,25 @@ void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protoco
                                                                           .setMimeType(cachedResource.mimeType())
                                                                           .release();
 
-        subresources->addItem(WTF::move(frameResource));
+        subresources->addItem(WTFMove(frameResource));
     }
 }
 
-void InspectorPageAgent::searchInResource(ErrorString&, const String& in_frameId, const String& in_url, const String& in_query, const bool* in_caseSensitive, const bool* in_isRegex, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>>& out_result) {
+void InspectorPageAgent::searchInResource(ErrorString& out_error, const String& frameId, const String& url, const String& query, const bool* optionalCaseSensitive, const bool* optionalIsRegex, const String* optionalRequestId, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>>& out_result) {
 
     out_result = Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>::create();
 
-    bool isRegex = in_isRegex ? *in_isRegex : false;
-    bool caseSensitive = in_caseSensitive ? *in_caseSensitive : false;
+    bool isRegex = optionalIsRegex ? *optionalIsRegex : false;
+    bool caseSensitive = optionalCaseSensitive ? *optionalCaseSensitive : false;
 
     WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
-    auto iterator = resources.find(in_url);
+    auto iterator = resources.find(url);
     if (iterator != resources.end()) {
         CachedResource& resource = iterator->value;
         ErrorString out_error;
         WTF::String content = resource.content(out_error);
         if (out_error.isEmpty()) {
-            out_result = ContentSearchUtilities::searchInTextByLines(content, in_query, caseSensitive, isRegex);
+            out_result = ContentSearchUtilities::searchInTextByLines(content, query, caseSensitive, isRegex);
         }
     }
 }

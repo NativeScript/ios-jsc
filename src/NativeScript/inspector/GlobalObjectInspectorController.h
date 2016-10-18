@@ -86,7 +86,6 @@ public:
 
     void connectFrontend(Inspector::FrontendChannel*, bool isAutomaticInspection);
     void disconnectFrontend(Inspector::FrontendChannel*);
-    void disconnectAllFrontends();
     void dispatchMessageFromFrontend(const String&);
 
     void globalObjectDestroyed();
@@ -102,6 +101,14 @@ public:
         return m_consoleClient.get();
     }
 
+    Inspector::InspectorConsoleAgent* consoleAgent() const {
+        return m_consoleAgent;
+    }
+
+    Inspector::InspectorDebuggerAgent* debuggerAgent() const {
+        return m_debuggerAgent;
+    }
+
     Inspector::InspectorTimelineAgent* timelineAgent() const {
         return m_timelineAgent;
     }
@@ -114,8 +121,6 @@ public:
     virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override { return true; }
     virtual Inspector::InspectorFunctionCallHandler functionCallHandler() const override;
     virtual Inspector::InspectorEvaluateHandler evaluateHandler() const override;
-    virtual void willCallInjectedScriptFunction(JSC::ExecState*, const String&, int) override {}
-    virtual void didCallInjectedScriptFunction(JSC::ExecState*) override {}
     virtual void frontendInitialized() override;
     virtual Ref<WTF::Stopwatch> executionStopwatch() override;
     virtual Inspector::ScriptDebugServer& scriptDebugServer() override;

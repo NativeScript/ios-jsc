@@ -57,7 +57,7 @@ public:
 
     static bool getOwnPropertySlotByIndex(JSC::JSObject*, JSC::ExecState*, unsigned int, JSC::PropertySlot&);
 
-    static void putByIndex(JSCell*, JSC::ExecState*, unsigned int, JSC::JSValue, bool shouldThrow);
+    static bool putByIndex(JSCell*, JSC::ExecState*, unsigned int, JSC::JSValue, bool shouldThrow);
 
 private:
     ReferenceInstance(JSC::VM& vm, JSC::Structure* structure)

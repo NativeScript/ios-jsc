@@ -312,7 +312,7 @@ WebInspector.RemoteObject = class RemoteObject
         }
 
         // FIXME: It doesn't look like setPropertyValue is used yet. This will need to be tested when it is again (editable ObjectTrees).
-        RuntimeAgent.evaluate.invoke({expression:appendWebInspectorSourceURL(value), doNotPauseOnExceptionsAndMuteConsole:true}, evaluatedCallback.bind(this));
+        RuntimeAgent.evaluate.invoke({expression: appendWebInspectorSourceURL(value), doNotPauseOnExceptionsAndMuteConsole: true}, evaluatedCallback.bind(this));
 
         function evaluatedCallback(error, result, wasThrown)
         {
@@ -328,7 +328,7 @@ WebInspector.RemoteObject = class RemoteObject
 
             delete result.description; // Optimize on traffic.
 
-            RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(setPropertyValue.toString()), [{value:name}, result], true, undefined, propertySetCallback.bind(this));
+            RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(setPropertyValue.toString()), [{value: name}, result], true, undefined, propertySetCallback.bind(this));
 
             if (result._objectId)
                 RuntimeAgent.releaseObject(result._objectId);
@@ -416,13 +416,15 @@ WebInspector.RemoteObject = class RemoteObject
         function mycallback(error, result, wasThrown)
         {
             result = result ? WebInspector.RemoteObject.fromPayload(result) : null;
-            callback(error, result, wasThrown);
+
+            if (callback && typeof callback === "function")
+                callback(error, result, wasThrown);
         }
 
         if (args)
             args = args.map(WebInspector.RemoteObject.createCallArgument);
 
-        RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(functionDeclaration.toString()), args, true, undefined, generatePreview, mycallback);
+        RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(functionDeclaration.toString()), args, true, undefined, !!generatePreview, mycallback);
     }
 
     callFunctionJSON(functionDeclaration, args, callback)
@@ -434,7 +436,7 @@ WebInspector.RemoteObject = class RemoteObject
 
         RuntimeAgent.callFunctionOn(this._objectId, appendWebInspectorSourceURL(functionDeclaration.toString()), args, true, true, mycallback);
     }
-    
+
     invokeGetter(getterRemoteObject, callback)
     {
         console.assert(getterRemoteObject instanceof WebInspector.RemoteObject);
@@ -511,7 +513,7 @@ WebInspector.RemoteObject = class RemoteObject
             var location = response.location;
             var sourceCode = WebInspector.debuggerManager.scriptForIdentifier(location.scriptId);
 
-            if (!sourceCode || sourceCode.url.startsWith("__WebInspector")) {
+            if (!sourceCode || (!WebInspector.isDebugUIEnabled() && isWebKitInternalScript(sourceCode.sourceURL))) {
                 result.resolve(WebInspector.RemoteObject.SourceCodeLocationPromise.NoSourceFound);
                 return;
             }
@@ -637,7 +639,7 @@ WebInspector.RemoteObject.FakeRemoteObjectId = "fake-remote-object";
 WebInspector.RemoteObject.SourceCodeLocationPromise = {
     NoSourceFound: "remote-object-source-code-location-promise-no-source-found",
     MissingObjectId: "remote-object-source-code-location-promise-missing-object-id"
-}
+};
 
 // FIXME: Phase out this deprecated class.
 WebInspector.DeprecatedRemoteObjectProperty = class DeprecatedRemoteObjectProperty

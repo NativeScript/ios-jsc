@@ -98,7 +98,10 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
     ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
 
     if (!(execState->thisValue().inherits(ObjCConstructorBase::info()) || execState->thisValue().inherits(ObjCWrapperObject::info()) || execState->thisValue().inherits(AllocatedPlaceholder::info()) || execState->thisValue().inherits(ObjCSuperObject::info()))) {
-        throwVMError(execState, createError(execState, WTF::ASCIILiteral("This value is not a native object.")));
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("This value is not a native object.")));
         return;
     }
 
@@ -135,6 +138,8 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
 
 void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
     ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (call->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo() == AllocatedPlaceholder::info() && call->_isInitializer)) {
         [invocation.getResult<id>() release];
@@ -142,7 +147,7 @@ void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICa
 
     if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
         if (NSError* error = *invocation.getArgument<NSError**>(call->_argsCount - 1)) {
-            execState->vm().throwException(execState, interop(execState)->wrapError(execState, error));
+            scope.throwException(execState, interop(execState)->wrapError(execState, error));
         }
     }
 }

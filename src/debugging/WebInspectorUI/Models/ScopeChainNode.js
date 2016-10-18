@@ -25,38 +25,53 @@
 
 WebInspector.ScopeChainNode = class ScopeChainNode extends WebInspector.Object
 {
-    constructor(type, object)
+    constructor(type, objects, name, location)
     {
         super();
 
         console.assert(typeof type === "string");
-        console.assert(object instanceof WebInspector.RemoteObject);
+        console.assert(objects.every((x) => x instanceof WebInspector.RemoteObject));
 
         if (type in WebInspector.ScopeChainNode.Type)
             type = WebInspector.ScopeChainNode.Type[type];
 
         this._type = type || null;
-        this._object = object || null;
+        this._objects = objects || [];
+        this._name = name || "";
+        this._location = location || null;
     }
 
     // Public
 
-    get type()
+    get type() { return this._type; }
+    get objects() { return this._objects; }
+    get name() { return this._name; }
+    get location() { return this._location; }
+
+    get hash()
     {
-        return this._type;
+        if (this._hash)
+            return this._hash;
+
+        this._hash = this._name;
+        if (this._location)
+            this._hash += `:${this._location.scriptId}:${this._location.lineNumber}:${this._location.columnNumber}`;
+        return this._hash;
     }
 
-    get object()
+    convertToLocalScope()
     {
-        return this._object;
+        this._type = WebInspector.ScopeChainNode.Type.Local;
     }
 };
 
 WebInspector.ScopeChainNode.Type = {
     Local: "scope-chain-type-local",
     Global: "scope-chain-type-global",
+    GlobalLexicalEnvironment: "scope-chain-type-global-lexical-environment",
     With: "scope-chain-type-with",
     Closure: "scope-chain-type-closure",
     Catch: "scope-chain-type-catch",
-    FunctionName: "scope-chain-type-functionName"
+    FunctionName: "scope-chain-type-function-name",
+    Block: "scope-chain-type-block",
 };

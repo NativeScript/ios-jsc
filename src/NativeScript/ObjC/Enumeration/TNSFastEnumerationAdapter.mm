@@ -27,20 +27,23 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
         JSObject* wrapper = globalObject->interop()->objectMap().get(self);
         RELEASE_ASSERT(wrapper);
 
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_CATCH_SCOPE(vm);
+
         JSLockHolder lock(execState);
 
         JSValue iteratorFunction = wrapper->get(execState, execState->propertyNames().iteratorSymbol);
-        reportErrorIfAny(execState);
+        reportErrorIfAny(execState, scope);
 
         CallData iteratorFunctionCallData;
         CallType iteratorFunctionCallType = getCallData(iteratorFunction, iteratorFunctionCallData);
-        if (iteratorFunctionCallType == CallTypeNone) {
+        if (iteratorFunctionCallType == CallType::None) {
             reportFatalErrorBeforeShutdown(execState, Exception::create(execState->vm(), createTypeError(execState)));
         }
 
         ArgList iteratorFunctionArguments;
         JSValue iterator = call(execState, iteratorFunction, iteratorFunctionCallType, iteratorFunctionCallData, wrapper, iteratorFunctionArguments);
-        reportErrorIfAny(execState);
+        reportErrorIfAny(execState, scope);
 
         if (!iterator.isObject()) {
             reportFatalErrorBeforeShutdown(execState, Exception::create(execState->vm(), createTypeError(execState)));
@@ -57,6 +60,8 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
     ExecState* execState = reinterpret_cast<ExecState*>(state->extra[0]);
     JSValue iterator(reinterpret_cast<JSCell*>(state->extra[1]));
     JSLockHolder lock(execState);
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
 
     if (state->state == State::Done) {
         return 0;
@@ -67,11 +72,11 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
     while (count < length) {
         JSValue next = iteratorStep(execState, iterator);
-        reportErrorIfAny(execState);
+        reportErrorIfAny(execState, scope);
 
         if (next.isFalse()) {
             iteratorClose(execState, iterator);
-            reportErrorIfAny(execState);
+            reportErrorIfAny(execState, scope);
             gcUnprotect(iterator);
 
             state->state = State::Done;
@@ -79,10 +84,10 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
         }
 
         JSValue value = iteratorValue(execState, next);
-        reportErrorIfAny(execState);
+        reportErrorIfAny(execState, scope);
 
         *buffer++ = toObject(execState, value);
-        reportErrorIfAny(execState);
+        reportErrorIfAny(execState, scope);
 
         count++;
     }

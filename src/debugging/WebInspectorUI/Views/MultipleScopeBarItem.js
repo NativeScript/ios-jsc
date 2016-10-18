@@ -78,7 +78,7 @@ WebInspector.MultipleScopeBarItem = class MultipleScopeBarItem extends WebInspec
         {
             var optionElement = document.createElement("option");
             var maxPopupMenuLength = 130; // <rdar://problem/13445374> <select> with very long option has clipped text and popup menu is still very wide
-            optionElement.textContent = scopeBarItem.label.length <= maxPopupMenuLength ? scopeBarItem.label : scopeBarItem.label.substring(0, maxPopupMenuLength) + "\u2026";
+            optionElement.textContent = scopeBarItem.label.length <= maxPopupMenuLength ? scopeBarItem.label : scopeBarItem.label.substring(0, maxPopupMenuLength) + ellipsis;
             return optionElement;
         }
 
@@ -133,7 +133,7 @@ WebInspector.MultipleScopeBarItem = class MultipleScopeBarItem extends WebInspec
         this._selectElement.selectedIndex = this._scopeBarItems.indexOf(this._selectedScopeBarItem);
 
         if (this._selectedScopeBarItem) {
-            this._titleElement.textContent = this._selectedScopeBarItem.label;
+            this.displaySelectedItem();
             this._selectedScopeBarItem.selected = true;
         }
 
@@ -141,6 +141,25 @@ WebInspector.MultipleScopeBarItem = class MultipleScopeBarItem extends WebInspec
         this.dispatchEventToListeners(WebInspector.ScopeBarItem.Event.SelectionChanged, {withModifier});
 
         this._ignoreItemSelectedEvent = false;
+    }
+
+    displaySelectedItem()
+    {
+        this._titleElement.textContent = (this._selectedScopeBarItem || this._scopeBarItems[0]).label;
+    }
+
+    displayWidestItem()
+    {
+        let widestLabel = null;
+        let widestSize = 0;
+        for (let option of Array.from(this._selectElement.options)) {
+            this._titleElement.textContent = option.label;
+            if (this._titleElement.realOffsetWidth > widestSize) {
+                widestSize = this._titleElement.realOffsetWidth;
+                widestLabel = option.label;
+            }
+        }
+        this._titleElement.textContent = widestLabel;
     }
 
     // Private

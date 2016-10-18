@@ -7,20 +7,24 @@ public:
         return adoptRef(*new EditableSourceProvider(source, url, startPosition));
     }
 
-    const String& source() const override {
-        return this->m_source;
+    unsigned hash() const override {
+        return this->m_source.get().hash();
+    }
+
+    StringView source() const override {
+        return this->m_source.get();
     }
 
     void setSource(WTF::String source) {
-        this->m_source = source;
+        this->m_source = source.isNull() ? *StringImpl::empty() : *source.impl();
     }
 
 private:
     EditableSourceProvider(const WTF::String& source, const WTF::String& url, const WTF::TextPosition& startPosition)
         : JSC::SourceProvider(url, startPosition)
-        , m_source(source) {
+        , m_source(source.isNull() ? *StringImpl::empty() : *source.impl()) {
     }
 
-    WTF::String m_source;
+    Ref<StringImpl> m_source;
 };
 }

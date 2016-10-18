@@ -113,13 +113,16 @@ void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buff
     ObjCBlockType* blockType = jsCast<ObjCBlockType*>(self);
 
     CallData callData;
-    if (value.isCell() && value.asCell()->methodTable()->getCallData(value.asCell(), callData) != CallTypeNone) {
+    if (value.isCell() && value.asCell()->methodTable()->getCallData(value.asCell(), callData) != CallType::None) {
         *static_cast<CFTypeRef*>(buffer) = CFAutorelease(JSBlock::createBlock(execState, value.asCell(), blockType));
     } else if (value.isUndefinedOrNull()) {
         *static_cast<CFTypeRef*>(buffer) = nullptr;
     } else {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a function."));
-        execState->vm().throwException(execState, exception);
+        scope.throwException(execState, exception);
         return;
     }
 }
@@ -127,7 +130,7 @@ void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buff
 bool ObjCBlockType::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     if (value.isCell()) {
         CallData callData;
-        return value.asCell()->methodTable()->getCallData(value.asCell(), callData) != CallTypeNone;
+        return value.asCell()->methodTable()->getCallData(value.asCell(), callData) != CallType::None;
     }
 
     return value.isUndefinedOrNull();
@@ -163,6 +166,6 @@ void ObjCBlockType::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 
 CallType ObjCBlockType::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &readFromPointer;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

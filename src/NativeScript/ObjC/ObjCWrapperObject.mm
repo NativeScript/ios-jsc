@@ -37,14 +37,14 @@ bool ObjCWrapperObject::getOwnPropertySlotByIndex(JSObject* object, ExecState* e
     return true;
 }
 
-void ObjCWrapperObject::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
+bool ObjCWrapperObject::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
     ObjCWrapperObject* wrapper = jsCast<ObjCWrapperObject*>(cell);
     if (wrapper->_canSetObjectAtIndexedSubscript) {
         [wrapper->wrappedObject() setObject:NativeScript::toObject(execState, value)
                          atIndexedSubscript:propertyName];
     }
 
-    Base::putByIndex(cell, execState, propertyName, value, shouldThrow);
+    return Base::putByIndex(cell, execState, propertyName, value, shouldThrow);
 }
 
 ObjCWrapperObject::~ObjCWrapperObject() {

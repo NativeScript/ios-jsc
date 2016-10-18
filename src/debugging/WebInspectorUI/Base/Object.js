@@ -23,12 +23,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Copyright (C) 2016 Telerik AD. All rights reserved. (as modified)
- */
-
 WebInspector.Object = class WebInspectorObject
 {
+    constructor()
+    {
+        this._listeners = null;
+    }
+
     // Static
 
     static addEventListener(eventType, listener, thisObject)
@@ -37,34 +38,31 @@ WebInspector.Object = class WebInspectorObject
 
         console.assert(eventType, "Object.addEventListener: invalid event type ", eventType, "(listener: ", listener, "thisObject: ", thisObject, ")");
         if (!eventType)
-            return;
+            return null;
 
         console.assert(listener, "Object.addEventListener: invalid listener ", listener, "(event type: ", eventType, "thisObject: ", thisObject, ")");
         if (!listener)
-            return;
+            return null;
 
         if (!this._listeners)
-            this._listeners = {};
+            this._listeners = new Map();
 
-        var listeners = this._listeners[eventType];
-        if (!listeners)
-            listeners = this._listeners[eventType] = [];
-
-        // Prevent registering multiple times.
-        for (var i = 0; i < listeners.length; ++i) {
-            if (listeners[i].listener === listener && listeners[i].thisObject === thisObject)
-                return;
+        let listenersTable = this._listeners.get(eventType);
+        if (!listenersTable) {
+            listenersTable = new ListMultimap();
+            this._listeners.set(eventType, listenersTable);
         }
 
-        listeners.push({thisObject, listener});
+        listenersTable.add(thisObject, listener);
+        return listener;
     }
 
     static singleFireEventListener(eventType, listener, thisObject)
     {
-        let wrappedCallback = () => {
+        let wrappedCallback = function() {
             this.removeEventListener(eventType, wrappedCallback, null);
             listener.apply(thisObject, arguments);
-        };
+        }.bind(this);
 
         this.addEventListener(eventType, wrappedCallback, null);
         return wrappedCallback;
@@ -79,53 +77,59 @@ WebInspector.Object = class WebInspectorObject
         if (!this._listeners)
             return;
 
-        if (!eventType) {
-            for (eventType in this._listeners)
-                this.removeEventListener(eventType, listener, thisObject);
+        if (thisObject && !eventType) {
+            this._listeners.forEach(function(listenersTable) {
+                let listenerPairs = listenersTable.toArray();
+                for (let i = 0, length = listenerPairs.length; i < length; ++i) {
+                    let existingThisObject = listenerPairs[i][0];
+                    if (existingThisObject === thisObject)
+                        listenersTable.deleteAll(existingThisObject);
+                }
+            });
+
             return;
         }
 
-        var listeners = this._listeners[eventType];
-        if (!listeners)
+        let listenersTable = this._listeners.get(eventType);
+        if (!listenersTable || listenersTable.size === 0)
             return;
 
-        for (var i = listeners.length - 1; i >= 0; --i) {
-            if (listener && listeners[i].listener === listener && listeners[i].thisObject === thisObject)
-                listeners.splice(i, 1);
-            else if (!listener && thisObject && listeners[i].thisObject === thisObject)
-                listeners.splice(i, 1);
-        }
-
-        if (!listeners.length)
-            delete this._listeners[eventType];
-
-        if (!window.Object.keys(this._listeners).length)
-            delete this._listeners;
+        let didDelete = listenersTable.delete(thisObject, listener);
+        console.assert(didDelete, "removeEventListener cannot remove " + eventType.toString() + " because it doesn't exist.");
     }
 
-    static removeAllListeners()
+    static awaitEvent(eventType)
     {
-        delete this._listeners;
+        let wrapper = new WebInspector.WrappedPromise;
+        this.singleFireEventListener(eventType, (event) => wrapper.resolve(event));
+        return wrapper.promise;
     }
 
+    // Only used by tests.
     static hasEventListeners(eventType)
     {
-        if (!this._listeners || !this._listeners[eventType])
+        if (!this._listeners)
             return false;
-        return true;
+
+        let listenersTable = this._listeners.get(eventType);
+        return listenersTable && listenersTable.size > 0;
     }
 
     // This should only be used within regression tests to detect leaks.
     static retainedObjectsWithPrototype(proto)
     {
         let results = new Set;
-        for (let eventType in this._listeners) {
-            let recordsForEvent = this._listeners[eventType];
-            for (let listener of recordsForEvent) {
-                if (listener.thisObject instanceof proto)
-                    results.add(listener.thisObject);
-            }
+
+        if (this._listeners) {
+            this._listeners.forEach(function(listenersTable, eventType) {
+                listenersTable.forEach(function(pair) {
+                    let thisObject = pair[0];
+                    if (thisObject instanceof proto)
+                        results.add(thisObject);
+                });
+            });
         }
+
         return results;
     }
 
@@ -134,29 +138,36 @@ WebInspector.Object = class WebInspectorObject
     addEventListener() { return WebInspector.Object.addEventListener.apply(this, arguments); }
     singleFireEventListener() { return WebInspector.Object.singleFireEventListener.apply(this, arguments); }
     removeEventListener() { return WebInspector.Object.removeEventListener.apply(this, arguments); }
-    removeAllListeners() { return WebInspector.Object.removeAllListeners.apply(this, arguments); }
+    awaitEvent() { return WebInspector.Object.awaitEvent.apply(this, arguments); }
     hasEventListeners() { return WebInspector.Object.hasEventListeners.apply(this, arguments); }
     retainedObjectsWithPrototype() { return WebInspector.Object.retainedObjectsWithPrototype.apply(this, arguments); }
 
     dispatchEventToListeners(eventType, eventData)
     {
-        var event = new WebInspector.Event(this, eventType, eventData);
+        let event = new WebInspector.Event(this, eventType, eventData);
 
         function dispatch(object)
         {
-            if (!object || !object.hasOwnProperty("_listeners") || event._stoppedPropagation)
+            if (!object || event._stoppedPropagation)
                 return;
 
-            let listenersForThisEvent = object._listeners[eventType];
-            if (!listenersForThisEvent)
+            let listenerTypesMap = object._listeners;
+            if (!listenerTypesMap || !object.hasOwnProperty("_listeners"))
+                return;
+
+            console.assert(listenerTypesMap instanceof Map);
+
+            let listenersTable = listenerTypesMap.get(eventType);
+            if (!listenersTable)
                 return;
 
             // Make a copy with slice so mutations during the loop doesn't affect us.
-            listenersForThisEvent = listenersForThisEvent.slice(0);
+            let listeners = listenersTable.toArray();
 
             // Iterate over the listeners and call them. Stop if stopPropagation is called.
-            for (var i = 0; i < listenersForThisEvent.length; ++i) {
-                listenersForThisEvent[i].listener.call(listenersForThisEvent[i].thisObject, event);
+            for (let i = 0, length = listeners.length; i < length; ++i) {
+                let [thisObject, listener] = listeners[i];
+                listener.call(thisObject, event);
                 if (event._stoppedPropagation)
                     break;
             }
@@ -169,7 +180,7 @@ WebInspector.Object = class WebInspectorObject
         event._stoppedPropagation = false;
 
         // Dispatch to listeners on all constructors up the prototype chain, including the immediate constructor.
-        var constructor = this.constructor;
+        let constructor = this.constructor;
         while (constructor) {
             dispatch(constructor);
 
@@ -212,4 +223,7 @@ WebInspector.Notification = {
     PageArchiveStarted: "page-archive-started",
     PageArchiveEnded: "page-archive-ended",
     ExtraDomainsActivated: "extra-domains-activated",
+    TabTypesChanged: "tab-types-changed",
+    DebugUIEnabledDidChange: "debug-ui-enabled-did-change",
+    VisibilityStateDidChange: "visibility-state-did-change",
 };

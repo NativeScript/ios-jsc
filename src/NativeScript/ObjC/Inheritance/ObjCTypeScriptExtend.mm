@@ -27,7 +27,7 @@ static EncodedJSValue callOriginalExtends(ExecState* execState) {
 }
 
 static bool isPlainTypeScriptConstructor(JSFunction* typeScriptConstructor) {
-    WTF::CString sourceUTF8 = typeScriptConstructor->sourceCode()->toString().simplifyWhiteSpace().utf8();
+    WTF::CString sourceUTF8 = typeScriptConstructor->sourceCode()->view().toString().simplifyWhiteSpace().utf8();
 
     NSArray* regularExpressions = @[
         @"^\\(\\)\\s?\\{\\s?\\}$",
@@ -48,6 +48,7 @@ static bool isPlainTypeScriptConstructor(JSFunction* typeScriptConstructor) {
 
 EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    JSC::VM& vm = execState->vm();
 
     if (!execState->argument(1).inherits(ObjCConstructorBase::info())) {
         return callOriginalExtends(execState);
@@ -55,20 +56,21 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
 
     JSFunction* typeScriptConstructor = jsCast<JSFunction*>(execState->argument(0));
     if (!isPlainTypeScriptConstructor(typeScriptConstructor)) {
-        WTF::String message = WTF::String::format("The TypeScript constructor \"%s\" will not be executed.", typeScriptConstructor->name(execState).utf8().data());
+        WTF::String message = WTF::String::format("The TypeScript constructor \"%s\" will not be executed.", typeScriptConstructor->name(vm).utf8().data());
         warn(execState, message);
     }
 
-    WTF::String name = typeScriptConstructor->name(execState);
+    WTF::String name = typeScriptConstructor->name(vm);
+    auto throwScope = DECLARE_THROW_SCOPE(vm);
 
     JSValue baseConstructor = execState->argument(1);
     __block std::unique_ptr<ObjCClassBuilder> classBuilder = std::make_unique<ObjCClassBuilder>(execState, baseConstructor, constructEmptyObject(execState), name);
-    if (execState->hadException()) {
+    if (throwScope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 
     ObjCConstructorDerived* derivedConstructor = classBuilder->build(execState);
-    if (execState->hadException()) {
+    if (throwScope.exception()) {
         return JSValue::encode(jsUndefined());
     }
 
@@ -97,6 +99,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
       if (self != [derivedClass self]) {
           return;
       }
+      auto catchScope = DECLARE_CATCH_SCOPE(globalObject->vm());
 
       JSLockHolder lock(globalObject->vm());
       ExecState* globalExec = globalObject->globalExec();
@@ -106,10 +109,10 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
       JSValue exposedMethods = derivedConstructor->get(globalExec, Identifier::fromString(globalExec, "ObjCExposedMethods"));
 
       classBuilder->implementProtocols(globalExec, implementedProtocols);
-      reportErrorIfAny(globalExec);
+      reportErrorIfAny(globalExec, catchScope);
 
       classBuilder->addInstanceMembers(globalExec, instanceMethods, exposedMethods);
-      reportErrorIfAny(globalExec);
+      reportErrorIfAny(globalExec, catchScope);
 
       classBuilder.reset();
     });

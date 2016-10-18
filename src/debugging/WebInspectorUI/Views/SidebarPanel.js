@@ -40,9 +40,9 @@ WebInspector.SidebarPanel = class SidebarPanel extends WebInspector.View
         this.element.setAttribute("role", role || "group");
         this.element.setAttribute("aria-label", label || displayName);
 
-        this._contentElement = document.createElement("div");
-        this._contentElement.className = "content";
-        this.element.appendChild(this._contentElement);
+        this._contentView = new WebInspector.View;
+        this._contentView.element.classList.add("content");
+        this.addSubview(this._contentView);
     }
 
     // Public
@@ -52,9 +52,14 @@ WebInspector.SidebarPanel = class SidebarPanel extends WebInspector.View
         return this._identifier;
     }
 
-    get contentElement()
+    get contentView()
     {
-        return this._contentElement;
+        return this._contentView;
+    }
+
+    get displayName()
+    {
+        return this._displayName;
     }
 
     get visible()
@@ -81,6 +86,12 @@ WebInspector.SidebarPanel = class SidebarPanel extends WebInspector.View
         return this.parentView;
     }
 
+    get minimumWidth()
+    {
+        // Implemented by subclasses.
+        return 0;
+    }
+
     show()
     {
         if (!this.parentSidebar)
@@ -99,14 +110,6 @@ WebInspector.SidebarPanel = class SidebarPanel extends WebInspector.View
         this.parentSidebar.selectedSidebarPanel = null;
     }
 
-    toggle()
-    {
-        if (this.visible)
-            this.hide();
-        else
-            this.show();
-    }
-
     added()
     {
         console.assert(this.parentSidebar);
@@ -121,27 +124,20 @@ WebInspector.SidebarPanel = class SidebarPanel extends WebInspector.View
         // Implemented by subclasses.
     }
 
-    willRemove()
-    {
-        // Implemented by subclasses.
-    }
-
     shown()
     {
-        this._contentElement.scrollTop = this._savedScrollPosition;
+        this._contentView.element.scrollTop = this._savedScrollPosition;
+
+        // FIXME: remove once <https://webkit.org/b/150741> is fixed.
+        this.updateLayoutIfNeeded();
 
         // Implemented by subclasses.
     }
 
     hidden()
     {
-        this._savedScrollPosition = this._contentElement.scrollTop;
+        this._savedScrollPosition = this._contentView.element.scrollTop;
 
-        // Implemented by subclasses.
-    }
-
-    widthDidChange()
-    {
         // Implemented by subclasses.
     }
 

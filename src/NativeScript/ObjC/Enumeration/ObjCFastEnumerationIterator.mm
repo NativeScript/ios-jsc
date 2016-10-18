@@ -32,7 +32,10 @@ bool ObjCFastEnumerationIterator::next(ExecState* execState, JSValue& value) {
         this->_count = [this->_object.get() countByEnumeratingWithState:&this->_state objects:this->_buffer.data() count:this->_buffer.size()];
 
         if (this->_mutationSentinel != *this->_state.mutationsPtr) {
-            execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("The iterable was changed during enumeration.")));
+            JSC::VM& vm = execState->vm();
+            auto scope = DECLARE_THROW_SCOPE(vm);
+
+            scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The iterable was changed during enumeration.")));
             return false;
         }
 

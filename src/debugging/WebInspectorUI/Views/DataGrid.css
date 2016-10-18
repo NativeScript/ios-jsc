@@ -50,18 +50,23 @@
     left: 0;
     right: 0;
     overflow-x: hidden;
-    overflow-y: overlay;
+    overflow-y: scroll;
 }
 
 .data-grid.inline .data-container {
     position: static;
+    overflow-y: auto;
 }
 
 .data-grid.inline {
-    border: 1px solid hsl(0, 0%, 70%);
+    border: 0.5px solid var(--border-color);
 }
 
-.data-grid.no-header > table.header {
+.data-grid > .header-wrapper {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-grid.no-header > .header-wrapper {
     display: none;
 }
 
@@ -75,8 +80,6 @@
 
     background-color: white;
 
-    border-bottom: 1px solid hsl(0, 0%, 70%);
-
     font-weight: normal;
 
     height: 22px;
@@ -86,16 +89,8 @@
     overflow: hidden;
 }
 
-body.window-inactive .data-grid th {
-    border-bottom-color: hsl(0, 0%, 85%);
-}
-
 .data-grid :matches(th, td):not(:last-child) {
-    border-right: 1px solid hsl(0, 0%, 70%);
-}
-
-body.window-inactive .data-grid :matches(th, td):not(:last-child) {
-    border-right-color: hsl(0, 0%, 85%);
+    border-right: 0.5px solid var(--border-color);
 }
 
 .data-grid th.sortable:active {
@@ -117,16 +112,25 @@ body.window-inactive .data-grid :matches(th, td):not(:last-child) {
 }
 
 .data-grid table.data {
-    position: absolute;
+    position: relative;
     left: 0;
-    top: 0;
     right: 0;
-    bottom: 0;
     height: 100%;
     border-top: 0 none transparent;
-    background-image: linear-gradient(to bottom, white, white 50%, hsl(214, 41%, 96%) 50%, hsl(214, 41%, 96%));
-    background-size: 100% 42px;
     table-layout: fixed;
+}
+
+.data-grid:not(.variable-height-rows) table.data {
+    background-image: linear-gradient(to bottom, var(--even-zebra-stripe-row-background-color), var(--even-zebra-stripe-row-background-color) 50%, var(--odd-zebra-stripe-row-background-color) 50%, var(--odd-zebra-stripe-row-background-color));
+    background-size: 100% 40px;
+}
+
+.data-grid:not(.variable-height-rows) > .data-container > table.data > tbody > tr > td > .cell-content {
+    height: 16px;
+}
+
+.data-grid:not(.variable-height-rows) table.data.odd-first-zebra-stripe {
+    background-image: linear-gradient(to bottom, var(--odd-zebra-stripe-row-background-color), var(--odd-zebra-stripe-row-background-color) 50%, var(--even-zebra-stripe-row-background-color) 50%, var(--even-zebra-stripe-row-background-color));
 }
 
 .data-grid.inline table.data {
@@ -141,14 +145,36 @@ body.window-inactive .data-grid :matches(th, td):not(:last-child) {
     display: table-row;
 }
 
+.data-grid.variable-height-rows table.data tr:nth-child(odd) {
+    background-color: var(--odd-zebra-stripe-row-background-color);
+}
+
+.data-grid.variable-height-rows table.data tr:nth-child(even) {
+    background-color: var(--even-zebra-stripe-row-background-color);
+}
+
+.data-grid.variable-height-rows.odd-first-zebra-stripe table.data tr:nth-child(odd) {
+    background-color: var(--even-zebra-stripe-row-background-color);
+}
+
+.data-grid.variable-height-rows.odd-first-zebra-stripe table.data tr:nth-child(even) {
+    background-color: var(--odd-zebra-stripe-row-background-color);
+}
+
+.data-grid.variable-height-rows table.data tr.filler {
+ /* FIXME: This should show an alternating stripe, but it needs to know if the last row is even or odd. */
+    background-color: var(--even-zebra-stripe-row-background-color);
+}
+
 .data-grid td {
     vertical-align: top;
-    height: 12px;
-    line-height: 17px;
+    height: 16px;
+    line-height: 16px;
     padding: 2px 6px;
     white-space: nowrap;
     overflow: hidden;
-    font-family: -apple-system-monospaced-numbers, sans-serif;
+    font-family: -apple-system, sans-serif;
+    font-variant-numeric: tabular-nums;
 }
 
 .data-grid:matches(:focus, .force-focus) tr.selected td:not(:last-child) {
@@ -225,11 +251,12 @@ body.window-inactive .data-grid :matches(th, td):not(:last-child) {
     content: "";
 
     background-image: url(../Images/DisclosureTriangles.svg#closed-normal);
+    background-position-y: center;
     background-size: 13px 13px;
     background-repeat: no-repeat;
 
     width: 13px;
-    height: 13px;
+    height: 100%;
 }
 
 .data-grid tr.parent.expanded td.disclosure::before {
@@ -245,17 +272,17 @@ body.window-inactive .data-grid :matches(th, td):not(:last-child) {
 }
 
 .data-grid tr.selected {
-    background-color: hsl(0, 0%, 83%) !important;
+    background-color: var(--selected-background-color-unfocused) !important;
     color: inherit !important;
 }
 
 .data-grid:matches(:focus, .force-focus) tr.selected {
-    background-color: hsl(209, 100%, 49%) !important;
-    color: white !important;
+    background-color: var(--selected-background-color) !important;
+    color: var(--selected-foreground-color) !important;
 }
 
 .data-grid tr:not(.parent) td.disclosure {
-    text-indent: 10px;
+    text-indent: 13px;
 }
 
 .data-grid td .subtitle {
@@ -271,7 +298,7 @@ body.window-inactive .data-grid :matches(th, td):not(:last-child) {
 }
 
 .data-grid td.error {
-    color: hsl(0, 86%, 47%);
+    color: var(--error-text-color);
 }
 
 .data-grid tr.selected td.error {
@@ -301,5 +328,29 @@ body.window-inactive .data-grid :matches(th, td):not(:last-child) {
 }
 
 .data-grid .resizer {
-    z-index: 500;
+    z-index: var(--z-index-resizer);
+    transform: translateX(-2.5px);
+}
+
+.data-grid table.header,
+.data-grid table.data {
+    /* Hide right border from first hidden columns. */
+    width: calc(100% + 1px);
+    margin-left: -1px;
+}
+
+.data-grid :matches(th, td):first-child {
+    border-left: 1px solid transparent;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .data-grid table.header,
+    .data-grid table.data {
+        width: calc(100% + 0.5px);
+        margin-left: -0.5px;
+    }
+
+    .data-grid :matches(th, td):first-child {
+        border-width: 0.5px;
+    }
 }

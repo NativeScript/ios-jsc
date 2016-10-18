@@ -16,7 +16,9 @@ using namespace JSC;
 static EncodedJSValue JSC_HOST_CALL construct(ExecState* execState) {
     JSValue argument = execState->argument(0);
     if (!argument.isObject()) {
-        return JSValue::encode(execState->vm().throwException(execState, createTypeError(execState, WTF::ASCIILiteral("Argument must be an object."))));
+        VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+        return JSValue::encode(scope.throwException(execState, createTypeError(execState, WTF::ASCIILiteral("Argument must be an object."))));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -39,11 +41,11 @@ void JSWeakRefConstructor::finishCreation(VM& vm, JSWeakRefPrototype* prototype)
 
 ConstructType JSWeakRefConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = construct;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType JSWeakRefConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = construct;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

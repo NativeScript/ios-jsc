@@ -38,7 +38,6 @@ WebInspector.TypeTreeElement = class TypeTreeElement extends WebInspector.Genera
         this._populated = false;
         this._autoExpandedChildren = false;
 
-        this.small = true;
         this.toggleOnClick = true;
         this.selectable = false;
         this.tooltipHandledSeparately = true;
@@ -100,7 +99,7 @@ WebInspector.TypeTreeElement = class TypeTreeElement extends WebInspector.Genera
             this.appendChild(new WebInspector.TypeTreeElement(property.name, null));
 
         if (this._structureDescription.imprecise) {
-            var truncatedMessageElement = WebInspector.ObjectTreeView.createEmptyMessageElement("\u2026");
+            var truncatedMessageElement = WebInspector.ObjectTreeView.createEmptyMessageElement(ellipsis);
             this.appendChild(new WebInspector.TreeElement(truncatedMessageElement, null, false));
         }
 

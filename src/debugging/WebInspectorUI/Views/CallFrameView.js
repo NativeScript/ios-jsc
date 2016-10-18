@@ -23,15 +23,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Copyright (C) 2016 Telerik AD. All rights reserved. (as modified)
- */
-
 WebInspector.CallFrameView = class CallFrameView extends WebInspector.Object
 {
     constructor(callFrame, showFunctionName)
     {
-        super();
         console.assert(callFrame instanceof WebInspector.CallFrame);
 
         var callFrameElement = document.createElement("div");
@@ -78,6 +73,12 @@ WebInspector.CallFrameView = class CallFrameView extends WebInspector.Object
 
     static iconClassNameForCallFrame(callFrame)
     {
+        if (callFrame.isTailDeleted)
+            return WebInspector.CallFrameView.TailDeletedIcon;
+
+        if (callFrame.programCode)
+            return WebInspector.CallFrameView.ProgramIconStyleClassName;
+
         // This is more than likely an event listener function with an "on" prefix and it is
         // as long or longer than the shortest event listener name -- "oncut".
         if (callFrame.functionName && callFrame.functionName.startsWith("on") && callFrame.functionName.length >= 5)
@@ -90,6 +91,8 @@ WebInspector.CallFrameView = class CallFrameView extends WebInspector.Object
     }
 };
 
+WebInspector.CallFrameView.ProgramIconStyleClassName = "program-icon";
 WebInspector.CallFrameView.FunctionIconStyleClassName = "function-icon";
 WebInspector.CallFrameView.EventListenerIconStyleClassName = "event-listener-icon";
 WebInspector.CallFrameView.NativeIconStyleClassName = "native-icon";
+WebInspector.CallFrameView.TailDeletedIcon = "tail-deleted";

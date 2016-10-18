@@ -32,15 +32,16 @@
 #include <JavaScriptCore/InjectedScriptManager.h>
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/JSMapIterator.h>
+#include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSModuleRecord.h>
-#include <JavaScriptCore/MapDataInlines.h>
-#include <JavaScriptCore/ModuleLoaderObject.h>
 #include <JavaScriptCore/Parser.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <JavaScriptCore/config.h>
+#include <JavaScriptCore/heap/MarkedSpaceInlines.h>
 #include <JavaScriptCore/inspector/agents/InspectorConsoleAgent.h>
+#include <wtf/text/StringBuilder.h>
 
 using namespace JSC;
 using namespace Inspector;
@@ -53,15 +54,15 @@ GlobalObjectDebuggerAgent::GlobalObjectDebuggerAgent(JSAgentContext& context, In
     m_globalObject = jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject);
 }
 
-void GlobalObjectDebuggerAgent::enable(ErrorString& errorString) {
-    InspectorDebuggerAgent::enable(errorString);
+void GlobalObjectDebuggerAgent::enable() {
+    InspectorDebuggerAgent::enable();
 
     JSValue registry = this->m_globalObject->moduleLoader()->get(this->m_globalObject->globalExec(), Identifier::fromString(&this->m_globalObject->vm(), "registry"));
-    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->mapIteratorStructure(), jsCast<JSMap*>(registry), MapIterateKeyValue);
+    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->mapIteratorStructure(), jsCast<JSMap*>(registry), IterateKeyValue);
 
     JSValue moduleKey, moduleEntry;
     Identifier moduleIdentifier = Identifier::fromString(&this->m_globalObject->vm(), "module");
-    while (registryIterator->nextKeyValue(moduleKey, moduleEntry)) {
+    while (registryIterator->nextKeyValue(this->m_globalObject->globalExec(), moduleKey, moduleEntry)) {
         if (JSModuleRecord* record = jsDynamicCast<JSModuleRecord*>(moduleEntry.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
             SourceProvider* sourceProvider = record->sourceCode().provider();
             if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
@@ -94,25 +95,28 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         ParserError parseError;
         std::unique_ptr<ScopeNode> program;
 
-        if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
-            sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
-            sourceCode = *moduleFunction->sourceCode();
+        JSValue value = moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
+        if (!value.isEmpty()) {
+            if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(value)) {
+                sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
+                sourceCode = *moduleFunction->sourceCode();
 
-            WTF::StringBuilder moduleFunctionSource;
-            moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
-            moduleFunctionSource.append(scriptSource);
-            moduleFunctionSource.append("\n}}");
+                WTF::StringBuilder moduleFunctionSource;
+                moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
+                moduleFunctionSource.append(scriptSource);
+                moduleFunctionSource.append("\n}}");
 
-            moduleSource = moduleFunctionSource.toString();
+                moduleSource = moduleFunctionSource.toString();
 
-            SourceCode updatedSourceCode = makeSource(moduleSource).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
-            program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, SourceParseMode::GeneratorMode, parseError);
+                SourceCode updatedSourceCode = makeSource(moduleSource).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
+                program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
+            }
         } else {
             moduleSource = scriptSource;
-            program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::Strict, SourceParseMode::ModuleEvaluateMode, parseError);
+            program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::ModuleEvaluateMode, SuperBinding::NotNeeded, parseError);
         }
 
-        WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source());
+        WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source().toString());
         sourceProvider->setSource(moduleSource);
         sourceCode.setEndOffset(sourceProvider->source().length());
 
@@ -124,7 +128,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         }
 
         m_globalObject->vm().clearSourceProviderCaches();
-        ClearChangedCellsFunctor functor(moduleRecord->sourceCode().provider()->url(), diff);
+        const ClearChangedCellsFunctor functor(moduleRecord->sourceCode().provider()->url(), diff);
         {
             HeapIterationScope iterationScope(m_globalObject->vm().heap);
             m_globalObject->vm().heap.objectSpace().forEachLiveCell(iterationScope, functor);
@@ -142,8 +146,8 @@ InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& err
     return injectedScriptManager().injectedScriptFor(exec);
 }
 
-void GlobalObjectDebuggerAgent::breakpointActionLog(JSC::ExecState* exec, const String& message) {
-    m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Log, message, createScriptCallStack(exec, ScriptCallStack::maxCallStackSizeToCapture), 0));
+void GlobalObjectDebuggerAgent::breakpointActionLog(JSC::ExecState& exec, const String& message) {
+    m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Log, message, createScriptCallStack(&exec, ScriptCallStack::maxCallStackSizeToCapture), 0));
 }
 
 } // namespace Inspector

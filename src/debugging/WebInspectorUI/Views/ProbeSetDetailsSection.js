@@ -44,7 +44,7 @@ WebInspector.ProbeSetDetailsSection = class ProbeSetDetailsSection extends WebIn
 
         this._optionsElement = optionsElement;
 
-        this._listeners = new WebInspector.EventListenerSet(this, "ProbeSetDetailsSection UI listeners");
+        this._listenerSet = new WebInspector.EventListenerSet(this, "ProbeSetDetailsSection UI listeners");
         this._probeSet = probeSet;
         this._dataGrid = dataGrid;
 
@@ -64,22 +64,22 @@ WebInspector.ProbeSetDetailsSection = class ProbeSetDetailsSection extends WebIn
         this._removeProbeButtonItem.addEventListener(WebInspector.ButtonNavigationItem.Event.Clicked, this._removeProbeButtonClicked, this);
         this._navigationBar.addNavigationItem(this._removeProbeButtonItem);
 
-        this._listeners.register(this._probeSet, WebInspector.ProbeSet.Event.SampleAdded, this._probeSetSamplesChanged);
-        this._listeners.register(this._probeSet, WebInspector.ProbeSet.Event.SamplesCleared, this._probeSetSamplesChanged);
+        this._listenerSet.register(this._probeSet, WebInspector.ProbeSet.Event.SampleAdded, this._probeSetSamplesChanged);
+        this._listenerSet.register(this._probeSet, WebInspector.ProbeSet.Event.SamplesCleared, this._probeSetSamplesChanged);
 
         // Update the source link when the breakpoint's resolved state changes,
         // so that it can become a live location link when possible.
         this._updateLinkElement();
-        this._listeners.register(this._probeSet.breakpoint, WebInspector.Breakpoint.Event.ResolvedStateDidChange, this._updateLinkElement);
+        this._listenerSet.register(this._probeSet.breakpoint, WebInspector.Breakpoint.Event.ResolvedStateDidChange, this._updateLinkElement);
 
-        this._listeners.install();
+        this._listenerSet.install();
     }
 
     // Public
 
     closed()
     {
-        this._listeners.uninstall(true);
+        this._listenerSet.uninstall(true);
         this.element.remove();
     }
 
@@ -96,7 +96,7 @@ WebInspector.ProbeSetDetailsSection = class ProbeSetDetailsSection extends WebIn
             console.assert(!breakpoint.resolved);
 
             var location = breakpoint.sourceCodeLocation;
-            titleElement = WebInspector.linkifyLocation(breakpoint.url, location.displayLineNumber, location.displayColumnNumber);
+            titleElement = WebInspector.linkifyLocation(breakpoint.contentIdentifier, location.displayLineNumber, location.displayColumnNumber);
         }
 
         titleElement.classList.add(WebInspector.ProbeSetDetailsSection.DontFloatLinkStyleClassName);
@@ -131,6 +131,10 @@ WebInspector.ProbeSetDetailsSection = class ProbeSetDetailsSection extends WebIn
         popover.content = content;
         let target = WebInspector.Rect.rectFromClientRect(event.target.element.getBoundingClientRect());
         popover.present(target, [WebInspector.RectEdge.MAX_Y, WebInspector.RectEdge.MIN_Y, WebInspector.RectEdge.MAX_X]);
+        popover.windowResizeHandler = () => {
+            let target = WebInspector.Rect.rectFromClientRect(event.target.element.getBoundingClientRect());
+            popover.present(target, [WebInspector.RectEdge.MAX_Y, WebInspector.RectEdge.MIN_Y, WebInspector.RectEdge.MAX_X]);
+        };
         textBox.select();
     }
 

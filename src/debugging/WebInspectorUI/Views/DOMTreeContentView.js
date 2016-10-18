@@ -165,7 +165,7 @@ WebInspector.DOMTreeContentView = class DOMTreeContentView extends WebInspector.
             WebInspector.archiveMainFrame();
         }
 
-        return { customSaveHandler: saveHandler };
+        return {customSaveHandler: saveHandler};
     }
 
     get supportsSearch()
@@ -371,6 +371,9 @@ WebInspector.DOMTreeContentView = class DOMTreeContentView extends WebInspector.
 
     _pathComponentSelected(event)
     {
+        if (!event.data.pathComponent)
+            return;
+
         console.assert(event.data.pathComponent instanceof WebInspector.DOMTreeElementPathComponent);
         console.assert(event.data.pathComponent.domTreeElement instanceof WebInspector.DOMTreeElement);
 

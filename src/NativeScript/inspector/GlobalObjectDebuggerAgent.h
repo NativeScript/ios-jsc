@@ -41,11 +41,12 @@ public:
     GlobalObjectDebuggerAgent(Inspector::JSAgentContext&, Inspector::InspectorConsoleAgent*);
     virtual ~GlobalObjectDebuggerAgent() {}
 
-    virtual void enable(Inspector::ErrorString&) override;
+    virtual void breakpointActionLog(JSC::ExecState&, const String&) override;
+
+protected:
+    virtual void enable() override;
     virtual void setScriptSource(Inspector::ErrorString&, const String&, const String&) override;
     virtual Inspector::InjectedScript injectedScriptForEval(Inspector::ErrorString&, const int* executionContextId) override;
-
-    virtual void breakpointActionLog(JSC::ExecState*, const String&) override;
 
     // NOTE: JavaScript inspector does not yet need to mute a console because no messages
     // are sent to the console outside of the API boundary or console object.

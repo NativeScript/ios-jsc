@@ -82,7 +82,9 @@ static void objCProtocol_write(ExecState* execState, const JSValue& value, void*
         *static_cast<Protocol**>(buffer) = nullptr;
     } else {
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a protocol."));
-        execState->vm().throwException(execState, exception);
+        VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+        scope.throwException(execState, exception);
         return;
     }
 }
@@ -116,7 +118,9 @@ static void objCClass_write(ExecState* execState, const JSValue& value, void* bu
         *static_cast<Class*>(buffer) = nullptr;
     } else {
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a class."));
-        execState->vm().throwException(execState, exception);
+        VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+        scope.throwException(execState, exception);
         return;
     }
 }
@@ -146,8 +150,10 @@ static void objCSelector_write(ExecState* execState, const JSValue& value, void*
     } else if (value.isUndefinedOrNull()) {
         *static_cast<SEL*>(buffer) = nullptr;
     } else {
+        VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a selector."));
-        execState->vm().throwException(execState, exception);
+        scope.throwException(execState, exception);
         return;
     }
 }

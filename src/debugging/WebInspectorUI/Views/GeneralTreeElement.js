@@ -76,18 +76,21 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
 
     set classNames(x)
     {
-        if (this._listItemNode && this._classNames) {
-            this._listItemNode.classList.remove(...this._classNames);
-        }
+        x = x || [];
 
         if (typeof x === "string")
             x = [x];
 
-        this._classNames = x || [];
+        if (Array.shallowEqual(this._classNames, x))
+            return;
 
-        if (this._listItemNode) {
+        if (this._listItemNode && this._classNames)
+            this._listItemNode.classList.remove(...this._classNames);
+
+        this._classNames = x;
+
+        if (this._listItemNode)
             this._listItemNode.classList.add(...this._classNames);
-        }
     }
 
     addClassName(className)
@@ -112,40 +115,6 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
             this._listItemNode.classList.remove(className);
     }
 
-    get small()
-    {
-        return this._small;
-    }
-
-    set small(x)
-    {
-        this._small = x;
-
-        if (this._listItemNode) {
-            if (this._small)
-                this._listItemNode.classList.add(WebInspector.GeneralTreeElement.SmallStyleClassName);
-            else
-                this._listItemNode.classList.remove(WebInspector.GeneralTreeElement.SmallStyleClassName);
-        }
-    }
-
-    get twoLine()
-    {
-        return this._twoLine;
-    }
-
-    set twoLine(x)
-    {
-        this._twoLine = x;
-
-        if (this._listItemNode) {
-            if (this._twoLine)
-                this._listItemNode.classList.add(WebInspector.GeneralTreeElement.TwoLineStyleClassName);
-            else
-                this._listItemNode.classList.remove(WebInspector.GeneralTreeElement.TwoLineStyleClassName);
-        }
-    }
-
     get mainTitle()
     {
         return this._mainTitle;
@@ -153,7 +122,12 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
 
     set mainTitle(x)
     {
-        this._mainTitle = x || "";
+        x = x || "";
+
+        if (this._mainTitle === x)
+            return;
+
+        this._mainTitle = x;
         this._updateTitleElements();
         this.didChange();
         this.dispatchEventToListeners(WebInspector.GeneralTreeElement.Event.MainTitleDidChange);
@@ -166,7 +140,12 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
 
     set subtitle(x)
     {
-        this._subtitle = x || "";
+        x = x || "";
+
+        if (this._subtitle === x)
+            return;
+
+        this._subtitle = x;
         this._updateTitleElements();
         this.didChange();
     }
@@ -178,6 +157,8 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
 
     set status(x)
     {
+        x = x || "";
+
         if (this._status === x)
             return;
 
@@ -186,7 +167,7 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
             this._statusElement.className = WebInspector.GeneralTreeElement.StatusElementStyleClassName;
         }
 
-        this._status = x || "";
+        this._status = x;
         this._updateStatusElement();
     }
 
@@ -202,7 +183,7 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
 
     set tooltipHandledSeparately(x)
     {
-        this._tooltipHandledSeparately = x || false;
+        this._tooltipHandledSeparately = !!x;
     }
 
     // Overrides from TreeElement (Private)
@@ -222,12 +203,6 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
         if (this._classNames)
             this._listItemNode.classList.add(...this._classNames);
 
-        if (this._small)
-            this._listItemNode.classList.add(WebInspector.GeneralTreeElement.SmallStyleClassName);
-
-        if (this._twoLine)
-            this._listItemNode.classList.add(WebInspector.GeneralTreeElement.TwoLineStyleClassName);
-
         this._listItemNode.appendChild(this._disclosureButton);
         this._listItemNode.appendChild(this._iconElement);
         if (this._statusElement)
@@ -240,7 +215,7 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
         }
 
         if (!this._boundContextMenuEventHandler && this.treeOutline.oncontextmenu && typeof this.treeOutline.oncontextmenu === "function") {
-            this._boundContextMenuEventHandler = function(event) { this.treeOutline.oncontextmenu(event, this); }.bind(this);
+            this._boundContextMenuEventHandler = (event) => { this.treeOutline.oncontextmenu(event, this); };
             this._listItemNode.addEventListener("contextmenu", this._boundContextMenuEventHandler);
         }
     }
@@ -355,8 +330,9 @@ WebInspector.GeneralTreeElement = class GeneralTreeElement extends WebInspector.
         // and the tool tip only cares about the text.
         let mainTitleText = this._mainTitleElement.textContent;
         let subtitleText = this._subtitleElement ? this._subtitleElement.textContent : "";
+        let large = this.treeOutline && this.treeOutline.large;
         if (mainTitleText && subtitleText)
-            this._listItemNode.title = mainTitleText + (this._small && !this._twoLine ? " \u2014 " : "\n") + subtitleText;
+            this._listItemNode.title = mainTitleText + (large ? "\n" : " \u2014 ") + subtitleText;
         else if (mainTitleText)
             this._listItemNode.title = mainTitleText;
         else
@@ -386,8 +362,6 @@ WebInspector.GeneralTreeElement.TitlesElementStyleClassName = "titles";
 WebInspector.GeneralTreeElement.MainTitleElementStyleClassName = "title";
 WebInspector.GeneralTreeElement.SubtitleElementStyleClassName = "subtitle";
 WebInspector.GeneralTreeElement.NoSubtitleStyleClassName = "no-subtitle";
-WebInspector.GeneralTreeElement.SmallStyleClassName = "small";
-WebInspector.GeneralTreeElement.TwoLineStyleClassName = "two-line";
 
 WebInspector.GeneralTreeElement.Event = {
     MainTitleDidChange: "general-tree-element-main-title-did-change"

@@ -7,6 +7,7 @@
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <JavaScriptCore/ScriptValue.h>
+#include <wtf/text/StringBuilder.h>
 
 namespace NativeScript {
 #if !LOG_DISABLED
@@ -56,7 +57,7 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
 
     String message;
     arguments->getFirstArgumentAsString(message);
-    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::move(arguments), exec));
+    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTFMove(arguments), exec));
 }
 
 void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource source, MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
@@ -90,22 +91,24 @@ void GlobalObjectConsoleClient::count(JSC::ExecState* exec, RefPtr<Inspector::Sc
     m_consoleAgent->count(exec, arguments);
 }
 
-void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String&) {
+void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String& title) {
     NativeScript::GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
     if (timelineAgent) {
-        Inspector::ErrorString unused;
-        timelineAgent->start(unused, nullptr);
+        timelineAgent->startFromConsole(execState, title);
     }
 }
 
-void GlobalObjectConsoleClient::profileEnd(JSC::ExecState* execState, const String&) {
+void GlobalObjectConsoleClient::profileEnd(JSC::ExecState* execState, const String& title) {
     NativeScript::GlobalObject* globalObject = JSC::jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
     Inspector::InspectorTimelineAgent* timelineAgent = globalObject->inspectorController().timelineAgent();
     if (timelineAgent) {
-        Inspector::ErrorString unused;
-        timelineAgent->stop(unused);
+        timelineAgent->stopFromConsole(execState, title);
     }
+}
+
+void GlobalObjectConsoleClient::takeHeapSnapshot(JSC::ExecState*, const String& title) {
+    m_consoleAgent->takeHeapSnapshot(title);
 }
 
 void GlobalObjectConsoleClient::time(JSC::ExecState*, const String& title) {
@@ -114,7 +117,7 @@ void GlobalObjectConsoleClient::time(JSC::ExecState*, const String& title) {
 
 void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& title) {
     RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
-    m_consoleAgent->stopTiming(title, WTF::move(callStack));
+    m_consoleAgent->stopTiming(title, WTFMove(callStack));
 }
 
 void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) {

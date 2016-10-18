@@ -22,12 +22,15 @@ inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void*
     FFICallback* callback = static_cast<FFICallback*>(userData);
     JSC::ExecState* execState = callback->_globalExecState;
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+
     JSC::JSLockHolder lock(execState->vm());
     static_cast<DerivedCallback*>(callback)->ffiClosureCallback(retValue, argValues, userData);
 
-    if (execState->hadException()) {
-        JSC::Exception* exception = execState->exception();
-        execState->clearException();
+    if (scope.exception()) {
+        JSC::Exception* exception = scope.exception();
+        scope.clearException();
 
         reportFatalErrorBeforeShutdown(execState, exception);
     }
@@ -36,10 +39,13 @@ inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void*
 template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::marshallArguments(void** argValues, JSC::MarkedArgumentBuffer& argumentBuffer, FFICallback* self) {
     for (size_t i = 0; i < this->_parameterTypes.size(); ++i) {
+        JSC::VM& vm = this->_globalExecState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         JSC::JSValue argument = this->_parameterTypes[i].read(this->_globalExecState, argValues[i + self->_initialArgumentIndex], this->_parameterTypesCells[i].get());
         argumentBuffer.append(argument);
 
-        if (this->_globalExecState->hadException()) {
+        if (scope.exception()) {
             break;
         }
     }
@@ -48,16 +54,18 @@ inline void FFICallback<DerivedCallback>::marshallArguments(void** argValues, JS
 template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::callFunction(const JSC::JSValue& thisValue, const JSC::ArgList& arguments, void* retValue) {
     JSC::ExecState* execState = this->_globalExecState;
+    JSC::VM& vm = this->_globalExecState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     JSC::CallData callData;
     JSC::CallType callType;
-    if ((callType = this->_function.get()->methodTable()->getCallData(this->_function.get(), callData)) == JSC::CallTypeNone) {
-        execState->vm().throwException(execState, createNotAFunctionError(execState, this->_function.get()));
+    if ((callType = this->_function.get()->methodTable()->getCallData(this->_function.get(), callData)) == JSC::CallType::None) {
+        scope.throwException(execState, createNotAFunctionError(execState, this->_function.get()));
         return;
     }
 
     JSC::JSValue result = JSC::call(execState, this->_function.get(), callType, callData, thisValue, arguments);
-    if (this->_globalExecState->hadException()) {
+    if (scope.exception()) {
         return;
     }
 

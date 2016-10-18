@@ -16,7 +16,7 @@ const ClassInfo RecordInstance::s_info = { "record", &Base::s_info, 0, CREATE_ME
 
 void RecordInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, size_t size, PointerInstance* pointer) {
     Base::finishCreation(vm);
-    this->preventExtensions(vm);
+    this->preventExtensions(this, vm.topCallFrame);
 
     this->_size = size;
     this->_pointer.set(vm, this, pointer);

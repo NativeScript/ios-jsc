@@ -34,8 +34,8 @@
 }
 
 .item.visual-style-selector-item.selected {
-    background-color: hsl(213, 92%, 55%) !important;
-    color: white;
+    background-color: var(--selected-background-color) !important;
+    color: var(--selected-foreground-color);
 }
 
 .item.visual-style-selector-item > .disclosure-button {
@@ -61,7 +61,7 @@ body:not(.window-inactive, .window-docked-inactive) .item.visual-style-selector-
 .item.visual-style-selector-item > .icon {
     width: 16px;
     height: 16px;
-    margin-left: 4px;
+    margin: 0 3px 0 4px;
 }
 
 .item.visual-style-selector-item.modified > .icon {
@@ -69,9 +69,16 @@ body:not(.window-inactive, .window-docked-inactive) .item.visual-style-selector-
 }
 
 .item.visual-style-selector-item.selector-invalid > .icon {
-    width: 14px;
     height: 14px;
     content: url(../Images/Error.svg);
+}
+
+.item.visual-style-selector-item.selector-invalid > .icon:hover {
+    filter: brightness(0.9);
+}
+
+.item.visual-style-selector-item.selector-invalid > .icon:active {
+    filter: brightness(0.8);
 }
 
 .item.visual-style-selector-item.selector-invalid > .titles > .title {
@@ -96,10 +103,11 @@ body:not(.window-inactive, .window-docked-inactive) .item.visual-style-selector-
 
 .item.visual-style-selector-item > .titles {
     flex: 1;
+    top: 0;
+    line-height: inherit;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    padding: 0 2px 0 3px;
 }
 
 .item.visual-style-selector-item:not(.dom-element-icon) > .titles > .title {
@@ -121,14 +129,11 @@ body:not(.window-inactive, .window-docked-inactive) .item.visual-style-selector-
     box-shadow: hsla(0, 0%, 0%, 0.15) 0 1px 0, 0 0 0 3px hsla(0, 100%, 100%, 0.3);
 }
 
-.item.visual-style-selector-item > .titles > .subtitle::before {
-    margin-right: 5px;
-    font-size: 11px;
-    /* The extra space at the beginning is necessary to prevent the -webkit-user-modify
-    cursor bar from displaying at the beginning of the em-dash. */
-    content: " \2014"; /* em-dash */
+.item.visual-style-selector-item > .titles > .subtitle {
+    vertical-align: 1px;
+    font-size: 9px;
 }
 
-.item.visual-style-selector-item > .titles > .subtitle {
-    font-size: 9px;
+.item.visual-style-selector-item.selected > .titles > .subtitle {
+    color: inherit;
 }

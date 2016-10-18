@@ -103,9 +103,12 @@ protected:
     static JSC::EncodedJSValue JSC_HOST_CALL call(JSC::ExecState* execState);
 
     void preCall(JSC::ExecState* execState, Invocation& invocation) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         if (!this->_argumentCountValidator(this, execState)) {
             WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\". ", execState->argumentCount(), this->parametersCount());
-            execState->vm().throwException(execState, JSC::createError(execState, message));
+            throwException(execState, scope, JSC::createError(execState, message));
             return;
         }
 
@@ -116,7 +119,7 @@ protected:
             JSCell* parameterType = _parameterTypesCells[i].get();
             _parameterTypes[i].write(execState, argument, invocation.argumentBuffer(i + _initialArgumentIndex), parameterType);
 
-            if (execState->hadException()) {
+            if (scope.exception()) {
                 return;
             }
         }

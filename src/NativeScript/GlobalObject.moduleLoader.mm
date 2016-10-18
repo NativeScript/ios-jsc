@@ -17,11 +17,12 @@
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSInternalPromiseDeferred.h>
 #include <JavaScriptCore/JSModuleEnvironment.h>
+#include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/LiteralParser.h>
 #include <JavaScriptCore/ModuleAnalyzer.h>
-#include <JavaScriptCore/ModuleLoaderObject.h>
+#include <JavaScriptCore/ModuleLoaderPrototype.h>
 #include <JavaScriptCore/Nodes.h>
 #include <JavaScriptCore/ObjectConstructor.h>
 #include <JavaScriptCore/Parser.h>
@@ -56,16 +57,19 @@ static NSString* resolveFile(NSString* filePath) {
     return nil;
 }
 
-JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue referrerValue) {
+JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue referrerValue, JSValue initiator) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
     if (keyValue.isSymbol()) {
         return deferred->resolve(execState, keyValue);
     }
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+
     NSString* path = keyValue.toWTFString(execState);
-    if (JSC::Exception* e = execState->exception()) {
-        execState->clearException();
+    if (JSC::Exception* e = scope.exception()) {
+        scope.clearException();
         return deferred->reject(execState, e);
     }
 
@@ -129,12 +133,15 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
     return deferred->resolve(execState, jsString(execState, absoluteFilePath));
 }
 
-JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue) {
+JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue initiator) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+
     NSString* modulePath = keyValue.toWTFString(execState);
-    if (JSC::Exception* e = execState->exception()) {
-        execState->clearException();
+    if (JSC::Exception* e = scope.exception()) {
+        scope.clearException();
         return deferred->reject(execState, e->value());
     }
 
@@ -149,12 +156,15 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     return deferred->resolve(execState, self->interop()->bufferFromData(execState, moduleContent));
 }
 
-JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue sourceValue) {
+JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue sourceValue, JSValue initiator) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+
     id source = NativeScript::toObject(execState, sourceValue);
-    if (Exception* exception = execState->exception()) {
-        execState->clearException();
+    if (Exception* exception = scope.exception()) {
+        scope.clearException();
         return deferred->reject(execState, exception);
     }
 
@@ -180,7 +190,7 @@ static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourc
 
     std::unique_ptr<ModuleProgramNode> moduleProgramNode = parse<ModuleProgramNode>(
         &execState->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin,
-        JSParserStrictMode::Strict, SourceParseMode::ModuleAnalyzeMode, parserError);
+        JSParserStrictMode::Strict, JSParserScriptMode::Module, SourceParseMode::ModuleAnalyzeMode, SuperBinding::NotNeeded, parserError);
 
     if (!moduleProgramNode) {
         return nullptr;
@@ -190,19 +200,20 @@ static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourc
     return moduleAnalyzer.analyze(*moduleProgramNode);
 }
 
-JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue sourceValue) {
+JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue sourceValue, JSValue initiator) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
 
-    VM& vm = execState->vm();
     const Identifier moduleKey = execState->argument(0).toPropertyKey(execState);
-    if (Exception* exception = execState->exception()) {
-        vm.clearException();
+    if (Exception* exception = scope.exception()) {
+        scope.clearException();
         return deferred->reject(execState, exception->value());
     }
 
     WTF::String source = execState->argument(1).toWTFString(execState);
-    if (Exception* exception = execState->exception()) {
-        vm.clearException();
+    if (Exception* exception = scope.exception()) {
+        scope.clearException();
         return deferred->reject(execState, exception->value());
     }
 
@@ -272,16 +283,18 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
 }
 
 EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
     JSValue moduleName = execState->argument(0);
     if (!moduleName.isString()) {
-        return JSValue::encode(throwTypeError(execState, WTF::ASCIILiteral("Expected module identifier to be a string.")));
+        return JSValue::encode(throwTypeError(execState, scope, WTF::ASCIILiteral("Expected module identifier to be a string.")));
     }
 
     JSValue callee = execState->calleeAsValue();
     JSValue refererKey = callee.get(execState, execState->propertyNames().sourceURL);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSInternalPromise* promise = globalObject->moduleLoader()->resolve(execState, moduleName, refererKey);
+    JSInternalPromise* promise = globalObject->moduleLoader()->resolve(execState, moduleName, refererKey, refererKey);
 
     Exception* exception = nullptr;
     JSFunction* errorHandler = JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&exception](ExecState* execState) {
@@ -298,7 +311,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                       JSValue moduleKey = execState->argument(0);
 
                       JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
-                      JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->propertyNames().builtinNames().linkAndEvaluateModulePublicName()));
+                      JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->propertyNames().builtinNames().loadAndEvaluateModulePublicName()));
                       CallData callData;
                       CallType callType = JSC::getCallData(function, callData);
 
@@ -325,7 +338,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
     globalObject->drainMicrotasks();
 
     if (exception) {
-        execState->vm().throwException(execState, exception);
+        scope.throwException(execState, exception);
         return JSValue::encode(exception);
     }
 
@@ -354,7 +367,7 @@ static void putValueInScopeAndSymbolTable(VM& vm, JSModuleRecord* moduleRecord, 
     moduleEnvironment->variableAt(entry.scopeOffset()).set(vm, moduleEnvironment, value);
 }
 
-JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecState* execState, JSValue keyValue, JSValue moduleRecordValue) {
+JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue moduleRecordValue, JSValue initiator) {
     JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(moduleRecordValue);
     if (!moduleRecord) {
         return jsUndefined();
@@ -392,7 +405,9 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
         WTF::NakedPtr<Exception> exception;
         JSValue result = JSC::call(execState, moduleFunction.asCell(), callType, callData, execState->globalThisValue(), args, exception);
         if (exception) {
-            vm.throwException(execState, exception.get());
+            auto scope = DECLARE_THROW_SCOPE(vm);
+
+            scope.throwException(execState, exception.get());
             return exception.get();
         }
 

@@ -23,29 +23,27 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.dom-tree-outline {
+.tree-outline.dom {
     position: relative;
 
-    padding: 0 6px;
-    margin: 0;
     min-width: 100%;
+    margin: 0;
+    padding: 0;
 
     outline: none;
 
     list-style-type: none;
 
- /* Needed to make the negative z-index on .selection works. Otherwise the background-color from .syntax-highlighted hides the selection. */
+ /* Needed to make the negative z-index on .selection-area works. Otherwise the background-color from .syntax-highlighted hides the selection. */
     background-color: transparent !important;
     color: black;
 }
 
-.dom-tree-outline li.hovered:not(.selected) .selection {
-    display: block;
+.tree-outline.dom li.hovered:not(.selected) .selection-area {
     background-color: hsla(209, 100%, 49%, 0.1);
 }
 
-.dom-tree-outline li .selection {
-    display: none;
+.tree-outline.dom li .selection-area {
     position: absolute;
     left: 0;
     right: 0;
@@ -53,72 +51,99 @@
     z-index: -1;
 }
 
-.dom-tree-outline li.selected .selection {
-    display: block;
+.tree-outline.dom li.selected .selection-area {
     background-color: hsl(0, 0%, 83%);
 }
 
-.dom-tree-outline li.elements-drag-over .selection {
-    display: block;
+.tree-outline.dom li.elements-drag-over .selection-area {
     margin-top: -2px;
     border-top: 2px solid hsl(209, 100%, 49%);
 }
 
-.dom-tree-outline:focus li.selected .selection {
+.tree-outline.dom:focus li.selected .selection-area {
     background-color: hsl(209, 100%, 49%);
 }
 
-.dom-tree-outline li.selected > span::after {
+.tree-outline.dom li.selected > span::after {
     content: " = $0";
     color: var(--console-secondary-text-color);
     position: absolute;
     white-space: pre;
 }
 
-.dom-tree-outline:focus li.selected > span::after {
+.tree-outline.dom:focus li.selected > span::after {
     color: hsla(0, 100%, 100%, 0.7);
 }
 
-.dom-tree-outline ol {
+.tree-outline.dom ol {
     list-style-type: none;
-    padding-left: 1.2em;
+    padding-left: 14px;
     margin: 0;
 }
 
-.dom-tree-outline ol.children {
+.tree-outline.dom ol.children {
     display: none;
 }
 
-.dom-tree-outline ol.children.expanded {
+.tree-outline.dom ol.children.expanded {
     display: block;
 }
 
-.dom-tree-outline li {
-    padding: 0 0 0 17px;
+.tree-outline.dom li:matches(.hovered, .selected) + ol.children.expanded {
+    margin-left: 4px;
+    padding-left: 1px;
+    border-left: 9px solid hsla(0, 0%, 83%, 0.5);
+}
+
+.tree-outline.dom li.selected + ol.children.expanded {
+    border-left-color: hsl(0, 0%, 83%);
+}
+
+.tree-outline.dom li {
+    padding: 0 6px 0 17px;
     word-wrap: break-word;
 }
 
-.dom-tree-outline.single-node li {
+.tree-outline.dom li.pseudo-class-enabled > .selection-area::before {
+    display: inline-block;
+    position: absolute;
+    top: 4px;
+    left: 2px;
+    width: 5px;
+    height: 5px;
+    content: "";
+    background-color: var(--selected-background-color);
+    border-radius: 50%;
+}
+
+.tree-outline.dom.single-node li {
     padding-left: 2px;
 }
 
-.dom-tree-outline:focus li.selected {
+.tree-outline.dom:focus li.selected {
     color: white;
 }
 
-.dom-tree-outline:focus li.selected * {
+.tree-outline.dom:focus li.selected.pseudo-class-enabled > .selection-area::before {
+    background-color: hsl(0, 100%, 100%);
+}
+
+.tree-outline.dom:focus li.selected * {
     color: inherit;
 }
 
-.dom-tree-outline li.parent {
+.tree-outline.dom li.parent {
     margin-left: -15px;
 }
 
-.dom-tree-outline li .html-tag.close {
+.tree-outline.dom li .html-tag.close {
     margin-left: -13px;
 }
 
-.dom-tree-outline li.parent::before {
+.tree-outline.dom li.parent::before {
+    position: relative;
+    z-index: 20;
+
     float: left;
 
     content: "";
@@ -134,33 +159,49 @@
     padding-right: 2px;
 }
 
-.dom-tree-outline:focus li.parent.selected::before {
+.tree-outline.dom:focus li.parent.selected::before {
     background-image: url(../Images/DisclosureTriangles.svg#closed-selected);
 }
 
-.dom-tree-outline li.parent.expanded::before {
+.tree-outline.dom li.parent.expanded::before {
     background-image: url(../Images/DisclosureTriangles.svg#open-normal);
 }
 
-.dom-tree-outline:focus li.parent.expanded.selected::before {
+.tree-outline.dom:focus li.parent.expanded.selected::before {
     background-image: url(../Images/DisclosureTriangles.svg#open-selected);
 }
 
-.dom-tree-outline .html-text-node.large {
+.tree-outline.dom .html-text-node.large {
     display: inline-block;
     min-width: 100%;
     white-space: pre-wrap;
 }
 
-.dom-tree-outline .html-pseudo-element {
+.tree-outline.dom .html-pseudo-element {
     color: hsl(0, 59%, 41%);
 }
 
-.dom-tree-outline .html-fragment.shadow {
-    opacity: 0.6;
+.tree-outline.dom .shadow {
+    color: gray;
 }
 
-.showing-find-banner .dom-tree-outline .search-highlight {
+/* Cannot apply styling directly to the parent element since it has a disclosure triangle. */
+.tree-outline.dom li.parent.shadow::after {
+    display: block;
+    /* Adds padding to the right edge. */
+    width: calc(100% + 8px);
+    height: 1.2em;
+    margin-top: -13px;
+    margin-left: -2px;
+    content: "";
+    background-color: hsla(0, 0%, 90%, 0.5);
+}
+
+.tree-outline.dom li.parent.shadow + ol.children.expanded {
+    background-color: hsla(0, 0%, 90%, 0.5);
+}
+
+.showing-find-banner .tree-outline.dom .search-highlight {
     color: black;
     background-color: hsla(53, 83%, 53%, 0.2);
     border-bottom: 1px solid hsl(47, 82%, 60%);

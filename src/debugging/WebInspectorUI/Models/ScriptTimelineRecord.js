@@ -38,6 +38,14 @@ WebInspector.ScriptTimelineRecord = class ScriptTimelineRecord extends WebInspec
         this._details = details || "";
         this._profilePayload = profilePayload || null;
         this._profile = null;
+
+        // COMPATIBILITY(iOS 9): Before the ScriptProfilerAgent we did not have sample data. Return NaN to match old behavior.
+        if (!window.ScriptProfilerAgent)
+            this._callCountOrSamples = NaN;
+        else {
+            // NOTE: _callCountOrSamples is being treated as the number of samples.
+            this._callCountOrSamples = 0;
+        }
     }
 
     // Public
@@ -58,6 +66,11 @@ WebInspector.ScriptTimelineRecord = class ScriptTimelineRecord extends WebInspec
         return this._profile;
     }
 
+    get callCountOrSamples()
+    {
+        return this._callCountOrSamples;
+    }
+
     isGarbageCollection()
     {
         return this._eventType === WebInspector.ScriptTimelineRecord.EventType.GarbageCollected;
@@ -69,6 +82,16 @@ WebInspector.ScriptTimelineRecord = class ScriptTimelineRecord extends WebInspec
 
         cookie[WebInspector.ScriptTimelineRecord.EventTypeCookieKey] = this._eventType;
         cookie[WebInspector.ScriptTimelineRecord.DetailsCookieKey] = this._details;
+    }
+
+    get profilePayload()
+    {
+        return this._profilePayload;
+    }
+
+    set profilePayload(payload)
+    {
+        this._profilePayload = payload;
     }
 
     // Private
@@ -149,13 +172,21 @@ WebInspector.ScriptTimelineRecord = class ScriptTimelineRecord extends WebInspec
             }
         }
 
+        // COMPATIBILITY (iOS 9): We only do this when we have ScriptProfilerAgent because before that we didn't have a Sampling Profiler.
+        if (window.ScriptProfilerAgent) {
+            for (let i = 0; i < rootNodes.length; i++)
+                this._callCountOrSamples += rootNodes[i].callInfo.callCount;
+        }
+
         this._profile = new WebInspector.Profile(rootNodes);
     }
 };
 
 WebInspector.ScriptTimelineRecord.EventType = {
     ScriptEvaluated: "script-timeline-record-script-evaluated",
-    EventDispatched: "script-timeline-record-event-dispatch",
+    APIScriptEvaluated: "script-timeline-record-api-script-evaluated",
+    MicrotaskDispatched: "script-timeline-record-microtask-dispatched",
+    EventDispatched: "script-timeline-record-event-dispatched",
     ProbeSampleRecorded: "script-timeline-record-probe-sample-recorded",
     TimerFired: "script-timeline-record-timer-fired",
     TimerInstalled: "script-timeline-record-timer-installed",
@@ -164,7 +195,7 @@ WebInspector.ScriptTimelineRecord.EventType = {
     AnimationFrameRequested: "script-timeline-record-animation-frame-requested",
     AnimationFrameCanceled: "script-timeline-record-animation-frame-canceled",
     ConsoleProfileRecorded: "script-timeline-record-console-profile-recorded",
-    GarbageCollected: "script-timeline-record-garbage-collected"
+    GarbageCollected: "script-timeline-record-garbage-collected",
 };
 
 WebInspector.ScriptTimelineRecord.EventType.displayName = function(eventType, details, includeDetailsInMainTitle)
@@ -261,6 +292,7 @@ WebInspector.ScriptTimelineRecord.EventType.displayName = function(eventType, de
         nameMap.set("removesourcebuffer", "Remove Source Buffer");
         nameMap.set("removestream", "Remove Stream");
         nameMap.set("removetrack", "Remove Track");
+        nameMap.set("resize", "Resize");
         nameMap.set("securitypolicyviolation", "Security Policy Violation");
         nameMap.set("selectionchange", "Selection Change");
         nameMap.set("selectstart", "Select Start");
@@ -325,15 +357,17 @@ WebInspector.ScriptTimelineRecord.EventType.displayName = function(eventType, de
         WebInspector.ScriptTimelineRecord._eventDisplayNames = nameMap;
     }
 
-    switch(eventType) {
+    switch (eventType) {
     case WebInspector.ScriptTimelineRecord.EventType.ScriptEvaluated:
+    case WebInspector.ScriptTimelineRecord.EventType.APIScriptEvaluated:
         return WebInspector.UIString("Script Evaluated");
+    case WebInspector.ScriptTimelineRecord.EventType.MicrotaskDispatched:
+        return WebInspector.UIString("Microtask Dispatched");
     case WebInspector.ScriptTimelineRecord.EventType.EventDispatched:
         if (details && (details instanceof String || typeof details === "string")) {
             var eventDisplayName = WebInspector.ScriptTimelineRecord._eventDisplayNames.get(details) || details.capitalize();
             return WebInspector.UIString("%s Event Dispatched").format(eventDisplayName);
         }
-
         return WebInspector.UIString("Event Dispatched");
     case WebInspector.ScriptTimelineRecord.EventType.ProbeSampleRecorded:
         return WebInspector.UIString("Probe Sample Recorded");

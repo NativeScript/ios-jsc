@@ -66,7 +66,10 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
         pointer->setAdopted(adopted);
         result = ReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->referenceInstanceStructure(), maybeType.asCell(), pointer);
     } else if (execState->argumentCount() == 2) {
-        return throwVMError(execState, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
     } else {
         result = ReferenceInstance::create(execState->vm(), globalObject->interop()->referenceInstanceStructure(), maybeType);
     }
@@ -76,11 +79,11 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
 
 ConstructType ReferenceConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
     constructData.native.function = &constructReference;
-    return ConstructTypeHost;
+    return ConstructType::Host;
 }
 
 CallType ReferenceConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructReference;
-    return CallTypeHost;
+    return CallType::Host;
 }
 }

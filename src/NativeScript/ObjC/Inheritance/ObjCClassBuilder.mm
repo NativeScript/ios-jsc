@@ -98,9 +98,11 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 }
 
 static bool isValidType(ExecState* execState, JSValue& value) {
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
     const FFITypeMethodTable* table;
     if (!tryGetFFITypeMethodTable(value, &table)) {
-        execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Invalid type")));
+        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Invalid type")));
         return false;
     }
     return true;
@@ -125,16 +127,18 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 
 static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, SEL methodName, JSValue& typeEncoding) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     CallData callData;
-    if (method->methodTable()->getCallData(method, callData) == CallTypeNone) {
+    if (method->methodTable()->getCallData(method, callData) == CallType::None) {
         WTF::String message = WTF::String::format("Method %s is not a function.", sel_getName(methodName));
-        execState->vm().throwException(execState, createError(execState, message));
+        scope.throwException(execState, createError(execState, message));
         return;
     }
     if (!typeEncoding.isObject()) {
         WTF::String message = WTF::String::format("Method %s has invalid type encoding", sel_getName(methodName));
-        execState->vm().throwException(execState, createError(execState, message));
+        scope.throwException(execState, createError(execState, message));
         return;
     }
 
@@ -142,14 +146,14 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     PropertyName returnsProp = Identifier::fromString(execState, "returns");
     if (!typeEncodingObj->hasOwnProperty(execState, returnsProp)) {
         WTF::String message = WTF::String::format("Method %s is missing its return type encoding", sel_getName(methodName));
-        execState->vm().throwException(execState, createError(execState, message));
+        scope.throwException(execState, createError(execState, message));
         return;
     }
 
     std::stringstream compilerEncoding;
 
     JSValue returnTypeValue = typeEncodingObj->get(execState, returnsProp);
-    if (execState->hadException() || !isValidType(execState, returnTypeValue)) {
+    if (scope.exception() || !isValidType(execState, returnTypeValue)) {
         return;
     }
 
@@ -157,7 +161,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     compilerEncoding << "@:"; // id self, SEL _cmd
 
     JSValue parameterTypesValue = typeEncodingObj->get(execState, Identifier::fromString(execState, "params"));
-    if (execState->hadException()) {
+    if (scope.exception()) {
         return;
     }
 
@@ -166,7 +170,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     if (parameterTypesArr) {
         for (unsigned int i = 0; i < parameterTypesArr->length(); ++i) {
             JSValue parameterType = parameterTypesArr->get(execState, i);
-            if (execState->hadException() || !isValidType(execState, parameterType)) {
+            if (scope.exception() || !isValidType(execState, parameterType)) {
                 return;
             }
 
@@ -185,7 +189,10 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor, JSObject* prototype, const WTF::String& className) {
     // TODO: Inherit from derived constructor.
     if (!baseConstructor.inherits(ObjCConstructorNative::info())) {
-        execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("Extends is supported only for native classes.")));
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Extends is supported only for native classes.")));
         return;
     }
 
@@ -203,7 +210,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     class_addProtocol(object_getClass(klass), @protocol(TNSDerivedClass));
 
     JSValue basePrototype = this->_baseConstructor->get(execState, execState->vm().propertyNames->prototype);
-    prototype->setPrototype(execState->vm(), basePrototype);
+    prototype->setPrototypeDirect(execState->vm(), basePrototype);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     Structure* structure = ObjCConstructorDerived::createStructure(execState->vm(), globalObject, this->_baseConstructor.get());
@@ -216,8 +223,11 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
 
 void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolWrapper) {
     if (!protocolWrapper.inherits(ObjCProtocolWrapper::info())) {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
         WTF::String errorMessage = WTF::String::format("Protocol \"%s\" is not a protocol object.", protocolWrapper.toWTFString(execState).utf8().data());
-        execState->vm().throwException(execState, createError(execState, errorMessage));
+        scope.throwException(execState, createError(execState, errorMessage));
         return;
     }
 
@@ -242,8 +252,11 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
         return;
     }
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     if (!protocolsArray.inherits(JSArray::info())) {
-        execState->vm().throwException(execState, createError(execState, WTF::ASCIILiteral("The protocols property must be an array")));
+        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The protocols property must be an array")));
         return;
     }
 
@@ -252,7 +265,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
         JSValue protocolWrapper = protocolsArray.get(execState, i);
         this->implementProtocol(execState, protocolWrapper);
 
-        if (execState->hadException()) {
+        if (scope.exception()) {
             return;
         }
     }
@@ -313,10 +326,11 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
         Class klass = this->_constructor.get()->klass();
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         VM& vm = globalObject->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
 
         if (const MethodMeta* getter = propertyMeta->getter()) {
             if (propertyDescriptor.getter().isUndefined()) {
-                throwVMError(execState, createError(execState, WTF::String::format("Property \"%s\" requires a getter function.", propertyName->utf8().data())));
+                throwVMError(execState, scope, createError(execState, WTF::String::format("Property \"%s\" requires a getter function.", propertyName->utf8().data())));
                 return;
             }
 
@@ -334,7 +348,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
         if (const MethodMeta* setter = propertyMeta->setter()) {
             if (propertyDescriptor.setter().isUndefined()) {
-                throwVMError(execState, createError(execState, WTF::String::format("Property \"%s\" requires a setter function.", propertyName->utf8().data())));
+                throwVMError(execState, scope, createError(execState, WTF::String::format("Property \"%s\" requires a setter function.", propertyName->utf8().data())));
                 return;
             }
 
@@ -359,7 +373,10 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
     instanceMethods->methodTable()->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, EnumerationMode());
 
     for (Identifier key : prototypeKeys) {
-        PropertySlot propertySlot(instanceMethods);
+        PropertySlot propertySlot(instanceMethods, PropertySlot::InternalMethodType::GetOwnProperty);
+
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
 
         if (!instanceMethods->methodTable()->getOwnPropertySlot(instanceMethods, execState, key, propertySlot)) {
             continue;
@@ -387,7 +404,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
             WTFCrash();
         }
 
-        if (execState->hadException()) {
+        if (scope.exception()) {
             return;
         }
     }
@@ -453,8 +470,11 @@ void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMe
     PropertyNameArray keys(execState, PropertyNameMode::Strings);
     staticMethods->methodTable()->getOwnPropertyNames(staticMethods, execState, keys, EnumerationMode());
 
+    JSC::VM& vm = execState->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
+
     for (Identifier key : keys) {
-        PropertySlot propertySlot(staticMethods);
+        PropertySlot propertySlot(staticMethods, PropertySlot::InternalMethodType::GetOwnProperty);
 
         if (!staticMethods->methodTable()->getOwnPropertySlot(staticMethods, execState, key, propertySlot)) {
             continue;
@@ -469,7 +489,7 @@ void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMe
             WTFCrash();
         }
 
-        if (execState->hadException()) {
+        if (scope.exception()) {
             return;
         }
     }
