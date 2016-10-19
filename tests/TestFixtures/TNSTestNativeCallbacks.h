@@ -68,6 +68,8 @@
 
 + (NSString*)callRecursively:(NSString* (^)())block;
 
++ (NSString*)callOnThread:(NSString* (^)())block;
+
 - (void (^)())getBlock;
 - (void (^)())getBlockFromNative;
 

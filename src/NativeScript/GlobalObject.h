@@ -30,19 +30,21 @@ class GlobalObject : public JSC::JSGlobalObject {
 public:
     typedef JSC::JSGlobalObject Base;
 
-    friend class ObjCClassBuilder;
+    static const unsigned StructureFlags;
 
-    static GlobalObject* create(WTF::String applicationPath, JSC::VM& vm, JSC::Structure* structure);
-
-    static const bool needsDestruction = false;
+    static GlobalObject* create(JSC::VM& vm, JSC::Structure* structure, WTF::String applicationPath) {
+        GlobalObject* object = new (NotNull, JSC::allocateCell<GlobalObject>(vm.heap)) GlobalObject(vm, structure);
+        object->finishCreation(vm, applicationPath);
+        return object;
+    }
 
     DECLARE_INFO;
 
-    static const unsigned StructureFlags;
+    static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSValue prototype) {
+        return JSC::Structure::create(vm, 0, prototype, JSC::TypeInfo(JSC::GlobalObjectType, GlobalObject::StructureFlags), GlobalObject::info());
+    }
 
     static const JSC::GlobalObjectMethodTable globalObjectMethodTable;
-
-    static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSValue prototype);
 
     static bool getOwnPropertySlot(JSC::JSObject* object, JSC::ExecState* execState, JSC::PropertyName propertyName, JSC::PropertySlot& propertySlot);
 
@@ -112,6 +114,18 @@ public:
         return this->_weakRefInstanceStructure.get();
     }
 
+    JSC::Structure* workerConstructorStructure() const {
+        return this->_workerConstructorStructure.get();
+    }
+
+    JSC::Structure* workerPrototypeStructure() const {
+        return this->_workerPrototypeStructure.get();
+    }
+
+    JSC::Structure* workerInstanceStructure() const {
+        return this->_workerInstanceStructure.get();
+    }
+
     JSC::Structure* unmanagedInstanceStructure() const {
         return this->_unmanagedInstanceStructure.get();
     }
@@ -166,16 +180,26 @@ public:
         return this->_modulePathCache;
     }
 
-private:
+    bool callJsUncaughtErrorCallback(JSC::ExecState* execState, JSC::Exception* exception, WTF::NakedPtr<JSC::Exception>& outException);
+
+protected:
+    static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
+
     GlobalObject(JSC::VM& vm, JSC::Structure* structure);
 
     ~GlobalObject();
 
-    void finishCreation(WTF::String applicationPath, JSC::VM& vm);
+    void finishCreation(JSC::VM& vm, WTF::String applicationPath);
 
-    static void destroy(JSC::JSCell* cell);
+private:
+    friend class ObjCClassBuilder;
 
     WTF::Deque<WTF::RefPtr<JSC::Microtask>> _microtasksQueue;
+
+    static void destroy(JSC::JSCell* cell) {
+        static_cast<GlobalObject*>(cell)->~GlobalObject();
+    }
+    
     static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::Ref<JSC::Microtask>&& task);
 
     static JSC::JSInternalPromise* moduleLoaderResolve(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue referrerValue, JSC::JSValue initiator);
@@ -190,7 +214,8 @@ private:
 
     static WTF::String defaultLanguage();
 
-    static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
+    JSC::Identifier _jsUncaughtErrorCallbackIdentifier;
+    JSC::Identifier _jsUncaughtErrorCallbackIdentifierFallback;
 
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 
@@ -225,6 +250,10 @@ private:
     JSC::WriteBarrier<JSC::Structure> _weakRefConstructorStructure;
     JSC::WriteBarrier<JSC::Structure> _weakRefPrototypeStructure;
     JSC::WriteBarrier<JSC::Structure> _weakRefInstanceStructure;
+
+    JSC::WriteBarrier<JSC::Structure> _workerConstructorStructure;
+    JSC::WriteBarrier<JSC::Structure> _workerPrototypeStructure;
+    JSC::WriteBarrier<JSC::Structure> _workerInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _unmanagedInstanceStructure;
 

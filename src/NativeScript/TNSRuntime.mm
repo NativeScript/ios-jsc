@@ -7,13 +7,13 @@
 //
 
 #include <JavaScriptCore/APICast.h>
-#include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/InitializeThreading.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <iostream>
 
@@ -21,22 +21,47 @@
 #import <UIKit/UIApplication.h>
 #endif
 
+#import "TNSRuntime.h"
+#import "TNSRuntime+Private.h"
 #include "JSErrors.h"
 #include "Metadata/Metadata.h"
 #include "ObjCTypes.h"
-#import "TNSRuntime+Private.h"
-#import "TNSRuntime.h"
-#include "inlineFunctions.h"
+#include "Workers/JSWorkerGlobalObject.h"
 
 using namespace JSC;
 using namespace NativeScript;
 
+JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer, JSValue initiator = jsUndefined()) {
+    JSLockHolder lock(exec);
+    RELEASE_ASSERT(exec->vm().atomicStringTable() == wtfThreadData().atomicStringTable());
+    RELEASE_ASSERT(!exec->vm().isCollectorBusy());
+
+    JSGlobalObject* globalObject = exec->vmEntryGlobalObject();
+    JSValue moduleNameJsValue = jsString(&exec->vm(), Identifier::fromString(exec, moduleName).impl());
+    JSValue referrerJsValue = referrer.isEmpty() ? jsUndefined() : jsString(&exec->vm(), Identifier::fromString(exec, referrer).impl());
+    return globalObject->moduleLoader()->loadAndEvaluateModule(exec, moduleNameJsValue, referrerJsValue, initiator);
+}
+
 @implementation TNSRuntime
+
+static WTF::Lock _runtimesLock;
+static NSPointerArray* _runtimes;
+
++ (TNSRuntime*)current {
+    WTF::LockHolder lock(_runtimesLock);
+    ThreadIdentifier currentThreadId = WTF::currentThread();
+    for (TNSRuntime* runtime in _runtimes) {
+        if (runtime.threadId == currentThreadId)
+            return runtime;
+    }
+    return nil;
+}
 
 + (void)initialize {
     if (self == [TNSRuntime self]) {
         initializeThreading();
         JSC::Options::useJIT() = false;
+        _runtimes = [[NSPointerArray alloc] initWithOptions:NSPointerFunctionsOpaquePersonality | NSPointerFunctionsOpaqueMemory];
     }
 }
 
@@ -47,6 +72,7 @@ using namespace NativeScript;
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath {
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
+        self->_threadId = WTF::currentThread();
         self->_applicationPath = [[applicationPath stringByStandardizingPath] retain];
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
@@ -58,21 +84,19 @@ using namespace NativeScript;
 #endif
 
         JSLockHolder lock(*self->_vm);
-        self->_globalObject = Strong<GlobalObject>(*self->_vm, GlobalObject::create(self->_applicationPath, *self->_vm, GlobalObject::createStructure(*self->_vm, jsNull())));
+        self->_globalObject = Strong<GlobalObject>(*self->_vm, [self createGlobalObjectInstance]);
 
-#if PLATFORM(IOS)
-        NakedPtr<Exception> exception;
-        evaluate(self->_globalObject->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)), JSValue(), exception);
-#ifdef DEBUG
-        if (exception) {
-            std::cerr << "Error while evaluating inlineFunctions.js: " << exception->value().toWTFString(self->_globalObject->globalExec()).utf8().data() << "\n";
-            ASSERT_NOT_REACHED();
+        {
+            WTF::LockHolder lock(_runtimesLock);
+            [_runtimes addPointer:self];
         }
-#endif
-#endif
     }
 
     return self;
+}
+
+- (GlobalObject*)createGlobalObjectInstance {
+    return GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
 
 - (void)scheduleInRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode {
@@ -102,8 +126,12 @@ using namespace NativeScript;
 #endif
 
 - (void)executeModule:(NSString*)entryPointModuleIdentifier {
+    return [self executeModule:entryPointModuleIdentifier referredBy:@""];
+}
+
+- (void)executeModule:(NSString*)entryPointModuleIdentifier referredBy:(NSString*)referrer {
     JSLockHolder lock(*self->_vm);
-    JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier);
+    JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier, referrer);
 
     JSValue error;
     JSFunction* errorHandler = JSNativeStdFunction::create(*self->_vm.get(), self->_globalObject.get(), 1, String(), [&](ExecState* execState) {
@@ -142,7 +170,23 @@ using namespace NativeScript;
         self->_vm = nullptr;
     }
 
+    {
+        WTF::LockHolder lock(_runtimesLock);
+        for (NSInteger i = _runtimes.count - 1; i >= 0; i--) {
+            if ([_runtimes pointerAtIndex:i] == self)
+                [_runtimes removePointerAtIndex:i];
+        }
+    }
+
     [super dealloc];
+}
+
+@end
+
+@implementation TNSWorkerRuntime
+
+- (GlobalObject*)createGlobalObjectInstance {
+    return JSWorkerGlobalObject::create(*self->_vm, JSWorkerGlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
 
 @end

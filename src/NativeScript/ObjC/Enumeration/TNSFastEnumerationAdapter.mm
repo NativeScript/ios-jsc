@@ -24,7 +24,7 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
     if (state->state == State::Uninitialized) {
         ExecState* execState = globalObject->globalExec();
-        JSObject* wrapper = globalObject->interop()->objectMap().get(self);
+        JSObject* wrapper = Interop::objectMap(&execState->vm()).get(self);
         RELEASE_ASSERT(wrapper);
 
         JSC::VM& vm = execState->vm();

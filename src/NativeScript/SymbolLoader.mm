@@ -105,7 +105,7 @@ SymbolResolver* SymbolLoader::resolveModule(const Metadata::ModuleMeta* module) 
 
         NSURL* bundleUrl = [NSURL URLWithString:frameworkPathStr relativeToURL:baseUrl];
         if (WTF::RetainPtr<CFBundleRef> bundle = adoptCF(CFBundleCreate(kCFAllocatorDefault, (CFURLRef)bundleUrl))) {
-            WTF::dataLogF("NativeScript loaded bundle %s\n", bundleUrl.absoluteString.UTF8String);
+            //            WTF::dataLogF("NativeScript loaded bundle %s\n", bundleUrl.absoluteString.UTF8String);
             resolver = std::make_unique<CFBundleSymbolResolver>(bundle);
         } else {
             WTF::dataLogF("NativeScript could not load bundle %s\n", bundleUrl.absoluteString.UTF8String);

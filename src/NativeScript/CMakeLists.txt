@@ -75,6 +75,7 @@ set(HEADER_FILES
     ObjC/TNSArrayAdapter.h
     ObjC/TNSDataAdapter.h
     ObjC/TNSDictionaryAdapter.h
+    ObjC/TNSExceptionHandler.h
     ObjC/Unmanaged/UnmanagedInstance.h
     ObjC/Unmanaged/UnmanagedPrototype.h
     ObjC/Unmanaged/UnmanagedType.h
@@ -90,6 +91,11 @@ set(HEADER_FILES
     TNSRuntime.h
     TypeFactory.h
     WeakHandleOwners.h
+    Workers/JSWorkerConstructor.h
+    Workers/JSWorkerGlobalObject.h
+    Workers/JSWorkerInstance.h
+    Workers/JSWorkerPrototype.h
+    Workers/WorkerMessagingProxy.h
 )
 
 set(SOURCE_FILES
@@ -175,6 +181,11 @@ set(SOURCE_FILES
     TNSRuntime+Inspector.mm
     TNSRuntime.mm
     TypeFactory.mm
+    Workers/JSWorkerConstructor.cpp
+    Workers/JSWorkerGlobalObject.mm
+    Workers/JSWorkerInstance.mm
+    Workers/JSWorkerPrototype.cpp
+    Workers/WorkerMessagingProxy.mm
 )
 
 set(NativeScript_PUBLIC_HEADERS

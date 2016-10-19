@@ -12,17 +12,21 @@
 #import <JavaScriptCore/JavaScriptCore.h>
 #import <NativeScript.h>
 
-TNSRuntime* runtime;
-
 static NSUncaughtExceptionHandler* oldExceptionHandler = NULL;
 
 static void TNSObjectiveCUncaughtExceptionHandler(NSException* currentException) {
+    TNSRuntime* runtime = [TNSRuntime current];
     JSGlobalContextRef context = runtime.globalContext;
     JSObjectRef globalObject = JSContextGetGlobalObject(context);
 
-    JSStringRef uncaughtPropertyName = JSStringCreateWithUTF8CString("__onUncaughtError"); // Keep in sync with JSErrors.mm
+    JSStringRef uncaughtPropertyName = JSStringCreateWithUTF8CString("onerror"); // Keep in sync with JSErrors.mm
     JSValueRef uncaughtCallback = JSObjectGetProperty(context, globalObject, uncaughtPropertyName, NULL);
     JSStringRelease(uncaughtPropertyName);
+    if (JSValueIsUndefined(context, uncaughtCallback)) {
+        uncaughtPropertyName = JSStringCreateWithUTF8CString("__onUncaughtError"); // Keep in sync with JSErrors.mm
+        uncaughtCallback = JSObjectGetProperty(context, globalObject, uncaughtPropertyName, NULL);
+        JSStringRelease(uncaughtPropertyName);
+    }
 
     if (!JSValueIsUndefined(context, uncaughtCallback)) {
         JSStringRef reason = JSStringCreateWithUTF8CString(currentException.reason.UTF8String);

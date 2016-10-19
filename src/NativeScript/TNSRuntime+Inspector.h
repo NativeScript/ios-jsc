@@ -18,7 +18,7 @@ FOUNDATION_EXPORT NSString* const TNSInspectorRunLoopMode;
 
 - (void)dispatchMessage:(NSString*)message;
 
-- (void)reportFatalError:(JSValueRef)error __attribute__((noreturn));
+- (void)reportFatalError:(JSValueRef)error;
 
 - (void)pause;
 

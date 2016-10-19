@@ -152,7 +152,7 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
     }
 
     auto globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    if (JSObject* wrapper = globalObject->interop()->objectMap().get(object)) {
+    if (JSObject* wrapper = Interop::objectMap(&globalObject->vm()).get(object)) {
         ASSERT(wrapper->classInfo() != ObjCWrapperObject::info() || jsCast<ObjCWrapperObject*>(wrapper)->wrappedObject() == object);
         return wrapper;
     }

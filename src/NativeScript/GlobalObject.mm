@@ -15,6 +15,9 @@
 #include "JSWeakRefConstructor.h"
 #include "JSWeakRefInstance.h"
 #include "JSWeakRefPrototype.h"
+#include "JSWorkerConstructor.h"
+#include "JSWorkerInstance.h"
+#include "JSWorkerPrototype.h"
 #include "Metadata.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockCallback.h"
@@ -36,6 +39,7 @@
 #include "TypeFactory.h"
 #include "UnmanagedType.h"
 #include "__extends.h"
+#include "inlineFunctions.h"
 #include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/FunctionConstructor.h>
@@ -95,17 +99,6 @@ GlobalObject::~GlobalObject() {
     this->_inspectorController->globalObjectDestroyed();
 }
 
-Structure* GlobalObject::createStructure(VM& vm, JSValue prototype) {
-    return Structure::create(vm, 0, prototype, TypeInfo(GlobalObjectType, GlobalObject::StructureFlags), GlobalObject::info());
-}
-
-GlobalObject* GlobalObject::create(WTF::String applicationPath, VM& vm, Structure* structure) {
-    GlobalObject* object = new (NotNull, allocateCell<GlobalObject>(vm.heap)) GlobalObject(vm, structure);
-    object->finishCreation(applicationPath, vm);
-    vm.heap.addFinalizer(object, destroy);
-    return object;
-}
-
 extern "C" void JSSynchronousGarbageCollectForDebugging(ExecState*);
 static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
@@ -139,7 +132,7 @@ static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRun
     }
 }
 
-void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
+void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     Base::finishCreation(vm);
 
     ExecState* globalExec = this->globalExec();
@@ -169,6 +162,12 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     JSWeakRefPrototype* weakRefPrototype = JSWeakRefPrototype::create(vm, this, this->weakRefPrototypeStructure());
     this->_weakRefInstanceStructure.set(vm, this, JSWeakRefInstance::createStructure(vm, this, weakRefPrototype));
     this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("WeakRef")), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
+
+    this->_workerConstructorStructure.set(vm, this, JSWorkerConstructor::createStructure(vm, this, Base::functionPrototype()));
+    this->_workerPrototypeStructure.set(vm, this, JSWorkerPrototype::createStructure(vm, this, Base::objectPrototype()));
+    JSWorkerPrototype* workerPrototype = JSWorkerPrototype::create(vm, this, this->workerPrototypeStructure());
+    this->_workerInstanceStructure.set(vm, this, JSWorkerInstance::createStructure(vm, this, workerPrototype));
+    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("Worker")), JSWorkerConstructor::create(vm, this->workerConstructorStructure(), workerPrototype));
 
     auto fastEnumerationIteratorPrototype = ObjCFastEnumerationIteratorPrototype::create(vm, this, ObjCFastEnumerationIteratorPrototype::createStructure(vm, this, this->objectPrototype()));
     this->_fastEnumerationIteratorStructure.set(vm, this, ObjCFastEnumerationIterator::createStructure(vm, this, fastEnumerationIteratorPrototype));
@@ -215,6 +214,13 @@ void GlobalObject::finishCreation(WTF::String applicationPath, VM& vm) {
     this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
 
     this->putDirect(vm, Identifier::fromString(&vm, "__runtimeVersion"), jsString(&vm, STRINGIZE_VALUE_OF(NATIVESCRIPT_VERSION)), DontEnum | ReadOnly | DontDelete);
+
+    NakedPtr<Exception> exception;
+    evaluate(this->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)), JSValue(), exception);
+    ASSERT_WITH_MESSAGE(!exception, "Error while evaluating inlineFunctions.js: %s", exception->value().toWTFString(this->globalExec()).utf8().data());
+
+    _jsUncaughtErrorCallbackIdentifier = Identifier::fromString(&vm, "onerror"); // Keep in sync with TNSExceptionHandler.h
+    _jsUncaughtErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onUncaughtError"); // Keep in sync with TNSExceptionHandler.h
 }
 
 void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
@@ -238,11 +244,10 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_weakRefConstructorStructure);
     visitor.append(&globalObject->_weakRefPrototypeStructure);
     visitor.append(&globalObject->_weakRefInstanceStructure);
+    visitor.append(&globalObject->_workerConstructorStructure);
+    visitor.append(&globalObject->_workerInstanceStructure);
+    visitor.append(&globalObject->_workerPrototypeStructure);
     visitor.append(&globalObject->_fastEnumerationIteratorStructure);
-}
-
-void GlobalObject::destroy(JSCell* cell) {
-    static_cast<GlobalObject*>(cell)->GlobalObject::~GlobalObject();
 }
 
 bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
@@ -437,6 +442,33 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, DontDelete | ReadOnly);
 
     return protocolWrapper;
+}
+
+bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* exception, NakedPtr<Exception>& outException) {
+    outException = nullptr;
+    JSValue callback = this->get(execState, _jsUncaughtErrorCallbackIdentifier);
+
+    CallData callData;
+    CallType callType = JSC::getCallData(callback, callData);
+    if (callType == JSC::CallType::None) {
+        callback = execState->lexicalGlobalObject()->get(execState, _jsUncaughtErrorCallbackIdentifierFallback);
+        callType = JSC::getCallData(callback, callData);
+        if (callType == JSC::CallType::None) {
+            return false;
+        }
+    }
+
+    MarkedArgumentBuffer uncaughtErrorArguments;
+    uncaughtErrorArguments.append(exception->value());
+
+    JSValue result = call(execState, callback, callType, callData, jsUndefined(), uncaughtErrorArguments, outException);
+
+    if (outException) {
+        warn(execState, outException->value().toWTFString(execState));
+        return false;
+    }
+
+    return result.toBoolean(execState);
 }
 
 void GlobalObject::queueTaskToEventLoop(const JSGlobalObject* globalObject, WTF::Ref<Microtask>&& task) {
