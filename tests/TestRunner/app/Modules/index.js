@@ -7,4 +7,14 @@ describe(module.id, function () {
     it("Windows encoding file", function () {
         expect(() => require("./WindowsEncoding")).toThrowError(/character encoding/);
     });
+
+    // TODO: [2017-04-20] Delete deprecated module search functionality
+    it("core-module", function () {
+        require("core-module");
+        expect(TNSGetOutput()).toBe('core-module loaded');
+    });
+    it("core-module-dir", function () {
+        require("core-module-dir");
+        expect(TNSGetOutput()).toBe('core-module-dir loaded');
+    });
 });
