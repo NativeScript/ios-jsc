@@ -45,13 +45,53 @@ static NSString* stat(NSString* path) {
     return nil;
 }
 
-static NSString* resolveFile(NSString* filePath) {
-    if (stat<S_IFREG>(filePath)) {
-        return filePath;
-    } else if (NSString* path = stat<S_IFREG>([filePath stringByAppendingPathExtension:@"js"])) {
+static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::String, WTF::String, WTF::ASCIICaseInsensitiveHash>& cache, NSError** error) {
+    if (cache.contains(absolutePath)) {
+        return cache.get(absolutePath);
+    }
+
+    if (stat<S_IFREG>(absolutePath)) {
+        cache.set(absolutePath, absolutePath);
+        return absolutePath;
+    }
+
+    if (NSString* path = stat<S_IFREG>([absolutePath stringByAppendingPathExtension:@"js"])) {
+        cache.set(absolutePath, path);
         return path;
-    } else if (NSString* path = stat<S_IFREG>([filePath stringByAppendingPathExtension:@"json"])) {
+    }
+
+    if (NSString* path = stat<S_IFREG>([absolutePath stringByAppendingPathExtension:@"json"])) {
+        cache.set(absolutePath, path);
         return path;
+    }
+
+    if (stat<S_IFDIR>(absolutePath)) {
+        NSString* mainName = @"index.js";
+
+        NSString* packageJsonPath = [absolutePath stringByAppendingPathComponent:@"package.json"];
+        if (stat<S_IFREG>(packageJsonPath)) {
+            NSData* packageJsonData = [NSData dataWithContentsOfFile:packageJsonPath options:0 error:error];
+            if (!packageJsonData && error) {
+                return nil;
+            }
+
+            NSDictionary* packageJson = [NSJSONSerialization JSONObjectWithData:packageJsonData options:0 error:error];
+            if (!packageJson && error) {
+                return nil;
+            }
+
+            if (NSString* packageMain = [packageJson objectForKey:@"main"]) {
+                mainName = packageMain;
+            }
+        }
+
+        NSString* resolved = resolveAbsolutePath([absolutePath stringByAppendingPathComponent:mainName], cache, error);
+        if (*error) {
+            return nil;
+        }
+
+        cache.set(absolutePath, resolved);
+        return resolved;
     }
 
     return nil;
@@ -77,6 +117,9 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
 
     NSString* absolutePath = path;
     unichar pathChar = [path characterAtIndex:0];
+
+    bool isModuleRequire = false;
+
     if (pathChar != '/') {
         if (pathChar == '.') {
             if (referrerValue.isString()) {
@@ -88,40 +131,45 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
             absolutePath = [static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app"];
             path = [path substringFromIndex:2];
         } else {
-            absolutePath = [static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app/tns_modules"];
+            absolutePath = [static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app/tns_modules/tns-core-modules"];
+            isModuleRequire = true;
         }
 
         absolutePath = [[absolutePath stringByAppendingPathComponent:path] stringByStandardizingPath];
     }
 
-    WTF::String requestedPath = absolutePath;
-    if (self->modulePathCache().contains(requestedPath)) {
-        return deferred->resolve(execState, jsString(execState, self->modulePathCache().get(requestedPath)));
+    NSError* error = nil;
+    NSString* absoluteFilePath = resolveAbsolutePath(absolutePath, self->modulePathCache(), &error);
+    if (error) {
+        return deferred->reject(execState, self->interop()->wrapError(execState, error));
     }
 
-    NSString* absoluteFilePath = resolveFile(absolutePath);
-    if (!absoluteFilePath && stat<S_IFDIR>(absolutePath)) {
-        NSString* mainFileName = @"index.js";
-
-        NSString* packageJsonPath = [absolutePath stringByAppendingPathComponent:@"package.json"];
-        if (stat<S_IFREG>(packageJsonPath)) {
-            NSError* error = nil;
-            NSData* packageJsonData = [NSData dataWithContentsOfFile:packageJsonPath options:0 error:&error];
-            if (!packageJsonData && error) {
+    if (isModuleRequire) {
+        if (!absoluteFilePath) {
+            absolutePath = [[[static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app/tns_modules"] stringByAppendingPathComponent:path] stringByStandardizingPath];
+            absoluteFilePath = resolveAbsolutePath(absolutePath, self->modulePathCache(), &error);
+            if (error) {
                 return deferred->reject(execState, self->interop()->wrapError(execState, error));
-            }
-
-            NSDictionary* packageJson = [NSJSONSerialization JSONObjectWithData:packageJsonData options:0 error:&error];
-            if (!packageJson && error) {
-                return deferred->reject(execState, self->interop()->wrapError(execState, error));
-            }
-
-            if (NSString* packageMain = [packageJson objectForKey:@"main"]) {
-                mainFileName = packageMain;
             }
         }
 
-        absoluteFilePath = resolveFile([absolutePath stringByAppendingPathComponent:mainFileName]);
+        if (!absoluteFilePath) {
+            NSString* currentSearchPath = [static_cast<NSString*>(referrerValue.toWTFString(execState)) stringByDeletingLastPathComponent];
+            do {
+                NSString* currentNodeModulesPath = [[currentSearchPath stringByAppendingPathComponent:@"node_modules"] stringByStandardizingPath];
+                if (stat<S_IFDIR>(currentNodeModulesPath)) {
+                    absoluteFilePath = resolveAbsolutePath([currentNodeModulesPath stringByAppendingPathComponent:path], self->modulePathCache(), &error);
+                    if (error) {
+                        return deferred->reject(execState, self->interop()->wrapError(execState, error));
+                    }
+
+                    if (absoluteFilePath) {
+                        break;
+                    }
+                }
+                currentSearchPath = [currentSearchPath stringByDeletingLastPathComponent];
+            } while (currentSearchPath.length > self->applicationPath().length());
+        }
     }
 
     if (!absoluteFilePath) {
@@ -129,7 +177,6 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
         return deferred->reject(execState, createError(execState, errorMessage));
     }
 
-    self->modulePathCache().set(requestedPath, absoluteFilePath);
     return deferred->resolve(execState, jsString(execState, absoluteFilePath));
 }
 
