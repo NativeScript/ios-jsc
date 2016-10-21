@@ -62,7 +62,7 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
 
 void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource source, MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
     RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
-    const Inspector::ScriptCallFrame& lastCaller = callStack->at(0);
+    const Inspector::ScriptCallFrame& lastCaller = callStack->size() > 0 ? callStack->at(0) : Inspector::ScriptCallFrame("", "", JSC::noSourceID, 0, 0);
 
     StringBuilder builder;
 
