@@ -18,6 +18,14 @@
     return @"web";
 }
 
+- (NSString*)backendCommandsURL {
+    return @"";
+}
+
+- (NSString*)zoomFactor {
+    return @"";
+}
+
 - (unsigned)inspectionLevel {
     return 1;
 }
@@ -51,6 +59,14 @@
 
         [self->communication_channel sendMessage:length message:buffer.mutableBytes];
     }
+}
+
+- (void)showContextMenu {
+    
+}
+
+- (void)setZoomFactor:(NSString*)factor {
+    
 }
 
 @end

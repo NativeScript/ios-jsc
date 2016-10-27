@@ -295,13 +295,13 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         source = WTF::ASCIILiteral("export default undefined;");
     }
 
-    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString()));
+    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
     ParserError error;
     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
 
     if (!moduleRecord || (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json)) {
         error = ParserError();
-        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString()));
+        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
         moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
         ASSERT(!error.isValid());
 
@@ -311,7 +311,7 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         moduleFunctionSource.append("\n}}");
 
         JSObject* exception = nullptr;
-        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl.toString()));
+        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl.toString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
         FunctionExecutable* moduleFunctionExecutable = FunctionExecutable::fromGlobalCode(Identifier::fromString(execState, "anonymous"), *execState, sourceCode, exception, -1);
         if (!moduleFunctionExecutable) {
             ASSERT(exception);

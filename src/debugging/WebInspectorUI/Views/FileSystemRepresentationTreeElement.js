@@ -13,6 +13,9 @@ WebInspector.FileSystemRepresentationTreeElement = class FileSystemRepresentatio
 
     onpopulate() 
     {
+        if (this.foldersByPath.length)
+            return;
+
         for(var resource of this.resources) 
         {
             var path = resource.urlComponents.path;
@@ -20,10 +23,10 @@ WebInspector.FileSystemRepresentationTreeElement = class FileSystemRepresentatio
             var fileName = pathComponents[pathComponents.length - 1];
             var directoryPath = path.substring(0, path.lastIndexOf('/'));
             var parentFolderElement;
-            var resourceElement = new WebInspector.ResourceTreeElement(resource, null);            
+            var resourceElement = new WebInspector.ResourceTreeElement(resource, null);
 
             if(this.foldersByPath.has(directoryPath)) {
-                parentFolderElement = this.foldersByPath.get(directoryPath);                
+                parentFolderElement = this.foldersByPath.get(directoryPath);
             } else {
                 parentFolderElement = this._generateParentFolderElement(pathComponents.slice(0, pathComponents.length - 1));
             }
@@ -49,10 +52,10 @@ WebInspector.FileSystemRepresentationTreeElement = class FileSystemRepresentatio
         var parentFolderElement;
         for(var pathComponent of pathComponents) {
             nextPath = currentPath + '/' + pathComponent;
-             if(!this.foldersByPath.has(nextPath)) {                
+             if(!this.foldersByPath.has(nextPath)) {
                 parentFolderElement = new WebInspector.FolderTreeElement(pathComponent, "", [], null);
 
-                var parentFolder = this.foldersByPath.get(currentPath);     
+                var parentFolder = this.foldersByPath.get(currentPath);
                 parentFolder.insertChild(parentFolderElement, insertionIndexForObjectInListSortedByFunction(parentFolderElement, parentFolder.children, this.compareChildTreeElements.bind(this)));      
                 this.foldersByPath.set(nextPath, parentFolderElement);
              }

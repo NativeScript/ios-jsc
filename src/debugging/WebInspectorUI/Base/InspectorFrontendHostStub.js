@@ -34,6 +34,8 @@
  * Copyright (C) 2016 Telerik AD. All rights reserved. (as modified)
  */
 
+WebInspector.dontLocalizeUserInterface = true;
+
 if (!window.InspectorFrontendHost) {
     WebInspector.InspectorFrontendHostStub = function()
     {
@@ -194,8 +196,6 @@ if (!window.InspectorFrontendHost) {
     };
 
     InspectorFrontendHost = new WebInspector.InspectorFrontendHostStub;
-
-    WebInspector.dontLocalizeUserInterface = true;
 
     var host;
     if (window.location.hash) {

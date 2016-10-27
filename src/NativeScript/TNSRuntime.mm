@@ -34,7 +34,7 @@ using namespace NativeScript;
 JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer, JSValue initiator = jsUndefined()) {
     JSLockHolder lock(exec);
     RELEASE_ASSERT(exec->vm().atomicStringTable() == wtfThreadData().atomicStringTable());
-    RELEASE_ASSERT(!exec->vm().isCollectorBusy());
+    RELEASE_ASSERT(!exec->vm().isCollectorBusyOnCurrentThread());
 
     JSGlobalObject* globalObject = exec->vmEntryGlobalObject();
     JSValue moduleNameJsValue = jsString(&exec->vm(), Identifier::fromString(exec, moduleName).impl());
@@ -120,7 +120,7 @@ static NSPointerArray* _runtimes;
 #if PLATFORM(IOS)
 - (void)_onMemoryWarning {
     JSLockHolder lock(self->_vm.get());
-    self->_vm->heap.collect(FullCollection);
+    self->_vm->heap.collect(CollectionScope::Full);
     self->_vm->heap.releaseDelayedReleasedObjects();
 }
 #endif

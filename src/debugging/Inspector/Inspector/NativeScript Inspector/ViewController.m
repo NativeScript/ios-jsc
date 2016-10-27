@@ -55,8 +55,6 @@
 
     JSContext* context = webView.mainFrame.javaScriptContext;
     context[@"InspectorFrontendHost"] = self->frontendHost;
-    context[@"WebInspector"] = [JSValue valueWithNewObjectInContext:context];
-    context[@"WebInspector"][@"dontLocalizeUserInterface"] = @(true);
 
     webView.mainFrameURL = self->_mainFileName;
 }
