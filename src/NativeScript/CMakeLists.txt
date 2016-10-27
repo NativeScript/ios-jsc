@@ -237,24 +237,15 @@ if(${BUILD_SHARED_LIBS})
         "-framework UIKit"
         "-framework MobileCoreServices"
         "-framework Security"
-        "-Wl,-exported_symbol,_JSContextGetGlobalObject"
-        "-Wl,-exported_symbol,_JSStringCopyCFString"
-        "-Wl,-exported_symbol,_JSObjectCallAsFunction"
-        "-Wl,-exported_symbol,_JSObjectGetProperty"
-        "-Wl,-exported_symbol,_JSObjectMakeError"
-        "-Wl,-exported_symbol,_JSObjectSetProperty"
-        "-Wl,-exported_symbol,_JSStringCreateWithUTF8CString"
-        "-Wl,-exported_symbol,_JSStringRelease"
-        "-Wl,-exported_symbol,_JSValueIsUndefined"
-        "-Wl,-exported_symbol,_JSValueMakeString"
-        "-Wl,-exported_symbol,_JSValueToStringCopy"
-        "-Wl,-exported_symbol,_JSValueToObject"
-        "-Wl,-exported_symbol,_JSValueToNumber"
-        "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntime"
-        "-Wl,-exported_symbol,_OBJC_CLASS_$_TNSRuntimeInspector"
-        "-Wl,-exported_symbol,_TNSInspectorRunLoopMode"
-        "-Wl,-exported_symbol,_TNSSetUncaughtErrorHandler"
     )
+
+    # Export NativeScript symbols
+    file(STRINGS "exported-symbols.txt" NATIVESCRIPT_EXPORTED_SYMBOLS)
+    foreach(_symbol ${NATIVESCRIPT_EXPORTED_SYMBOLS})
+        set(LINK_FLAGS "${LINK_FLAGS} -Wl,-exported_symbol,_${_symbol}")
+    endforeach()
+    set_target_properties(NativeScript PROPERTIES LINK_FLAGS ${LINK_FLAGS})
+
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
         set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${_directory}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)")
