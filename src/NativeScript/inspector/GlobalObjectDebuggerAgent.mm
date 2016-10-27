@@ -65,8 +65,11 @@ void GlobalObjectDebuggerAgent::enable() {
     while (registryIterator->nextKeyValue(this->m_globalObject->globalExec(), moduleKey, moduleEntry)) {
         if (JSModuleRecord* record = jsDynamicCast<JSModuleRecord*>(moduleEntry.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
             SourceProvider* sourceProvider = record->sourceCode().provider();
-            if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
-                sourceProvider = moduleFunction->sourceCode()->provider();
+            JSValue function = record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
+            if (!function.isEmpty() && !function.isUndefinedOrNull()) {
+                if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
+                    sourceProvider = moduleFunction->sourceCode()->provider();
+                }
             }
             this->m_globalObject->debugger()->sourceParsed(this->m_globalObject->globalExec(), sourceProvider, -1, WTF::emptyString());
         }

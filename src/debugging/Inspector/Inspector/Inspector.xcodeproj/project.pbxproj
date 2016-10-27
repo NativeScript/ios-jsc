@@ -13,7 +13,6 @@
 		5131F0E51B73AC070056C64D /* WebCore.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0DF1B73AC070056C64D /* WebCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5131F0E61B73AC070056C64D /* WebInspectorUI.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E01B73AC070056C64D /* WebInspectorUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5131F0E71B73AC070056C64D /* WebKit.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E11B73AC070056C64D /* WebKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		5131F0E81B73AC070056C64D /* WebKit2.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E21B73AC070056C64D /* WebKit2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5131F0E91B73AC070056C64D /* WebKitLegacy.framework in Embed Frameworks (6 items) (4 items) */ = {isa = PBXBuildFile; fileRef = 5131F0E31B73AC070056C64D /* WebKitLegacy.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5131F0EA1B73AC210056C64D /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5131F0E11B73AC070056C64D /* WebKit.framework */; };
 		5131F0ED1B73B8C10056C64D /* InspectorFrontendHost.h in Sources */ = {isa = PBXBuildFile; fileRef = 5131F0EC1B73B8C10056C64D /* InspectorFrontendHost.h */; };
@@ -52,7 +51,6 @@
 				5131F0E51B73AC070056C64D /* WebCore.framework in Embed Frameworks (6 items) (4 items) */,
 				5131F0E61B73AC070056C64D /* WebInspectorUI.framework in Embed Frameworks (6 items) (4 items) */,
 				5131F0E71B73AC070056C64D /* WebKit.framework in Embed Frameworks (6 items) (4 items) */,
-				5131F0E81B73AC070056C64D /* WebKit2.framework in Embed Frameworks (6 items) (4 items) */,
 				5131F0E91B73AC070056C64D /* WebKitLegacy.framework in Embed Frameworks (6 items) (4 items) */,
 			);
 			name = "Embed Frameworks (6 items) (4 items)";
@@ -78,7 +76,6 @@
 		5131F0DF1B73AC070056C64D /* WebCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebCore.framework; path = Frameworks/WebCore.framework; sourceTree = "<group>"; };
 		5131F0E01B73AC070056C64D /* WebInspectorUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebInspectorUI.framework; path = Frameworks/WebInspectorUI.framework; sourceTree = "<group>"; };
 		5131F0E11B73AC070056C64D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Frameworks/WebKit.framework; sourceTree = "<group>"; };
-		5131F0E21B73AC070056C64D /* WebKit2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit2.framework; path = Frameworks/WebKit2.framework; sourceTree = "<group>"; };
 		5131F0E31B73AC070056C64D /* WebKitLegacy.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKitLegacy.framework; path = Frameworks/WebKitLegacy.framework; sourceTree = "<group>"; };
 		5131F0EB1B73B8580056C64D /* InspectorFrontendHostProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorFrontendHostProtocol.h; sourceTree = "<group>"; };
 		5131F0EC1B73B8C10056C64D /* InspectorFrontendHost.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InspectorFrontendHost.h; sourceTree = "<group>"; };
@@ -147,7 +144,6 @@
 				5131F0DF1B73AC070056C64D /* WebCore.framework */,
 				5131F0E01B73AC070056C64D /* WebInspectorUI.framework */,
 				5131F0E11B73AC070056C64D /* WebKit.framework */,
-				5131F0E21B73AC070056C64D /* WebKit2.framework */,
 				5131F0E31B73AC070056C64D /* WebKitLegacy.framework */,
 				51F6418C1B2EFE080012D3BC /* Inspector */,
 				517E90E51B454D1500150FF6 /* NativeScript Inspector */,

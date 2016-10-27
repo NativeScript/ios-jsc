@@ -10,6 +10,8 @@
 - (NSString*)platform;
 - (NSString*)localizedStringsURL;
 - (NSString*)debuggableType;
+- (NSString*)backendCommandsURL;
+- (NSString*)zoomFactor;
 - (unsigned)inspectionLevel;
 - (void)connect:(NSString*)socketPath readHandler:(InspectorReadHandler)read_handler errorHandler:(InspectorErrorHandler)errorHandler;
 - (void)disconnect;
@@ -18,5 +20,6 @@
 - (void)sendMessageToBackend:(NSString*)message;
 - (void)inspectedURLChanged;
 - (void)startWindowDrag;
-
+- (void)setZoomFactor:(NSString*)factor;
+- (void)showContextMenu;
 @end
