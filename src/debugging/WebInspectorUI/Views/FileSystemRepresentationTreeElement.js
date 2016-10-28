@@ -13,7 +13,7 @@ WebInspector.FileSystemRepresentationTreeElement = class FileSystemRepresentatio
 
     onpopulate() 
     {
-        if (this.foldersByPath.length)
+        if (this.foldersByPath.get("/app").children.length)
             return;
 
         for(var resource of this.resources) 
