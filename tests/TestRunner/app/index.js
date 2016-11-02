@@ -53,7 +53,7 @@ import "./ObjCConstructors";
 import "./MetadataTests";
 
 // Tests common for all runtimes.
-import "./shared";
+require("./shared").runAllTests();
 
 import "./ApiTests";
 import "./DeclarationConflicts";
