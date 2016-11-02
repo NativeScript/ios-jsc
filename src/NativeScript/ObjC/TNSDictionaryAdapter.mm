@@ -9,6 +9,7 @@
 #import "TNSDictionaryAdapter.h"
 #include "Interop.h"
 #include "ObjCTypes.h"
+#include "TNSRuntime+Private.h"
 #include <JavaScriptCore/JSMap.h>
 #include <JavaScriptCore/JSMapIterator.h>
 #include <JavaScriptCore/StrongInlines.h>
@@ -89,13 +90,15 @@ using namespace NativeScript;
 @implementation TNSDictionaryAdapter {
     Strong<JSObject> _object;
     ExecState* _execState;
+    VM* _vm;
 }
 
 - (instancetype)initWithJSObject:(JSObject*)jsObject execState:(ExecState*)execState {
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_execState = execState;
-        Interop::objectMap(&_execState->vm()).set(self, jsObject);
+        self->_vm = &execState->vm();
+        [TNSRuntime runtimeForVM:self->_vm]->_objectMap.get()->set(self, jsObject);
     }
 
     return self;
@@ -147,8 +150,10 @@ using namespace NativeScript;
 
 - (void)dealloc {
     {
-        JSLockHolder lock(self->_execState);
-        Interop::objectMap(&_execState->vm()).remove(self);
+        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:self->_vm]) {
+            JSLockHolder lock(self->_execState);
+            runtime->_objectMap.get()->remove(self);
+        }
     }
 
     [super dealloc];

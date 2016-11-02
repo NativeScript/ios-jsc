@@ -12,7 +12,10 @@
 @package
     WTF::RefPtr<JSC::VM> _vm;
     JSC::Strong<NativeScript::GlobalObject> _globalObject;
+    std::unique_ptr<JSC::WeakGCMap<id, JSC::JSObject>> _objectMap;
     NSString* _applicationPath;
 }
+
++ (TNSRuntime*)runtimeForVM:(JSC::VM*)vm;
 
 @end

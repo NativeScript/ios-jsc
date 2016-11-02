@@ -57,6 +57,15 @@ static NSPointerArray* _runtimes;
     return nil;
 }
 
++ (TNSRuntime*)runtimeForVM:(JSC::VM*)vm {
+    WTF::LockHolder lock(_runtimesLock);
+    for (TNSRuntime* runtime in _runtimes) {
+        if (runtime->_vm.get() == vm)
+            return runtime;
+    }
+    return nil;
+}
+
 + (void)initialize {
     if (self == [TNSRuntime self]) {
         initializeThreading();
@@ -74,6 +83,8 @@ static NSPointerArray* _runtimes;
         self->_vm = VM::create(SmallHeap);
         self->_threadId = WTF::currentThread();
         self->_applicationPath = [[applicationPath stringByStandardizingPath] retain];
+        self->_objectMap = std::make_unique<JSC::WeakGCMap<id, JSC::JSObject>>(*self->_vm);
+
         WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
 #if PLATFORM(IOS)
@@ -169,6 +180,7 @@ static NSPointerArray* _runtimes;
         self->_globalObject.clear();
         self->_vm = nullptr;
     }
+    self->_objectMap.release();
 
     {
         WTF::LockHolder lock(_runtimesLock);
