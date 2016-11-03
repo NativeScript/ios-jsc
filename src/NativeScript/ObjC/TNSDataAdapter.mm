@@ -38,6 +38,7 @@ using namespace JSC;
 }
 
 - (void*)mutableBytes {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     JSLockHolder lock(self->_execState);
 
     if (JSArrayBuffer* arrayBuffer = jsDynamicCast<JSArrayBuffer*>(self->_object.get())) {
@@ -53,6 +54,7 @@ using namespace JSC;
 }
 
 - (NSUInteger)length {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     VM& vm = self->_execState->vm();
     auto scope = DECLARE_CATCH_SCOPE(vm);
     JSLockHolder lock(self->_execState);

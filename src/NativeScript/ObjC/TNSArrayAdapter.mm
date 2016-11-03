@@ -33,6 +33,7 @@ using namespace JSC;
 }
 
 - (NSUInteger)count {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
@@ -44,6 +45,7 @@ using namespace JSC;
 }
 
 - (id)objectAtIndex:(NSUInteger)index {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     if (!(index < [self count])) {
         @throw [NSException exceptionWithName:NSRangeException reason:[NSString stringWithFormat:@"Index (%tu) out of bounds", index] userInfo:nil];
     }
@@ -53,6 +55,7 @@ using namespace JSC;
 }
 
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState*)state objects:(id[])buffer count:(NSUInteger)len {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     if (state->state == 0) { // uninitialized
         state->state = 1;
         state->mutationsPtr = reinterpret_cast<unsigned long*>(self);

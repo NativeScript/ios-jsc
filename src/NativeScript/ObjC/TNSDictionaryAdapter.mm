@@ -118,6 +118,7 @@ using namespace NativeScript;
 }
 
 - (id)objectForKey:(id)aKey {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
@@ -136,6 +137,7 @@ using namespace NativeScript;
 }
 
 - (NSEnumerator*)keyEnumerator {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
