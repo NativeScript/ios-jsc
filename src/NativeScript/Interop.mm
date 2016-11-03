@@ -141,10 +141,6 @@ std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, const Metadat
 
 const ClassInfo Interop::s_info = { "interop", &Base::s_info, 0, CREATE_METHOD_TABLE(Interop) };
 
-WTF::Lock Interop::_objectMapLock;
-
-WTF::Vector<std::pair<JSC::VM*, std::unique_ptr<JSC::WeakGCMap<id, JSC::JSObject>>>> Interop::_objectMaps;
-
 static EncodedJSValue JSC_HOST_CALL interopFuncAlloc(ExecState* execState) {
     size_t size = static_cast<size_t>(execState->argument(0).toUInt32(execState));
     void* value = calloc(size, 1);

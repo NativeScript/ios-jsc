@@ -53,20 +53,7 @@ public:
 
 #ifdef __OBJC__
     JSC::JSArrayBuffer* bufferFromData(JSC::ExecState*, NSData*) const;
-#endif
 
-    static JSC::WeakGCMap<id, JSC::JSObject>& objectMap(JSC::VM* vm) {
-        WTF::LockHolder lockHolder(_objectMapLock);
-        for (auto it = _objectMaps.begin(); it != _objectMaps.end(); it++) {
-            if (it->first == vm) {
-                return *it->second.get();
-            }
-        }
-        _objectMaps.append(std::make_pair(vm, std::make_unique<JSC::WeakGCMap<id, JSC::JSObject>>(*vm)));
-        return *_objectMaps.last().second.get();
-    }
-
-#ifdef __OBJC__
     JSC::ErrorInstance* wrapError(JSC::ExecState*, NSError*) const;
 #endif
 
@@ -79,10 +66,6 @@ private:
     void finishCreation(JSC::VM&, GlobalObject*);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
-
-    static WTF::Lock _objectMapLock;
-
-    static WTF::Vector<std::pair<JSC::VM*, std::unique_ptr<JSC::WeakGCMap<id, JSC::JSObject>>>> _objectMaps;
 
     JSC::WriteBarrier<JSC::Structure> _pointerInstanceStructure;
 

@@ -9,6 +9,7 @@
 #import "TNSArrayAdapter.h"
 #include "Interop.h"
 #include "ObjCTypes.h"
+#include "TNSRuntime+Private.h"
 #include <JavaScriptCore/StrongInlines.h>
 
 using namespace NativeScript;
@@ -17,19 +18,22 @@ using namespace JSC;
 @implementation TNSArrayAdapter {
     Strong<JSObject> _object;
     ExecState* _execState;
+    VM* _vm;
 }
 
 - (instancetype)initWithJSObject:(JSObject*)jsObject execState:(ExecState*)execState {
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_execState = execState;
-        Interop::objectMap(&execState->vm()).set(self, jsObject);
+        self->_vm = &execState->vm();
+        [TNSRuntime runtimeForVM:self->_vm]->_objectMap.get()->set(self, jsObject);
     }
 
     return self;
 }
 
 - (NSUInteger)count {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
@@ -41,6 +45,7 @@ using namespace JSC;
 }
 
 - (id)objectAtIndex:(NSUInteger)index {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     if (!(index < [self count])) {
         @throw [NSException exceptionWithName:NSRangeException reason:[NSString stringWithFormat:@"Index (%tu) out of bounds", index] userInfo:nil];
     }
@@ -50,6 +55,7 @@ using namespace JSC;
 }
 
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState*)state objects:(id[])buffer count:(NSUInteger)len {
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     if (state->state == 0) { // uninitialized
         state->state = 1;
         state->mutationsPtr = reinterpret_cast<unsigned long*>(self);
@@ -76,8 +82,10 @@ using namespace JSC;
 
 - (void)dealloc {
     {
-        JSLockHolder lock(self->_execState);
-        Interop::objectMap(&_execState->vm()).remove(self);
+        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:self->_vm]) {
+            JSLockHolder lock(self->_execState);
+            runtime->_objectMap.get()->remove(self);
+        }
     }
 
     [super dealloc];

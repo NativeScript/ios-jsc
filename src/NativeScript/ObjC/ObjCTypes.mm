@@ -25,6 +25,7 @@
 #import "TNSArrayAdapter.h"
 #import "TNSDataAdapter.h"
 #import "TNSDictionaryAdapter.h"
+#import "TNSRuntime+Private.h"
 
 using namespace JSC;
 
@@ -152,7 +153,7 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
     }
 
     auto globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    if (JSObject* wrapper = Interop::objectMap(&globalObject->vm()).get(object)) {
+    if (JSObject* wrapper = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(object)) {
         ASSERT(wrapper->classInfo() != ObjCWrapperObject::info() || jsCast<ObjCWrapperObject*>(wrapper)->wrappedObject() == object);
         return wrapper;
     }
