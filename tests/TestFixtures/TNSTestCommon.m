@@ -8,6 +8,12 @@
 
 #import "TNSTestCommon.h"
 
+#ifdef DEBUG
+bool TNSIsConfigurationDebug = true;
+#else
+bool TNSIsConfigurationDebug = false;
+#endif
+
 static NSMutableString* TNSTestOutput;
 
 // TODO: Thread safe
