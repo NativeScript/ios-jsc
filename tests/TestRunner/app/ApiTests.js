@@ -201,13 +201,15 @@ describe(module.id, function () {
         expect(TNSApi.alloc().init().strokeColor).toBeNull();
     });
 
-    it("GlobalObjectProperties", function () {
-        var propertyNames = Object.getOwnPropertyNames(global);
-        expect(propertyNames).toContain("NSTimeZoneNameStyle");
-        expect(propertyNames).toContain("UITextViewTextDidChangeNotification");
-        expect(propertyNames).toContain("UIApplicationStateRestorationBundleVersionKey");
-        expect(propertyNames.length).toBeGreaterThan(4000);
-    });
+    if (TNSIsConfigurationDebug) {
+        it("GlobalObjectProperties", function () {
+            var propertyNames = Object.getOwnPropertyNames(global);
+            expect(propertyNames).toContain("NSTimeZoneNameStyle");
+            expect(propertyNames).toContain("UITextViewTextDidChangeNotification");
+            expect(propertyNames).toContain("UIApplicationStateRestorationBundleVersionKey");
+            expect(propertyNames.length).toBeGreaterThan(4000);
+        });
+    }
 
     it("NSObjectSuperClass", function () {
         expect(NSObject.superclass()).toBeNull();
@@ -554,69 +556,71 @@ describe(module.id, function () {
         expect(result).toBe('method called');
     });
 
-    it("ApiIterator", function () {
-        var counter = 0;
+    if (TNSIsConfigurationDebug) {
+        it("ApiIterator", function () {
+            var counter = 0;
 
-        Object.getOwnPropertyNames(global).forEach(function (name) {
-            // console.debug(name);
+            Object.getOwnPropertyNames(global).forEach(function (name) {
+                // console.debug(name);
 
-            // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
-            if (name == "kCFAllocatorUseContext" ||
-                name == "JSExport" ||
-                name == "kSCNetworkInterfaceIPv4") {
-                return;
-            }
-
-            counter++;
-
-            try {
-                var symbol = global[name];
-            } catch (e) {
-                if (e instanceof ReferenceError) {
+                // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
+                if (name == "kCFAllocatorUseContext" ||
+                    name == "JSExport" ||
+                    name == "kSCNetworkInterfaceIPv4") {
                     return;
                 }
 
-                throw e;
-            }
+                counter++;
 
-            if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
-                var klass = symbol;
-                expect(klass).toBeDefined();
-
-                // console.debug(klass);
-
-                Object.getOwnPropertyNames(klass).forEach(function (y) {
-                    if (klass.respondsToSelector(y)) {
-                        // console.debug(name, y);
-
-                        var method = klass[y];
-                        expect(method).toBeDefined();
-
-                        counter++;
+                try {
+                    var symbol = global[name];
+                } catch (e) {
+                    if (e instanceof ReferenceError) {
+                        return;
                     }
-                });
 
-                Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
-                    if (klass.instancesRespondToSelector(y)) {
-                        // console.debug(name, "proto", y);
+                    throw e;
+                }
 
-                        var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
+                if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
+                    var klass = symbol;
+                    expect(klass).toBeDefined();
 
-                        if (!property) {
-                            var method = klass.prototype[y];
+                    // console.debug(klass);
+
+                    Object.getOwnPropertyNames(klass).forEach(function (y) {
+                        if (klass.respondsToSelector(y)) {
+                            // console.debug(name, y);
+
+                            var method = klass[y];
                             expect(method).toBeDefined();
+
+                            counter++;
                         }
+                    });
 
-                        counter++;
-                    }
-                });
-            }
+                    Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
+                        if (klass.instancesRespondToSelector(y)) {
+                            // console.debug(name, "proto", y);
 
-            if (counter % 100 === 0) {
-                __collect();
-            }
+                            var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
+
+                            if (!property) {
+                                var method = klass.prototype[y];
+                                expect(method).toBeDefined();
+                            }
+
+                            counter++;
+                        }
+                    });
+                }
+
+                if (counter % 100 === 0) {
+                    __collect();
+                }
+            });
+
+            expect(counter).toBeGreaterThan(2900);
         });
-
-        expect(counter).toBeGreaterThan(2900);
-    });
+    }
 });
