@@ -121,6 +121,7 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     fakeExecState->setArgumentCountIncludingThis(arguments.size() + 1);
     fakeExecState->setCallee(this);
     fakeExecState->setThisValue(thisValue);
+    fakeExecState->setCodeBlock(nullptr);
     fakeExecState->setCallerFrame(execState->callerFrame());
     for (size_t i = 0; i < arguments.size(); i++) {
         fakeExecState->setArgument(i, arguments.at(i));
