@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+bool TNSIsConfigurationDebug;
+
 NSString* TNSGetOutput();
 
 void TNSLog(NSString*);

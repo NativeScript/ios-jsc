@@ -105,6 +105,7 @@ TNSFunction9_5Plus
 TNSFunctionWithCFTypeRefArgument
 TNSFunctionWithCreateCFTypeRefReturn
 TNSFunctionWithSimpleCFTypeRefReturn
+TNSIsConfigurationDebug
 TNSGetOutput
 TNSLog
 TNSMutableObjectGet
