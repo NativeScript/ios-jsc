@@ -74,6 +74,8 @@ void GlobalObjectDebuggerAgent::enable() {
             this->m_globalObject->debugger()->sourceParsed(this->m_globalObject->globalExec(), sourceProvider, -1, WTF::emptyString());
         }
     }
+
+    this->m_globalObject->debugger()->activateBreakpoints();
 }
 
 void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, const String& scriptIdStr, const String& scriptSource) {
