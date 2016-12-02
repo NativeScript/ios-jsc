@@ -12,6 +12,7 @@ set(HEADER_FILES
     inspector/GlobalObjectConsoleClient.h
     inspector/GlobalObjectDebuggerAgent.h
     inspector/GlobalObjectInspectorController.h
+    inspector/InspectorLogAgent.h
     inspector/InspectorNetworkAgent.h
     inspector/InspectorPageAgent.h
     inspector/InspectorTimelineAgent.h
@@ -111,6 +112,7 @@ set(SOURCE_FILES
     inspector/GlobalObjectConsoleClient.cpp
     inspector/GlobalObjectDebuggerAgent.mm
     inspector/GlobalObjectInspectorController.cpp
+    inspector/InspectorLogAgent.cpp
     inspector/InspectorNetworkAgent.cpp
     inspector/InspectorPageAgent.mm
     inspector/InspectorTimelineAgent.cpp

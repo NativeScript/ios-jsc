@@ -28,6 +28,7 @@
 #include "DomainInspectorAgent.h"
 #include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectDebuggerAgent.h"
+#include "InspectorLogAgent.h"
 #include "InspectorNetworkAgent.h"
 #include "InspectorPageAgent.h"
 #include "InspectorTimelineAgent.h"
@@ -116,11 +117,12 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     auto scriptProfilerAgent = std::make_unique<InspectorScriptProfilerAgent>(m_jsAgentContext);
     auto timelineAgent = std::make_unique<InspectorTimelineAgent>(m_jsAgentContext, scriptProfilerAgent.get());
     auto networkAgent = std::make_unique<InspectorNetworkAgent>(m_jsAgentContext);
+    auto logAgent = std::make_unique<InspectorLogAgent>(m_jsAgentContext);
 
     m_inspectorAgent = inspectorAgent.get();
     m_debuggerAgent = debuggerAgent.get();
     m_consoleAgent = consoleAgent.get();
-    m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent);
+    m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent, logAgent.get());
 
     m_agents.append(WTFMove(inspectorAgent));
     m_agents.append(WTFMove(pageAgent));
@@ -131,6 +133,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_agents.append(WTFMove(heapAgent));
     m_agents.append(WTFMove(scriptProfilerAgent));
     m_agents.append(WTFMove(timelineAgent));
+    m_agents.append(WTFMove(logAgent));
 
     m_executionStopwatch->start();
 }
