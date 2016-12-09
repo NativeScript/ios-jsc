@@ -11,8 +11,6 @@
 #include <TNSDebugging.h>
 #endif
 
-TNSRuntime *runtime;
-
 int main(int argc, char *argv[]) {
   @autoreleasepool {
     extern char startOfMetadataSection __asm(
@@ -26,13 +24,13 @@ int main(int argc, char *argv[]) {
       applicationPath = [NSBundle mainBundle].bundlePath;
     }
 
-    runtime = [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
+    TNSRuntime *runtime = [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
     [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
                        forMode:NSRunLoopCommonModes];
 
 #if DEBUG
     [TNSRuntimeInspector setLogsToSystemConsole:YES];
-    TNSEnableRemoteInspector(argc, argv);
+    TNSEnableRemoteInspector(argc, argv, runtime);
 #endif
 
     TNSInstallExceptionHandler();
