@@ -14,6 +14,7 @@ public:
 private:
     DomainBackendDispatcher(WTF::String domain, JSC::JSCell* constructorFunction, Inspector::JSAgentContext&);
 
+    RefPtr<SupplementalBackendDispatcher> m_duplicatedDispatcher;
     JSC::JSGlobalObject& m_globalObject;
     JSC::Strong<JSC::JSObject> m_domainDispatcher;
 };

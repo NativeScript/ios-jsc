@@ -26,6 +26,11 @@ DomainBackendDispatcher::DomainBackendDispatcher(WTF::String domain, JSCell* con
     JSObject* domainDispatcher = construct(m_globalObject.globalExec(), constructorFunction, constructType, constructData, constructArgs);
     m_domainDispatcher = Strong<JSObject>(m_globalObject.vm(), domainDispatcher);
 
+    const HashMap<String, SupplementalBackendDispatcher*>& dispatchers = m_backendDispatcher->dispatchers();
+    auto result = dispatchers.find(domain);
+    if (result != dispatchers.end()) {
+        m_duplicatedDispatcher = adoptRef(*result->value);
+    }
     m_backendDispatcher->registerDispatcherForDomain(domain, this);
 }
 
@@ -41,6 +46,12 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
 
     JSValue functionValue = m_domainDispatcher->get(globalExec, Identifier::fromString(&m_globalObject.vm(), method));
     if (functionValue.isUndefined()) {
+        if (m_duplicatedDispatcher) {
+            m_duplicatedDispatcher.get()->dispatch(callId, method, WTFMove(message));
+
+            return;
+        }
+
         m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::InvalidRequest, WTF::String::format("No implementation for method %s found", method.utf8().data()));
         return;
     }
