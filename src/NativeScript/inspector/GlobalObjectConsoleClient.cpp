@@ -41,9 +41,10 @@ void GlobalObjectConsoleClient::setLogToSystemConsole(bool shouldLog) {
     sLogToSystemConsole = shouldLog;
 }
 
-GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsoleAgent* consoleAgent)
+GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsoleAgent* consoleAgent, Inspector::InspectorLogAgent* logAgent)
     : ConsoleClient()
-    , m_consoleAgent(consoleAgent) {
+    , m_consoleAgent(consoleAgent)
+    , m_logAgent(logAgent) {
 }
 
 void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
@@ -57,6 +58,8 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
 
     String message;
     arguments->getFirstArgumentAsString(message);
+
+    m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec));
     m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTFMove(arguments), exec));
 }
 

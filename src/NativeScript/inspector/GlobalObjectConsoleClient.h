@@ -2,6 +2,7 @@
 #ifndef GlobalObjectConsoleClient_hpp
 #define GlobalObjectConsoleClient_hpp
 
+#include "InspectorLogAgent.h"
 #include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/runtime/ConsoleClient.h>
 #include <stdio.h>
@@ -11,7 +12,7 @@ class GlobalObjectConsoleClient : public JSC::ConsoleClient {
     WTF_MAKE_FAST_ALLOCATED;
 
 public:
-    explicit GlobalObjectConsoleClient(Inspector::InspectorConsoleAgent*);
+    explicit GlobalObjectConsoleClient(Inspector::InspectorConsoleAgent*, Inspector::InspectorLogAgent*);
     virtual ~GlobalObjectConsoleClient() {}
 
     static bool logToSystemConsole();
@@ -34,6 +35,7 @@ private:
     WTF::String getDirMessage(JSC::ExecState*, JSC::JSValue);
 
     Inspector::InspectorConsoleAgent* m_consoleAgent;
+    Inspector::InspectorLogAgent* m_logAgent;
 };
 }
 #endif /* GlobalObjectConsoleClient_h */
