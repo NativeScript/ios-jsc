@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     TNSInstallExceptionHandler();
 
 #ifndef NDEBUG
-    TNSEnableRemoteInspector(argc, argv);
+    TNSEnableRemoteInspector(argc, argv, runtime);
 #endif
 
     [runtime executeModule:@"./"];

@@ -18,7 +18,6 @@
 #include <string.h>
 #include <notify.h>
 
-TNSRuntime *runtime;
 static TNSRuntimeInspector *inspector = nil;
 static BOOL isWaitingForDebugger = NO;
 
@@ -158,14 +157,14 @@ static void TNSInspectorUncaughtExceptionHandler(NSException *exception) {
       JSStringCreateWithUTF8CString(exception.description.UTF8String);
 
   JSValueRef errorArguments[] = {
-      JSValueMakeString(runtime.globalContext, exceptionMessage)};
+      JSValueMakeString(inspector.runtime.globalContext, exceptionMessage)};
   JSObjectRef error =
-      JSObjectMakeError(runtime.globalContext, 1, errorArguments, NULL);
+      JSObjectMakeError(inspector.runtime.globalContext, 1, errorArguments, NULL);
 
   [inspector reportFatalError:error];
 }
 
-static void TNSEnableRemoteInspector(int argc, char **argv) {
+static void TNSEnableRemoteInspector(int argc, char **argv, TNSRuntime *runtime) {
   __block dispatch_source_t listenSource = nil;
 
   dispatch_block_t clear = ^{

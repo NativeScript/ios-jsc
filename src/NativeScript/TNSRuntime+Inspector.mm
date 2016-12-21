@@ -95,6 +95,10 @@ private:
     return self;
 }
 
+- (TNSRuntime*)runtime {
+    return self->_runtime;
+}
+
 - (void)setup {
     JSC::JSLockHolder lock(_runtime->_vm.get());
 
