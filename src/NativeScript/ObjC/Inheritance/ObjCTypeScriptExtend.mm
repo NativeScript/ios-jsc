@@ -31,7 +31,8 @@ static bool isPlainTypeScriptConstructor(JSFunction* typeScriptConstructor) {
 
     NSArray* regularExpressions = @[
         @"^\\(\\)\\s?\\{\\s?\\}$",
-        @"^\\(\\)\\s?\\{\\s?\\w+\\.apply\\(this,\\s?arguments\\);?\\s?\\}$"
+        @"^\\(\\)\\s?\\{\\s?\\w+\\.apply\\(this,\\s?arguments\\);?\\s?\\}$",
+        @"^\\(\\)\\s?\\{\\s?\\w+\\.apply\\(this,\\s?arguments\\)\\s?||\\s?this;?\\s?\\}$"
     ];
 
     NSUInteger index = [regularExpressions indexOfObjectPassingTest:^BOOL(id obj, NSUInteger idx, BOOL* stop) {
