@@ -1,7 +1,7 @@
 {
   "name": "tns-ios-inspector",
   "description": "Telerik NativeScript Inspector for iOS Runtime",
-  "version":"2.5.0",
+  "version":"2.6.0",
   "keywords": [
     "NativeScript",
     "iOS",
