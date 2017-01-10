@@ -7,7 +7,7 @@ OTHER_LDFLAGS[sdk=*] = $(inherited) -ObjC -sectcreate __DATA __TNSMetadata "$(CO
 OTHER_LDFLAGS[config=Debug] = $(inherited) -framework TKLiveSync -F$(SRCROOT)/internal/
 
 // We need to add CONFIGURATION_BUILD_DIR here so that we can explicitly quote-escape any paths in it, because the implicitly added path by Xcode is not always escaped
-FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/internal/" "$(SRCROOT)/../../lib/iOS" "$(CONFIGURATION_BUILD_DIR)"
+FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/internal/" "$(CONFIGURATION_BUILD_DIR)"
 
 // * Uncomment this setting to generate TypeScript declarations for the iOS SDK and all linked libraries.
 // * They will be generated on each build, so you can find them after running "tns build ios" in "YOUR_APP/platforms/ios".
