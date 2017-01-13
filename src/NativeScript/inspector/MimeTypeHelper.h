@@ -18,6 +18,10 @@ static WTF::String mimeTypeByExtension(WTF::String extension) {
     }
 #endif
 
+    if (WTF::equal(extension, "ts")) {
+        return WTF::ASCIILiteral("text/typescript");
+    }
+
     RetainPtr<CFStringRef> cfExtension = extension.createCFString();
 
     CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, cfExtension.get(), NULL);
