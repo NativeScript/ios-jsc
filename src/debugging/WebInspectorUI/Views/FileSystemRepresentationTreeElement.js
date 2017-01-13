@@ -35,6 +35,22 @@ WebInspector.FileSystemRepresentationTreeElement = class FileSystemRepresentatio
         }
     }
 
+    removeFile(fileURLString) {
+        let path = parseURL(fileURLString).path;
+        let directoryPath = path.substring(0, path.lastIndexOf('/'));
+
+        if (this.foldersByPath.has(directoryPath)) {
+            let parentFolderElement = this.foldersByPath.get(directoryPath);
+
+            for (let child of parentFolderElement.children) {
+                if (child.representedObject.url === fileURLString) {
+                    parentFolderElement.removeChild(child, true, true);
+                    break;
+                }
+            }
+        }
+    }
+
     _compareTreeElementsByMainTitle(a, b)
     {
         return a.mainTitle.localeCompare(b.mainTitle);
