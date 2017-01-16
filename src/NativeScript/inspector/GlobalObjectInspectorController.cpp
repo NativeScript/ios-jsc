@@ -122,7 +122,8 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_inspectorAgent = inspectorAgent.get();
     m_debuggerAgent = debuggerAgent.get();
     m_consoleAgent = consoleAgent.get();
-    m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent, logAgent.get());
+    m_logAgent = logAgent.get();
+    m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent, m_logAgent);
 
     m_agents.append(WTFMove(inspectorAgent));
     m_agents.append(WTFMove(pageAgent));
@@ -260,6 +261,7 @@ void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Except
     }
 
     m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack));
+    m_logAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack));
 }
 
 bool GlobalObjectInspectorController::developerExtrasEnabled() const {

@@ -45,6 +45,7 @@ class FrontendChannel;
 class InjectedScriptManager;
 class InspectorAgent;
 class InspectorConsoleAgent;
+class InspectorLogAgent;
 class InspectorDebuggerAgent;
 class InspectorTimelineAgent;
 class JSGlobalObjectConsoleClient;
@@ -146,6 +147,7 @@ private:
     Inspector::AgentRegistry m_agents;
     Inspector::InspectorAgent* m_inspectorAgent{ nullptr };
     Inspector::InspectorConsoleAgent* m_consoleAgent{ nullptr };
+    Inspector::InspectorLogAgent* m_logAgent{ nullptr };
     Inspector::InspectorDebuggerAgent* m_debuggerAgent{ nullptr };
     Inspector::InspectorTimelineAgent* m_timelineAgent{ nullptr };
 
