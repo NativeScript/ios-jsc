@@ -142,10 +142,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
 }
 
 InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& error, const int* executionContextId) {
-    if (executionContextId) {
-        error = ASCIILiteral("Execution context id is not supported for JSContext inspection as there is only one execution context.");
-        return InjectedScript();
-    }
+    ASSERT_UNUSED(executionContextId, (!executionContextId || *executionContextId == 1));
 
     ExecState* exec = static_cast<JSGlobalObjectScriptDebugServer&>(scriptDebugServer()).globalObject().globalExec();
     return injectedScriptManager().injectedScriptFor(exec);
