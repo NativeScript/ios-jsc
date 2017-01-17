@@ -30,7 +30,7 @@ typedef TNSInspectorProtocolHandler (^TNSInspectorFrontendConnectedHandler)(
 
 #define CheckError(retval, handler)                                            \
   ({                                                                           \
-    typeof(retval) errorCode = retval;                                         \
+    int errorCode = (int)retval;                                               \
     BOOL success = NO;                                                         \
     if (errorCode == 0)                                                        \
       success = YES;                                                           \
@@ -83,7 +83,7 @@ static dispatch_source_t TNSCreateInspectorServer(
           NSUInteger length = [message
               lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
 
-          void *buffer = malloc(length + sizeof(uint32_t));
+          uint8_t* buffer = (uint8_t*)malloc(length + sizeof(uint32_t));
 
           *(uint32_t *)buffer = htonl(length);
 
