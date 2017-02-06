@@ -69,4 +69,8 @@
     
 }
 
+- (void)openInNewTab {
+    
+}
+
 @end

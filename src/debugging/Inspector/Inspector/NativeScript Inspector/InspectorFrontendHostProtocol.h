@@ -16,5 +16,6 @@
 - (void)startWindowDrag;
 - (void)setZoomFactor:(NSString *)factor;
 - (void)showContextMenu;
+- (void)openInNewTab;
 
 @end
