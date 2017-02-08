@@ -12,6 +12,8 @@
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <JavaScriptCore/JSONObject.h>
+#include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/JSInternalPromise.h>
 
 #include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectInspectorController.h"
@@ -107,10 +109,26 @@ private:
 
     globalObject->microtasks().swap(other);
 
-    loadAndEvaluateModule(_runtime->_globalObject->globalExec(), WTF::ASCIILiteral("inspector_modules.js"));
-
+    JSInternalPromise* promise = loadAndEvaluateModule(_runtime->_globalObject->globalExec(), WTF::ASCIILiteral("inspector_modules.js"));
+    
+    JSValue error;
+    JSFunction* errorHandler = JSNativeStdFunction::create(*_runtime->_vm.get(), globalObject, 1, String(), [&](ExecState* execState) {
+        error = execState->argument(0);
+        return JSValue::encode(jsUndefined());
+    });
+    promise->then(globalObject->globalExec(), nullptr, errorHandler);
+    
     globalObject->drainMicrotasks();
     globalObject->microtasks().swap(other);
+    
+    if (error) {
+        Exception* exception = jsDynamicCast<Exception*>(error);
+        if (!exception) {
+            exception = Exception::create(*_runtime->_vm.get(), error, Exception::DoNotCaptureStack);
+        }
+        
+        reportFatalErrorBeforeShutdown(globalObject->globalExec(), exception);
+    }
 }
 
 - (void)dispatchMessage:(NSString*)message {
