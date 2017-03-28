@@ -181,11 +181,11 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
 
             PropertyDescriptor descriptor;
             descriptor.setConfigurable(true);
-            descriptor.setGetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), getter));
+            if (getter)
+                descriptor.setGetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), getter));
 
-            if (setter) {
+            if (setter)
                 descriptor.setSetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), setter));
-            }
 
             Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
         }
