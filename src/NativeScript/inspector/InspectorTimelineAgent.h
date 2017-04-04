@@ -1,7 +1,7 @@
 #pragma once
 
-#include <JavaScriptCore/Inspector/InspectorBackendDispatchers.h>
-#include <JavaScriptCore/Inspector/InspectorFrontendDispatchers.h>
+#include <JavaScriptCore/inspector/InspectorBackendDispatchers.h>
+#include <JavaScriptCore/inspector/InspectorFrontendDispatchers.h>
 #include <JavaScriptCore/InspectorAgentBase.h>
 
 namespace Inspector {

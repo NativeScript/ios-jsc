@@ -7,9 +7,9 @@
 //
 
 #include "WorkerMessagingProxy.h"
-#include <JavascriptCore/runtime/Exception.h>
+#include <JavaScriptCore/runtime/Exception.h>
 #include <JavaScriptCore/JSONObject.h>
-#include <WTF/RunLoop.h>
+#include <wtf/RunLoop.h>
 #include "TNSRuntime+Private.h"
 #include "JSErrors.h"
 #include "JSWorkerGlobalObject.h"

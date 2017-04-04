@@ -2,8 +2,8 @@
 #include "GlobalObjectInspectorController.h"
 #include "SuppressAllPauses.h"
 #include <JavaScriptCore/Completion.h>
-#include <JavaScriptCore/Inspector/InspectorBackendDispatchers.h>
-#include <JavaScriptCore/Inspector/InspectorFrontendDispatchers.h>
+#include <JavaScriptCore/inspector/InspectorBackendDispatchers.h>
+#include <JavaScriptCore/inspector/InspectorFrontendDispatchers.h>
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/runtime/Exception.h>
 #include <JavaScriptCore/runtime/JSONObject.h>
