@@ -97,6 +97,23 @@ static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::S
     return nil;
 }
 
+NSString* normalizePath(NSString * path) {
+    NSArray *pathComponents = [path componentsSeparatedByString:@"/"];
+    NSMutableArray *stack = [[NSMutableArray alloc] initWithCapacity:pathComponents.count];
+    for (NSString *pathComponent in pathComponents) {
+        if ([pathComponent isEqualToString:@".."]) {
+            [stack removeLastObject];
+        } else if (![pathComponent isEqualToString:@"."] && ![pathComponent isEqualToString: @""]) {
+            [stack addObject:pathComponent];
+        }
+    }
+    NSString* result = [stack componentsJoinedByString:@"/"];
+    if ([path hasPrefix:@"/"]) {
+        result = [@"/" stringByAppendingString:result];
+    }
+    return result;
+}
+
 JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue referrerValue, JSValue initiator) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
@@ -134,8 +151,7 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
             absolutePath = [static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app/tns_modules/tns-core-modules"];
             isModuleRequire = true;
         }
-
-        absolutePath = [[absolutePath stringByAppendingPathComponent:path] stringByStandardizingPath];
+        absolutePath = [normalizePath([absolutePath stringByAppendingPathComponent:path]) stringByStandardizingPath];
     }
 
     NSError* error = nil;

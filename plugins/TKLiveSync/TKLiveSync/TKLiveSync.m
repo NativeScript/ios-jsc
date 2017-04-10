@@ -56,13 +56,15 @@ static void trySetLiveSyncApplicationPath()
 
     NSString* nativeScriptModulesPath = [appFolderPath stringByAppendingPathComponent:@"tns_modules"];
 
-    // fileExistsAtPath: returns false if the file is a symlink so using this instead
-    if (![fileManager attributesOfItemAtPath:nativeScriptModulesPath error:nil]) {
+    // TRICKY: Check if real dir tns_modules exists. If it does not, or it is a symlink, the symlink has to be recreated.
+    if (![fileManager fileExistsAtPath:nativeScriptModulesPath]) {
         NSLog(@"tns_modules folder not livesynced. Using tns_modules from the already deployed bundle...");
-
-        NSString* bundleNativeScriptModulesPath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"app/tns_modules"];
+    
+        // If tns_modules were a symlink, delete it so it can be linked again, this is necessary when relaunching the app from Xcode after lifesync, the app bundle seems to move.
+        [fileManager removeItemAtPath:nativeScriptModulesPath error:nil];
 
         NSError* error;
+        NSString* bundleNativeScriptModulesPath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"app/tns_modules"];
         if (![fileManager createSymbolicLinkAtPath:nativeScriptModulesPath withDestinationPath:bundleNativeScriptModulesPath error:&error]) {
             NSLog(@"Failed to symlink tns_modules folder: %@", error);
         }
