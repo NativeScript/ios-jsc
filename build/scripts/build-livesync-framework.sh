@@ -10,7 +10,11 @@ pushd "$WORKSPACE/plugins/TKLiveSync"
 
 rm -rf "build"
 
+pod install
+
 xcodebuild \
+    -workspace "./TKLiveSync.xcworkspace" \
+    -scheme "TKLiveSync" \
     -configuration "Release" \
     -sdk "iphonesimulator" \
     build \
@@ -19,6 +23,8 @@ xcodebuild \
     -quiet
 
 xcodebuild \
+    -workspace "./TKLiveSync.xcworkspace" \
+    -scheme "TKLiveSync" \
     -configuration "Release" \
     -sdk "iphoneos" \
     build \
