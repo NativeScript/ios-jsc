@@ -16,6 +16,7 @@ static void tryExtractLiveSyncArchive()
     NSString* libraryPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
     NSString* liveSyncPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
     NSString* syncZipPath = [NSString pathWithComponents:@[ liveSyncPath, @"sync.zip" ]];
+    NSString* appFolderPath = [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
 
     if (![fileManager fileExistsAtPath:syncZipPath]) {
         return;
@@ -40,17 +41,9 @@ static void tryExtractLiveSyncArchive()
     if (err) {
         NSLog(@"Can't remove %@: %@", syncZipPath, err);
     }
-}
-
-static void trySetLiveSyncApplicationPath()
-{
-    NSFileManager* fileManager = [NSFileManager defaultManager];
-
-    NSString* libraryPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
-    NSString* liveSyncPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
-    NSString* appFolderPath = [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
 
     if (![fileManager fileExistsAtPath:appFolderPath]) {
+        NSLog(@"Can't find app folder in the zip archive");
         return;
     }
 
@@ -69,6 +62,12 @@ static void trySetLiveSyncApplicationPath()
             NSLog(@"Failed to symlink tns_modules folder: %@", error);
         }
     }
+}
+
+static void trySetLiveSyncApplicationPath()
+{
+    NSString* libraryPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
+    NSString* liveSyncPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
 
     if (setenv("TNSApplicationPath", liveSyncPath.UTF8String, 0) == -1) {
         perror("Could not set application path");
