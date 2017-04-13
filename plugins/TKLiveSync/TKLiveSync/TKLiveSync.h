@@ -13,3 +13,5 @@ FOUNDATION_EXPORT double TKLiveSyncVersionNumber;
 
 //! Project version string for TKLiveSync.
 FOUNDATION_EXPORT const unsigned char TKLiveSyncVersionString[];
+
+void TNSInitializeLiveSync();

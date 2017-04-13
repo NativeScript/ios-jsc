@@ -62,7 +62,7 @@ static void tryExtractLiveSyncArchive()
 static void trySetLiveSyncApplicationPath()
 {
     NSFileManager* fileManager = [NSFileManager defaultManager];
-    
+
     NSString* libraryPath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) firstObject];
     NSString* liveSyncPath = [NSString pathWithComponents:@[ libraryPath, @"Application Support", @"LiveSync" ]];
     NSString* appPath = [NSString pathWithComponents:@[ liveSyncPath, @"app" ]];
@@ -76,21 +76,6 @@ static void trySetLiveSyncApplicationPath()
     }
 }
 
-static NSURL *availableRestartURL() {
-    NSArray *availableSchemesToOpen = NSBundle.mainBundle.infoDictionary[@"LSApplicationQueriesSchemes"];
-    NSArray *urlSchemes = [NSBundle.mainBundle.infoDictionary[@"CFBundleURLTypes"] firstObject][@"CFBundleURLSchemes"];
-    NSString *urlQuery = urlSchemes.firstObject ? [NSString stringWithFormat:@"?callbackAppScheme=%@", urlSchemes.firstObject] : @"";
-    
-    for (NSString *scheme in availableSchemesToOpen) {
-        NSURL *restartURL = [NSURL URLWithString:[NSString stringWithFormat:@"%@://restartNativeScript%@", scheme, urlQuery]];
-        if ([UIApplication.sharedApplication canOpenURL:restartURL]) {
-            return restartURL;
-        }
-    }
-    
-    return nil;
-}
-
 static GCDWebServer* webServer;
 static NSString * const kHTMLResponse = @"<html><head><meta http-equiv=\"refresh\""
 " content=\"2;url=%@://reload\" /></head><body><p style=\"text-align: center; font-size: 300%%; margin: 50px\">"
@@ -99,23 +84,6 @@ static NSString * const kHTMLResponse = @"<html><head><meta http-equiv=\"refresh
 
 static void restartApp()
 {
-    NSURL *restartURL = availableRestartURL();
-    if (restartURL) {
-        [UIApplication.sharedApplication openURL:restartURL];
-        exit(0);
-    }
-    
-    BOOL useSafariForRestart = [NSBundle.mainBundle.infoDictionary[@"SafariRestart"] boolValue];
-    if(!useSafariForRestart){
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Application Restart Required"
-                                                        message:@"To view the current changes please restart the application"
-                                                       delegate:nil
-                                              cancelButtonTitle:@"OK"
-                                              otherButtonTitles:nil];
-        [alert show];
-        return;
-    }
-    
     // Starting a local web server used for a restart.
     NSArray *bundleURLTypes = NSBundle.mainBundle.infoDictionary[@"CFBundleURLTypes"];
     NSString *appScheme = [bundleURLTypes.firstObject[@"CFBundleURLSchemes"] firstObject];
@@ -149,7 +117,7 @@ static void restartApp()
                                                             error:&error];
     }
     
-    if (!isServerSuccessfullyStarted || error) {
+    if (!isServerSuccessfullyStarted) {
         if (!error) {
             error = [NSError errorWithDomain:@"LiveSync"
                                         code:1234
@@ -182,8 +150,7 @@ static void listenForRestartNotification() {
     });
 }
 
-__attribute__((constructor)) static void TKLiveSyncInit()
-{
+void TNSInitializeLiveSync() {
     tryExtractLiveSyncArchive();
     trySetLiveSyncApplicationPath();
     listenForRestartNotification();
