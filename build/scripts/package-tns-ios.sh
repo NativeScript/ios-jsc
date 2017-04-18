@@ -12,8 +12,8 @@ INTERNAL_DIR="$FRAMEWORK_DIR/internal"
 
 mkdir -p "$INTERNAL_DIR"
 
-"$WORKSPACE/build/scripts/build-livesync-framework.sh"
-cp -R "$DIST_DIR/TKLiveSync.framework" "$INTERNAL_DIR"
+"$WORKSPACE/build/scripts/build-livesync-static-lib.sh"
+cp -R "$DIST_DIR/TKLiveSync" "$INTERNAL_DIR"
 
 "$WORKSPACE/build/scripts/build-nativescript-framework.sh"
 cp -R "$DIST_DIR/NativeScript.framework" "$INTERNAL_DIR/NativeScript.framework"

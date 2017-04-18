@@ -33,12 +33,13 @@ xcodebuild \
     -quiet
 
 checkpoint "Packaging TKLiveSync.framework"
-mkdir -p "$WORKSPACE/dist"
-cp -r "build/Release-iphoneos/TKLiveSync.framework" "$WORKSPACE/dist"
-rm "$WORKSPACE/dist/TKLiveSync.framework/TKLiveSync"
-lipo -create -output "$WORKSPACE/dist/TKLiveSync.framework/TKLiveSync" \
+mkdir -p "$WORKSPACE/dist/TKLiveSync/"
+cp -r "build/Release-iphoneos/TKLiveSync.framework/Headers" "$WORKSPACE/dist/TKLiveSync"
+mv "$WORKSPACE/dist/TKLiveSync/Headers" "$WORKSPACE/dist/TKLiveSync/include"
+lipo -create -output "$WORKSPACE/dist/TKLiveSync/TKLiveSync" \
     "build/Release-iphonesimulator/TKLiveSync.framework/TKLiveSync" \
     "build/Release-iphoneos/TKLiveSync.framework/TKLiveSync"
+chmod +x "$WORKSPACE/dist/TKLiveSync/TKLiveSync"
 
 popd
-checkpoint "Finished building TKLiveSync - $WORKSPACE/dist/TKLiveSync.framework"
+checkpoint "Finished building TKLiveSync - $WORKSPACE/dist/TKLiveSync"
