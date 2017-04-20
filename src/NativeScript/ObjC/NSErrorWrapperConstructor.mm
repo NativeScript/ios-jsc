@@ -38,7 +38,7 @@ void NSErrorWrapperConstructor::visitChildren(JSCell* cell, SlotVisitor& slotVis
 }
 
 ErrorInstance* NSErrorWrapperConstructor::createError(ExecState* execState, NSError* error) const {
-    ErrorInstance* wrappedError = ErrorInstance::create(execState, this->errorStructure(), jsString(execState, error.localizedDescription));
+    ErrorInstance* wrappedError = ErrorInstance::create(execState, this->errorStructure(), jsString(execState, error.localizedDescription), nullptr, TypeNothing, false);
     wrappedError->putDirect(execState->vm(), Identifier::fromString(execState, "error"), NativeScript::toValue(execState, error));
 
     return wrappedError;
