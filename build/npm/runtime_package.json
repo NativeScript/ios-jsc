@@ -15,9 +15,6 @@
     "name": "Telerik",
     "email": "support@telerik.com"
   },
-  "os": [
-    "darwin"
-  ],
   "directories": {},
   "files": [
     "**/*"
