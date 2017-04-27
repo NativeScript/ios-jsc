@@ -9,9 +9,14 @@
 
 #if DEBUG
 #include <TNSDebugging.h>
+#include <TKLiveSync.h>
 #endif
 
 int main(int argc, char *argv[]) {
+#if DEBUG
+  TNSInitializeLiveSync();
+#endif
+
   @autoreleasepool {
     extern char startOfMetadataSection __asm(
         "section$start$__DATA$__TNSMetadata");
@@ -24,7 +29,8 @@ int main(int argc, char *argv[]) {
       applicationPath = [NSBundle mainBundle].bundlePath;
     }
 
-    TNSRuntime *runtime = [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
+    TNSRuntime *runtime =
+        [[TNSRuntime alloc] initWithApplicationPath:applicationPath];
     [runtime scheduleInRunLoop:[NSRunLoop currentRunLoop]
                        forMode:NSRunLoopCommonModes];
 
