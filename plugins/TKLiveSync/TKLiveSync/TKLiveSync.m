@@ -53,7 +53,7 @@ static void tryExtractLiveSyncArchive()
 
         NSError* error;
         NSString* bundleNativeScriptModulesPath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"app/tns_modules"];
-        if (![fileManager createSymbolicLinkAtURL: [NSURL URLWithString: tnsModulesPath] withDestinationURL: [NSURL URLWithString: bundleNativeScriptModulesPath] error:&error]) {
+        if (![fileManager createSymbolicLinkAtPath: tnsModulesPath withDestinationPath: bundleNativeScriptModulesPath error:&error]) {
             NSLog(@"Failed to symlink tns_modules folder: %@", error);
         }
     }
