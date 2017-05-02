@@ -15,9 +15,12 @@ def getPackageVersion(baseVersion):
 		return baseVersion
 	return baseVersion + "-" + buildVersion
 
+def getFrameworkVersion(baseVersion):
+	return baseVersion.split("-")[0]
+
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print "Package.json location argument is missing"
 		sys.exit(2)
 	data = readPackageJSON(sys.argv[1]);
-	print "{};{}".format(data["version"], getPackageVersion(data["version"]))
+	print "{};{};{}".format(data["version"], getPackageVersion(data["version"]), getFrameworkVersion(data["version"]))
