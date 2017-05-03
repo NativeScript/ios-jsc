@@ -7,6 +7,17 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+3.0.0
+=====
+
+## What's New
+- [ObjC TS decorators for specifying protocols and exposed methods](https://github.com/NativeScript/ios-runtime/pull/753)
+
+## Bug Fixes
+- [Double click on file in ios debug inspector throws an error](https://github.com/NativeScript/ios-runtime/pull/722)
+- [Livesync makes some modules executed twice](https://github.com/NativeScript/ios-runtime/pull/738)
+- [Tagged (rc) versions cannot be uploaded to TestFlight/iTunes](https://github.com/NativeScript/ios-runtime/pull/760)
+
 2.5.1
 =====
 
