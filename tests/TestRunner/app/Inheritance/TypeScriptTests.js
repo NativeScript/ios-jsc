@@ -1,8 +1,7 @@
-// TODO: Use TypeScript definitions when they get ready
 var TSObject = (function (_super) {
     __extends(TSObject, _super);
     function TSObject() {
-        _super.apply(this, arguments);
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     TSObject.prototype.initBaseMethod = function () {
         var self = _super.prototype.initBaseMethod.call(this);
@@ -59,17 +58,17 @@ var TSObject = (function (_super) {
     TSObject.returnsConstructorMethod = function () {
         return TSObject;
     };
-    TSObject.property = 1;
-    TSObject.ObjCExposedMethods = {
-        'voidSelector': { returns: interop.types.void },
-        'variadicSelector:x:': { returns: NSObject, params: [NSString, interop.types.int32] }
-    };
     return TSObject;
-})(TNSDerivedInterface);
+}(TNSDerivedInterface));
+TSObject.property = 1;
+TSObject.ObjCExposedMethods = {
+    'voidSelector': { returns: interop.types.void },
+    'variadicSelector:x:': { returns: NSObject, params: [NSString, interop.types.int32] }
+};
 var TSObject1 = (function (_super) {
     __extends(TSObject1, _super);
     function TSObject1() {
-        _super.apply(this, arguments);
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     TSObject1.prototype.baseProtocolMethod1 = function () {
         TNSLog('baseProtocolMethod1 called');
@@ -99,17 +98,80 @@ var TSObject1 = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    TSObject1.ObjCProtocols = [TNSBaseProtocol2];
     return TSObject1;
-})(NSObject);
+}(NSObject));
+TSObject1.ObjCProtocols = [TNSBaseProtocol2];
+var TSDecoratedObject = (function (_super) {
+    __extends(TSDecoratedObject, _super);
+    function TSDecoratedObject() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    TSDecoratedObject.prototype.voidSelector = function () {
+        TNSLog('voidSelector called');
+    };
+    TSDecoratedObject.prototype.variadicSelectorX = function (a, b) {
+        TNSLog('variadicSelector:' + a + ' x:' + b + ' called');
+        return a;
+    };
+    TSDecoratedObject.staticFunc = function (x) {
+        TNSLog('staticFunc:' + x + ' called');
+    };
+    return TSDecoratedObject;
+}(TNSDerivedInterface));
+__decorate([
+    ObjCMethod()
+], TSDecoratedObject.prototype, "voidSelector", null);
+__decorate([
+    ObjCMethod('variadicSelector:x:', NSObject),
+    __param(0, ObjCParam(NSString)), __param(1, ObjCParam(interop.types.int32))
+], TSDecoratedObject.prototype, "variadicSelectorX", null);
+var TSDecoratedObject1 = (function (_super) {
+    __extends(TSDecoratedObject1, _super);
+    function TSDecoratedObject1() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    TSDecoratedObject1.prototype.baseProtocolMethod1 = function () {
+        TNSLog('baseProtocolMethod1 called');
+    };
+    TSDecoratedObject1.prototype.baseProtocolMethod2 = function () {
+        TNSLog('baseProtocolMethod2 called');
+    };
+    Object.defineProperty(TSDecoratedObject1.prototype, "baseProtocolProperty1", {
+        get: function () {
+            TNSLog('baseProtocolProperty1 called');
+            return 0;
+        },
+        set: function (x) {
+            TNSLog('setBaseProtocolProperty1: called');
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(TSDecoratedObject1.prototype, "baseProtocolProperty1Optional", {
+        get: function () {
+            TNSLog('baseProtocolProperty1Optional called');
+            return 0;
+        },
+        set: function (x) {
+            TNSLog('setBaseProtocolProperty1Optional: called');
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return TSDecoratedObject1;
+}(NSObject));
+TSDecoratedObject1 = __decorate([
+    ObjCClass(TNSBaseProtocol2)
+], TSDecoratedObject1);
 var UnusedConstructor = (function (_super) {
     __extends(UnusedConstructor, _super);
     function UnusedConstructor() {
-        _super.apply(this, arguments);
-        this.x = 3;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.x = 3;
+        return _this;
     }
     return UnusedConstructor;
-})(NSObject);
+}(NSObject));
 describe(module.id, function () {
     afterEach(function () {
         TNSClearOutput();
@@ -199,14 +261,14 @@ describe(module.id, function () {
             function A() {
             }
             return A;
-        })();
+        }());
         var B = (function (_super) {
             __extends(B, _super);
             function B() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             return B;
-        })(A);
+        }(A));
         expect(new B() instanceof A).toBe(true);
     });
     it('Scope', function () {
@@ -214,12 +276,38 @@ describe(module.id, function () {
         var Derived = (function (_super) {
             __extends(Derived, _super);
             function Derived() {
-                _super.apply(this, arguments);
+                return _super !== null && _super.apply(this, arguments) || this;
             }
             return Derived;
-        })(NSObject);
+        }(NSObject));
         ;
         expect(global["Derived"]).toBe(3);
         delete global["Derived"];
+    });
+    it('TypeScriptDecoratedShim', function () {
+        expect(global.__decorate).toBeDefined();
+        expect(global.__param).toBeDefined();
+    });
+    it('TypeScriptDecoratedProtocolImplementation', function () {
+        var object = TSDecoratedObject1.alloc().init();
+        TNSTestNativeCallbacks.protocolImplementationProtocolInheritance(object);
+        expect(TNSGetOutput()).toBe('baseProtocolMethod1 called' +
+            'baseProtocolMethod2 called');
+    });
+    it('TypeScriptDecoratedExposedMethods', function () {
+        var object = TSDecoratedObject.alloc().init();
+        TNSTestNativeCallbacks.inheritanceVoidSelector(object);
+        expect(TNSTestNativeCallbacks.inheritanceVariadicSelector(object)).toBe('native');
+        expect(TNSGetOutput()).toBe('voidSelector called' +
+            'variadicSelector:native x:9 called');
+    });
+    it('TypeScriptDecoratedExposedMethodsCalledFromJs', function () {
+        var object = TSDecoratedObject.alloc().init();
+        object.voidSelector();
+        expect(object.variadicSelectorX('js', 5)).toBe('js');
+        TSDecoratedObject.staticFunc(9);
+        expect(TNSGetOutput()).toBe('voidSelector called' +
+            'variadicSelector:js x:5 called' +
+            'staticFunc:9 called');
     });
 });
