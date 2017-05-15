@@ -61,6 +61,8 @@ import "./DeclarationConflicts";
 import "./Promises";
 import "./Modules";
 
+import "./RuntimeImplementedAPIs";
+
 execute();
 
 UIApplicationMain(0, null, null, null);

@@ -50,6 +50,7 @@
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/runtime/VMEntryScope.h>
 #include <string>
+#include <chrono>
 
 namespace NativeScript {
 using namespace JSC;
@@ -103,6 +104,12 @@ extern "C" void JSSynchronousGarbageCollectForDebugging(ExecState*);
 static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
     return JSValue::encode(jsUndefined());
+}
+    
+static EncodedJSValue JSC_HOST_CALL time(ExecState* execState) {
+    auto nano = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now());
+    double duration = nano.time_since_epoch().count() / 1000000.0;
+    return JSValue::encode(jsNumber(duration));
 }
 
 static void microtaskRunLoopSourcePerformWork(void* context) {
@@ -180,6 +187,8 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())));
 
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__collect"), 0, &collectGarbage, NoIntrinsic, DontEnum);
+
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__time"), 0, &time, NoIntrinsic, DontEnum);
 
 #ifdef DEBUG
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), WTF::ASCIILiteral("__extends.ts"));
