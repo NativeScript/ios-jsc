@@ -146,14 +146,6 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
 
     if (isModuleRequire) {
         if (!absoluteFilePath) {
-            absolutePath = [[[static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app/tns_modules"] stringByAppendingPathComponent:path] stringByStandardizingPath];
-            absoluteFilePath = resolveAbsolutePath(absolutePath, self->modulePathCache(), &error);
-            if (error) {
-                return deferred->reject(execState, self->interop()->wrapError(execState, error));
-            }
-        }
-
-        if (!absoluteFilePath) {
             NSString* currentSearchPath = [static_cast<NSString*>(referrerValue.toWTFString(execState)) stringByDeletingLastPathComponent];
             do {
                 NSString* currentNodeModulesPath = [[currentSearchPath stringByAppendingPathComponent:@"node_modules"] stringByStandardizingPath];
@@ -169,6 +161,14 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
                 }
                 currentSearchPath = [currentSearchPath stringByDeletingLastPathComponent];
             } while (currentSearchPath.length > self->applicationPath().length());
+        }
+
+        if (!absoluteFilePath) {
+            absolutePath = [[[static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app/tns_modules"] stringByAppendingPathComponent:path] stringByStandardizingPath];
+            absoluteFilePath = resolveAbsolutePath(absolutePath, self->modulePathCache(), &error);
+            if (error) {
+                return deferred->reject(execState, self->interop()->wrapError(execState, error));
+            }
         }
     }
 
@@ -376,12 +376,10 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                                                   record = jsCast<JSModuleRecord*>(entry.get(execState, Identifier::fromString(execState, "module")));
 
                                                   return JSValue::encode(jsUndefined());
-                                              }),
-                                              errorHandler);
+                                              }), errorHandler);
 
                       return JSValue::encode(promise);
-                  }),
-                  errorHandler);
+                  }), errorHandler);
     globalObject->drainMicrotasks();
 
     if (exception) {
