@@ -7,6 +7,12 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+2.5.1
+=====
+
+## Bug Fixes
+- [Incorrect module resolution](https://github.com/NativeScript/ios-runtime/issues/762)
+
 2.5.0
 =====
 
