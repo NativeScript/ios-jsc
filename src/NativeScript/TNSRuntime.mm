@@ -27,6 +27,7 @@
 #include "Metadata/Metadata.h"
 #include "ObjCTypes.h"
 #include "Workers/JSWorkerGlobalObject.h"
+#include "ManualInstrumentation.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -67,6 +68,7 @@ static NSPointerArray* _runtimes;
 }
 
 + (void)initialize {
+    TNSPERF();
     if (self == [TNSRuntime self]) {
         initializeThreading();
         JSC::Options::useJIT() = false;
@@ -79,6 +81,11 @@ static NSPointerArray* _runtimes;
 }
 
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath {
+    if (tns::instrumentation::Frame::mode == tns::instrumentation::Mode::Uninitialized) {
+        tns::instrumentation::Frame::disable();
+    }
+
+    TNSPERF();
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
         self->_threadId = WTF::currentThread();
@@ -107,6 +114,7 @@ static NSPointerArray* _runtimes;
 }
 
 - (GlobalObject*)createGlobalObjectInstance {
+    TNSPERF();
     return GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
 
@@ -130,6 +138,7 @@ static NSPointerArray* _runtimes;
 
 #if PLATFORM(IOS)
 - (void)_onMemoryWarning {
+    TNSPERF();
     JSLockHolder lock(self->_vm.get());
     self->_vm->heap.collect(CollectionScope::Full);
     self->_vm->heap.releaseDelayedReleasedObjects();
@@ -198,6 +207,7 @@ static NSPointerArray* _runtimes;
 @implementation TNSWorkerRuntime
 
 - (GlobalObject*)createGlobalObjectInstance {
+    TNSPERF();
     return JSWorkerGlobalObject::create(*self->_vm, JSWorkerGlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
 

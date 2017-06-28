@@ -24,6 +24,7 @@ set(HEADER_FILES
     LiveEdit/ClearChangedCellsFunctor.h
     LiveEdit/EditableSourceProvider.h
     LiveEdit/TextualDifferencesHelper.h
+    ManualInstrumentation.h
     Marshalling/FFISimpleType.h
     Marshalling/FFIType.h
     Marshalling/FunctionReference/FunctionReferenceConstructor.h
@@ -86,6 +87,7 @@ set(HEADER_FILES
     Runtime/ReleasePool.h
     SymbolLoader.h
     TimelineRecordFactory.h
+    TNSRuntimeInstrumentation.h
     TNSRuntime+Diagnostics.h
     TNSRuntime+Inspector.h
     TNSRuntime+Private.h
@@ -122,6 +124,7 @@ set(SOURCE_FILES
     JSWarnings.cpp
     LiveEdit/ClearChangedCellsFunctor.cpp
     LiveEdit/TextualDifferencesHelper.cpp
+    ManualInstrumentation.mm
     Marshalling/FFISimpleType.cpp
     Marshalling/FFIType.cpp
     Marshalling/FunctionReference/FunctionReferenceConstructor.cpp
@@ -179,6 +182,7 @@ set(SOURCE_FILES
     Runtime/JSWeakRefPrototype.cpp
     SymbolLoader.mm
     TimelineRecordFactory.cpp
+    TNSRuntimeInstrumentation.mm
     TNSRuntime+Diagnostics.mm
     TNSRuntime+Inspector.mm
     TNSRuntime.mm
@@ -192,6 +196,7 @@ set(SOURCE_FILES
 
 set(NativeScript_PUBLIC_HEADERS
     NativeScript.h
+    TNSRuntimeInstrumentation.h
     TNSRuntime+Diagnostics.h
     TNSRuntime+Inspector.h
     TNSRuntime.h

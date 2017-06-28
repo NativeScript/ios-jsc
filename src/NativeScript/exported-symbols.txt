@@ -93,5 +93,6 @@ JSValueProtect
 JSValueUnprotect
 OBJC_CLASS_$_TNSRuntime
 OBJC_CLASS_$_TNSRuntimeInspector
+OBJC_CLASS_$_TNSRuntimeInstrumentation
 TNSInspectorRunLoopMode
 TNSSetUncaughtErrorHandler

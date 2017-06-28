@@ -26,6 +26,7 @@
 #include "SymbolLoader.h"
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <string>
+#include "ManualInstrumentation.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -237,6 +238,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 }
 
 ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const WTF::String& klassName) {
+    tns::instrumentation::Frame frame;
     if (ObjCConstructorNative* type = this->_cacheId.get(klassName)) {
         return type;
     }
@@ -294,6 +296,11 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     }
     prototype->materializeProperties(vm, globalObject);
     constructor->materializeProperties(vm, globalObject);
+    
+    if (frame.check()) {
+        NSString *classNameNSStr = (NSString*)klassName.createCFString().get();
+        frame.log([@"Expose: " stringByAppendingString: classNameNSStr].UTF8String);
+    }
 
     return constructor;
 }
