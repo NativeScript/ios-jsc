@@ -7,6 +7,12 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+3.1.0
+=====
+
+## What's New
+- [Add global.__time function](https://github.com/NativeScript/ios-runtime/pull/766)
+
 3.0.1
 =====
 
