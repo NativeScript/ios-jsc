@@ -1,8 +1,13 @@
 # NativeScript for iOS Runtime
 
-```shell
-git clone --recursive git@github.com:NativeScript/ios-runtime.git
-```
+## Overview
+NativeScript is a framework which enables developers to write truly native mobile applications for Android and iOS using JavaScript and CSS. Each mobile platform has its own ecosystem and offers completely different development tools and language(s) - Java for Android and Objective C (Swift) for iOS. In order to translate JavaScript code to the corresponding native APIs some kind of proxy mechanism is needed. This is exactly what the "Runtime" parts of NativeScript are responsible for. The iOS Runtime may be thought of as "The Bridge" between the JavaScript and the iOS world. A NativeScript application for iOS is a standard native package (ipa) which besides the JavaScript files embed the runtime as well.
+
+## Documentation
+More information about what is the iOS Runtime can be found in [our documentation](https://docs.nativescript.org/runtimes/ios/Overview).
+
+## Project Structure
+[TODO]
 
 ## Requirements
  - OS X 10.11+
@@ -13,7 +18,7 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
  - [GNU Libtool](http://www.gnu.org/software/libtool/) - available in [Homebrew](http://brew.sh) as `libtool`.
  - Checkout all git submodules using `git submodule update --init`.
 
-## Local Development
+## Building Locally
 Execute the following commands:
 ```shell
 mkdir "cmake-build" && cd "cmake-build"
@@ -21,6 +26,7 @@ cmake .. -G "Xcode"
 open "NativeScript.xcodeproj"
 ```
 
+## Testing Locally
 After you open the newly generated project in Xcode you can run the `TestRunner` target or the `Gameraww` example app.
 
 ## Building a Distribution Package
