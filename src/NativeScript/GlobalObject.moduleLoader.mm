@@ -100,7 +100,7 @@ static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::S
 }
 
 NSString* normalizePath(NSString* path) {
-    NSArray* pathComponents = [path componentsSeparatedByString:@"/"];
+    NSArray<NSString*>* pathComponents = [path componentsSeparatedByString:@"/"];
     NSMutableArray* stack = [[NSMutableArray alloc] initWithCapacity:pathComponents.count];
     for (NSString* pathComponent in pathComponents) {
         if ([pathComponent isEqualToString:@".."]) {
@@ -113,6 +113,7 @@ NSString* normalizePath(NSString* path) {
     if ([path hasPrefix:@"/"]) {
         result = [@"/" stringByAppendingString:result];
     }
+    [stack release];
     return result;
 }
 
@@ -247,7 +248,9 @@ JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObj
         return deferred->reject(execState, createTypeError(execState, WTF::String::format("Unexpected module source type '%s'.", NSStringFromClass([source class]).UTF8String)));
     }
 
-    return deferred->resolve(execState, jsString(execState, contents));
+    JSC::JSString* contentsJs = jsString(execState, contents);
+    [contents release];
+    return deferred->resolve(execState, contentsJs);
 }
 
 static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourceCode, const Identifier& moduleKey, ParserError& parserError) {
@@ -393,14 +396,14 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                                                   args.append(moduleKey);
                                                   JSValue entry = JSC::call(execState, function, callType, callData, moduleLoader, args);
                                                   record = jsCast<JSModuleRecord*>(entry.get(execState, Identifier::fromString(execState, "module")));
-                          
+
                                                   if (frame.check()) {
                                                       NSString* moduleName = (NSString*)moduleKey.toWTFString(execState).createCFString().get();
                                                       NSString* appPath = [TNSRuntime current].applicationPath;
-                                                      if ([moduleName hasPrefix: appPath]) {
+                                                      if ([moduleName hasPrefix:appPath]) {
                                                           moduleName = [moduleName substringFromIndex:appPath.length];
                                                       }
-                                                      frame.log([@"require: " stringByAppendingString: moduleName].UTF8String);
+                                                      frame.log([@"require: " stringByAppendingString:moduleName].UTF8String);
                                                   }
 
                                                   return JSValue::encode(jsUndefined());
