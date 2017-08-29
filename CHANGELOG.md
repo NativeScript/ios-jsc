@@ -7,6 +7,12 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+3.2.0
+=====
+
+## Bug Fixes
+- [Fixed memory leak](https://github.com/NativeScript/NativeScript/issues/4490)
+
 3.1.0
 =====
 
