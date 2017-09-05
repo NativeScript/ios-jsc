@@ -10,8 +10,11 @@ previous_url: /Changelogs/iOS Runtime
 3.2.0
 =====
 
+## What's New
+- [Update LLVM/Clang to v4.0.0](https://github.com/NativeScript/ios-runtime/pull/780)
 ## Bug Fixes
 - [Fixed memory leak](https://github.com/NativeScript/NativeScript/issues/4490)
+- [Enable Xcode 8.3 support](https://github.com/NativeScript/ios-runtime/commit/4d86288f4bd3bb26e109c688add6a6d2ca14af0b)
 
 3.1.0
 =====
