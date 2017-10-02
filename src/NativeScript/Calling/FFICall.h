@@ -26,6 +26,9 @@ public:
     }
 
     JSC::JSObject* async(JSC::ExecState*, JSC::JSValue thisValue, const JSC::ArgList&);
+    std::shared_ptr<ffi_cif> checkForExistingCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes);
+
+    std::vector<const ffi_type*> signatureVector;
 
 protected:
     FFICall(JSC::VM& vm, JSC::Structure* structure)
@@ -34,7 +37,7 @@ protected:
 
     ~FFICall();
 
-    ffi_cif* _cif;
+    std::shared_ptr<ffi_cif> _cif;
 
     class Invocation {
         WTF_MAKE_NONCOPYABLE(Invocation)
@@ -145,6 +148,6 @@ protected:
     size_t _argsArrayOffset;
     std::vector<size_t> _argValueOffsets;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFICall__) */

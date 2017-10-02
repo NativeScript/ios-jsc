@@ -1,4 +1,5 @@
 set(HEADER_FILES
+    Calling/FFICache.h	
     Calling/FFICall.h
     Calling/FFICallback.h
     Calling/FFICallbackInlines.h
@@ -102,6 +103,7 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+    Calling/FFICache.cpp
     Calling/FFICall.cpp
     Calling/FFICallPrototype.cpp
     Calling/FFIFunctionCall.mm
