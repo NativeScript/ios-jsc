@@ -16,7 +16,8 @@
 # SETTINGS
 # set path to clang-format binary
 # CLANG_FORMAT="/usr/bin/clang-format"
-CLANG_FORMAT=`git config clangFormat.binary`
+# CLANG_FORMAT=`git config clangFormat.binary`
+CLANG_FORMAT=$(which clang-format)
 
 # remove any older patches from previous commits. Set to true or false.
 # DELETE_OLD_PATCHES=false
