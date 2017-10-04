@@ -26,7 +26,7 @@ public:
     }
 
     JSC::JSObject* async(JSC::ExecState*, JSC::JSValue thisValue, const JSC::ArgList&);
-    std::shared_ptr<ffi_cif> checkForExistingCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes);
+    std::shared_ptr<ffi_cif> getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes);
 
     std::vector<const ffi_type*> signatureVector;
 

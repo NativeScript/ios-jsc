@@ -55,7 +55,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
         this->signatureVector.push_back(parameterTypesFFITypes[i + initialArgumentIndex]);
     }
 
-    this->_cif = checkForExistingCif(parametersCount + initialArgumentIndex, const_cast<ffi_type*>(this->_returnType.ffiType), const_cast<ffi_type**>(parameterTypesFFITypes));
+    this->_cif = getCif(parametersCount + initialArgumentIndex, const_cast<ffi_type*>(this->_returnType.ffiType), const_cast<ffi_type**>(parameterTypesFFITypes));
 
     this->_argsCount = _cif->nargs;
     this->_stackSize = 0;
@@ -72,7 +72,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
     }
 }
 
-std::shared_ptr<ffi_cif> FFICall::checkForExistingCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes) {
+std::shared_ptr<ffi_cif> FFICall::getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes) {
 
     std::unordered_map<std::vector<const ffi_type*>, std::shared_ptr<ffi_cif>, SignatureHash>::const_iterator it = FFICache::global()->cifCache.find(this->signatureVector);
 
