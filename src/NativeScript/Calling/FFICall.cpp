@@ -74,7 +74,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
 
 std::shared_ptr<ffi_cif> FFICall::getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes) {
 
-    std::unordered_map<std::vector<const ffi_type*>, std::shared_ptr<ffi_cif>, SignatureHash>::const_iterator it = FFICache::global()->cifCache.find(this->signatureVector);
+    FFICache::FFIMap::const_iterator it = FFICache::global()->cifCache.find(this->signatureVector);
 
     if (it == FFICache::global()->cifCache.end()) {
         std::shared_ptr<ffi_cif> shared(new ffi_cif, deleteCif);
@@ -88,7 +88,7 @@ std::shared_ptr<ffi_cif> FFICall::getCif(unsigned int nargs, ffi_type* rtype, ff
 FFICall::~FFICall() {
 
     if (this->_cif.use_count() == 2) {
-        std::unordered_map<std::vector<const ffi_type*>, std::shared_ptr<ffi_cif>, SignatureHash>::const_iterator it;
+        FFICache::FFIMap::const_iterator it;
         it = FFICache::global()->cifCache.find(this->signatureVector);
         FFICache::global()->cifCache.erase(it);
     }
