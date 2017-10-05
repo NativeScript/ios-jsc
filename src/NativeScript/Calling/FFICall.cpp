@@ -7,6 +7,7 @@
 //
 
 #include "FFICall.h"
+#include "FFICache.h"
 #include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
@@ -18,9 +19,12 @@ using namespace JSC;
 
 const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, 0, CREATE_METHOD_TABLE(FFICall) };
 
-void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
-    ASSERT(this->methodTable()->destroy != FFICall::destroy);
+void deleteCif(ffi_cif* cif) {
+    delete[] cif->arg_types;
+    delete cif;
+}
 
+void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
     this->_invocationHooks = hooks;
 
     this->_initialArgumentIndex = initialArgumentIndex;
@@ -33,8 +37,11 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
 
     const ffi_type** parameterTypesFFITypes = new const ffi_type*[parametersCount + initialArgumentIndex];
 
+    this->signatureVector.push_back(getFFITypeMethodTable(returnType).ffiType);
+
     for (size_t i = 0; i < initialArgumentIndex; ++i) {
         parameterTypesFFITypes[i] = &ffi_type_pointer;
+        this->signatureVector.push_back(&ffi_type_pointer);
     }
 
     for (size_t i = 0; i < parametersCount; i++) {
@@ -45,10 +52,10 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
         this->_parameterTypes.append(ffiTypeMethodTable);
 
         parameterTypesFFITypes[i + initialArgumentIndex] = ffiTypeMethodTable.ffiType;
+        this->signatureVector.push_back(parameterTypesFFITypes[i + initialArgumentIndex]);
     }
 
-    this->_cif = new ffi_cif;
-    ffi_prep_cif(this->_cif, FFI_DEFAULT_ABI, parametersCount + initialArgumentIndex, const_cast<ffi_type*>(this->_returnType.ffiType), const_cast<ffi_type**>(parameterTypesFFITypes));
+    this->_cif = getCif(parametersCount + initialArgumentIndex, const_cast<ffi_type*>(this->_returnType.ffiType), const_cast<ffi_type**>(parameterTypesFFITypes));
 
     this->_argsCount = _cif->nargs;
     this->_stackSize = 0;
@@ -57,7 +64,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
     this->_stackSize += malloc_good_size(sizeof(void * [this->_cif->nargs]));
 
     this->_returnOffset = this->_stackSize;
-    this->_stackSize += malloc_good_size(std::max(this->_cif->rtype->size, sizeof(ffi_arg)));
+    this->_stackSize += malloc_good_size(std::max(this->_cif.get()->rtype->size, sizeof(ffi_arg)));
 
     for (size_t i = 0; i < this->_argsCount; i++) {
         this->_argValueOffsets.push_back(this->_stackSize);
@@ -65,9 +72,26 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
     }
 }
 
+std::shared_ptr<ffi_cif> FFICall::getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes) {
+
+    FFICache::FFIMap::const_iterator it = FFICache::global()->cifCache.find(this->signatureVector);
+
+    if (it == FFICache::global()->cifCache.end()) {
+        std::shared_ptr<ffi_cif> shared(new ffi_cif, deleteCif);
+        ffi_prep_cif(shared.get(), FFI_DEFAULT_ABI, nargs, rtype, atypes);
+        FFICache::global()->cifCache[this->signatureVector] = shared;
+    }
+
+    return FFICache::global()->cifCache[this->signatureVector];
+}
+
 FFICall::~FFICall() {
-    delete[] this->_cif->arg_types;
-    delete this->_cif;
+
+    if (this->_cif.use_count() == 2) {
+        FFICache::FFIMap::const_iterator it;
+        it = FFICache::global()->cifCache.find(this->signatureVector);
+        FFICache::global()->cifCache.erase(it);
+    }
 }
 
 void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
@@ -99,7 +123,7 @@ EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
 
     {
         JSLock::DropAllLocks locksDropper(execState);
-        ffi_call(callee->_cif, FFI_FN(invocation.function), invocation._buffer + callee->_returnOffset, reinterpret_cast<void**>(invocation._buffer + callee->_argsArrayOffset));
+        ffi_call(callee->_cif.get(), FFI_FN(invocation.function), invocation._buffer + callee->_returnOffset, reinterpret_cast<void**>(invocation._buffer + callee->_argsArrayOffset));
     }
 
     JSValue result = callee->_returnType.read(execState, invocation._buffer + callee->_returnOffset, callee->_returnTypeCell.get());
@@ -150,7 +174,7 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
       JSC::VM& vm = fakeExecState->vm();
       auto scope = DECLARE_CATCH_SCOPE(vm);
 
-      ffi_call(callee->_cif, FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
+      ffi_call(callee->_cif.get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
 
       JSLockHolder lockHolder(fakeExecState);
       // we no longer have a valid caller on the stack, what with being async and all
@@ -189,4 +213,4 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
 
     return deferred->promise();
 }
-}
+} // namespace NativeScript
