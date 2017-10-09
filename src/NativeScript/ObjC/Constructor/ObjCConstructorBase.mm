@@ -230,6 +230,7 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
 static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
 
+    /// TODO: Revisit and decide if we need to have separate channels for cases without and with arguments.
     if (execState->argumentCount() <= 1) {
         MarkedArgumentBuffer initializerArguments;
         JSValue initializer;

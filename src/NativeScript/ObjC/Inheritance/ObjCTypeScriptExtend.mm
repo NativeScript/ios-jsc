@@ -76,6 +76,19 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     }
 
     CallFrame* callFrame = execState->callerFrame();
+    /// We presume that the purpose of this reassignment is to replace the JavaScript implementation
+    /// of the constructor function of the inheriting class with the newly created ObjCConstructorDerived.
+    //    var InheritingClass = (function (_super) {
+    //        __extends(InheritingClass, _super);
+    //        function InheritingClass() {                                              <---- this will be overwritten/replaced
+    //            return _super !== null && _super.apply(this, arguments) || this;
+    //        }
+    //        InheritingClass.new = function () {
+    //            var instance = _super.new.call(this);
+    //            return instance;
+    //        };
+    //        return InheritingClass;
+    //    }(BaseClass));
     for (Register* r = callFrame->registers(); r > callFrame->topOfFrame(); r--) {
         if (r->unboxedCell() == typeScriptConstructor) {
             *r = derivedConstructor;
@@ -85,6 +98,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     JSScope* scope = callFrame->scope(callFrame->codeBlock()->scopeRegister().offset());
     Identifier constructorName = Identifier::fromString(execState, name);
     JSValue containingScope = JSScope::resolve(execState, scope, constructorName);
+    /// TODO: Clarify when is this code executed?
     if (containingScope.isObject()) {
         JSValue currentValue = containingScope.get(execState, constructorName);
         if (currentValue.isCell() && currentValue.asCell() == typeScriptConstructor) {
@@ -96,6 +110,9 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     // imp_implementationWithBlock calls block copy, class copy and initialize gets skipped
     __block Class derivedClass = derivedConstructor->klass();
 
+    /// Here we define the static initializer our new inherited native class.
+    /// This new initializer conforms to the provided protocols if any and also
+    /// handles the ObjCExposedMethods logic.
     IMP newInitialize = imp_implementationWithBlock(^(id self) {
       if (self != [derivedClass self]) {
           return;
@@ -112,6 +129,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
       classBuilder->implementProtocols(globalExec, implementedProtocols);
       reportErrorIfAny(globalExec, catchScope);
 
+      /// Better understand the logic in this method
       classBuilder->addInstanceMembers(globalExec, instanceMethods, exposedMethods);
       reportErrorIfAny(globalExec, catchScope);
 

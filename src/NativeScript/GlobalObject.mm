@@ -258,7 +258,8 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&globalObject->_workerPrototypeStructure);
     visitor.append(&globalObject->_fastEnumerationIteratorStructure);
 }
-
+/// This method is called whenever a property on the global JavaScript object is accessed for the first time.
+/// It is called once for each property and cached by JSC, i.e. it is never called again for the same property.
 bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
     if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
         return true;

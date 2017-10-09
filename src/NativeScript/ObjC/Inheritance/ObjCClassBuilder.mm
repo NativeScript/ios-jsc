@@ -50,6 +50,13 @@ static IMP findNotOverridenMethod(Class klass, SEL method) {
 }
 
 static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, JSValue superPrototype) {
+    /// In general, this method swizzles the following methods on the newly created class:
+    /// 1. allocWithZone - called by alloc()
+    /// 2. retain - called by the ObjC runtime when someone references the object
+    /// 3. release - called by the ObjC runtime when the object is unreferenced by someone
+    /// The purpose of this is to synchronize the lifetime of the JavaScript instances and their native counterparts.
+    /// That is to make sure that a JavaScript object exists as long as its native counterpart does and vice-versa.
+    
     __block Class metaClass = object_getClass(newKlass);
 
     __block Class blockKlass = newKlass;
@@ -61,6 +68,8 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
       Structure* instancesStructure = globalObject->constructorFor(blockKlass)->instancesStructure();
       ObjCWrapperObject* derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
+      
+      /// TODO: This call might be unnecessary
       gcProtect(derivedWrapper);
 
       Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
@@ -71,11 +80,18 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     });
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
 
+    /// We swizzle the retain and release methods for the following reason:
+    /// When we instantiate a native class via a JavaScript call we add it to the object map thus
+    /// incrementing the retainCount to 1. Then, when the native object is referenced somewhere else its count will become more than 1.
+    /// Since we want to keep the corresponding JavaScript object alive even if it is not used anywhere, we call gcProtect on it.
+    /// Whenever the native object is released so that its retainCount is 1 (the object map), we unprotect the corresponding JavaScript object
+    /// in order to make both of them destroyable/GC-able. When the JavaScript object is GC-ed we release the native counterpart as well.
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
     IMP newRetain = imp_implementationWithBlock(^(id self) {
       if ([self retainCount] == 1) {
           if (JSObject* object = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(self)) {
               JSLockHolder lockHolder(globalObject->vm());
+              /// TODO: This gcProtect() call might render the same call in the allocWithZone override unnecessary. Check if this is true.
               gcProtect(object);
           }
       }
@@ -392,6 +408,8 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
             JSValue method = propertySlot.getValue(execState, key);
             if (method.isCell()) {
                 JSValue encodingValue = jsUndefined();
+                /// We check here if we have an exposed method for the current instance method.
+                /// If we have one we will use its encoding without checking base classes and protocols.
                 if (!exposedMethods.isUndefinedOrNull()) {
                     encodingValue = exposedMethods.get(execState, key);
                 }
