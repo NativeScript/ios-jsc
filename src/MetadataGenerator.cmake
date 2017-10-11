@@ -5,7 +5,6 @@ ExternalProject_Add(MetadataGenerator
         -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/metadataGenerator
         -DCMAKE_BUILD_TYPE=$<CONFIG>
         "${CMAKE_SOURCE_DIR}/src/metadata-generator"
-    BUILD_ALWAYS 1
     BUILD_COMMAND env -i "${CMAKE_COMMAND}"
         --build .
         --target install
