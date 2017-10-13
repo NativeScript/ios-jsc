@@ -149,4 +149,7 @@ JavaScript code:
 
 C/C++/Objective-C code:
 
-Use [Clang Format](https://github.com/andrewseidl/githook-clang-format/tree/master) to check your code on every commit. For more information how to configure Clang Format as pre-commit hook check [here](https://github.com/andrewseidl/githook-clang-format/blob/master/README.md).
+Use [Clang Format](https://github.com/andrewseidl/githook-clang-format/tree/master) to check your code on every commit. You can install it with Homebrew and set up our pre-commit hook by copying it from the `tools/` directory:
+
+* `brew install clang-format`
+* `cp ./tools/pre-commit-clang-format ./.git/hooks/pre-commit`.
