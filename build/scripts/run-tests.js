@@ -117,6 +117,7 @@ testrun.stdout.on('data', function(chunks) {
                 results.end();
                 testrun.kill();
                 clearTimeout(timeout);
+                break;
             }
         }
     }

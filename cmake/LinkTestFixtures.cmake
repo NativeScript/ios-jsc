@@ -1,13 +1,13 @@
 function(LinkTestFixtures _target)
     set(TESTFIXTURES_DIR "${CMAKE_SOURCE_DIR}/tests/TestFixtures")
 
-    file(STRINGS "${TESTFIXTURES_DIR}/exported-symbols.txt" TESTFIXTURES_EXPORTED_SYMBOLS)
-
     target_include_directories(${_target} PUBLIC ${TESTFIXTURES_DIR})
     add_dependencies(${_target} TestFixtures)
     target_link_libraries(${_target} "-force_load $<TARGET_FILE:TestFixtures>")
-    foreach(_symbol ${TESTFIXTURES_EXPORTED_SYMBOLS})
-        set(LINK_FLAGS "${LINK_FLAGS} -Wl,-exported_symbol,_${_symbol}")
-    endforeach()
-    set_target_properties(${_target} PROPERTIES LINK_FLAGS ${LINK_FLAGS})
+    
+    # Tell linker to keep all symbols listed in exported-symbols.txt
+    set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_EXPORTED_SYMBOLS_FILE "${TESTFIXTURES_DIR}/exported-symbols.txt")
+    # EXPORTED_SYMBOLS_FILE is passed to linker only we need to prevent them from being stripped by the strip tool as well
+    set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_STRIPFLAGS "-s ${TESTFIXTURES_DIR}/exported-symbols.txt")
+
 endfunction()
