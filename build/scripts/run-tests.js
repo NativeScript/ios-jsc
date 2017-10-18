@@ -108,6 +108,12 @@ testrun.stdout.on('data', function(chunks) {
         if (index <= 0) {
             process.stdout.write(line + '\n');
         } else {
+            if (line.indexOf("CONSOLE LOG") !== 0) {
+                // Each line is logged by the debugger twice (to console and to logs)
+                // Skip one of them.
+                continue;
+            }
+
             var data = line.substr(index + term.length);
             
             results.write(data);
