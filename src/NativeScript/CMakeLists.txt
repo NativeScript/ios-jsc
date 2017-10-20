@@ -248,12 +248,9 @@ if(${BUILD_SHARED_LIBS})
         "-framework Security"
     )
 
-    # Export NativeScript symbols
-    file(STRINGS "exported-symbols.txt" NATIVESCRIPT_EXPORTED_SYMBOLS)
-    foreach(_symbol ${NATIVESCRIPT_EXPORTED_SYMBOLS})
-        set(LINK_FLAGS "${LINK_FLAGS} -Wl,-exported_symbol,_${_symbol}")
-    endforeach()
-    set_target_properties(NativeScript PROPERTIES LINK_FLAGS ${LINK_FLAGS})
+    # Tell linker to keep all symbols listed in exported-symbols.txt
+    set_target_properties(NativeScript PROPERTIES XCODE_ATTRIBUTE_EXPORTED_SYMBOLS_FILE "${CMAKE_SOURCE_DIR}/src/NativeScript/exported-symbols.txt")
+
 
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
