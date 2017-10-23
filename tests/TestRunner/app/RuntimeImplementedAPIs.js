@@ -4,15 +4,15 @@ describe("Runtime exposes", function () {
     var timeStart = __time();
     var acc = 0;
     var s = CACurrentMediaTime();
-    for (var i = 0; i < 1000; i++) {
-      var c = CACurrentMediaTime();
-      acc += (c - s);
-      s = c;
+     
+    while (Date.now() - dateTimeStart < 5)
+    {
     }
+     
     var dateTimeEnd = Date.now();
     var timeEnd = __time();
     var dateDelta = dateTimeEnd - dateTimeStart;
     var timeDelta = timeEnd - timeStart;
-    expect(Math.abs(dateDelta - timeDelta) < dateDelta * 0.25).toBe(true);
+    expect(Math.abs(dateDelta - timeDelta)).toBeLessThan(dateDelta * 0.25);
   });
 });

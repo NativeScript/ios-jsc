@@ -25,14 +25,13 @@ xcodebuild \
 -scheme "TestRunner" \
 ARCHS="armv7 arm64" \
 ONLY_ACTIVE_ARCH="NO" \
- -quiet
 
 xcodebuild archive \
 -archivePath "$WORKSPACE/cmake-build/tests/TestRunner/$CONFIGURATION-iphoneos/TestRunner.xcarchive" \
 -configuration "$CONFIGURATION" \
 -sdk "iphoneos" \
--scheme "TestRunner" \
- -quiet
+-scheme "TestRunner"
+
 popd
 
 checkpoint "Exporting TestRunner"

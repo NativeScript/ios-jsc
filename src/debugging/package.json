@@ -1,0 +1,15 @@
+{
+  "name": "debugging-proxy",
+  "version": "0.0.1",
+  "description": "WebSockets proxy for debugging NativeScript iOS runtime",
+  "main": "debugger-proxy.js",
+  "dependencies": {
+    "ws": "1.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
+}
