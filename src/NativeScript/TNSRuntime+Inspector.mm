@@ -50,6 +50,8 @@ private:
 
 - (instancetype)initWithRuntime:(TNSRuntime*)runtime
                  messageHandler:(TNSRuntimeInspectorMessageHandler)messageHandler;
+- (void)setup;
+
 @end
 
 @implementation TNSRuntime (Inspector)
@@ -57,6 +59,8 @@ private:
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
     TNSRuntimeInspector* runtimeInspector = [[TNSRuntimeInspector alloc] initWithRuntime:self
                                                                           messageHandler:messageHandler];
+
+    [runtimeInspector setup];
 
     return [runtimeInspector autorelease];
 }
@@ -93,6 +97,20 @@ private:
 
 - (TNSRuntime*)runtime {
     return self->_runtime;
+}
+
+- (void)setup {
+    JSC::JSLockHolder lock(_runtime->_vm.get());
+
+    WTF::Deque<WTF::RefPtr<JSC::Microtask>> other;
+    GlobalObject* globalObject = self->_runtime->_globalObject.get();
+
+    globalObject->microtasks().swap(other);
+
+    loadAndEvaluateModule(_runtime->_globalObject->globalExec(), WTF::ASCIILiteral("inspector_modules.js"));
+
+    globalObject->drainMicrotasks();
+    globalObject->microtasks().swap(other);
 }
 
 - (void)dispatchMessage:(NSString*)message {
