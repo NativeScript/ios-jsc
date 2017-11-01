@@ -73,34 +73,6 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
             }
             std::cerr << "\n";
         }
-        
-        //OBSERVATION:
-        //When programmatically creating and chaining promises using the JSC API
-        //Exception objects contain limited stack trace depending on the depth of the promise chain
-        //at the execution point when the exception is thrown. When an exception is thrown during the
-        //module resolution stage it is handled by the top-level promise's error handler which creates a new Exception instance that
-        //captures the current Interpreter stack trace which is scarce on information.
-        //See: https://github.com/nativescript/ios-runtime/issues/807
-        JSValue error = exception->value();
-        if (error.isObject()) {
-            JSObject* errorAsObject = error.toObject(execState);
-            if (errorAsObject->hasProperty(execState, execState->vm().propertyNames->stack)) {
-                JSValue stackValue = errorAsObject->get(execState, execState->vm().propertyNames->stack);
-                if (!stackValue.isUndefined() && !stackValue.isNull() && stackValue.isString()) {
-                    String stackString = stackValue.getString(execState);
-                    
-                    if (!stackString.is8Bit()) {
-                        stackString = WTF::String::make8BitFrom16BitSource(stackString.characters16(), stackString.length());
-                    }
-                    Vector<String> results;
-                    stackString.split("\n", false, results);
-                    std::cerr << "\nJavaScript error stack dump (may be duplicate or more accurate than previous stack trace): \n";
-                    for (size_t i = 0; i < results.size(); i ++) {
-                        std::cerr << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << results.at(i).characters8() << "\n";
-                    }
-                }
-            }
-        }
 
         std::cerr << "JavaScript error:\n";
         // System logs are disabled in release app builds, but we want the error to be printed in crash logs
