@@ -23,7 +23,7 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo ObjCMethodCall::s_info = { "ObjCMethodCall", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCMethodCall) };
+const ClassInfo ObjCMethodCall::s_info = { "ObjCMethodCall", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCMethodCall) };
 
 void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const MethodMeta* metadata) {
     Base::finishCreation(vm, metadata->jsName());

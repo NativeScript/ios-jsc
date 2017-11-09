@@ -26,10 +26,10 @@ EncodedJSValue JSC_HOST_CALL readFromPointer(ExecState* execState) {
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(arg.asCell());
-    JSCell* typeObject = execState->callee();
+    JSCell* typeObject = execState->callee().asCell();
 
     const FFITypeMethodTable* methodTable;
-    if (tryGetFFITypeMethodTable(JSValue(typeObject), &methodTable)) {
+    if (tryGetFFITypeMethodTable(vm, JSValue(typeObject), &methodTable)) {
         JSValue value = methodTable->read(execState, pointer->data(), typeObject);
         return JSValue::encode(value);
     }
@@ -37,7 +37,7 @@ EncodedJSValue JSC_HOST_CALL readFromPointer(ExecState* execState) {
     RELEASE_ASSERT_NOT_REACHED();
 }
 
-const ClassInfo PointerInstance::s_info = { "Pointer", &Base::s_info, 0, CREATE_METHOD_TABLE(PointerInstance) };
+const ClassInfo PointerInstance::s_info = { "Pointer", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(PointerInstance) };
 
 void PointerInstance::finishCreation(VM& vm, void* value) {
     Base::finishCreation(vm);
@@ -51,4 +51,4 @@ PointerInstance::~PointerInstance() {
         this->_data = nullptr;
     }
 }
-};
+}; // namespace NativeScript

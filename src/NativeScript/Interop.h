@@ -17,11 +17,11 @@ class PointerInstance;
 class ReferenceInstance;
 class NSErrorWrapperConstructor;
 
-void* tryHandleofValue(const JSC::JSValue&, bool*);
+void* tryHandleofValue(JSC::VM& vm, const JSC::JSValue&, bool*);
 
-size_t sizeofValue(const JSC::JSValue&);
+size_t sizeofValue(JSC::VM& vm, const JSC::JSValue&);
 
-const char* getCompilerEncoding(JSC::JSCell*);
+const char* getCompilerEncoding(JSC::VM& vm, JSC::JSCell*);
 
 std::string getCompilerEncoding(JSC::JSGlobalObject*, const Metadata::MethodMeta*);
 
@@ -81,6 +81,6 @@ private:
 static inline Interop* interop(JSC::ExecState* execState) {
     return JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop();
 }
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__Interop__) */

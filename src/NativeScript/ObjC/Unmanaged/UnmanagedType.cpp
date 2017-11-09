@@ -3,7 +3,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo UnmanagedType::s_info = { "Unmanaged", &Base::s_info, 0, CREATE_METHOD_TABLE(UnmanagedType) };
+const ClassInfo UnmanagedType::s_info = { "Unmanaged", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(UnmanagedType) };
 
 void UnmanagedType::finishCreation(VM& vm, JSCell* returnType) {
     Base::finishCreation(vm);
@@ -34,7 +34,7 @@ void UnmanagedType::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     UnmanagedType* unmanagedType = jsCast<UnmanagedType*>(cell);
-    visitor.append(&unmanagedType->_returnType);
+    visitor.append(unmanagedType->_returnType);
 }
 
 void UnmanagedType::write(ExecState* execState, const JSValue&, void*, JSCell* self) {
@@ -47,13 +47,13 @@ bool UnmanagedType::canConvert(ExecState*, const JSValue&, JSCell* self) {
     return false;
 }
 
-const char* UnmanagedType::encode(JSCell* cell) {
+const char* UnmanagedType::encode(VM& vm, JSCell* cell) {
     UnmanagedType* self = jsCast<UnmanagedType*>(cell);
     const FFITypeMethodTable* methodTable;
-    if (NativeScript::tryGetFFITypeMethodTable(self->_returnType.get(), &methodTable)) {
+    if (NativeScript::tryGetFFITypeMethodTable(vm, self->_returnType.get(), &methodTable)) {
         return methodTable->encode(self->_returnType.get());
     }
 
     RELEASE_ASSERT_NOT_REACHED();
 }
-}
+} // namespace NativeScript

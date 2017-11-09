@@ -6,14 +6,14 @@
 //
 //
 
-#include <JavaScriptCore/runtime/Lookup.h>
 #include "JSWorkerPrototype.h"
 #include "JSWorkerInstance.h"
+#include <JavaScriptCore/runtime/Lookup.h>
 
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo JSWorkerPrototype::s_info = { "WorkerPrototype", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerPrototype) };
+const ClassInfo JSWorkerPrototype::s_info = { "WorkerPrototype", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerPrototype) };
 
 static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec) {
     JSValue thisValue = exec->thisValue();
@@ -55,4 +55,4 @@ void JSWorkerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("postMessage")), 2, jsWorkerProtoFuncPostMessage, NoIntrinsic, DontDelete | ReadOnly);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("terminate")), 0, jsWorkerProtoFuncTerminate, NoIntrinsic, DontDelete | ReadOnly);
 }
-}
+} // namespace NativeScript

@@ -6,15 +6,15 @@
 //
 //
 
-#include <JavaScriptCore/JSONObject.h>
 #include "JSWorkerInstance.h"
-#include "WorkerMessagingProxy.h"
 #include "JSErrors.h"
+#include "WorkerMessagingProxy.h"
+#include <JavaScriptCore/JSONObject.h>
 
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo JSWorkerInstance::s_info = { "Worker", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerInstance) };
+const ClassInfo JSWorkerInstance::s_info = { "Worker", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerInstance) };
 
 void JSWorkerInstance::postMessage(ExecState* exec, JSValue message, JSArray* transferList) {
     UNUSED_PARAM(transferList);

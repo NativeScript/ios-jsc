@@ -47,7 +47,7 @@ static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<JSCel
     return false;
 }
 
-const ClassInfo ObjCMethodCallback::s_info = { "ObjCMethodCallback", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCMethodCallback) };
+const ClassInfo ObjCMethodCallback::s_info = { "ObjCMethodCallback", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCMethodCallback) };
 
 void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, JSCell* returnType, WTF::Vector<JSCell*> parameterTypes, TriState hasErrorOutParameter) {
     Base::finishCreation(vm, globalObject, function, returnType, parameterTypes, 2);

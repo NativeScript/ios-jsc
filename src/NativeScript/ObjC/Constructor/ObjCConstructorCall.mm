@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCConstructorCall::s_info = { "ObjCConstructorCall", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorCall) };
+const ClassInfo ObjCConstructorCall::s_info = { "ObjCConstructorCall", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCConstructorCall) };
 
 void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Class klass, const Metadata::MethodMeta* metadata) {
     Base::finishCreation(vm, metadata->jsName());

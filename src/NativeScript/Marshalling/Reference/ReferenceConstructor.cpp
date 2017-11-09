@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferenceConstructor::s_info = { "Reference", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferenceConstructor) };
+const ClassInfo ReferenceConstructor::s_info = { "Reference", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ReferenceConstructor) };
 
 void ReferenceConstructor::finishCreation(VM& vm, ReferencePrototype* referencePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
@@ -31,19 +31,19 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
 
     JSValue maybeType = execState->argument(0);
     const FFITypeMethodTable* ffiTypeMethodTable;
-    if (tryGetFFITypeMethodTable(maybeType, &ffiTypeMethodTable)) {
+    if (tryGetFFITypeMethodTable(vm, maybeType, &ffiTypeMethodTable)) {
         void* handle = nullptr;
         bool adopted = true;
 
         if (execState->argumentCount() == 2) {
             JSValue value = execState->uncheckedArgument(1);
-            if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(value)) {
+            if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(execState->vm(), value)) {
                 handle = pointer->data();
                 adopted = pointer->isAdopted();
-            } else if (RecordInstance* record = jsDynamicCast<RecordInstance*>(value)) {
+            } else if (RecordInstance* record = jsDynamicCast<RecordInstance*>(execState->vm(), value)) {
                 handle = record->pointer()->data();
                 adopted = record->pointer()->isAdopted();
-            } else if (ReferenceInstance* reference = jsDynamicCast<ReferenceInstance*>(value)) {
+            } else if (ReferenceInstance* reference = jsDynamicCast<ReferenceInstance*>(execState->vm(), value)) {
                 if (maybeType.inherits(ReferenceTypeInstance::info())) {
                     // do nothing, this is a reference to reference
                 } else if (PointerInstance* pointer = reference->pointer()) {
@@ -86,4 +86,4 @@ CallType ReferenceConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructReference;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCFastEnumerationIteratorPrototype::s_info = { "NSFastEnumeration Iterator", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCFastEnumerationIteratorPrototype) };
+const ClassInfo ObjCFastEnumerationIteratorPrototype::s_info = { "NSFastEnumeration Iterator", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCFastEnumerationIteratorPrototype) };
 
 EncodedJSValue JSC_HOST_CALL FastEnumerationIteratorPrototypeFuncNext(ExecState*);
 

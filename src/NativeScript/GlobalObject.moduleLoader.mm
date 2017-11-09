@@ -6,13 +6,14 @@
 //  Copyright (c) 2015 г. Telerik. All rights reserved.
 //
 
-#include "TNSRuntime.h"
-#include "ManualInstrumentation.h"
 #include "GlobalObject.h"
 #include "Interop.h"
 #include "LiveEdit/EditableSourceProvider.h"
+#include "ManualInstrumentation.h"
 #include "ObjCTypes.h"
+#include "TNSRuntime.h"
 #include <JavaScriptCore/BuiltinNames.h>
+#include <JavaScriptCore/CatchScope.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
@@ -316,13 +317,13 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         source = WTF::ASCIILiteral("export default undefined;");
     }
 
-    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
+    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
     ParserError error;
     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
 
     if (!moduleRecord || (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json)) {
         error = ParserError();
-        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
+        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
         moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
         ASSERT(!error.isValid());
 
@@ -332,7 +333,7 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         moduleFunctionSource.append("\n}}");
 
         JSObject* exception = nullptr;
-        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl.toString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
+        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
         FunctionExecutable* moduleFunctionExecutable = FunctionExecutable::fromGlobalCode(Identifier::fromString(execState, "anonymous"), *execState, sourceCode, exception, -1);
         if (!moduleFunctionExecutable) {
             ASSERT(exception);
@@ -368,7 +369,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
     Exception* exception = nullptr;
     JSFunction* errorHandler = JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&exception](ExecState* execState) {
         JSValue error = execState->argument(0);
-        exception = jsDynamicCast<Exception*>(error);
+        exception = jsDynamicCast<Exception*>(execState->vm(), error);
         if (!exception && !error.isUndefinedOrNull()) {
             exception = Exception::create(execState->vm(), error);
         }
@@ -407,10 +408,12 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                                                   }
 
                                                   return JSValue::encode(jsUndefined());
-                                              }), errorHandler);
+                                              }),
+                                              errorHandler);
 
                       return JSValue::encode(promise);
-                  }), errorHandler);
+                  }),
+                  errorHandler);
     globalObject->drainMicrotasks();
 
     if (exception) {
@@ -444,7 +447,7 @@ static void putValueInScopeAndSymbolTable(VM& vm, JSModuleRecord* moduleRecord, 
 }
 
 JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue moduleRecordValue, JSValue initiator) {
-    JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(moduleRecordValue);
+    JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(execState->vm(), moduleRecordValue);
     if (!moduleRecord) {
         return jsUndefined();
     }
@@ -496,4 +499,31 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
 
     return moduleRecord->evaluate(execState);
 }
+
+JSInternalPromise* GlobalObject::moduleLoaderImportModule(JSGlobalObject* globalObject, ExecState* exec, JSModuleLoader*, JSString* moduleNameValue, const SourceOrigin& sourceOrigin) {
+    VM& vm = globalObject->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+
+    auto rejectPromise = [&](JSValue error) {
+        return JSInternalPromiseDeferred::create(exec, globalObject)->reject(exec, error);
+    };
+
+    if (sourceOrigin.isNull())
+        return rejectPromise(createError(exec, ASCIILiteral("Could not resolve the module specifier.")));
+
+    auto referrer = sourceOrigin.string();
+    auto moduleName = moduleNameValue->value(exec);
+    if (UNLIKELY(scope.exception())) {
+        JSValue exception = scope.exception();
+        scope.clearException();
+        return rejectPromise(exception);
+    }
+
+    auto directoryName = extractDirectoryName(referrer.impl());
+    if (!directoryName)
+        return rejectPromise(createError(exec, makeString("Could not resolve the referrer name '", String(referrer.impl()), "'.")));
+
+    return JSC::importModule(exec, Identifier::fromString(&vm, resolvePath(directoryName.value(), ModuleName(moduleName))), jsUndefined());
 }
+
+} // namespace Nativescript

@@ -9,6 +9,7 @@
 #ifndef __NativeScript__JSErrors__
 #define __NativeScript__JSErrors__
 
+#include <JavaScriptCore/CatchScope.h>
 #include <JavaScriptCore/Exception.h>
 
 namespace NativeScript {
@@ -20,6 +21,6 @@ inline void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) 
         reportFatalErrorBeforeShutdown(execState, exception);
     }
 }
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__JSErrors__) */

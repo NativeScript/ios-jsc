@@ -1,6 +1,6 @@
 #include "JSWorkerGlobalObject.h"
-#include "WorkerMessagingProxy.h"
 #include "JSErrors.h"
+#include "WorkerMessagingProxy.h"
 
 #include <JavaScriptCore/runtime/JSJob.h>
 #include <JavaScriptCore/runtime/JSONObject.h>
@@ -36,7 +36,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
     return JSValue::encode(jsUndefined());
 }
 
-const ClassInfo JSWorkerGlobalObject::s_info = { "NativeScriptWorkerGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerGlobalObject) };
+const ClassInfo JSWorkerGlobalObject::s_info = { "NativeScriptWorkerGlobal", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerGlobalObject) };
 
 void JSWorkerGlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     Base::finishCreation(vm, applicationPath);

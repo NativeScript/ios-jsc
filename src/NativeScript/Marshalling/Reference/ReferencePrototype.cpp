@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferencePrototype::s_info = { "Reference", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferencePrototype) };
+const ClassInfo ReferencePrototype::s_info = { "Reference", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ReferencePrototype) };
 
 static EncodedJSValue JSC_HOST_CALL referenceProtoFuncGetValue(ExecState* execState) {
     ReferenceInstance* reference = jsCast<ReferenceInstance*>(execState->thisValue());
@@ -49,4 +49,4 @@ void ReferencePrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
 
     Base::defineOwnProperty(this, globalObject->globalExec(), vm.propertyNames->value, descriptor, false);
 }
-}
+} // namespace NativeScript

@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo PointerPrototype::s_info = { "Pointer", &Base::s_info, 0, CREATE_METHOD_TABLE(PointerPrototype) };
+const ClassInfo PointerPrototype::s_info = { "Pointer", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(PointerPrototype) };
 
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncAdd(ExecState* execState) {
     void* value = jsCast<PointerInstance*>(execState->thisValue())->data();
@@ -57,4 +57,4 @@ void PointerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, pointerProtoFuncToString, NoIntrinsic, DontEnum);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "toNumber"), 0, pointerProtoFuncToNumber, NoIntrinsic, DontDelete | ReadOnly);
 }
-}
+} // namespace NativeScript

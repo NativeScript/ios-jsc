@@ -11,16 +11,16 @@
 #include <iomanip>
 #include <iostream>
 
+#import "JSWarnings.h"
+#import "JSWorkerGlobalObject.h"
+#import "TNSRuntime+Diagnostics.h"
+#import "TNSRuntime+Inspector.h"
+#import "TNSRuntime+Private.h"
+#include "inspector/GlobalObjectConsoleClient.h"
+#include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/APICast.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
-#include "inspector/GlobalObjectInspectorController.h"
-#include "inspector/GlobalObjectConsoleClient.h"
-#import "TNSRuntime+Private.h"
-#import "TNSRuntime+Inspector.h"
-#import "TNSRuntime+Diagnostics.h"
-#import "JSWarnings.h"
-#import "JSWorkerGlobalObject.h"
 
 static TNSUncaughtErrorHandler uncaughtErrorHandler;
 void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler) {
@@ -43,7 +43,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
         }
     }
 
-    JSWorkerGlobalObject* workerGlobalObject = jsDynamicCast<JSWorkerGlobalObject*>(globalObject);
+    JSWorkerGlobalObject* workerGlobalObject = jsDynamicCast<JSWorkerGlobalObject*>(globalObject->vm(), globalObject);
     bool isWorker = workerGlobalObject != nullptr;
 
     WTF::ASCIILiteral closingMessage(isWorker ? "Fatal JavaScript exception on worker thread - worker thread has been terminated." : "Fatal JavaScript exception - application has been terminated.");

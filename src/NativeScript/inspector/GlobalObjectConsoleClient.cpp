@@ -47,7 +47,7 @@ GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsole
     , m_logAgent(logAgent) {
 }
 
-void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
+void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
     if (GlobalObjectConsoleClient::logToSystemConsole()) {
         if (type != JSC::MessageType::Trace) {
             this->printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
@@ -90,7 +90,7 @@ void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource s
     ConsoleClient::printConsoleMessage(source, type, level, builder.toString(), WTF::emptyString(), 0, 0);
 }
 
-void GlobalObjectConsoleClient::count(JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
+void GlobalObjectConsoleClient::count(JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
     m_consoleAgent->count(exec, arguments);
 }
 
@@ -123,7 +123,7 @@ void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& titl
     m_consoleAgent->stopTiming(title, WTFMove(callStack));
 }
 
-void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) {
+void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) {
     // FIXME: JSContext inspection needs a timeline.
     warnUnimplemented(ASCIILiteral("console.timeStamp"));
 }

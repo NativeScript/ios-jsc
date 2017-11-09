@@ -15,7 +15,7 @@ using namespace JSC;
 static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncGet(ExecState* execState);
 static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncClear(ExecState* execState);
 
-const ClassInfo JSWeakRefPrototype::s_info = { "WeakRef", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWeakRefPrototype) };
+const ClassInfo JSWeakRefPrototype::s_info = { "WeakRef", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWeakRefPrototype) };
 
 void JSWeakRefPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
@@ -47,4 +47,4 @@ static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncClear(ExecState* execState) 
     self->clear();
     return JSValue::encode(jsUndefined());
 }
-}
+} // namespace NativeScript

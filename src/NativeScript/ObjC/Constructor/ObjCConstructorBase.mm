@@ -28,7 +28,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCConstructorBase::s_info = { "Function", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorBase) };
+const ClassInfo ObjCConstructorBase::s_info = { "Function", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCConstructorBase) };
 
 const unsigned ObjCConstructorBase::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
@@ -177,8 +177,8 @@ const WTF::Vector<WriteBarrier<ObjCConstructorCall>>& ObjCConstructorBase::initi
 void ObjCConstructorBase::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(cell);
-    visitor.append(&constructor->_prototype);
-    visitor.append(&constructor->_instancesStructure);
+    visitor.append(constructor->_prototype);
+    visitor.append(constructor->_instancesStructure);
     visitor.append(constructor->_initializers.begin(), constructor->_initializers.end());
 }
 

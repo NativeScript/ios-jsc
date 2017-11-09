@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FunctionReferenceTypeInstance::s_info = { "FunctionReferenceTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceTypeInstance) };
+const ClassInfo FunctionReferenceTypeInstance::s_info = { "FunctionReferenceTypeInstance", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FunctionReferenceTypeInstance) };
 
 JSValue FunctionReferenceTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -31,7 +31,7 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
         return;
     }
 
-    if (FunctionReferenceInstance* functionReference = jsDynamicCast<FunctionReferenceInstance*>(value)) {
+    if (FunctionReferenceInstance* functionReference = jsDynamicCast<FunctionReferenceInstance*>(execState->vm(), value)) {
         if (!functionReference->functionPointer()) {
             GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
             FunctionReferenceTypeInstance* functionReferenceType = jsCast<FunctionReferenceTypeInstance*>(self);
@@ -82,7 +82,7 @@ void FunctionReferenceTypeInstance::visitChildren(JSCell* cell, SlotVisitor& vis
     Base::visitChildren(cell, visitor);
 
     FunctionReferenceTypeInstance* object = jsCast<FunctionReferenceTypeInstance*>(cell);
-    visitor.append(&object->_returnType);
+    visitor.append(object->_returnType);
     visitor.append(object->_parameterTypes.begin(), object->_parameterTypes.end());
 }
 
@@ -90,4 +90,4 @@ CallType FunctionReferenceTypeInstance::getCallData(JSCell* cell, CallData& call
     callData.native.function = &readFromPointer;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

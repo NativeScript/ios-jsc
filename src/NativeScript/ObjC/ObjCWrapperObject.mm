@@ -14,13 +14,13 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCWrapperObject::s_info = { "ObjCWrapperObject", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCWrapperObject) };
+const ClassInfo ObjCWrapperObject::s_info = { "ObjCWrapperObject", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCWrapperObject) };
 
 void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* globalObject) {
     Base::finishCreation(vm);
     this->setWrappedObject(wrappedObject);
     this->_canSetObjectAtIndexedSubscript = [wrappedObject respondsToSelector:@selector(setObject:
-                                                                                  atIndexedSubscript:)];
+                                                                                        atIndexedSubscript:)];
     this->_objectMap = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get();
     this->_objectMap->set(wrappedObject, this);
 }

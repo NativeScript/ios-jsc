@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordProtoFieldSetter::s_info = { "RecordProtoFieldSetter", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordProtoFieldSetter) };
+const ClassInfo RecordProtoFieldSetter::s_info = { "RecordProtoFieldSetter", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(RecordProtoFieldSetter) };
 
 void RecordProtoFieldSetter::finishCreation(VM& vm, RecordField* field) {
     Base::finishCreation(vm, WTF::emptyString());
@@ -45,10 +45,10 @@ void RecordProtoFieldSetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     RecordProtoFieldSetter* object = jsCast<RecordProtoFieldSetter*>(cell);
-    visitor.append(&object->_recordField);
+    visitor.append(object->_recordField);
 }
 
-const ClassInfo RecordProtoFieldGetter::s_info = { "RecordProtoFieldGetter", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordProtoFieldGetter) };
+const ClassInfo RecordProtoFieldGetter::s_info = { "RecordProtoFieldGetter", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(RecordProtoFieldGetter) };
 
 void RecordProtoFieldGetter::finishCreation(VM& vm, RecordField* fieldMetadata) {
     Base::finishCreation(vm, WTF::emptyString());
@@ -80,6 +80,6 @@ void RecordProtoFieldGetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     RecordProtoFieldGetter* object = jsCast<RecordProtoFieldGetter*>(cell);
-    visitor.append(&object->_recordField);
+    visitor.append(object->_recordField);
 }
-}
+} // namespace NativeScript

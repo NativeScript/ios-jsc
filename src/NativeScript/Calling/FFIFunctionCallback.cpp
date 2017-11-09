@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FFIFunctionCallback::s_info = { "FFIFunctionCallback", &Base::s_info, 0, CREATE_METHOD_TABLE(FFIFunctionCallback) };
+const ClassInfo FFIFunctionCallback::s_info = { "FFIFunctionCallback", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FFIFunctionCallback) };
 
 void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     FFIFunctionCallback* functionCallback = reinterpret_cast<FFIFunctionCallback*>(userData);
@@ -33,4 +33,4 @@ void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, v
 void FFIFunctionCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, FunctionReferenceTypeInstance* functionReferenceType) {
     Base::finishCreation(vm, globalObject, function, functionReferenceType->returnType(), functionReferenceType->parameterTypes());
 }
-}
+} // namespace NativeScript

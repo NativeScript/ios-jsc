@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo NSErrorWrapperConstructor::s_info = { "NSErrorWrapper", &Base::s_info, 0, CREATE_METHOD_TABLE(NSErrorWrapperConstructor) };
+const ClassInfo NSErrorWrapperConstructor::s_info = { "NSErrorWrapper", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(NSErrorWrapperConstructor) };
 
 void NSErrorWrapperConstructor::destroy(JSCell* cell) {
     jsCast<NSErrorWrapperConstructor*>(cell)->~NSErrorWrapperConstructor();
@@ -34,7 +34,7 @@ void NSErrorWrapperConstructor::visitChildren(JSCell* cell, SlotVisitor& slotVis
     Base::visitChildren(cell, slotVisitor);
 
     NSErrorWrapperConstructor* self = jsCast<NSErrorWrapperConstructor*>(cell);
-    slotVisitor.append(&self->_errorStructure);
+    slotvisitor.append(self->_errorStructure);
 }
 
 ErrorInstance* NSErrorWrapperConstructor::createError(ExecState* execState, NSError* error) const {

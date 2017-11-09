@@ -25,7 +25,7 @@ using namespace Metadata;
 
 const unsigned ObjCPrototype::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const ClassInfo ObjCPrototype::s_info = { "ObjCPrototype", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCPrototype) };
+const ClassInfo ObjCPrototype::s_info = { "ObjCPrototype", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCPrototype) };
 
 WTF::String ObjCPrototype::className(const JSObject* object) {
     const char* className = jsCast<const ObjCPrototype*>(object)->_metadata->name();

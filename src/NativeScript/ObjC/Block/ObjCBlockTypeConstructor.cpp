@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCBlockTypeConstructor::s_info = { "BlockType", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockTypeConstructor) };
+const ClassInfo ObjCBlockTypeConstructor::s_info = { "BlockType", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCBlockTypeConstructor) };
 
 void ObjCBlockTypeConstructor::finishCreation(VM& vm, JSObject* objCBlockTypePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
@@ -34,7 +34,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState*
     JSValue returnType = execState->uncheckedArgument(0);
 
     const FFITypeMethodTable* methodTable;
-    if (!tryGetFFITypeMethodTable(returnType, &methodTable)) {
+    if (!tryGetFFITypeMethodTable(vm, returnType, &methodTable)) {
         return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as return type of block type.")));
     }
 
@@ -59,4 +59,4 @@ CallType ObjCBlockTypeConstructor::getCallData(JSCell* cell, CallData& callData)
     callData.native.function = &constructObjCBlockTypeConstructor;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

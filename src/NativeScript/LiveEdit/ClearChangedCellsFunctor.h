@@ -6,11 +6,11 @@ namespace NativeScript {
 class ClearChangedCellsFunctor : public JSC::MarkedBlock::VoidFunctor {
 public:
     ClearChangedCellsFunctor(WTF::String url, WTF::Vector<DiffChunk>);
-    JSC::IterationStatus operator()(JSC::HeapCell* cell, JSC::HeapCell::Kind) const;
+    JSC::IterationStatus operator()(JSC::VM& vm, JSC::HeapCell* cell, JSC::HeapCell::Kind) const;
 
 private:
     WTF::String m_url;
     WTF::Vector<DiffChunk> m_diff;
-    void visit(JSC::HeapCell*) const;
+    void visit(JSC::VM& vm, JSC::HeapCell*) const;
 };
-}
+} // namespace NativeScript

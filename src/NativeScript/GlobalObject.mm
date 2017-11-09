@@ -49,8 +49,8 @@
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/runtime/VMEntryScope.h>
-#include <string>
 #include <chrono>
+#include <string>
 
 namespace NativeScript {
 using namespace JSC;
@@ -62,13 +62,13 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
     id instance = [klass alloc];
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    if (ObjCConstructorDerived* constructorDerived = jsDynamicCast<ObjCConstructorDerived*>(constructor)) {
+    if (ObjCConstructorDerived* constructorDerived = jsDynamicCast<ObjCConstructorDerived*>(execState->vm(), constructor)) {
         [instance release];
         JSValue jsValue = toValue(execState, instance, ^{
           return constructorDerived->instancesStructure();
         });
         return JSValue::encode(jsValue);
-    } else if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(constructor)) {
+    } else if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(execState->vm(), constructor)) {
         AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, nativeConstructor->allocatedPlaceholderStructure(), instance, nativeConstructor->instancesStructure());
         return JSValue::encode(allocatedPlaceholder);
     }
@@ -86,11 +86,11 @@ static ObjCProtocolWrapper* createProtocolWrapper(GlobalObject* globalObject, co
     return protocolWrapper;
 }
 
-const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(GlobalObject) };
+const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(GlobalObject) };
 
 const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderTranslate, &moduleLoaderInstantiate, &moduleLoaderEvaluate, &defaultLanguage };
+const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderImportModule, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderTranslate, &moduleLoaderInstantiate, &moduleLoaderEvaluate, &defaultLanguage };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
     : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable) {
@@ -105,7 +105,7 @@ static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
     return JSValue::encode(jsUndefined());
 }
-    
+
 static EncodedJSValue JSC_HOST_CALL time(ExecState* execState) {
     auto nano = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now());
     double duration = nano.time_since_epoch().count() / 1000000.0;
@@ -122,7 +122,7 @@ static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRun
     GlobalObject* self = static_cast<GlobalObject*>(info);
     VMEntryScope* currentEntryScope = self->vm().entryScope;
     if (self->vm().topCallFrame && currentEntryScope && !currentEntryScope->didPopListeners().isEmpty()) {
-        FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(self->vm().topCallFrame->callee());
+        FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(self->vm(), self->vm().topCallFrame->callee().asCell());
         const Meta* meta = Metadata::MetaFile::instance()->globalTable()->findMeta("UIApplicationMain");
 
         if (function_call && meta && function_call->functionPointer() == SymbolLoader::instance().loadFunctionSymbol(meta->topLevelModule(), meta->name())) {
@@ -191,7 +191,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__time"), 0, &time, NoIntrinsic, DontEnum);
 
 #ifdef DEBUG
-    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), WTF::ASCIILiteral("__extends.ts"));
+    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), WTF::ASCIILiteral("__extends.ts"));
 #else
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len));
 #endif
@@ -225,7 +225,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->putDirect(vm, Identifier::fromString(&vm, "__runtimeVersion"), jsString(&vm, STRINGIZE_VALUE_OF(NATIVESCRIPT_VERSION)), DontEnum | ReadOnly | DontDelete);
 
     NakedPtr<Exception> exception;
-    evaluate(this->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len)), JSValue(), exception);
+    evaluate(this->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len), SourceOrigin()), JSValue(), exception);
     ASSERT_WITH_MESSAGE(!exception, "Error while evaluating inlineFunctions.js: %s", exception->value().toWTFString(this->globalExec()).utf8().data());
 
     _jsUncaughtErrorCallbackIdentifier = Identifier::fromString(&vm, "onerror"); // Keep in sync with TNSExceptionHandler.h
@@ -236,27 +236,27 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(cell);
     Base::visitChildren(globalObject, visitor);
 
-    visitor.append(&globalObject->_interop);
-    visitor.append(&globalObject->_typeFactory);
-    visitor.append(&globalObject->_typeScriptOriginalExtendsFunction);
-    visitor.append(&globalObject->_ffiCallPrototype);
-    visitor.append(&globalObject->_objCMethodCallStructure);
-    visitor.append(&globalObject->_objCConstructorCallStructure);
-    visitor.append(&globalObject->_objCBlockCallStructure);
-    visitor.append(&globalObject->_ffiFunctionCallStructure);
-    visitor.append(&globalObject->_objCBlockCallbackStructure);
-    visitor.append(&globalObject->_objCMethodCallbackStructure);
-    visitor.append(&globalObject->_ffiFunctionCallbackStructure);
-    visitor.append(&globalObject->_recordFieldGetterStructure);
-    visitor.append(&globalObject->_recordFieldSetterStructure);
-    visitor.append(&globalObject->_unmanagedInstanceStructure);
-    visitor.append(&globalObject->_weakRefConstructorStructure);
-    visitor.append(&globalObject->_weakRefPrototypeStructure);
-    visitor.append(&globalObject->_weakRefInstanceStructure);
-    visitor.append(&globalObject->_workerConstructorStructure);
-    visitor.append(&globalObject->_workerInstanceStructure);
-    visitor.append(&globalObject->_workerPrototypeStructure);
-    visitor.append(&globalObject->_fastEnumerationIteratorStructure);
+    visitor.append(globalObject->_interop);
+    visitor.append(globalObject->_typeFactory);
+    visitor.append(globalObject->_typeScriptOriginalExtendsFunction);
+    visitor.append(globalObject->_ffiCallPrototype);
+    visitor.append(globalObject->_objCMethodCallStructure);
+    visitor.append(globalObject->_objCConstructorCallStructure);
+    visitor.append(globalObject->_objCBlockCallStructure);
+    visitor.append(globalObject->_ffiFunctionCallStructure);
+    visitor.append(globalObject->_objCBlockCallbackStructure);
+    visitor.append(globalObject->_objCMethodCallbackStructure);
+    visitor.append(globalObject->_ffiFunctionCallbackStructure);
+    visitor.append(globalObject->_recordFieldGetterStructure);
+    visitor.append(globalObject->_recordFieldSetterStructure);
+    visitor.append(globalObject->_unmanagedInstanceStructure);
+    visitor.append(globalObject->_weakRefConstructorStructure);
+    visitor.append(globalObject->_weakRefPrototypeStructure);
+    visitor.append(globalObject->_weakRefInstanceStructure);
+    visitor.append(globalObject->_workerConstructorStructure);
+    visitor.append(globalObject->_workerInstanceStructure);
+    visitor.append(globalObject->_workerPrototypeStructure);
+    visitor.append(globalObject->_fastEnumerationIteratorStructure);
 }
 
 bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
@@ -341,13 +341,13 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         if (varSymbol) {
             const Metadata::TypeEncoding* encoding = varMeta->encoding();
             JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding);
-            symbolWrapper = getFFITypeMethodTable(symbolType).read(execState, varSymbol, symbolType);
+            symbolWrapper = getFFITypeMethodTable(vm, symbolType).read(execState, varSymbol, symbolType);
         }
         break;
     }
     case JsCode: {
         WTF::String source = WTF::String(static_cast<const JsCodeMeta*>(symbolMeta)->jsCode());
-        symbolWrapper = evaluate(execState, makeSource(source));
+        symbolWrapper = evaluate(execState, makeSource(source, SourceOrigin()));
         break;
     }
     default: {
@@ -480,11 +480,10 @@ bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* 
     return result.toBoolean(execState);
 }
 
-void GlobalObject::queueTaskToEventLoop(const JSGlobalObject* globalObject, WTF::Ref<Microtask>&& task) {
-    GlobalObject* self = jsCast<GlobalObject*>(const_cast<JSGlobalObject*>(globalObject));
-    self->_microtasksQueue.append(WTFMove(task));
-    CFRunLoopSourceSignal(self->_microtaskRunLoopSource.get());
-    for (auto runLoop : self->microtaskRunLoops()) {
+void GlobalObject::queueTaskToEventLoop(JSGlobalObject& self, WTF::Ref<Microtask>&& task) {
+    self._microtasksQueue.append(WTFMove(task));
+    CFRunLoopSourceSignal(self._microtaskRunLoopSource.get());
+    for (auto runLoop : self.microtaskRunLoops()) {
         CFRunLoopWakeUp(runLoop.get());
     }
 }

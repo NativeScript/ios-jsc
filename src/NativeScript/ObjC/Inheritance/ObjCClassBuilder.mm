@@ -102,7 +102,7 @@ static bool isValidType(ExecState* execState, JSValue& value) {
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
     const FFITypeMethodTable* table;
-    if (!tryGetFFITypeMethodTable(value, &table)) {
+    if (!tryGetFFITypeMethodTable(vm, value, &table)) {
         scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Invalid type")));
         return false;
     }
@@ -158,7 +158,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
         return;
     }
 
-    compilerEncoding << getCompilerEncoding(returnTypeValue.asCell());
+    compilerEncoding << getCompilerEncoding(vm, returnTypeValue.asCell());
     compilerEncoding << "@:"; // id self, SEL _cmd
 
     JSValue parameterTypesValue = typeEncodingObj->get(execState, Identifier::fromString(execState, "params"));

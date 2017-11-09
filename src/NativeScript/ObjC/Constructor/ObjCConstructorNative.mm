@@ -20,7 +20,7 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo ObjCConstructorNative::s_info = { "Function", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorNative) };
+const ClassInfo ObjCConstructorNative::s_info = { "Function", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCConstructorNative) };
 
 void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Class klass) {
     Base::finishCreation(vm, globalObject, prototype, klass);
@@ -130,6 +130,6 @@ void ObjCConstructorNative::materializeProperties(VM& vm, GlobalObject* globalOb
 void ObjCConstructorNative::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
-    visitor.append(&constructor->_allocatedPlaceholderStructure);
+    visitor.append(constructor->_allocatedPlaceholderStructure);
 }
 }

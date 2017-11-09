@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FunctionReferenceConstructor::s_info = { "FunctionReference", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceConstructor) };
+const ClassInfo FunctionReferenceConstructor::s_info = { "FunctionReference", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FunctionReferenceConstructor) };
 
 void FunctionReferenceConstructor::finishCreation(VM& vm, JSValue prototype) {
     Base::finishCreation(vm, this->classInfo()->className);
@@ -46,4 +46,4 @@ CallType FunctionReferenceConstructor::getCallData(JSCell* cell, CallData& callD
     callData.native.function = &constructFunctionReferenceInstance;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

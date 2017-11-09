@@ -25,12 +25,12 @@ struct FFITypeMethodTable {
 
     const ffi_type* ffiType;
 
-    const char* (*encode)(JSC::JSCell* self);
+    const char* (*encode)(JSC::VM& vm, JSC::JSCell* self);
 };
 
-bool tryGetFFITypeMethodTable(JSC::JSValue value, const FFITypeMethodTable** methodTable);
+bool tryGetFFITypeMethodTable(JSC::VM& vm, JSC::JSValue value, const FFITypeMethodTable** methodTable);
 
-const FFITypeMethodTable& getFFITypeMethodTable(JSC::JSCell* cell);
-}
+const FFITypeMethodTable& getFFITypeMethodTable(JSC::VM& vm, JSC::JSCell* cell);
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFIType__) */
