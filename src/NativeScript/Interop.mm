@@ -132,7 +132,7 @@ std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, const Metadat
     compilerEncoding << "@:"; // id self, SEL _cmd
 
     for (JSCell* cell : parameterTypesCells) {
-        compilerEncoding << getCompilerEncoding(cell);
+        compilerEncoding << getCompilerEncoding(globalObject->vm(), cell);
     }
 
     return compilerEncoding.str();
@@ -146,7 +146,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAlloc(ExecState* execState) {
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     JSValue result = globalObject->interop()->pointerInstanceForPointer(execState->vm(), value);
-    if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(result)) {
+    if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(execState->vm(), result)) {
         pointer->setAdopted(true);
     }
 
@@ -158,7 +158,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    if (!pointervalue.inherits(vm, PointerInstance::info())) {
+    if (!pointerValue.inherits(vm, PointerInstance::info())) {
         const char* className = PointerInstance::info()->className;
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("Argument must be a %s.", className))));
     }
@@ -177,8 +177,8 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
 static EncodedJSValue JSC_HOST_CALL interopFuncAdopt(ExecState* execState) {
     JSValue pointerValue = execState->argument(0);
 
-    if (!pointervalue.inherits(vm, PointerInstance::info())) {
-        JSC::VM& vm = execState->vm();
+    JSC::VM& vm = execState->vm();
+    if (!pointerValue.inherits(vm, PointerInstance::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         const char* className = PointerInstance::info()->className;
@@ -193,11 +193,11 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAdopt(ExecState* execState) {
 
 static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
     JSValue value = execState->argument(0);
+    JSC::VM& vm = execState->vm();
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
@@ -356,7 +356,7 @@ ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
 }
 
 JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const {
-    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(), ArrayBuffer::createFromBytes([data bytes], [data length], WTFMove(arrayBufferDestructorNull)));
+    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(ArrayBufferSharingMode::Default), ArrayBuffer::createFromBytes([data bytes], [data length], WTFMove(arrayBufferDestructorNull)));
 
     // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
     arrayBuffer->putDirect(execState->vm(), execState->propertyNames().builtinNames().homeObjectPrivateName(), NativeScript::toValue(execState, data));

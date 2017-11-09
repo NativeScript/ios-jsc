@@ -33,6 +33,81 @@
 #include <JavaScriptCore/tools/CodeProfiling.h>
 #include <sys/stat.h>
 
+static UChar pathSeparator() {
+#if OS(WINDOWS)
+    return '\\';
+#else
+    return '/';
+#endif
+}
+
+struct DirectoryName {
+    // In unix, it is "/". In Windows, it becomes a drive letter like "C:\"
+    String rootName;
+
+    // If the directory name is "/home/WebKit", this becomes "home/WebKit". If the directory name is "/", this becomes "".
+    String queryName;
+};
+
+struct ModuleName {
+    ModuleName(const String& moduleName);
+
+    bool startsWithRoot() const {
+        return !queries.isEmpty() && queries[0].isEmpty();
+    }
+
+    Vector<String> queries;
+};
+
+ModuleName::ModuleName(const String& moduleName) {
+    // A module name given from code is represented as the UNIX style path. Like, `./A/B.js`.
+    moduleName.split('/', true, queries);
+}
+
+static std::optional<DirectoryName> extractDirectoryName(const String& absolutePathToFile) {
+    size_t firstSeparatorPosition = absolutePathToFile.find(pathSeparator());
+    if (firstSeparatorPosition == notFound)
+        return std::nullopt;
+    DirectoryName directoryName;
+    directoryName.rootName = absolutePathToFile.substring(0, firstSeparatorPosition + 1); // Include the separator.
+    size_t lastSeparatorPosition = absolutePathToFile.reverseFind(pathSeparator());
+    ASSERT_WITH_MESSAGE(lastSeparatorPosition != notFound, "If the separator is not found, this function already returns when performing the forward search.");
+    if (firstSeparatorPosition == lastSeparatorPosition)
+        directoryName.queryName = StringImpl::empty();
+    else {
+        size_t queryStartPosition = firstSeparatorPosition + 1;
+        size_t queryLength = lastSeparatorPosition - queryStartPosition; // Not include the last separator.
+        directoryName.queryName = absolutePathToFile.substring(queryStartPosition, queryLength);
+    }
+    return directoryName;
+}
+
+static String resolvePath(const DirectoryName& directoryName, const ModuleName& moduleName) {
+    Vector<String> directoryPieces;
+    directoryName.queryName.split(pathSeparator(), false, directoryPieces);
+
+    // Only first '/' is recognized as the path from the root.
+    if (moduleName.startsWithRoot())
+        directoryPieces.clear();
+
+    for (const auto& query : moduleName.queries) {
+        if (query == String(ASCIILiteral(".."))) {
+            if (!directoryPieces.isEmpty())
+                directoryPieces.removeLast();
+        } else if (!query.isEmpty() && query != String(ASCIILiteral(".")))
+            directoryPieces.append(query);
+    }
+
+    StringBuilder builder;
+    builder.append(directoryName.rootName);
+    for (size_t i = 0; i < directoryPieces.size(); ++i) {
+        builder.append(directoryPieces[i]);
+        if (i + 1 != directoryPieces.size())
+            builder.append(pathSeparator());
+    }
+    return builder.toString();
+}
+
 namespace NativeScript {
 using namespace JSC;
 
@@ -360,7 +435,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
         return JSValue::encode(throwTypeError(execState, scope, WTF::ASCIILiteral("Expected module identifier to be a string.")));
     }
 
-    JSValue callee = execState->calleeAsValue();
+    JSValue callee = execState->callee().asCell();
     JSValue refererKey = callee.get(execState, execState->propertyNames().sourceURL);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
