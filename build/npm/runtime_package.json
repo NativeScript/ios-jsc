@@ -1,7 +1,7 @@
 {
   "name": "tns-ios",
   "description": "Telerik NativeScript Runtime for iOS",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "keywords": [
     "NativeScript",
     "iOS",
@@ -15,9 +15,6 @@
     "name": "Telerik",
     "email": "support@telerik.com"
   },
-  "os": [
-    "darwin"
-  ],
   "directories": {},
   "files": [
     "**/*"
