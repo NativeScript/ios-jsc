@@ -70,6 +70,7 @@ static NSPointerArray* _runtimes;
 + (void)initialize {
     TNSPERF();
     if (self == [TNSRuntime self]) {
+        WTF::initializeMainThread();
         initializeThreading();
         JSC::Options::useJIT() = false;
         _runtimes = [[NSPointerArray alloc] initWithOptions:NSPointerFunctionsOpaquePersonality | NSPointerFunctionsOpaqueMemory];
