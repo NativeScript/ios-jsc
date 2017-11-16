@@ -27,7 +27,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
 
     if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
         JSValue arg2 = exec->argument(1);
-        if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(arg2.asCell()))) {
+        if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(exec->vm(), arg2.asCell()))) {
             return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
         }
     }
@@ -65,8 +65,8 @@ void JSWorkerGlobalObject::onmessage(ExecState* exec, JSValue message) {
     if (callType == JSC::CallType::None) {
         return;
     }
-
-    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(exec->lexicalGlobalObject()->objectPrototype(), JSFinalObject::defaultInlineCapacity());
+    JSGlobalObject* globalObject = exec->lexicalGlobalObject();
+    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(globalObject, globalObject->objectPrototype(), JSFinalObject::defaultInlineCapacity());
     JSFinalObject* onMessageEvent = JSFinalObject::create(exec, emptyObjectStructure);
     onMessageEvent->putDirect(exec->vm(), Identifier::fromString(&exec->vm(), "data"), message);
 

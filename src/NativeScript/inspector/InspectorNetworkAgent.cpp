@@ -27,7 +27,10 @@ void InspectorNetworkAgent::setExtraHTTPHeaders(ErrorString&, const Inspector::I
 void InspectorNetworkAgent::getResponseBody(ErrorString&, const String& requestId, String* content, bool* base64Encoded) {
 }
 
-void InspectorNetworkAgent::setCacheDisabled(ErrorString&, bool cacheDisabled) {
+void InspectorNetworkAgent::setResourceCachingDisabled(ErrorString&, bool in_disabled) {
+}
+
+void InspectorNetworkAgent::resolveWebSocket(ErrorString&, const String& in_requestId, const String* const opt_in_objectGroup, RefPtr<Inspector::Protocol::Runtime::RemoteObject>& out_object) {
 }
 
 void InspectorNetworkAgent::loadResource(ErrorString& errorString, const String& frameId, const String& urlString, Ref<LoadResourceCallback>&& callback) {
@@ -40,4 +43,4 @@ void InspectorNetworkAgent::loadResource(ErrorString& errorString, const String&
         callback->sendSuccess(content, resource.mimeType(), 200);
     }
 }
-}
+} // namespace Inspector

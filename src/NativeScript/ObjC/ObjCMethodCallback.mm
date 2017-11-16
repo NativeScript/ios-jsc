@@ -36,8 +36,9 @@ static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<JSCel
         return false;
     }
 
-    if (ReferenceTypeInstance* referenceInstance = jsDynamicCast<ReferenceTypeInstance*>(parameterTypes.last())) {
-        if (ObjCConstructorNative* constructor = jsDynamicCast<ObjCConstructorNative*>(referenceInstance->innerType())) {
+    JSC::VM& vm = execState->vm();
+    if (ReferenceTypeInstance* referenceInstance = jsDynamicCast<ReferenceTypeInstance*>(vm, parameterTypes.last())) {
+        if (ObjCConstructorNative* constructor = jsDynamicCast<ObjCConstructorNative*>(vm, referenceInstance->innerType())) {
             if (constructor->klass() == [NSError class]) {
                 return true;
             }
@@ -83,7 +84,7 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
     methodCallback->callFunction(thisValue, arguments, retValue);
 
     if (methodCallback->_hasErrorOutParameter) {
-        size_t methodCallbackLength = jsDynamicCast<JSObject*>(methodCallback->function())->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
+        size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
         if (methodCallbackLength == methodCallback->parametersCount() - 1) {
             Exception* exception = scope.exception();
             if (exception) {

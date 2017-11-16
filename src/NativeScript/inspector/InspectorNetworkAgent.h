@@ -16,12 +16,13 @@ public:
     virtual void disable(ErrorString&) override;
     virtual void setExtraHTTPHeaders(ErrorString&, const Inspector::InspectorObject& headers) override;
     virtual void getResponseBody(ErrorString&, const String& requestId, String* content, bool* base64Encoded) override;
-    virtual void setCacheDisabled(ErrorString&, bool cacheDisabled) override;
+    virtual void setResourceCachingDisabled(ErrorString&, bool in_disabled) override;
     virtual void loadResource(ErrorString&, const String& frameId, const String& url, Ref<LoadResourceCallback>&&) override;
+    virtual void resolveWebSocket(ErrorString&, const String& in_requestId, const String* const opt_in_objectGroup, RefPtr<Inspector::Protocol::Runtime::RemoteObject>& out_object) override;
 
 private:
     NativeScript::GlobalObject& m_globalObject;
     std::unique_ptr<NetworkFrontendDispatcher> m_frontendDispatcher;
     RefPtr<NetworkBackendDispatcher> m_backendDispatcher;
 };
-}
+} // namespace Inspector

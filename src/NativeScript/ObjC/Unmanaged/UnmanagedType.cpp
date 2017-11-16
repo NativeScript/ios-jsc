@@ -51,7 +51,7 @@ const char* UnmanagedType::encode(VM& vm, JSCell* cell) {
     UnmanagedType* self = jsCast<UnmanagedType*>(cell);
     const FFITypeMethodTable* methodTable;
     if (NativeScript::tryGetFFITypeMethodTable(vm, self->_returnType.get(), &methodTable)) {
-        return methodTable->encode(self->_returnType.get());
+        return methodTable->encode(vm, self->_returnType.get());
     }
 
     RELEASE_ASSERT_NOT_REACHED();

@@ -209,11 +209,11 @@ static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
 }
 
 static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
+    JSC::VM& vm = execState->vm();
     JSValue value = execState->argument(0);
-    size_t size = sizeofValue(value);
+    size_t size = sizeofValue(vm, value);
 
     if (size == 0) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
@@ -356,7 +356,7 @@ ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
 }
 
 JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const {
-    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(ArrayBufferSharingMode::Default), ArrayBuffer::createFromBytes([data bytes], [data length], WTFMove(arrayBufferDestructorNull)));
+    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(ArrayBufferSharingMode::Default), ArrayBuffer::createFromBytes([data bytes], [data length], [](void*) {}));
 
     // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
     arrayBuffer->putDirect(execState->vm(), execState->propertyNames().builtinNames().homeObjectPrivateName(), NativeScript::toValue(execState, data));

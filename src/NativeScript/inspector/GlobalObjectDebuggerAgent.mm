@@ -116,7 +116,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
 
                 moduleSource = moduleFunctionSource.toString();
 
-                SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
+                SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
                 program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
             }
         } else {
@@ -139,7 +139,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         const ClearChangedCellsFunctor functor(vm, moduleRecord->sourceCode().provider()->url(), diff);
         {
             HeapIterationScope iterationScope(m_globalObject->vm().heap);
-            m_globalObject->vm().heap.objectSpace().forEachLiveCell(iterationScope, functor);
+            vm.heap.objectSpace().forEachLiveCell(iterationScope, functor);
         }
     }
 }

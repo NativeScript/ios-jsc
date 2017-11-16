@@ -41,9 +41,9 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a function reference."));
@@ -55,10 +55,11 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
 }
 
 bool FunctionReferenceTypeInstance::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
-    return value.isUndefinedOrNull() || value.inherits(FunctionReferenceInstance::info());
+    JSC::VM& vm = execState->vm();
+    return value.isUndefinedOrNull() || value.inherits(vm, FunctionReferenceInstance::info());
 }
 
-const char* FunctionReferenceTypeInstance::encode(JSCell* cell) {
+const char* FunctionReferenceTypeInstance::encode(VM&, JSCell* cell) {
     return "^?";
 }
 

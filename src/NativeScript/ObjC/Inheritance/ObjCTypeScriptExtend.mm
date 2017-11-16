@@ -51,7 +51,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     JSC::VM& vm = execState->vm();
 
-    if (!execState->argument(1).inherits(ObjCConstructorBase::info())) {
+    if (!execState->argument(1).inherits(vm, ObjCConstructorBase::info())) {
         return callOriginalExtends(execState);
     }
 

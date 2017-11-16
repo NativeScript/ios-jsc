@@ -85,7 +85,7 @@ static bool isJavaScriptDerived(JSC::JSValue value) {
         const ClassInfo* info = structure->classInfo();
         if (info == ObjCWrapperObject::info()) {
             JSC::JSValue prototype = structure->storedPrototype();
-            return prototype.isCell() && prototype.asCell()->classInfo() != ObjCPrototype::info();
+            return prototype.isCell() && prototype.asCell()->classInfo(*cell->vm()) != ObjCPrototype::info();
         } else {
             return info == ObjCConstructorDerived::info() || info == ObjCSuperObject::info();
         }
@@ -97,8 +97,8 @@ static bool isJavaScriptDerived(JSC::JSValue value) {
 void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
     ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
 
-    if (!(execState->thisValue().inherits(ObjCConstructorBase::info()) || execState->thisValue().inherits(ObjCWrapperObject::info()) || execState->thisValue().inherits(AllocatedPlaceholder::info()) || execState->thisValue().inherits(ObjCSuperObject::info()))) {
-        JSC::VM& vm = execState->vm();
+    JSC::VM& vm = execState->vm();
+    if (!(execState->thisValue().inherits(vm, ObjCConstructorBase::info()) || execState->thisValue().inherits(vm, ObjCWrapperObject::info()) || execState->thisValue().inherits(vm, AllocatedPlaceholder::info()) || execState->thisValue().inherits(vm, ObjCSuperObject::info()))) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("This value is not a native object.")));
@@ -141,7 +141,7 @@ void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICa
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    if (call->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo() == AllocatedPlaceholder::info() && call->_isInitializer)) {
+    if (call->retainsReturnedCocoaObjects() || (asObject(execState->thisValue())->classInfo(vm) == AllocatedPlaceholder::info() && call->_isInitializer)) {
         [invocation.getResult<id>() release];
     }
 

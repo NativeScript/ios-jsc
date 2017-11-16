@@ -65,7 +65,7 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(JSC::VM&, JSC::JSCell*);
 
     static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
@@ -75,6 +75,6 @@ private:
 
     FFITypeMethodTable _ffiTypeMethodTable;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FunctionReferenceTypeInstance__) */

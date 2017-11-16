@@ -70,7 +70,7 @@ void InspectorTimelineAgent::setInstruments(ErrorString& errorString, const Insp
             return;
         }
 
-        Optional<Protocol::Timeline::Instrument> instrumentType = Protocol::InspectorHelpers::parseEnumValueFromString<Protocol::Timeline::Instrument>(enumValueString);
+        std::optional<Protocol::Timeline::Instrument> instrumentType = Protocol::InspectorHelpers::parseEnumValueFromString<Protocol::Timeline::Instrument>(enumValueString);
         if (!instrumentType) {
             errorString = makeString("Unexpected enum value: ", enumValueString);
             return;
@@ -230,7 +230,7 @@ void InspectorTimelineAgent::internalStart(const int* in_maxCallStackDepth) {
     else
         m_maxCallStackDepth = 5;
 
-    PassRefPtr<Stopwatch> stopwatch = m_globalObject.inspectorController().executionStopwatch();
+    RefPtr<Stopwatch> stopwatch = m_globalObject.inspectorController().executionStopwatch();
     if (!stopwatch->isActive())
         stopwatch->start();
 
@@ -327,4 +327,4 @@ void InspectorTimelineAgent::addRecordToTimeline(RefPtr<InspectorObject>&& recor
     auto recordObject = BindingTraits<Inspector::Protocol::Timeline::TimelineEvent>::runtimeCast(WTFMove(record));
     sendEvent(WTFMove(recordObject));
 }
-}
+} // namespace Inspector

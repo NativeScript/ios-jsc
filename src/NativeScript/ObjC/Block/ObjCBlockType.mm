@@ -136,7 +136,7 @@ bool ObjCBlockType::canConvert(ExecState* execState, const JSValue& value, JSCel
     return value.isUndefinedOrNull();
 }
 
-const char* ObjCBlockType::encode(JSCell* cell) {
+const char* ObjCBlockType::encode(VM&, JSCell* cell) {
     return "@?";
 }
 

@@ -41,7 +41,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState*
     WTF::Vector<JSCell*> parametersTypes;
     for (size_t i = 1; i < execState->argumentCount(); i++) {
         JSValue currentParameter = execState->uncheckedArgument(i);
-        if (!tryGetFFITypeMethodTable(currentParameter, &methodTable)) {
+        if (!tryGetFFITypeMethodTable(vm, currentParameter, &methodTable)) {
             return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter of block type.")));
         }
         parametersTypes.append(currentParameter.asCell());

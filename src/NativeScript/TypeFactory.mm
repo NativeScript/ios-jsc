@@ -80,7 +80,7 @@ FunctionReferenceTypeInstance* TypeFactory::getFunctionReferenceTypeInstance(Glo
     if (this->_cacheFunctionReferenceType.contains(weakParametersTypes)) {
         WeakImpl* value = this->_cacheFunctionReferenceType.get(weakParametersTypes);
         if (value->state() == WeakImpl::State::Live) {
-            return jsDynamicCast<FunctionReferenceTypeInstance*>(value->jsValue().asCell());
+            return jsDynamicCast<FunctionReferenceTypeInstance*>(globalObject->vm(), value->jsValue().asCell());
         } else {
             this->_cacheFunctionReferenceType.remove(weakParametersTypes);
         }

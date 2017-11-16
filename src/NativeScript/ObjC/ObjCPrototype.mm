@@ -88,7 +88,7 @@ bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
             SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
             class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
-            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(prototype->get(execState, propertyName))) {
+            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(execState->vm(), prototype->get(execState, propertyName))) {
                 nativeMethod->setSelector(nativeSelector);
             }
         }
@@ -99,6 +99,7 @@ bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
 
 bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, PropertyName propertyName, const PropertyDescriptor& propertyDescriptor, bool shouldThrow) {
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
+    VM& vm = execState->vm();
 
     if (const PropertyMeta* propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName())) {
         if (!propertyDescriptor.isAccessorDescriptor()) {
@@ -117,7 +118,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
             SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
             class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
-            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(nativeProperty.getter())) {
+            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(vm, nativeProperty.getter())) {
                 nativeMethod->setSelector(nativeSelector);
             }
         }
@@ -130,7 +131,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
             SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
             class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
-            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(nativeProperty.setter())) {
+            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(vm, nativeProperty.setter())) {
                 nativeMethod->setSelector(nativeSelector);
             }
         }

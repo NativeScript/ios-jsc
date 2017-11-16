@@ -71,7 +71,7 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(JSC::VM&, JSC::JSCell*);
 
     JSC::WriteBarrier<JSC::Structure> _instancesStructure;
 
@@ -81,6 +81,6 @@ private:
 
     std::string _compilerEncoding;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__RecordConstructor__) */

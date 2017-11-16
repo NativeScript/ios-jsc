@@ -12,8 +12,8 @@
 #include <JavaScriptCore/InitializeThreading.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSInternalPromise.h>
-#include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/JSModuleLoader.h>
+#include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <iostream>
 
@@ -21,13 +21,13 @@
 #import <UIKit/UIApplication.h>
 #endif
 
-#import "TNSRuntime.h"
-#import "TNSRuntime+Private.h"
 #include "JSErrors.h"
+#include "ManualInstrumentation.h"
 #include "Metadata/Metadata.h"
 #include "ObjCTypes.h"
+#import "TNSRuntime+Private.h"
+#import "TNSRuntime.h"
 #include "Workers/JSWorkerGlobalObject.h"
-#include "ManualInstrumentation.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -140,7 +140,7 @@ static NSPointerArray* _runtimes;
 - (void)_onMemoryWarning {
     TNSPERF();
     JSLockHolder lock(self->_vm.get());
-    self->_vm->heap.collect(CollectionScope::Full);
+    self->_vm->heap.collectAsync(CollectionScope::Full);
     self->_vm->heap.releaseDelayedReleasedObjects();
 }
 #endif
@@ -162,7 +162,7 @@ static NSPointerArray* _runtimes;
 
     self->_globalObject->drainMicrotasks();
     if (error) {
-        Exception* exception = jsDynamicCast<Exception*>(error);
+        Exception* exception = jsDynamicCast<Exception*>(*self->_vm.get(), error);
         if (!exception) {
             exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
         }

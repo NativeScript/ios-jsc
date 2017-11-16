@@ -14,6 +14,7 @@
 #include "TNSRuntime.h"
 #include <JavaScriptCore/BuiltinNames.h>
 #include <JavaScriptCore/CatchScope.h>
+#include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/JSArrayBuffer.h>

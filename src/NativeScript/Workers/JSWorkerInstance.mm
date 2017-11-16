@@ -34,7 +34,8 @@ void JSWorkerInstance::onmessage(JSC::ExecState* exec, JSC::JSValue message) {
         return;
     }
 
-    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(exec->lexicalGlobalObject()->objectPrototype(), JSFinalObject::defaultInlineCapacity());
+    JSGlobalObject* globalObject = exec->lexicalGlobalObject();
+    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(globalObject, globalObject->objectPrototype(), JSFinalObject::defaultInlineCapacity());
     JSFinalObject* onMessageEvent = JSFinalObject::create(exec, emptyObjectStructure);
     onMessageEvent->putDirect(exec->vm(), Identifier::fromString(&exec->vm(), "data"), message);
 

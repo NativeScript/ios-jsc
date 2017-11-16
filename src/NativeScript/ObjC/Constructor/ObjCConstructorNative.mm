@@ -65,7 +65,7 @@ bool ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName
             SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
             class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
-            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(constructor->get(execState, propertyName))) {
+            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(execState->vm(), constructor->get(execState, propertyName))) {
                 nativeMethod->setSelector(nativeSelector);
             }
         }

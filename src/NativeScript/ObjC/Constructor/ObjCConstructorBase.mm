@@ -45,9 +45,10 @@ void ObjCConstructorBase::write(ExecState* execState, const JSValue& value, void
 
 template <typename TAdapter>
 static void writeAdapter(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-    if (ObjCWrapperObject* wrapper = jsDynamicCast<ObjCWrapperObject*>(value)) {
+    VM& vm = execState->vm();
+    if (ObjCWrapperObject* wrapper = jsDynamicCast<ObjCWrapperObject*>(vm, value)) {
         *static_cast<id*>(buffer) = wrapper->wrappedObject();
-    } else if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
+    } else if (JSObject* object = jsDynamicCast<JSObject*>(vm, value)) {
         *static_cast<id*>(buffer) = [[[TAdapter alloc] initWithJSObject:object
                                                               execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     } else {
@@ -57,12 +58,13 @@ static void writeAdapter(ExecState* execState, const JSValue& value, void* buffe
 
 bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     ObjCConstructorBase* type = jsCast<ObjCConstructorBase*>(self);
+    VM& vm = execState->vm();
 
     if (!type->_klass || value.isUndefinedOrNull()) {
         return true;
     }
 
-    if (value.inherits(ObjCWrapperObject::info())) {
+    if (value.inherits(vm, ObjCWrapperObject::info())) {
         return [jsCast<ObjCWrapperObject*>(value.asCell())->wrappedObject() isKindOfClass:type->_klass];
     }
 
@@ -74,22 +76,22 @@ bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value,
         return [type->_klass isSubclassOfClass:[NSNumber class]];
     }
 
-    if (value.inherits(JSArray::info())) {
+    if (value.inherits(vm, JSArray::info())) {
         return [type->_klass isSubclassOfClass:[NSArray class]];
     }
 
-    if (value.inherits(JSMap::info())) {
+    if (value.inherits(vm, JSMap::info())) {
         return [type->_klass isSubclassOfClass:[NSDictionary class]];
     }
 
-    if (value.inherits(JSArrayBuffer::info()) || value.inherits(JSArrayBufferView::info())) {
+    if (value.inherits(vm, JSArrayBuffer::info()) || value.inherits(vm, JSArrayBufferView::info())) {
         return [type->_klass isSubclassOfClass:[NSData class]];
     }
 
     return false;
 }
 
-const char* ObjCConstructorBase::encode(JSCell* cell) {
+const char* ObjCConstructorBase::encode(VM&, JSCell* cell) {
     return "@";
 }
 
@@ -97,8 +99,9 @@ const Metadata::InterfaceMeta* ObjCConstructorBase::metadata() {
     if (this->_metadata == nullptr) {
         JSObject* proto = this->_prototype.get();
         ObjCPrototype* objcPrototype = nullptr;
-        while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(proto))) {
-            proto = jsDynamicCast<JSObject*>(proto->getPrototypeDirect());
+        VM& vm = *this->vm();
+        while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(vm, proto))) {
+            proto = jsDynamicCast<JSObject*>(vm, proto->getPrototypeDirect());
         }
         ASSERT(objcPrototype != nullptr);
         const Metadata::BaseClassMeta* metadata = objcPrototype->metadata();
@@ -228,12 +231,13 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
 }
 
 static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
-    ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
+    ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
+    JSC::VM& vm = execState->vm();
 
     if (execState->argumentCount() <= 1) {
         MarkedArgumentBuffer initializerArguments;
         JSValue initializer;
-        if (JSFinalObject* argument = jsDynamicCast<JSFinalObject*>(execState->argument(0))) {
+        if (JSFinalObject* argument = jsDynamicCast<JSFinalObject*>(vm, execState->argument(0))) {
             initializer = getInitializerForSwiftStyleConstruction(execState, constructor, argument, initializerArguments);
         } else if (execState->argumentCount() == 0) {
             initializer = constructor->instancesStructure()->storedPrototype().get(execState, Identifier::fromString(execState, "init"));
@@ -256,8 +260,8 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
             id instance = [newTarget->klass() alloc];
             JSValue thisValue;
 
-            if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(constructor)) {
-                thisValue = AllocatedPlaceholder::create(execState->vm(), jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
+            if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(vm, constructor)) {
+                thisValue = AllocatedPlaceholder::create(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
             } else {
                 thisValue = NativeScript::toValue(execState, instance, ^{
                   return constructor->instancesStructure();
@@ -270,13 +274,12 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
 
     WTF::Vector<ObjCConstructorCall*> candidateInitializers;
 
-    for (WriteBarrier<ObjCConstructorCall> initializer : constructor->initializers(execState->vm(), jsCast<GlobalObject*>(execState->lexicalGlobalObject()))) {
+    for (WriteBarrier<ObjCConstructorCall> initializer : constructor->initializers(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()))) {
         if (initializer->canInvoke(execState)) {
             candidateInitializers.append(initializer.get());
         }
     }
 
-    JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (candidateInitializers.size() == 0) {
@@ -308,16 +311,16 @@ static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
     JSValue argument = execState->argument(0);
 
     bool hasHandle;
-    void* handle = tryHandleofValue(argument, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, argument, &hasHandle);
     if (!handle) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         WTF::String message = WTF::String::format("Value must be a %s.", PointerInstance::info()->className);
         return throwVMError(execState, scope, createError(execState, message));
     }
 
-    ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee());
+    ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
     JSValue result = toValue(execState, static_cast<id>(handle), ^Structure* {
       return constructor->instancesStructure();
     });

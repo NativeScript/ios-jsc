@@ -41,13 +41,13 @@ using namespace JSC;
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     JSLockHolder lock(self->_execState);
 
-    if (JSArrayBuffer* arrayBuffer = jsDynamicCast<JSArrayBuffer*>(self->_object.get())) {
+    if (JSArrayBuffer* arrayBuffer = jsDynamicCast<JSArrayBuffer*>(self->_execState->vm(), self->_object.get())) {
         return arrayBuffer->impl()->data();
     }
 
     JSArrayBufferView* arrayBufferView = jsCast<JSArrayBufferView*>(self->_object.get());
     if (arrayBufferView->hasArrayBuffer()) {
-        return arrayBufferView->buffer()->data();
+        return arrayBufferView->unsharedBuffer()->data();
     }
 
     return arrayBufferView->vector();

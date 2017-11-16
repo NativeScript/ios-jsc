@@ -91,7 +91,7 @@ void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource s
 }
 
 void GlobalObjectConsoleClient::count(JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
-    m_consoleAgent->count(exec, arguments);
+    m_consoleAgent->count(exec, WTFMove(arguments));
 }
 
 void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String& title) {
@@ -119,7 +119,7 @@ void GlobalObjectConsoleClient::time(JSC::ExecState*, const String& title) {
 }
 
 void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& title) {
-    RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
+    Ref<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
     m_consoleAgent->stopTiming(title, WTFMove(callStack));
 }
 
@@ -130,7 +130,7 @@ void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, Ref<Inspector::Script
 
 void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {
     String message = method + " is currently ignored in JavaScript context inspection.";
-    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message, nullptr, nullptr));
+    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message));
 }
 
 WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::JSValue argument) {

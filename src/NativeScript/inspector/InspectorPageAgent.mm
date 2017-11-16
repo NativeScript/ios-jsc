@@ -32,15 +32,7 @@ void InspectorPageAgent::enable(ErrorString&) {
 void InspectorPageAgent::disable(ErrorString&) {
 }
 
-void InspectorPageAgent::addScriptToEvaluateOnLoad(ErrorString&, const String& in_scriptSource, String* out_identifier) {
-    ASSERT_NOT_REACHED();
-}
-
-void InspectorPageAgent::removeScriptToEvaluateOnLoad(ErrorString&, const String& in_identifier) {
-    ASSERT_NOT_REACHED();
-}
-
-void InspectorPageAgent::reload(ErrorString&, const bool* in_ignoreCache, const String* in_scriptToEvaluateOnLoad) {
+void InspectorPageAgent::reload(ErrorString&, const bool* const opt_in_ignoreCache, const bool* const opt_in_revalidateAllResources, const String* const opt_in_scriptToEvaluateOnLoad) {
     JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&m_globalObject.vm(), "__onLiveSync"));
     JSC::CallData callData;
     JSC::CallType callType = getCallData(liveSyncCallback, callData);
@@ -147,23 +139,7 @@ void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, 
     }
 }
 
-void InspectorPageAgent::setDocumentContent(ErrorString&, const String& in_frameId, const String& in_html) {
-    ASSERT_NOT_REACHED();
-}
-
 void InspectorPageAgent::setShowPaintRects(ErrorString&, bool in_result) {
-    ASSERT_NOT_REACHED();
-}
-
-void InspectorPageAgent::getScriptExecutionStatus(ErrorString&, PageBackendDispatcherHandler::Result* out_result) {
-    ASSERT_NOT_REACHED();
-}
-
-void InspectorPageAgent::setScriptExecutionDisabled(ErrorString&, bool in_value) {
-    ASSERT_NOT_REACHED();
-}
-
-void InspectorPageAgent::setTouchEmulationEnabled(ErrorString&, bool in_enabled) {
     ASSERT_NOT_REACHED();
 }
 
@@ -183,10 +159,6 @@ void InspectorPageAgent::snapshotNode(ErrorString&, int in_nodeId, String* out_d
 }
 
 void InspectorPageAgent::snapshotRect(ErrorString&, int in_x, int in_y, int in_width, int in_height, const String& in_coordinateSystem, String* out_dataURL) {
-    ASSERT_NOT_REACHED();
-}
-
-void InspectorPageAgent::handleJavaScriptDialog(ErrorString&, bool in_accept, const String* in_promptText) {
     ASSERT_NOT_REACHED();
 }
 

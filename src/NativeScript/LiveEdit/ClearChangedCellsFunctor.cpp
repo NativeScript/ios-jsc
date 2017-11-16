@@ -8,21 +8,22 @@
 
 namespace NativeScript {
 
-ClearChangedCellsFunctor::ClearChangedCellsFunctor(WTF::String url, WTF::Vector<DiffChunk> diff)
-    : m_url(url)
+ClearChangedCellsFunctor::ClearChangedCellsFunctor(JSC::VM& vm, WTF::String url, WTF::Vector<DiffChunk> diff)
+    : m_vm(vm)
+    , m_url(url)
     , m_diff(diff) {
 }
 
-JSC::IterationStatus ClearChangedCellsFunctor::operator()(JSC::VM& vm, JSC::HeapCell* cell, JSC::HeapCell::Kind kind) const {
+JSC::IterationStatus ClearChangedCellsFunctor::operator()(JSC::HeapCell* cell, JSC::HeapCell::Kind kind) const {
     if (kind == JSC::HeapCell::JSCell) {
-        visit(vm, cell);
+        visit(cell);
     }
     return JSC::IterationStatus::Continue;
 }
 
-void ClearChangedCellsFunctor::visit(JSC::VM& vm, JSC::HeapCell* heapCell) const {
+void ClearChangedCellsFunctor::visit(JSC::HeapCell* heapCell) const {
     JSC::JSCell* cell = static_cast<JSC::JSCell*>(heapCell);
-    if (!cell->inherits(vm, JSC::JSFunction::info()))
+    if (!cell->inherits(m_vm, JSC::JSFunction::info()))
         return;
 
     JSC::JSFunction* function = JSC::jsCast<JSC::JSFunction*>(cell);

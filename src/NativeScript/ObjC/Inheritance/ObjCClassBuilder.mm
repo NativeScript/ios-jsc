@@ -167,7 +167,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     }
 
     WTF::Vector<JSCell*> parameterTypesCells;
-    JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(parameterTypesValue);
+    JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(vm, parameterTypesValue);
     if (parameterTypesArr) {
         for (unsigned int i = 0; i < parameterTypesArr->length(); ++i) {
             JSValue parameterType = parameterTypesArr->get(execState, i);
@@ -176,7 +176,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
             }
 
             parameterTypesCells.append(parameterType.asCell());
-            compilerEncoding << getCompilerEncoding(parameterType.asCell());
+            compilerEncoding << getCompilerEncoding(vm, parameterType.asCell());
         }
     }
 
@@ -189,8 +189,8 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 
 ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor, JSObject* prototype, const WTF::String& className) {
     // TODO: Inherit from derived constructor.
-    if (!baseConstructor.inherits(ObjCConstructorNative::info())) {
-        JSC::VM& vm = execState->vm();
+    VM& vm = execState->vm();
+    if (!baseConstructor.inherits(vm, ObjCConstructorNative::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Extends is supported only for native classes.")));
@@ -223,8 +223,8 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
 }
 
 void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolWrapper) {
-    if (!protocolWrapper.inherits(ObjCProtocolWrapper::info())) {
-        JSC::VM& vm = execState->vm();
+    VM& vm = execState->vm();
+    if (!protocolWrapper.inherits(vm, ObjCProtocolWrapper::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         WTF::String errorMessage = WTF::String::format("Protocol \"%s\" is not a protocol object.", protocolWrapper.toWTFString(execState).utf8().data());
@@ -256,7 +256,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    if (!protocolsArray.inherits(JSArray::info())) {
+    if (!protocolsArray.inherits(vm, JSArray::info())) {
         scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The protocols property must be an array")));
         return;
     }
