@@ -133,7 +133,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<TypeFactory*>(cell)->~TypeFactory();
+        static_cast<TypeFactory*>(cell)->~TypeFactory();
     }
 
     void finishCreation(JSC::VM&, GlobalObject*);
@@ -189,6 +189,6 @@ private:
 
 #ifdef __OBJC__
 #endif
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__TypeFactory__) */

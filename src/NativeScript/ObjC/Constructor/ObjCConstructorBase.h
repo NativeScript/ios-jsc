@@ -51,7 +51,7 @@ protected:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCConstructorBase*>(cell)->~ObjCConstructorBase();
+        static_cast<ObjCConstructorBase*>(cell)->~ObjCConstructorBase();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class);

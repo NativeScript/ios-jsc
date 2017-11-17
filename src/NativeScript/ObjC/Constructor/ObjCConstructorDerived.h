@@ -34,9 +34,9 @@ protected:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCConstructorDerived*>(cell)->~ObjCConstructorDerived();
+        static_cast<ObjCConstructorDerived*>(cell)->~ObjCConstructorDerived();
     }
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCConstructorDerived__) */

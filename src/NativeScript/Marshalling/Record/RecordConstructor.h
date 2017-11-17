@@ -52,7 +52,7 @@ private:
     ~RecordConstructor();
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<RecordConstructor*>(cell)->~RecordConstructor();
+        static_cast<RecordConstructor*>(cell)->~RecordConstructor();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, RecordPrototype*, const WTF::String& name, ffi_type*, RecordType);

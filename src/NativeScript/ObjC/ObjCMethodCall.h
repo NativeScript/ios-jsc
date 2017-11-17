@@ -55,7 +55,7 @@ private:
     static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCMethodCall*>(cell)->~ObjCMethodCall();
+        static_cast<ObjCMethodCall*>(cell)->~ObjCMethodCall();
     }
 
     void* _msgSend;
@@ -70,6 +70,6 @@ private:
 
     SEL _selector;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCMethodCall__) */

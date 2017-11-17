@@ -24,6 +24,7 @@
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/JSSourceCode.h>
 #include <JavaScriptCore/LiteralParser.h>
 #include <JavaScriptCore/ModuleAnalyzer.h>
 #include <JavaScriptCore/ModuleLoaderPrototype.h>
@@ -291,12 +292,12 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
 
     NSError* error = nil;
-    NSData* moduleContent = [NSData dataWithContentsOfFile:modulePath options:NSDataReadingMappedIfSafe error:&error];
+    NSString* moduleContent = [NSString stringWithContentsOfFile:modulePath encoding:NSUTF8StringEncoding error:&error];
     if (error) {
         return deferred->reject(execState, self->interop()->wrapError(execState, error));
     }
 
-    return deferred->resolve(execState, self->interop()->bufferFromData(execState, moduleContent));
+    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(WTF::String::fromUTF8([moduleContent cStringUsingEncoding:NSUTF8StringEncoding]), SourceOrigin(keyValue.toWTFString(execState)), keyValue.toWTFString(execState), TextPosition(), SourceProviderSourceType::Module)));
 }
 
 JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue sourceValue, JSValue initiator) {
@@ -356,7 +357,11 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         return deferred->reject(execState, exception->value());
     }
 
-    WTF::String source = execState->argument(1).toWTFString(execState);
+    JSSourceCode* jsSourceCode = jsDynamicCast<JSSourceCode*>(vm, execState->argument(1));
+    RELEASE_ASSERT(jsSourceCode);
+    SourceCode sourceCode = jsSourceCode->sourceCode();
+    WTF::String source = sourceCode.view().toString();
+
     if (Exception* exception = scope.exception()) {
         scope.clearException();
         return deferred->reject(execState, exception->value());
@@ -391,9 +396,9 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
 
         moduleUrl.clear(); // hide the module from the debugger
         source = WTF::ASCIILiteral("export default undefined;");
+        sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
     }
 
-    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
     ParserError error;
     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
 

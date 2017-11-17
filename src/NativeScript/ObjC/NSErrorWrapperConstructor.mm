@@ -16,7 +16,7 @@ using namespace JSC;
 const ClassInfo NSErrorWrapperConstructor::s_info = { "NSErrorWrapper", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(NSErrorWrapperConstructor) };
 
 void NSErrorWrapperConstructor::destroy(JSCell* cell) {
-    jsCast<NSErrorWrapperConstructor*>(cell)->~NSErrorWrapperConstructor();
+    static_cast<NSErrorWrapperConstructor*>(cell)->~NSErrorWrapperConstructor();
 }
 
 void NSErrorWrapperConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject) {

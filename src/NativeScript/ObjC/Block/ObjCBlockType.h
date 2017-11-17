@@ -50,7 +50,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCBlockType*>(cell)->~ObjCBlockType();
+        static_cast<ObjCBlockType*>(cell)->~ObjCBlockType();
     }
 
     void finishCreation(JSC::VM&, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes);

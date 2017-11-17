@@ -38,7 +38,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<RecordProtoFieldGetter*>(cell)->~RecordProtoFieldGetter();
+        static_cast<RecordProtoFieldGetter*>(cell)->~RecordProtoFieldGetter();
     }
 
     void finishCreation(JSC::VM&, RecordField*);
@@ -76,7 +76,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<RecordProtoFieldSetter*>(cell)->~RecordProtoFieldSetter();
+        static_cast<RecordProtoFieldSetter*>(cell)->~RecordProtoFieldSetter();
     }
 
     void finishCreation(JSC::VM&, RecordField*);
@@ -87,6 +87,6 @@ private:
 
     JSC::WriteBarrier<RecordField> _recordField;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__RecordPrototypeFunctions__) */

@@ -46,7 +46,7 @@ private:
     ~ObjCBlockCall();
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCBlockCall*>(cell)->~ObjCBlockCall();
+        static_cast<ObjCBlockCall*>(cell)->~ObjCBlockCall();
     }
 
     void finishCreation(JSC::VM&, id block, ObjCBlockType*);
@@ -55,6 +55,6 @@ private:
 
     WTF::RetainPtr<id> _block;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCBlockCall__) */

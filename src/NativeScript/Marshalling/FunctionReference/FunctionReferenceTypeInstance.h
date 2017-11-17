@@ -50,7 +50,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<FunctionReferenceTypeInstance*>(cell)->~FunctionReferenceTypeInstance();
+        static_cast<FunctionReferenceTypeInstance*>(cell)->~FunctionReferenceTypeInstance();
     }
 
     void finishCreation(JSC::VM&, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes);

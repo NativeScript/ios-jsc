@@ -35,7 +35,7 @@ private:
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<UnmanagedType*>(cell)->~UnmanagedType();
+        static_cast<UnmanagedType*>(cell)->~UnmanagedType();
     }
 
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);

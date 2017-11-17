@@ -43,7 +43,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ReferenceTypeInstance*>(cell)->~ReferenceTypeInstance();
+        static_cast<ReferenceTypeInstance*>(cell)->~ReferenceTypeInstance();
     }
 
     void finishCreation(JSC::VM&, JSC::JSCell*);

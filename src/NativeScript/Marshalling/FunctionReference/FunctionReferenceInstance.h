@@ -47,7 +47,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<FunctionReferenceInstance*>(cell)->~FunctionReferenceInstance();
+        static_cast<FunctionReferenceInstance*>(cell)->~FunctionReferenceInstance();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function);
@@ -60,6 +60,6 @@ private:
 
     JSC::WriteBarrier<JSC::JSCell> _function;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FunctionReferenceInstance__) */
