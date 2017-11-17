@@ -292,43 +292,17 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
 
     NSError* error = nil;
-    NSString* moduleContent = [NSString stringWithContentsOfFile:modulePath encoding:NSUTF8StringEncoding error:&error];
+    NSData* moduleContent = [NSData dataWithContentsOfFile:modulePath options:NSDataReadingMappedIfSafe error:&error];
     if (error) {
         return deferred->reject(execState, self->interop()->wrapError(execState, error));
     }
 
-    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(WTF::String::fromUTF8([moduleContent cStringUsingEncoding:NSUTF8StringEncoding]), SourceOrigin(keyValue.toWTFString(execState)), keyValue.toWTFString(execState), TextPosition(), SourceProviderSourceType::Module)));
-}
-
-JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue sourceValue, JSValue initiator) {
-    JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
-
-    JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_CATCH_SCOPE(vm);
-
-    id source = NativeScript::toObject(execState, sourceValue);
-    if (Exception* exception = scope.exception()) {
-        scope.clearException();
-        return deferred->reject(execState, exception);
+    String moduleContentStr = WTF::String::fromUTF8((const LChar*)moduleContent.bytes, moduleContent.length);
+    if (moduleContentStr.isNull()) {
+        return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
     }
 
-    NSString* contents = nil;
-
-    if ([source isKindOfClass:[NSData class]]) {
-        contents = [[NSString alloc] initWithData:source encoding:NSUTF8StringEncoding];
-
-        if (contents == nil) {
-            return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
-        }
-    } else if ([source isKindOfClass:[NSString class]]) {
-        contents = source;
-    } else {
-        return deferred->reject(execState, createTypeError(execState, WTF::String::format("Unexpected module source type '%s'.", NSStringFromClass([source class]).UTF8String)));
-    }
-
-    JSC::JSString* contentsJs = jsString(execState, contents);
-    [contents release];
-    return deferred->resolve(execState, contentsJs);
+    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(keyValue.toWTFString(execState)), keyValue.toWTFString(execState), TextPosition(), SourceProviderSourceType::Module)));
 }
 
 static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourceCode, const Identifier& moduleKey, ParserError& parserError) {

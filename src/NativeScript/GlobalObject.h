@@ -208,8 +208,6 @@ private:
 
     static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue initiator);
 
-    static JSC::JSInternalPromise* moduleLoaderTranslate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSValue initiator);
-
     static JSC::JSInternalPromise* moduleLoaderInstantiate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSValue initiator);
 
     static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue, JSC::JSValue initiator);
