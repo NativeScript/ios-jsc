@@ -1,0 +1,97 @@
+diff --git a/src/NativeScript/GlobalObject.moduleLoader.mm b/src/NativeScript/GlobalObject.moduleLoader.mm
+index 30bb672..e73b309 100644
+--- a/src/NativeScript/GlobalObject.moduleLoader.mm
++++ b/src/NativeScript/GlobalObject.moduleLoader.mm
+@@ -24,6 +24,7 @@
+ #include <JavaScriptCore/JSModuleLoader.h>
+ #include <JavaScriptCore/JSModuleRecord.h>
+ #include <JavaScriptCore/JSNativeStdFunction.h>
++#include <JavaScriptCore/JSSourceCode.h>
+ #include <JavaScriptCore/LiteralParser.h>
+ #include <JavaScriptCore/ModuleAnalyzer.h>
+ #include <JavaScriptCore/ModuleLoaderPrototype.h>
+@@ -291,12 +292,13 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
+     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
+ 
+     NSError* error = nil;
+-    NSData* moduleContent = [NSData dataWithContentsOfFile:modulePath options:NSDataReadingMappedIfSafe error:&error];
++    NSString* moduleContent = [NSString stringWithContentsOfFile:modulePath encoding:NSUTF8StringEncoding error:&error];
+     if (error) {
+         return deferred->reject(execState, self->interop()->wrapError(execState, error));
+     }
+-
+-    return deferred->resolve(execState, self->interop()->bufferFromData(execState, moduleContent));
++    
++    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(WTF::String::fromUTF8([moduleContent cStringUsingEncoding:NSUTF8StringEncoding]), SourceOrigin(keyValue.toWTFString(execState)), keyValue.toWTFString(execState), TextPosition(), SourceProviderSourceType::Module)));
++//    return deferred->resolve(execState, self->interop()->bufferFromData(execState, moduleContent));
+ }
+ 
+ JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue sourceValue, JSValue initiator) {
+@@ -356,7 +358,11 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
+         return deferred->reject(execState, exception->value());
+     }
+ 
+-    WTF::String source = execState->argument(1).toWTFString(execState);
++    JSSourceCode* jsSourceCode = jsDynamicCast<JSSourceCode*>(vm, execState->argument(1));
++    RELEASE_ASSERT(jsSourceCode);
++    SourceCode sourceCode = jsSourceCode->sourceCode();
++    WTF::String source = sourceCode.view().toString();
++    
+     if (Exception* exception = scope.exception()) {
+         scope.clearException();
+         return deferred->reject(execState, exception->value());
+@@ -391,9 +397,9 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
+ 
+         moduleUrl.clear(); // hide the module from the debugger
+         source = WTF::ASCIILiteral("export default undefined;");
++        sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
+     }
+ 
+-    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
+     ParserError error;
+     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
+ 
+@@ -442,13 +448,9 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
+     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+     JSInternalPromise* promise = globalObject->moduleLoader()->resolve(execState, moduleName, refererKey, refererKey);
+ 
+-    Exception* exception = nullptr;
+-    JSFunction* errorHandler = JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&exception](ExecState* execState) {
+-        JSValue error = execState->argument(0);
+-        exception = jsDynamicCast<Exception*>(execState->vm(), error);
+-        if (!exception && !error.isUndefinedOrNull()) {
+-            exception = Exception::create(execState->vm(), error);
+-        }
++    JSValue error;
++    JSFunction* errorHandler = JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&error](ExecState* execState) {
++        error = execState->argument(0);
+         return JSValue::encode(jsUndefined());
+     });
+ 
+@@ -492,9 +494,8 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
+                   errorHandler);
+     globalObject->drainMicrotasks();
+ 
+-    if (exception) {
+-        scope.throwException(execState, exception);
+-        return JSValue::encode(exception);
++    if (!error.isUndefinedOrNull() && error.isCell() && error.asCell() != nullptr) {
++        return JSValue::encode(scope.throwException(execState, error));
+     }
+ 
+     // maybe the require'd module is a CommonJS module?
+diff --git a/src/NativeScript/ObjC/ObjCMethodCall.h b/src/NativeScript/ObjC/ObjCMethodCall.h
+index cfbbc56..c72b1d7 100644
+--- a/src/NativeScript/ObjC/ObjCMethodCall.h
++++ b/src/NativeScript/ObjC/ObjCMethodCall.h
+@@ -55,7 +55,8 @@ private:
+     static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
+ 
+     static void destroy(JSC::JSCell* cell) {
+-        JSC::jsCast<ObjCMethodCall*>(cell)->~ObjCMethodCall();
++//        JSC::jsCast<ObjCMethodCall*>(cell)->~ObjCMethodCall();
++        static_cast<ObjCMethodCall*>(cell)->~ObjCMethodCall();
+     }
+ 
+     void* _msgSend;
+
