@@ -421,13 +421,9 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     JSInternalPromise* promise = globalObject->moduleLoader()->resolve(execState, moduleName, refererKey, refererKey);
 
-    Exception* exception = nullptr;
-    JSFunction* errorHandler = JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&exception](ExecState* execState) {
-        JSValue error = execState->argument(0);
-        exception = jsDynamicCast<Exception*>(execState->vm(), error);
-        if (!exception && !error.isUndefinedOrNull()) {
-            exception = Exception::create(execState->vm(), error);
-        }
+    JSValue error;
+    JSFunction* errorHandler = JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&error](ExecState* execState) {
+        error = execState->argument(0);
         return JSValue::encode(jsUndefined());
     });
 
@@ -471,9 +467,8 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                   errorHandler);
     globalObject->drainMicrotasks();
 
-    if (exception) {
-        scope.throwException(execState, exception);
-        return JSValue::encode(exception);
+    if (!error.isUndefinedOrNull() && error.isCell() && error.asCell() != nullptr) {
+        return JSValue::encode(scope.throwException(execState, error));
     }
 
     // maybe the require'd module is a CommonJS module?
