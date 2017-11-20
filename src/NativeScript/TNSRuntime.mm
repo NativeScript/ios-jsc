@@ -150,6 +150,7 @@ static NSPointerArray* _runtimes;
     return [self executeModule:entryPointModuleIdentifier referredBy:@""];
 }
 
+
 - (void)executeModule:(NSString*)entryPointModuleIdentifier referredBy:(NSString*)referrer {
     JSLockHolder lock(*self->_vm);
     JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier, referrer);
@@ -165,9 +166,11 @@ static NSPointerArray* _runtimes;
     if (error) {
         Exception* exception = jsDynamicCast<Exception*>(error);
         if (!exception) {
-            exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
+            exception = jsDynamicCast<Exception*>(error.getObject()->getDirect(*self->_vm.get(), Identifier::fromString(self->_vm.get(), Exception::NS_EXCEPTION_IDENTIFIER_STRING)));
+            if (!exception) {
+                exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
+            }
         }
-
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
     }
 }

@@ -63,7 +63,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
         std::cerr << "Native stack trace:\n";
         WTFReportBacktrace();
 
-        std::cerr << "JavaScript stack trace:\n";
+        std::cerr << "\nJavaScript stack trace:\n";
         RefPtr<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
         for (size_t i = 0; i < callStack->size(); ++i) {
             Inspector::ScriptCallFrame frame = callStack->at(i);
