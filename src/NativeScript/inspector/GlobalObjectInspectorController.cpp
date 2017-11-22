@@ -180,6 +180,8 @@ void GlobalObjectInspectorController::connectFrontend(FrontendChannel* frontendC
 void GlobalObjectInspectorController::disconnectFrontend(FrontendChannel* frontendChannel) {
     ASSERT_ARG(frontendChannel, frontendChannel);
 
+    JSC::JSLockHolder lock(this->vm());
+
     // FIXME: change this to notify agents which frontend has disconnected (by id).
     m_agents.willDestroyFrontendAndBackend(DisconnectReason::InspectorDestroyed);
 
