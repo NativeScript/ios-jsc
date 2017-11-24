@@ -48,6 +48,8 @@ static NSString* stat(NSString* path) {
 }
 
 static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::String, WTF::String, WTF::ASCIICaseInsensitiveHash>& cache, NSError** error) {
+  
+
     if (cache.contains(absolutePath)) {
         return cache.get(absolutePath);
     }
@@ -87,7 +89,7 @@ static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::S
             }
         }
 
-        NSString* resolved = resolveAbsolutePath([absolutePath stringByAppendingPathComponent:mainName], cache, error);
+        NSString* resolved = resolveAbsolutePath([[absolutePath stringByAppendingPathComponent:mainName] stringByStandardizingPath], cache, error);
         if (*error) {
             return nil;
         }
