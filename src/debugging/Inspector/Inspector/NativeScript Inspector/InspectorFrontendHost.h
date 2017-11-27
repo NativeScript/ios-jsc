@@ -1,6 +1,6 @@
-#import <Foundation/Foundation.h>
-#import "InspectorFrontendHostProtocol.h"
 #import "Communication.h"
+#import "InspectorFrontendHostProtocol.h"
+#import <Foundation/Foundation.h>
 @import AppKit;
 
 @interface InspectorFrontendHost : NSObject <InspectorFrontendHostProtocol> {
@@ -23,4 +23,5 @@
 - (void)setZoomFactor:(NSString*)factor;
 - (void)showContextMenu;
 - (void)openInNewTab;
+- (NSString*)userInterfaceLayoutDirection;
 @end
