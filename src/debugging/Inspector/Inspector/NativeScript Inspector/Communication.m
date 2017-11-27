@@ -74,7 +74,7 @@
               tv.tv_usec = 0;
 
               int sel = 0;
-              sel = select(communicationSocket + 1, 0, &write_fds, 0, &tv);
+              sel = select(communicationSocket + 1, NULL, &write_fds, NULL, &tv);
               if (sel > 0) {
                   socklen_t lon = sizeof(int);
                   int so_error;
