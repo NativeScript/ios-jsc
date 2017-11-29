@@ -1,12 +1,12 @@
 #import "Communication.h"
-#import <netinet/in.h>
-#import <sys/types.h>
-#import <sys/socket.h>
-#import <sys/un.h>
 #import <errno.h>
+#import <netinet/in.h>
+#import <notify.h>
 #import <stdlib.h>
 #import <string.h>
-#import <notify.h>
+#import <sys/socket.h>
+#import <sys/types.h>
+#import <sys/un.h>
 
 @implementation TNSCommunicationChannel {
     InspectorErrorHandler errorHandler;
@@ -63,8 +63,33 @@
                                                       });
 
           int result = connect(communicationSocket, addr, socketLength);
+          int error = errno;
+          if (error == EINPROGRESS) {
+              fd_set write_fds;
+              FD_ZERO(&write_fds);
+              FD_SET(communicationSocket, &write_fds);
+
+              struct timeval tv;
+              tv.tv_sec = 5;
+              tv.tv_usec = 0;
+
+              int sel = 0;
+              sel = select(communicationSocket + 1, NULL, &write_fds, NULL, &tv);
+              if (sel > 0) {
+                  socklen_t lon = sizeof(int);
+                  int so_error;
+
+                  if (getsockopt(communicationSocket, SOL_SOCKET, SO_ERROR, (void*)(&so_error), &lon) >= 0) {
+                      if (so_error == 0) {
+                          result = 0; // socket is now writable and no error has occurred
+                      } else {
+                          error = so_error;
+                      }
+                  }
+              }
+          }
           if (result) {
-              self->errorHandler([NSError errorWithDomain:@"Unable to connect" code:errno userInfo:nil]);
+              self->errorHandler([NSError errorWithDomain:@"Unable to connect" code:error userInfo:nil]);
 
               return NO;
           }
