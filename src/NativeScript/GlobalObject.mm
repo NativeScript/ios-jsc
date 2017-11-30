@@ -193,7 +193,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 #ifdef DEBUG
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), WTF::ASCIILiteral("__extends.ts"));
 #else
-    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len));
+    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin());
 #endif
     this->_typeScriptOriginalExtendsFunction.set(vm, this, jsCast<JSFunction*>(evaluate(globalExec, sourceCode, globalExec->thisValue())));
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__extends"), 2, ObjCTypeScriptExtendFunction, NoIntrinsic, DontEnum | DontDelete | ReadOnly);

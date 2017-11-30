@@ -154,6 +154,10 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
 
     auto globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     VM& vm = execState->vm();
+#ifdef ASSERT_DISABLED
+    UNUSED_PARAM(vm);
+#endif
+
     if (JSObject* wrapper = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(object)) {
         ASSERT(wrapper->classInfo(vm) != ObjCWrapperObject::info() || jsCast<ObjCWrapperObject*>(wrapper)->wrappedObject() == object);
         return wrapper;
