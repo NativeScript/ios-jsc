@@ -283,7 +283,7 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_CATCH_SCOPE(vm);
 
-    NSString* modulePath = keyValue.toWTFString(execState);
+    auto modulePath = keyValue.toWTFString(execState);
     if (JSC::Exception* e = scope.exception()) {
         scope.clearException();
         return deferred->reject(execState, e->value());
@@ -302,7 +302,16 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
         return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
     }
 
-    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(keyValue.toWTFString(execState)), keyValue.toWTFString(execState), TextPosition(), SourceProviderSourceType::Module)));
+    WTF::StringBuilder moduleUrl;
+    moduleUrl.append("file://");
+
+    if (modulePath.startsWith(self->applicationPath().impl())) {
+        moduleUrl.append(modulePath.impl()->substring(self->applicationPath().length()));
+    } else {
+        moduleUrl.append(WTF::String(modulePath.impl()));
+    }
+
+    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(modulePath), moduleUrl.toString(), TextPosition(), SourceProviderSourceType::Module)));
 }
 
 static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourceCode, const Identifier& moduleKey, ParserError& parserError) {
@@ -343,15 +352,6 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
 
-    WTF::StringBuilder moduleUrl;
-    moduleUrl.append("file://");
-
-    if (moduleKey.impl()->startsWith(self->applicationPath().impl())) {
-        moduleUrl.append(moduleKey.impl()->substring(self->applicationPath().length()));
-    } else {
-        moduleUrl.append(WTF::String(moduleKey.impl()));
-    }
-
     JSValue json;
     if (moduleKey.impl()->endsWith(".json")) {
         if (source.is8Bit()) {
@@ -368,15 +368,15 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
             }
         }
 
-        moduleUrl.clear(); // hide the module from the debugger
         source = WTF::ASCIILiteral("export default undefined;");
-        sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
+        sourceCode = SourceCode(EditableSourceProvider::create(source, WTF::emptyString() /*empty url hides module from the debugger*/, WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
     }
 
     ParserError error;
     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
 
     if (!moduleRecord || (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json)) {
+        auto moduleUrl = sourceCode.provider()->url();
         error = ParserError();
         sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
         moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
@@ -388,7 +388,8 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         moduleFunctionSource.append("\n}}");
 
         JSObject* exception = nullptr;
-        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl.toString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
+
+        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl, WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
         FunctionExecutable* moduleFunctionExecutable = FunctionExecutable::fromGlobalCode(Identifier::fromString(execState, "anonymous"), *execState, sourceCode, exception, -1);
         if (!moduleFunctionExecutable) {
             ASSERT(exception);
