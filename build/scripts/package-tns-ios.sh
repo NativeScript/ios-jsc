@@ -31,7 +31,7 @@ cp -R "$WORKSPACE/build/npm/runtime_package.json" "$PACKAGE_DIR/package.json"
 python "$WORKSPACE/build/scripts/update-version.py" "$PACKAGE_DIR/package.json"
 
 pushd "$DIST_DIR"
-npm pack "package"
+npm pack ./package
 popd
 
 VERSION=$(python "$WORKSPACE/build/scripts/get_version.py" "$PACKAGE_DIR/package.json" 2>&1)
