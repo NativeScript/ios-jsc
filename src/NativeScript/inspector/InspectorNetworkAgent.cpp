@@ -9,10 +9,13 @@ InspectorNetworkAgent::InspectorNetworkAgent(JSAgentContext& context)
 
 void InspectorNetworkAgent::didCreateFrontendAndBackend(Inspector::FrontendRouter* frontendRouter, Inspector::BackendDispatcher* backendDispatcher) {
     m_frontendDispatcher = std::make_unique<NetworkFrontendDispatcher>(*frontendRouter);
-    m_backendDispatcher = NetworkBackendDispatcher::create(*backendDispatcher, this);
+    if (!this->m_backendDispatcher) {
+        this->m_backendDispatcher = NetworkBackendDispatcher::create(*backendDispatcher, this);
+    }
 }
 
 void InspectorNetworkAgent::willDestroyFrontendAndBackend(Inspector::DisconnectReason) {
+    m_frontendDispatcher = nullptr;
 }
 
 void InspectorNetworkAgent::enable(ErrorString&) {
@@ -40,4 +43,4 @@ void InspectorNetworkAgent::loadResource(ErrorString& errorString, const String&
         callback->sendSuccess(content, resource.mimeType(), 200);
     }
 }
-}
+} // namespace Inspector

@@ -9,14 +9,15 @@ DomainInspectorAgent::DomainInspectorAgent(WTF::String domainName, JSC::JSCell* 
     , m_constructorFunction(m_context.inspectedGlobalObject.vm(), constructorFunction) {}
 
 void DomainInspectorAgent::didCreateFrontendAndBackend(Inspector::FrontendRouter*, Inspector::BackendDispatcher* backendDispatcher) {
-    this->m_domainBackendDispatcher = DomainBackendDispatcher::create(this->domainName(), m_constructorFunction.get(), m_context);
+    if (!this->m_domainBackendDispatcher) {
+        this->m_domainBackendDispatcher = DomainBackendDispatcher::create(this->domainName(), m_constructorFunction.get(), m_context);
+    }
 }
 
 void DomainInspectorAgent::willDestroyFrontendAndBackend(Inspector::DisconnectReason) {
-    m_domainBackendDispatcher = nullptr;
 }
 
 void DomainInspectorAgent::discardAgent() {
     m_constructorFunction.clear();
 }
-}
+} // namespace NativeScript

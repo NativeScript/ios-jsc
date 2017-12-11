@@ -68,7 +68,9 @@ InspectorLogAgent::InspectorLogAgent(Inspector::JSAgentContext& context)
 
 void InspectorLogAgent::didCreateFrontendAndBackend(FrontendRouter* frontendDispatcher, BackendDispatcher* backendDispatcher) {
     this->m_frontendDispatcher = std::make_unique<LogFrontendDispatcher>(*frontendDispatcher);
-    this->m_backendDispatcher = LogBackendDispatcher::create(*backendDispatcher, this);
+    if (!this->m_backendDispatcher) {
+        this->m_backendDispatcher = LogBackendDispatcher::create(*backendDispatcher, this);
+    }
 }
 
 void InspectorLogAgent::willDestroyFrontendAndBackend(DisconnectReason) {
@@ -153,4 +155,4 @@ void InspectorLogAgent::addMessageToFrontend(ConsoleMessage* consoleMessage) {
     }
     m_frontendDispatcher->entryAdded(WTFMove(jsonObj));
 }
-}
+} // namespace Inspector

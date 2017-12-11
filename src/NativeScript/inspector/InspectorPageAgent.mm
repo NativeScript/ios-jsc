@@ -18,12 +18,13 @@ InspectorPageAgent::InspectorPageAgent(JSAgentContext& context)
 
 void InspectorPageAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {
     m_frontendDispatcher = std::make_unique<PageFrontendDispatcher>(*frontendRouter);
-    m_backendDispatcher = PageBackendDispatcher::create(*backendDispatcher, this);
+    if (!this->m_backendDispatcher) {
+        this->m_backendDispatcher = PageBackendDispatcher::create(*backendDispatcher, this);
+    }
 }
 
 void InspectorPageAgent::willDestroyFrontendAndBackend(DisconnectReason) {
-    m_frontendDispatcher = nullptr;
-    m_backendDispatcher = nullptr;
+    this->m_frontendDispatcher = nullptr;
 }
 
 void InspectorPageAgent::enable(ErrorString&) {
