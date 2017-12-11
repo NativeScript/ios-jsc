@@ -268,17 +268,21 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     JSValue parentPrototype;
     JSValue parentConstructor;
 
-    // NSObject and NSProxy don't have a base class
+
     const char* superKlassName = metadata->baseName();
     if (superKlassName) {
         parentConstructor = getObjCNativeConstructor(globalObject, superKlassName);
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
     } else {
+        // NSObject and NSProxy don't have a base class and therefore inherit directly from GlobalObject.
         parentPrototype = globalObject->objectPrototype();
         parentConstructor = globalObject->functionPrototype();
     }
 
-    // The parentConstructor may have already initialized the constructor.
+    // The parentConstructor may have already initialized our constructor.
+    /// If we have a super class which somehow references us we will already be cached when
+    /// the parent constructor has been created.
+    /// TODO: Move this check in the if (superKlassName) case.
     if (ObjCConstructorNative* type = this->_cacheId.get(klassName)) {
         return type;
     }
