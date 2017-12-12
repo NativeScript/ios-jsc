@@ -68,12 +68,12 @@ static dispatch_source_t TNSCreateInspectorServer(
     return nil;
   }
 
-  dispatch_source_t listenSource =
+  __block dispatch_source_t listenSource =
       dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
 
   dispatch_source_set_event_handler(listenSource, ^{
     dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
-
+    dispatch_source_cancel(listenSource);
     dispatch_io_t io =
         dispatch_io_create(DISPATCH_IO_STREAM, newSocket, queue, ^(int error) {
           CheckError(error, connectedHandler);
@@ -151,6 +151,8 @@ static dispatch_source_t TNSCreateInspectorServer(
     dispatch_io_read(io, 0, 4, queue, ioHandler);
   });
   dispatch_source_set_cancel_handler(listenSource, ^{
+    isWaitingForDebugger = NO;
+    listenSource = nil;
     close(listenSocket);
   });
   dispatch_resume(listenSource);
@@ -282,17 +284,6 @@ static void TNSEnableRemoteInspector(int argc, char **argv,
 
         listenSource = TNSCreateInspectorServer(connectionHandler);
         notify_post(NOTIFICATION("ReadyForAttach"));
-
-        dispatch_time_t delay =
-            dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 30);
-        dispatch_after(delay, dispatch_get_main_queue(), ^{
-          if (!inspector && listenSource) {
-            dispatch_source_cancel(listenSource);
-            listenSource = nil;
-          }
-
-          isWaitingForDebugger = NO;
-        });
       });
 
   int attachAvailabilityQuerySubscription;
