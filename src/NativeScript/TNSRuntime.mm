@@ -7,6 +7,7 @@
 //
 
 #include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/BuiltinNames.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/InitializeThreading.h>
@@ -165,7 +166,7 @@ static NSPointerArray* _runtimes;
     if (error) {
         Exception* exception = jsDynamicCast<Exception*>(*self->_vm.get(), error);
         if (!exception) {
-            exception = jsDynamicCast<Exception*>(*self->_vm.get(), error.getObject()->getDirect(*self->_vm.get(), Identifier::fromString(self->_vm.get(), Exception::NS_EXCEPTION_IDENTIFIER_STRING)));
+            exception = jsDynamicCast<Exception*>(*self->_vm.get(), error.getObject()->getDirect(*self->_vm.get(), self->_vm.get()->propertyNames->builtinNames().nsExceptionIdentifierPrivateName()));
             if (!exception) {
                 exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
             }
