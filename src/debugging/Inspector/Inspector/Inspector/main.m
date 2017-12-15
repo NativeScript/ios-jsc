@@ -21,10 +21,19 @@ int main(int argc, const char* argv[]) {
         [runningApplications[0] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
     } else {
         NSDictionary* configuration = @{
-            NSWorkspaceLaunchConfigurationArguments : @[ main_file_path, project_name, socket_path ],
-            NSWorkspaceLaunchConfigurationEnvironment : @{ @"DYLD_FRAMEWORK_PATH" : [[NSBundle mainBundle] privateFrameworksPath] }
+            NSWorkspaceLaunchConfigurationArguments : @[ main_file_path, project_name, socket_path ]
         };
-
+        
+        // Check: Starting with High Sierra some internal APIs
+        // used by WebKit are not present. We resort to compat libraries
+        // instead of using our own until we upgrade to the latest WebKit version.
+        NSProcessInfo *pInfo = [NSProcessInfo processInfo];
+        NSOperatingSystemVersion version = {.majorVersion = 10, .minorVersion = 13};
+        
+        if (![pInfo isOperatingSystemAtLeastVersion:version]){
+            [configuration setValue:@{ @"DYLD_FRAMEWORK_PATH" : [[NSBundle mainBundle] privateFrameworksPath]}  forKey:NSWorkspaceLaunchConfigurationEnvironment];
+        }
+        
         [[NSWorkspace sharedWorkspace] launchApplicationAtURL:applicationBundle.bundleURL options:0 configuration:configuration error:nil];
     }
 
