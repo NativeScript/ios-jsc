@@ -7,13 +7,14 @@
 //
 
 #include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/BuiltinNames.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/InitializeThreading.h>
 #include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSInternalPromise.h>
-#include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/JSModuleLoader.h>
+#include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <iostream>
 
@@ -21,13 +22,13 @@
 #import <UIKit/UIApplication.h>
 #endif
 
-#import "TNSRuntime.h"
-#import "TNSRuntime+Private.h"
 #include "JSErrors.h"
+#include "ManualInstrumentation.h"
 #include "Metadata/Metadata.h"
 #include "ObjCTypes.h"
+#import "TNSRuntime+Private.h"
+#import "TNSRuntime.h"
 #include "Workers/JSWorkerGlobalObject.h"
-#include "ManualInstrumentation.h"
 
 using namespace JSC;
 using namespace NativeScript;
@@ -150,7 +151,6 @@ static NSPointerArray* _runtimes;
     return [self executeModule:entryPointModuleIdentifier referredBy:@""];
 }
 
-
 - (void)executeModule:(NSString*)entryPointModuleIdentifier referredBy:(NSString*)referrer {
     JSLockHolder lock(*self->_vm);
     JSInternalPromise* promise = loadAndEvaluateModule(self->_globalObject->globalExec(), entryPointModuleIdentifier, referrer);
@@ -166,7 +166,7 @@ static NSPointerArray* _runtimes;
     if (error) {
         Exception* exception = jsDynamicCast<Exception*>(error);
         if (!exception) {
-            exception = jsDynamicCast<Exception*>(error.getObject()->getDirect(*self->_vm.get(), Identifier::fromString(self->_vm.get(), Exception::NS_EXCEPTION_IDENTIFIER_STRING)));
+            exception = jsDynamicCast<Exception*>(error.getObject()->getDirect(*self->_vm.get(), self->_vm.get()->propertyNames->builtinNames().nsExceptionIdentifierPrivateName()));
             if (!exception) {
                 exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
             }
