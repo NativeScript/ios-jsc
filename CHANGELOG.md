@@ -13,6 +13,7 @@ previous_url: /Changelogs/iOS Runtime
 ## Bug Fixes
 - [Fixed missing stack-trace](https://github.com/NativeScript/ios-runtime/pull/815)
 - [Fixed issue with WTF threading not initialized](https://github.com/NativeScript/NativeScript/issues/5019)
+- [Fixed issue with Inspector crashing on MacOS High Sierra](https://github.com/NativeScript/ios-runtime/pull/838)
 
 3.3.0
 =====
