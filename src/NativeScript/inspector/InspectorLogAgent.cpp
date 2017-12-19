@@ -64,13 +64,12 @@ InspectorLogAgent::InspectorLogAgent(Inspector::JSAgentContext& context)
     : InspectorAgentBase(ASCIILiteral("Log"))
     , m_injectedScriptManager(context.injectedScriptManager)
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
+
+    this->m_frontendDispatcher = std::make_unique<LogFrontendDispatcher>(context.frontendRouter);
+    this->m_backendDispatcher = LogBackendDispatcher::create(context.backendDispatcher, this);
 }
 
 void InspectorLogAgent::didCreateFrontendAndBackend(FrontendRouter* frontendDispatcher, BackendDispatcher* backendDispatcher) {
-    this->m_frontendDispatcher = std::make_unique<LogFrontendDispatcher>(*frontendDispatcher);
-    if (!this->m_backendDispatcher) {
-        this->m_backendDispatcher = LogBackendDispatcher::create(*backendDispatcher, this);
-    }
 }
 
 void InspectorLogAgent::willDestroyFrontendAndBackend(DisconnectReason) {

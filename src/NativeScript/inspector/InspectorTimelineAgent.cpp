@@ -17,6 +17,9 @@ InspectorTimelineAgent::InspectorTimelineAgent(JSAgentContext& context, Inspecto
     , m_consoleRecordEntry()
     , m_maxCallStackDepth(5)
     , m_enabled(false) {
+
+    this->m_frontendDispatcher = std::make_unique<TimelineFrontendDispatcher>(context.frontendRouter);
+    this->m_backendDispatcher = TimelineBackendDispatcher::create(context.backendDispatcher, this);
 }
 
 void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {
@@ -29,12 +32,6 @@ void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {
 }
 
 void InspectorTimelineAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {
-    this->m_frontendDispatcher = std::make_unique<TimelineFrontendDispatcher>(*frontendRouter);
-
-    if (!this->m_backendDispatcher) {
-        this->m_backendDispatcher = TimelineBackendDispatcher::create(*backendDispatcher, this);
-    }
-
     this->m_globalObject.inspectorController().setTimelineAgent(this);
 }
 
