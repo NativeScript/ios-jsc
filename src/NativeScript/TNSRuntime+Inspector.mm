@@ -132,6 +132,10 @@ private:
     self->_inspectorController->pause();
 }
 
+- (bool)hasFrontends {
+    return self->_inspectorController->frontendRouter().hasFrontends();
+}
+
 - (void)dealloc {
     self->_inspectorController->disconnectFrontend(_frontendChannel.get());
     [self->_runtime release];
