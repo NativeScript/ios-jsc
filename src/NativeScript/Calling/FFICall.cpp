@@ -172,11 +172,11 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
 
       JSC::VM& vm = fakeExecState->vm();
+      JSLockHolder lockHolder(vm);
       auto scope = DECLARE_CATCH_SCOPE(vm);
 
       ffi_call(callee->_cif.get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
 
-      JSLockHolder lockHolder(fakeExecState);
       // we no longer have a valid caller on the stack, what with being async and all
       fakeExecState->setCallerFrame(CallFrame::noCaller());
 

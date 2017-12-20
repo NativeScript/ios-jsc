@@ -18,6 +18,16 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+// Synchronization object for serializing access to inspector variable and data socket
+
+id inspectorLock() {
+    static dispatch_once_t once;
+    static id lock;
+    dispatch_once(&once, ^{
+      lock = [[NSObject alloc] init];
+    });
+    return lock;
+}
 static TNSRuntimeInspector* inspector = nil;
 static BOOL isWaitingForDebugger = NO;
 
@@ -75,7 +85,13 @@ static dispatch_source_t TNSCreateInspectorServer(
     __block dispatch_source_t listenSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
 
     dispatch_source_set_event_handler(listenSource, ^{
-      if (inspector && [inspector hasFrontends]) {
+      // Keep a working copy for calling into the VM after releasing inspectorLock
+      TNSRuntimeInspector* tempInspector = nil;
+      @synchronized(inspectorLock()) {
+          tempInspector = inspector;
+      }
+
+      if (tempInspector && [tempInspector hasFrontends]) {
           // Only one connection is supported at a time. Accept and immediately close new attempt's socket
           dispatch_fd_t secondInspectorSocket = accept(listenSocket, NULL, NULL);
           close(secondInspectorSocket);
@@ -87,10 +103,13 @@ static dispatch_source_t TNSCreateInspectorServer(
       __block dispatch_io_t io = 0;
       __block TNSInspectorProtocolHandler protocolHandler = nil;
       __block TNSInspectorIoErrorHandler dataSocketErrorHandler = ^(NSObject* dummy, NSError* error) {
-        if (io) {
-            dispatch_io_close(io, DISPATCH_IO_STOP);
-            io = 0;
+        @synchronized(inspectorLock()) {
+            if (io) {
+                dispatch_io_close(io, DISPATCH_IO_STOP);
+                io = 0;
+            }
         }
+
         if (newSocket) {
             close(newSocket);
             newSocket = 0;
@@ -105,15 +124,13 @@ static dispatch_source_t TNSCreateInspectorServer(
         }
       };
 
-      io = dispatch_io_create(DISPATCH_IO_STREAM, newSocket, queue, ^(int error) {
-        CheckError(error, dataSocketErrorHandler);
-      });
+      @synchronized(inspectorLock()) {
+          io = dispatch_io_create(DISPATCH_IO_STREAM, newSocket, queue, ^(int error) {
+            CheckError(error, dataSocketErrorHandler);
+          });
+      }
 
       TNSInspectorSendMessageBlock sender = ^(NSString* message) {
-        if (!io) {
-            return;
-        }
-
         NSUInteger length = [message
             lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
 
@@ -133,10 +150,14 @@ static dispatch_source_t TNSCreateInspectorServer(
           free(buffer);
         });
 
-        dispatch_io_write(io, 0, data, queue,
-                          ^(bool done, dispatch_data_t data, int error) {
-                            CheckError(error, dataSocketErrorHandler);
-                          });
+        @synchronized(inspectorLock()) {
+            if (io) {
+                dispatch_io_write(io, 0, data, queue,
+                                  ^(bool done, dispatch_data_t data, int error) {
+                                    CheckError(error, dataSocketErrorHandler);
+                                  });
+            }
+        }
       };
 
       protocolHandler = connectedHandler(sender, nil);
@@ -158,26 +179,38 @@ static dispatch_source_t TNSCreateInspectorServer(
         }
 
         uint32_t length = ntohl(*(uint32_t*)bytes);
-        dispatch_io_set_low_water(io, length);
-        dispatch_io_read(io, 0, length, queue,
-                         ^(bool done, dispatch_data_t data, int error) {
-                           if (!CheckError(error, dataSocketErrorHandler)) {
-                               return;
-                           }
+        @synchronized(inspectorLock()) {
+            if (io) {
+                dispatch_io_set_low_water(io, length);
+                dispatch_io_read(io, 0, length, queue,
+                                 ^(bool done, dispatch_data_t data, int error) {
+                                   if (!CheckError(error, dataSocketErrorHandler)) {
+                                       return;
+                                   }
 
-                           NSString* payload = [[NSString alloc]
-                               initWithData:(NSData*)data
-                                   encoding:NSUTF16LittleEndianStringEncoding];
-                           protocolHandler(payload, nil);
+                                   NSString* payload = [[NSString alloc]
+                                       initWithData:(NSData*)data
+                                           encoding:NSUTF16LittleEndianStringEncoding];
+                                   protocolHandler(payload, nil);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-retain-cycles"
-                           dispatch_io_read(io, 0, 4, queue, ioHandler);
+                                   @synchronized(inspectorLock()) {
+                                       if (io) {
+                                           dispatch_io_read(io, 0, 4, queue, ioHandler);
+                                       }
+                                   }
 #pragma clang diagnostic pop
-                         });
+                                 });
+            }
+        }
       };
 
-      dispatch_io_read(io, 0, 4, queue, ioHandler);
+      @synchronized(inspectorLock()) {
+          if (io) {
+              dispatch_io_read(io, 0, 4, queue, ioHandler);
+          }
+      }
     });
     dispatch_source_set_cancel_handler(listenSource, ^{
       isWaitingForDebugger = NO;
@@ -190,15 +223,22 @@ static dispatch_source_t TNSCreateInspectorServer(
 }
 
 static void TNSInspectorUncaughtExceptionHandler(NSException* exception) {
-    JSStringRef exceptionMessage = JSStringCreateWithUTF8CString(exception.description.UTF8String);
+    // Keep a working copy for calling into the VM after releasing inspectorLock
+    TNSRuntimeInspector* tempInspector = nil;
+    @synchronized(inspectorLock()) {
+        tempInspector = inspector;
+    }
+    if (tempInspector) {
+        JSStringRef exceptionMessage = JSStringCreateWithUTF8CString(exception.description.UTF8String);
 
-    JSValueRef errorArguments[] = {
-        JSValueMakeString(inspector.runtime.globalContext, exceptionMessage)
-    };
-    JSObjectRef error = JSObjectMakeError(inspector.runtime.globalContext, 1,
-                                          errorArguments, NULL);
+        JSValueRef errorArguments[] = {
+            JSValueMakeString(inspector.runtime.globalContext, exceptionMessage)
+        };
+        JSObjectRef error = JSObjectMakeError(inspector.runtime.globalContext, 1,
+                                              errorArguments, NULL);
 
-    [inspector reportFatalError:error];
+        [inspector reportFatalError:error];
+    }
 }
 
 static void TNSEnableRemoteInspector(int argc, char** argv,
@@ -206,11 +246,18 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
     __block dispatch_source_t listenSource = nil;
 
     dispatch_block_t clearInspector = ^{
-      if (inspector) {
-          inspector = nil;
-      }
 
-      NSSetUncaughtExceptionHandler(NULL);
+      // Keep a working copy for calling into the VM after releasing inspectorLock
+      TNSRuntimeInspector* tempInspector = nil;
+      @synchronized(inspectorLock()) {
+          if (inspector) {
+              tempInspector = inspector;
+              inspector = nil;
+              NSSetUncaughtExceptionHandler(NULL);
+          }
+      }
+      // Release and dealloc old inspector; must be outside of the inspectorLock because it locks the VM
+      tempInspector = nil;
     };
 
     dispatch_block_t clear = ^{
@@ -249,31 +296,43 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
           return nil;
       }
 
-      if (inspector) {
-          return nil;
+      // Keep a working copy for calling into the VM after releasing inspectorLock
+      TNSRuntimeInspector* tempInspector = nil;
+      @synchronized(inspectorLock()) {
+          if (inspector) {
+              return nil;
+          }
       }
 
-      NSLog(@"NativeScript debugger attached.");
+      // potentially race with other connections to create the inspector outside of a lock
+      tempInspector = [runtime attachInspectorWithHandler:sendMessageToFrontend];
 
-      inspector = [runtime attachInspectorWithHandler:sendMessageToFrontend];
+      @synchronized(inspectorLock()) {
+          //another thread won, abort
+          if (inspector) {
+              return nil;
+          }
+          NSLog(@"NativeScript debugger attached.");
 
-      NSSetUncaughtExceptionHandler(&TNSInspectorUncaughtExceptionHandler);
+          inspector = tempInspector;
+          NSSetUncaughtExceptionHandler(&TNSInspectorUncaughtExceptionHandler);
+      }
 
       if (isWaitingForDebugger) {
           isWaitingForDebugger = NO;
+          [tempInspector pause];
 
-          CFRunLoopRef runloop = CFRunLoopGetMain();
-          CFRunLoopPerformBlock(
-              runloop, (__bridge CFTypeRef)(NSRunLoopCommonModes), ^{
-                // If we pause right away the debugger messages that are send
-                // are not handled because the frontend is not yet initialized
-                CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
-
-                [inspector pause];
-              });
-          CFRunLoopWakeUp(runloop);
+          //            CFRunLoopRef runloop = CFRunLoopGetMain();
+          //            CFRunLoopPerformBlock(
+          //                                  runloop, (__bridge CFTypeRef)(NSRunLoopCommonModes), ^{
+          //                                      // If we pause right away the debugger messages that are send
+          //                                      // are not handled because the frontend is not yet initialized
+          //                                      CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
+          //
+          //                                      [inspector pause];
+          //                                  });
+          //            CFRunLoopWakeUp(runloop);
       }
-
       NSArray* inspectorRunloopModes =
           @[ NSRunLoopCommonModes, TNSInspectorRunLoopMode ];
       return ^(NSString* message, NSError* error) {
@@ -281,7 +340,13 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
             CFRunLoopRef runloop = CFRunLoopGetMain();
             CFRunLoopPerformBlock(
                 runloop, (__bridge CFTypeRef)(inspectorRunloopModes), ^{
-                  [inspector dispatchMessage:message];
+                  // Keep a working copy for calling into the VM after releasing inspectorLock
+                  TNSRuntimeInspector* tempInspector = nil;
+                  @synchronized(inspectorLock()) {
+                      tempInspector = inspector;
+                  }
+
+                  [tempInspector dispatchMessage:message];
                 });
             CFRunLoopWakeUp(runloop);
         } else {

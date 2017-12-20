@@ -57,6 +57,8 @@ private:
 @implementation TNSRuntime (Inspector)
 
 - (TNSRuntimeInspector*)attachInspectorWithHandler:(TNSRuntimeInspectorMessageHandler)messageHandler {
+    JSC::JSLockHolder lock(self->_vm.get());
+
     TNSRuntimeInspector* runtimeInspector = [[TNSRuntimeInspector alloc] initWithRuntime:self
                                                                           messageHandler:messageHandler];
 
@@ -133,10 +135,14 @@ private:
 }
 
 - (bool)hasFrontends {
+    JSC::JSLockHolder lock(_runtime->_vm.get());
+
     return self->_inspectorController->frontendRouter().hasFrontends();
 }
 
 - (void)dealloc {
+    JSC::JSLockHolder lock(_runtime->_vm.get());
+
     self->_inspectorController->disconnectFrontend(_frontendChannel.get());
     [self->_runtime release];
     [super dealloc];
