@@ -115,12 +115,20 @@ void GlobalObjectConsoleClient::takeHeapSnapshot(JSC::ExecState*, const String& 
 }
 
 void GlobalObjectConsoleClient::time(JSC::ExecState*, const String& title) {
-    m_consoleAgent->startTiming(title);
+    std::unique_ptr<String> startMsg = m_consoleAgent->startTiming(title);
+    const String* url;
+    if (startMsg) {
+        ConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, MessageType::Timing, MessageLevel::Warning, *startMsg.get(), (const String&)url, -1, -1);
+    }
 }
 
 void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& title) {
-    RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
-    m_consoleAgent->stopTiming(title, WTFMove(callStack));
+    Ref<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
+    std::unique_ptr<String> stopMsg = m_consoleAgent->stopTiming(title, WTFMove(callStack));
+    const String* url;
+    if (stopMsg) {
+        ConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, MessageType::Timing, MessageLevel::Debug, *stopMsg.get(), (const String&)url, -1, -1);
+    }
 }
 
 void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) {
