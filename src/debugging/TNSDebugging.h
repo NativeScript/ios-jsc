@@ -87,12 +87,10 @@ static dispatch_source_t TNSCreateInspectorServer(
       __block dispatch_io_t io = 0;
       __block TNSInspectorProtocolHandler protocolHandler = nil;
       __block TNSInspectorIoErrorHandler dataSocketErrorHandler = ^(NSObject* dummy, NSError* error) {
-        assert(io);
         if (io) {
             dispatch_io_close(io, DISPATCH_IO_STOP);
             io = 0;
         }
-        assert(newSocket);
         if (newSocket) {
             close(newSocket);
             newSocket = 0;
@@ -311,6 +309,15 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
         NOTIFICATION("WaitForDebugger"), &waitForDebuggerSubscription,
         dispatch_get_main_queue(), ^(int token) {
           isWaitingForDebugger = YES;
+
+          dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 30);
+          dispatch_after(delay, dispatch_get_main_queue(), ^{
+            if (isWaitingForDebugger) {
+                isWaitingForDebugger = NO;
+                NSLog(@"NativeScript waiting for debugger timeout elapsed. Continuing execution.");
+            }
+          });
+
           NSLog(@"NativeScript waiting for debugger.");
 
           CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopDefaultMode, ^{
