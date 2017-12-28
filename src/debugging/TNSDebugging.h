@@ -62,7 +62,8 @@ typedef void (^TNSInspectorIoErrorHandler)(NSObject* dummy /*make compatible wit
 
 static dispatch_source_t TNSCreateInspectorServer(
     TNSInspectorFrontendConnectedHandler connectedHandler,
-    TNSInspectorIoErrorHandler ioErrorHandler) {
+    TNSInspectorIoErrorHandler ioErrorHandler,
+    dispatch_block_t clearInspector) {
     dispatch_queue_t queue = dispatch_get_global_queue(0, 0);
 
     dispatch_fd_t listenSocket = socket(PF_INET, SOCK_STREAM, 0);
@@ -85,18 +86,8 @@ static dispatch_source_t TNSCreateInspectorServer(
     __block dispatch_source_t listenSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
 
     dispatch_source_set_event_handler(listenSource, ^{
-      // Keep a working copy for calling into the VM after releasing inspectorLock
-      TNSRuntimeInspector* tempInspector = nil;
-      @synchronized(inspectorLock()) {
-          tempInspector = inspector;
-      }
-
-      if (tempInspector && [tempInspector hasFrontends]) {
-          // Only one connection is supported at a time. Accept and immediately close new attempt's socket
-          dispatch_fd_t secondInspectorSocket = accept(listenSocket, NULL, NULL);
-          close(secondInspectorSocket);
-          return;
-      }
+      // Only one connection is supported at a time. Discard previous inspector.
+      clearInspector();
 
       __block dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
 
@@ -401,7 +392,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
               clear();
           }
 
-          listenSource = TNSCreateInspectorServer(connectionHandler, ioErrorHandler);
+          listenSource = TNSCreateInspectorServer(connectionHandler, ioErrorHandler, clearInspector);
           notify_post(NOTIFICATION("ReadyForAttach"));
         });
 
