@@ -312,17 +312,6 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
       if (isWaitingForDebugger) {
           isWaitingForDebugger = NO;
           [tempInspector pause];
-
-          //            CFRunLoopRef runloop = CFRunLoopGetMain();
-          //            CFRunLoopPerformBlock(
-          //                                  runloop, (__bridge CFTypeRef)(NSRunLoopCommonModes), ^{
-          //                                      // If we pause right away the debugger messages that are send
-          //                                      // are not handled because the frontend is not yet initialized
-          //                                      CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
-          //
-          //                                      [inspector pause];
-          //                                  });
-          //            CFRunLoopWakeUp(runloop);
       }
       NSArray* inspectorRunloopModes =
           @[ NSRunLoopCommonModes, TNSInspectorRunLoopMode ];
@@ -337,7 +326,9 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                       tempInspector = inspector;
                   }
 
-                  [tempInspector dispatchMessage:message];
+                  if (tempInspector) {
+                      [tempInspector dispatchMessage:message];
+                  }
                 });
             CFRunLoopWakeUp(runloop);
         } else {

@@ -13,7 +13,6 @@ void InspectorNetworkAgent::didCreateFrontendAndBackend(Inspector::FrontendRoute
 }
 
 void InspectorNetworkAgent::willDestroyFrontendAndBackend(Inspector::DisconnectReason) {
-    m_frontendDispatcher = nullptr;
 }
 
 void InspectorNetworkAgent::enable(ErrorString&) {

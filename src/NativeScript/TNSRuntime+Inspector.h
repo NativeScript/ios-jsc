@@ -24,8 +24,6 @@ FOUNDATION_EXPORT NSString* const TNSInspectorRunLoopMode;
 
 - (void)pause;
 
-- (bool)hasFrontends;
-
 @end
 
 typedef void (^TNSRuntimeInspectorMessageHandler)(NSString* message);

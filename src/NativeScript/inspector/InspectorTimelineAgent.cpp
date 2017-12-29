@@ -37,8 +37,6 @@ void InspectorTimelineAgent::didCreateFrontendAndBackend(FrontendRouter* fronten
 
 void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {
 
-    this->m_frontendDispatcher = nullptr;
-
     ErrorString unused;
     stop(unused);
 
