@@ -172,11 +172,16 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
 
       JSC::VM& vm = fakeExecState->vm();
-      JSLockHolder lockHolder(vm);
       auto scope = DECLARE_CATCH_SCOPE(vm);
 
       ffi_call(callee->_cif.get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + callee->_argsArrayOffset));
 
+      // Native call is made outside of the VM lock by design.
+      // For more information see https://github.com/NativeScript/ios-runtime/issues/215 and it's corresponding PR.
+      // This creates a racing condition which might corrupt the internal state of the VM but
+      // a fix for it is outside of this PR's scope, so I'm leaving it like it has always been.
+
+      JSLockHolder lockHolder(vm);
       // we no longer have a valid caller on the stack, what with being async and all
       fakeExecState->setCallerFrame(CallFrame::noCaller());
 
