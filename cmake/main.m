@@ -5,6 +5,8 @@
 #include <TNSDebugging.h>
 #endif
 
+#import <ARKit/ARKit.h>
+
 extern char startOfMetadataSection __asm("section$start$__DATA$__TNSMetadata");
 
 int main(int argc, char *argv[]) {
@@ -18,6 +20,7 @@ int main(int argc, char *argv[]) {
 
     TNSInstallExceptionHandler();
 
+// ARCamera
 #ifndef NDEBUG
     TNSEnableRemoteInspector(argc, argv, runtime);
 #endif

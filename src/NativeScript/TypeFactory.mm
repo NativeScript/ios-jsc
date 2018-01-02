@@ -11,6 +11,7 @@
 #include "FFIPrimitiveTypes.h"
 #include "FFISimpleType.h"
 #include "FunctionReferenceTypeInstance.h"
+#include "ManualInstrumentation.h"
 #include "Metadata.h"
 #include "ObjCBlockType.h"
 #include "ObjCConstructorNative.h"
@@ -26,7 +27,6 @@
 #include "SymbolLoader.h"
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <string>
-#include "ManualInstrumentation.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -97,9 +97,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
         return constructor;
     }
 
-    ffi_type* ffiType = new ffi_type({.size = 0,
-                                      .alignment = 0,
-                                      .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({ .size = 0,
+                                       .alignment = 0,
+                                       .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -142,9 +142,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
 }
 
 RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
-    ffi_type* ffiType = new ffi_type({.size = 0,
-                                      .alignment = 0,
-                                      .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({ .size = 0,
+                                       .alignment = 0,
+                                       .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -268,7 +268,6 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     JSValue parentPrototype;
     JSValue parentConstructor;
 
-
     const char* superKlassName = metadata->baseName();
     if (superKlassName) {
         parentConstructor = getObjCNativeConstructor(globalObject, superKlassName);
@@ -300,10 +299,10 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     }
     prototype->materializeProperties(vm, globalObject);
     constructor->materializeProperties(vm, globalObject);
-    
+
     if (frame.check()) {
-        NSString *classNameNSStr = (NSString*)klassName.createCFString().get();
-        frame.log([@"Expose: " stringByAppendingString: classNameNSStr].UTF8String);
+        NSString* classNameNSStr = (NSString*)klassName.createCFString().get();
+        frame.log([@"Expose: " stringByAppendingString:classNameNSStr].UTF8String);
     }
 
     return constructor;
@@ -447,6 +446,12 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         break;
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        result = this->getReferenceType(globalObject, innerType);
+        break;
+    }
+    case BinaryTypeEncodingType::VectorEncoding: {
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.vector.getInnerType();
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
         result = this->getReferenceType(globalObject, innerType);
         break;
