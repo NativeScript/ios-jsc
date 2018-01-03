@@ -87,7 +87,7 @@ static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::S
             }
         }
 
-        NSString* resolved = resolveAbsolutePath([absolutePath stringByAppendingPathComponent:mainName], cache, error);
+        NSString* resolved = resolveAbsolutePath([[absolutePath stringByAppendingPathComponent:mainName] stringByStandardizingPath], cache, error);
         if (*error) {
             return nil;
         }
