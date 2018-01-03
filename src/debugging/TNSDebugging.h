@@ -157,8 +157,8 @@ static dispatch_source_t TNSCreateInspectorServer(
           return;
       }
 
-      __block dispatch_io_handler_t ioHandler = ^(bool done, dispatch_data_t data,
-                                                  int error) {
+      __block dispatch_io_handler_t receiver = ^(bool done, dispatch_data_t data,
+                                                 int error) {
         if (!CheckError(error, dataSocketErrorHandler)) {
             return;
         }
@@ -188,7 +188,7 @@ static dispatch_source_t TNSCreateInspectorServer(
 #pragma clang diagnostic ignored "-Warc-retain-cycles"
                                    @synchronized(inspectorLock()) {
                                        if (io) {
-                                           dispatch_io_read(io, 0, 4, queue, ioHandler);
+                                           dispatch_io_read(io, 0, 4, queue, receiver);
                                        }
                                    }
 #pragma clang diagnostic pop
@@ -199,7 +199,7 @@ static dispatch_source_t TNSCreateInspectorServer(
 
       @synchronized(inspectorLock()) {
           if (io) {
-              dispatch_io_read(io, 0, 4, queue, ioHandler);
+              dispatch_io_read(io, 0, 4, queue, receiver);
           }
       }
     });
