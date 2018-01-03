@@ -100,9 +100,9 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
       if (self != [derivedClass self]) {
           return;
       }
+      JSLockHolder lock(globalObject->vm());
       auto catchScope = DECLARE_CATCH_SCOPE(globalObject->vm());
 
-      JSLockHolder lock(globalObject->vm());
       ExecState* globalExec = globalObject->globalExec();
 
       JSObject* instanceMethods = jsCast<JSObject*>(derivedConstructor->get(globalExec, globalExec->vm().propertyNames->prototype));
