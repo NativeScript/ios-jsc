@@ -7,6 +7,12 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+3.4.1
+=====
+## Bug fixes
+- [Fixed issue with canonical module path resolution](https://github.com/NativeScript/ios-runtime/pull/847)
+- [Fixed various issues with iOS Inspector](https://github.com/NativeScript/ios-runtime/pull/835)
+
 3.4.0
 =====
 
