@@ -5,11 +5,11 @@ namespace Inspector {
 InspectorNetworkAgent::InspectorNetworkAgent(JSAgentContext& context)
     : Inspector::InspectorAgentBase(ASCIILiteral("Network"))
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
+    this->m_frontendDispatcher = std::make_unique<NetworkFrontendDispatcher>(context.frontendRouter);
+    this->m_backendDispatcher = NetworkBackendDispatcher::create(context.backendDispatcher, this);
 }
 
 void InspectorNetworkAgent::didCreateFrontendAndBackend(Inspector::FrontendRouter* frontendRouter, Inspector::BackendDispatcher* backendDispatcher) {
-    m_frontendDispatcher = std::make_unique<NetworkFrontendDispatcher>(*frontendRouter);
-    m_backendDispatcher = NetworkBackendDispatcher::create(*backendDispatcher, this);
 }
 
 void InspectorNetworkAgent::willDestroyFrontendAndBackend(Inspector::DisconnectReason) {
@@ -40,4 +40,4 @@ void InspectorNetworkAgent::loadResource(ErrorString& errorString, const String&
         callback->sendSuccess(content, resource.mimeType(), 200);
     }
 }
-}
+} // namespace Inspector
