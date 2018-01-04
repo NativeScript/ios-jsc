@@ -49,8 +49,8 @@
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/runtime/VMEntryScope.h>
-#include <string>
 #include <chrono>
+#include <string>
 
 namespace NativeScript {
 using namespace JSC;
@@ -105,7 +105,7 @@ static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
     JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
     return JSValue::encode(jsUndefined());
 }
-    
+
 static EncodedJSValue JSC_HOST_CALL time(ExecState* execState) {
     auto nano = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now());
     double duration = nano.time_since_epoch().count() / 1000000.0;
@@ -120,6 +120,7 @@ static void microtaskRunLoopSourcePerformWork(void* context) {
 
 static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void* info) {
     GlobalObject* self = static_cast<GlobalObject*>(info);
+    JSC::JSLockHolder lock(self->vm());
     VMEntryScope* currentEntryScope = self->vm().entryScope;
     if (self->vm().topCallFrame && currentEntryScope && !currentEntryScope->didPopListeners().isEmpty()) {
         FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(self->vm().topCallFrame->callee());

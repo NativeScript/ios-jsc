@@ -17,6 +17,9 @@ InspectorTimelineAgent::InspectorTimelineAgent(JSAgentContext& context, Inspecto
     , m_consoleRecordEntry()
     , m_maxCallStackDepth(5)
     , m_enabled(false) {
+
+    this->m_frontendDispatcher = std::make_unique<TimelineFrontendDispatcher>(context.frontendRouter);
+    this->m_backendDispatcher = TimelineBackendDispatcher::create(context.backendDispatcher, this);
 }
 
 void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {
@@ -29,15 +32,10 @@ void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {
 }
 
 void InspectorTimelineAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {
-    m_frontendDispatcher = std::make_unique<TimelineFrontendDispatcher>(*frontendRouter);
-    m_backendDispatcher = TimelineBackendDispatcher::create(*backendDispatcher, this);
-
     this->m_globalObject.inspectorController().setTimelineAgent(this);
 }
 
 void InspectorTimelineAgent::willDestroyFrontendAndBackend(DisconnectReason) {
-    m_frontendDispatcher = nullptr;
-    m_backendDispatcher = nullptr;
 
     ErrorString unused;
     stop(unused);
@@ -327,4 +325,4 @@ void InspectorTimelineAgent::addRecordToTimeline(RefPtr<InspectorObject>&& recor
     auto recordObject = BindingTraits<Inspector::Protocol::Timeline::TimelineEvent>::runtimeCast(WTFMove(record));
     sendEvent(WTFMove(recordObject));
 }
-}
+} // namespace Inspector

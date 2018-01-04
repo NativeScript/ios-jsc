@@ -14,16 +14,15 @@ InspectorPageAgent::InspectorPageAgent(JSAgentContext& context)
     , m_frameIdentifier("NativeScriptMainFrameIdentifier")
     , m_frameUrl("http://main.xml")
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
+
+    this->m_frontendDispatcher = std::make_unique<PageFrontendDispatcher>(context.frontendRouter);
+    this->m_backendDispatcher = PageBackendDispatcher::create(context.backendDispatcher, this);
 }
 
 void InspectorPageAgent::didCreateFrontendAndBackend(FrontendRouter* frontendRouter, BackendDispatcher* backendDispatcher) {
-    m_frontendDispatcher = std::make_unique<PageFrontendDispatcher>(*frontendRouter);
-    m_backendDispatcher = PageBackendDispatcher::create(*backendDispatcher, this);
 }
 
 void InspectorPageAgent::willDestroyFrontendAndBackend(DisconnectReason) {
-    m_frontendDispatcher = nullptr;
-    m_backendDispatcher = nullptr;
 }
 
 void InspectorPageAgent::enable(ErrorString&) {
