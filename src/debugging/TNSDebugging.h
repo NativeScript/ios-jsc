@@ -9,6 +9,7 @@
 #import <JavaScriptCore/JavaScript.h>
 #import <NativeScript.h>
 #import <UIKit/UIApplication.h>
+#import <libkern/OSAtomic.h>
 
 #include <errno.h>
 #include <netinet/in.h>
@@ -30,6 +31,7 @@ id inspectorLock() {
 }
 static TNSRuntimeInspector* inspector = nil;
 static BOOL isWaitingForDebugger = NO;
+static int32_t cleanupRequestsCount = 0;
 
 typedef void (^TNSInspectorProtocolHandler)(NSString* message, NSError* error);
 
@@ -236,6 +238,8 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                                      TNSRuntime* runtime) {
     __block dispatch_source_t listenSource = nil;
 
+    __block dispatch_block_t scheduleInspectorServerCleanup = nil;
+
     dispatch_block_t clearInspector = ^{
 
       // Keep a working copy for calling into the VM after releasing inspectorLock
@@ -245,6 +249,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
               tempInspector = inspector;
               inspector = nil;
               NSSetUncaughtExceptionHandler(NULL);
+              scheduleInspectorServerCleanup();
           }
       }
       // Release and dealloc old inspector; must be outside of the inspectorLock because it locks the VM
@@ -253,11 +258,29 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
 
     dispatch_block_t clear = ^{
       if (listenSource) {
+          NSLog(@"NativeScript debugger closing inspector port.");
           dispatch_source_cancel(listenSource);
           listenSource = nil;
       }
 
       clearInspector();
+    };
+
+    scheduleInspectorServerCleanup = ^{
+      dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 30);
+      OSAtomicIncrement32Barrier(&cleanupRequestsCount);
+      dispatch_after(delay, dispatch_get_main_queue(), ^{
+        if (OSAtomicDecrement32Barrier(&cleanupRequestsCount) == 0) {
+            bool stopListening = false;
+            @synchronized(inspectorLock()) {
+                stopListening = inspector == nil;
+            }
+
+            if (stopListening) {
+                clear();
+            }
+        }
+      });
     };
 
     [[NSNotificationCenter defaultCenter]
@@ -385,6 +408,8 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
 
           listenSource = TNSCreateInspectorServer(connectionHandler, ioErrorHandler, clearInspector);
           notify_post(NOTIFICATION("ReadyForAttach"));
+
+          scheduleInspectorServerCleanup();
         });
 
     int attachAvailabilityQuerySubscription;
