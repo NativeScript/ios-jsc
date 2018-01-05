@@ -20,9 +20,8 @@ int main(int argc, const char* argv[]) {
         [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"org.NativeScriptInspector.ApplicationShouldHandleReopen" object:nil userInfo:innerArguments];
         [runningApplications[0] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
     } else {
-        NSDictionary* configuration = @{
-            NSWorkspaceLaunchConfigurationArguments : @[ main_file_path, project_name, socket_path ]
-        };
+        NSDictionary* configuration = [[NSMutableDictionary alloc] init];
+        [configuration setValue:@[ main_file_path, project_name, socket_path ] forKey:NSWorkspaceLaunchConfigurationArguments];
         
         // Check: Starting with High Sierra some internal APIs
         // used by WebKit are not present. We resort to compat libraries
