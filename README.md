@@ -1,4 +1,5 @@
 # NativeScript for iOS Runtime
+[![Waffle.io - NativeScript Runtimes and CLI](https://badge.waffle.io/NativeScript/android-runtime.svg?columns=In%20Progress)](https://waffle.io/NativeScript/android-runtime)
 
 ```shell
 git clone --recursive git@github.com:NativeScript/ios-runtime.git
