@@ -7,6 +7,7 @@
 //
 
 #include "TypeFactory.h"
+#include "ConstantArrayTypeInstance.h"
 #include "FFINumericTypes.h"
 #include "FFIPrimitiveTypes.h"
 #include "FFISimpleType.h"
@@ -318,6 +319,58 @@ ObjCConstructorNative* TypeFactory::NSObjectConstructor(GlobalObject* globalObje
     return constructor;
 }
 
+ConstantArrayTypeInstance* TypeFactory::getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, Metadata::TypeEncoding* typeEncoding, Metadata::TypeEncoding* innerTypeEncoding) {
+    WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
+    if (this->_cacheReferenceType.contains(innerWeak)) {
+        WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
+        if (value->state() == WeakImpl::State::Live) {
+            return static_cast<ConstantArrayTypeInstance*>(value->jsValue().asCell());
+        } else {
+            this->_cacheReferenceType.remove(innerWeak);
+        }
+    }
+
+    size_t arraySize = typeEncoding->details.constantArray.size;
+    size_t innerTypeSize;
+
+    switch (innerTypeEncoding->type) {
+    case Metadata::FloatEncoding:
+        innerTypeSize = sizeof(float);
+        break;
+    case Metadata::DoubleEncoding:
+        innerTypeSize = sizeof(double);
+        break;
+    case Metadata::IntEncoding:
+        innerTypeSize = sizeof(int);
+        break;
+    case Metadata::UIntEncoding:
+        innerTypeSize = sizeof(uint);
+        break;
+    case Metadata::CharEncoding:
+        innerTypeSize = sizeof(char);
+        break;
+    case Metadata::ShortEncoding:
+        innerTypeSize = sizeof(short);
+        break;
+    case Metadata::UShortEncoding:
+        innerTypeSize = sizeof(ushort);
+        break;
+    case Metadata::UnicharEncoding:
+        innerTypeSize = sizeof(unichar);
+        break;
+    case Metadata::LongEncoding:
+        innerTypeSize = sizeof(long);
+        break;
+    default:
+        innerTypeSize = sizeof(int);
+    }
+
+    ConstantArrayTypeInstance* result = ConstantArrayTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType, arraySize * innerTypeSize);
+    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    this->_cacheReferenceType.add(innerWeak, resultWeak);
+    return result;
+}
+
 ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
     WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
     if (this->_cacheReferenceType.contains(innerWeak)) {
@@ -447,7 +500,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getReferenceType(globalObject, innerType);
+        result = this->getConstantArrayType(globalObject, innerType, (Metadata::TypeEncoding*)typeEncoding, (Metadata::TypeEncoding*)innerTypeEncoding);
         break;
     }
     case BinaryTypeEncodingType::VectorEncoding: {

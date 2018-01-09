@@ -24,6 +24,7 @@ class ObjCConstructorNative;
 class RecordConstructor;
 class RecordField;
 class ReferenceTypeInstance;
+class ConstantArrayTypeInstance;
 class ObjCBlockType;
 class FunctionReferenceTypeInstance;
 class FFISimpleType;
@@ -56,6 +57,8 @@ public:
     ObjCConstructorNative* NSObjectConstructor(GlobalObject*);
 
     ReferenceTypeInstance* getReferenceType(GlobalObject* globalObject, JSC::JSCell* innerType);
+
+    ConstantArrayTypeInstance* getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, Metadata::TypeEncoding* typeEncoding, Metadata::TypeEncoding* innerTypeEncoding);
 
     FunctionReferenceTypeInstance* getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSC::JSCell* returnType, WTF::Vector<JSCell*> parametersTypes);
 
@@ -189,6 +192,6 @@ private:
 
 #ifdef __OBJC__
 #endif
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__TypeFactory__) */
