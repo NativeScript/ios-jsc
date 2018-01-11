@@ -336,14 +336,22 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
       if (isWaitingForDebugger) {
           isWaitingForDebugger = NO;
           CFRunLoopRef runloop = CFRunLoopGetMain();
-          CFRunLoopPerformBlock(
-              runloop, (__bridge CFTypeRef)(NSRunLoopCommonModes), ^{
-                // If we pause right away the debugger messages that are send
-                // are not handled because the frontend is not yet initialized
-                CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
+          CFRunLoopPerformBlock(runloop, (__bridge CFTypeRef)(NSRunLoopCommonModes),
+                                ^{
+                                  // If we pause right away the debugger messages that are sent
+                                  // are not handled because the frontend is not yet initialized
+                                  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 1, false);
 
-                [inspector pause];
-              });
+                                  // Keep a working copy for calling into the VM after releasing inspectorLock
+                                  TNSRuntimeInspector* tempInspector = nil;
+                                  @synchronized(inspectorLock()) {
+                                      tempInspector = inspector;
+                                  }
+
+                                  if (tempInspector) {
+                                      [tempInspector pause];
+                                  }
+                                });
           CFRunLoopWakeUp(runloop);
       }
       NSArray* inspectorRunloopModes =
@@ -360,7 +368,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                   }
 
                   if (tempInspector) {
-                      // NSLog(@"NativeScript Debugger receiving: %@", message);
+                      //                      NSLog(@"NativeScript Debugger receiving: %@", message);
                       [tempInspector dispatchMessage:message];
                   }
                 });
