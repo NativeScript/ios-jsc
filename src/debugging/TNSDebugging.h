@@ -124,6 +124,7 @@ static dispatch_source_t TNSCreateInspectorServer(
       }
 
       TNSInspectorSendMessageBlock sender = ^(NSString* message) {
+        // NSLog(@"NativeScript debugger sending: %@", message);
         NSUInteger length = [message
             lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
 
@@ -359,6 +360,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                   }
 
                   if (tempInspector) {
+                      // NSLog(@"NativeScript Debugger receiving: %@", message);
                       [tempInspector dispatchMessage:message];
                   }
                 });
@@ -411,14 +413,18 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
     notify_register_dispatch(
         NOTIFICATION("AttachRequest"), &attachRequestSubscription,
         dispatch_get_main_queue(), ^(int token) {
-          if (listenSource) {
-              clear();
+
+          // Remove any existing frontend connections
+          clearInspector();
+
+          // Keep current listening source if existing, schedule cleanup before check will guard it from previous timer (if such has been started)
+          scheduleInspectorServerCleanup();
+
+          if (!listenSource) {
+              listenSource = TNSCreateInspectorServer(connectionHandler, ioErrorHandler, clearInspector);
           }
 
-          listenSource = TNSCreateInspectorServer(connectionHandler, ioErrorHandler, clearInspector);
           notify_post(NOTIFICATION("ReadyForAttach"));
-
-          scheduleInspectorServerCleanup();
         });
 
     int attachAvailabilityQuerySubscription;
