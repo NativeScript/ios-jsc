@@ -48,7 +48,6 @@ set(HEADER_FILES
     Marshalling/Reference/ReferencePrototype.h
     Marshalling/Reference/ReferenceTypeConstructor.h
     Marshalling/Reference/ReferenceTypeInstance.h
-    Marshalling/ConstantArrayTypeInstance.h
     Metadata/Metadata.h
     NativeScript-Prefix.h
     NativeScript.h
@@ -149,7 +148,6 @@ set(SOURCE_FILES
     Marshalling/Reference/ReferencePrototype.cpp
     Marshalling/Reference/ReferenceTypeConstructor.cpp
     Marshalling/Reference/ReferenceTypeInstance.cpp
-    Marshalling/Reference/ConstantArrayTypeInstance.cpp
     Metadata/Metadata.mm
     ObjC/AllocatedPlaceholder.cpp
     ObjC/Block/ObjCBlockCall.mm

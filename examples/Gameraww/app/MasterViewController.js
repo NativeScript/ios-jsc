@@ -6,50 +6,6 @@ dateFormatter.locale = NSLocale.currentLocale;
 //dateFormatter.timeStyle = NSDateFormatterStyle.NSDateFormatterShortStyle;
 dateFormatter.doesRelativeDateFormatting = true;
 
-function onTap() {
-    var privTagData = NSString.stringWithString("de.ecsec.sign.private")
-    .dataUsingEncoding(NSUTF8StringEncoding);
-    var params = NSMutableDictionary.new();
-    params.setValueForKey(kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyType);
-    params.setValueForKey(NSNumber.numberWithInt(256), kSecAttrKeySizeInBits);
-    var privAttrs = NSMutableDictionary.new();
-    // Uncommenting this line breaks the key generation with error -50 (errParamInvalid)
-    //privAttrs.setValueForKey(kCFBooleanTrue, kSecAttrIsPermanent);
-    privAttrs.setValueForKey(privTagData, kSecAttrApplicationTag);
-    params.setObjectForKey(privAttrs, kSecPrivateKeyAttrs);
-    // Playground warns me with: 'Untyped function calls may not accept type arguments.', when using the const error, but in WebStorm it does not bring this error.
-    //const error = new interop.Reference<NSError>();
-    var secKey = SecKeyCreateRandomKey(params, null /*error*/);
-    if (secKey === null) {
-        console.log("No key returned: " /*, error.value*/);
-    }
-    else {
-        var nsstring = NSString.stringWithString("test");
-        // Calls the native C malloc function. You must call free when finished using it.
-        var buffer = malloc(4 * interop.sizeof(interop.types.unichar));
-        nsstring.getCharacters(buffer); // Fill the buffer
-        // Reinterpret the void* buffer as unichar*. The reference variable doesn't retain the allocated buffer.
-        var reference = new interop.Reference(interop.types.unichar, buffer);
-        console.log("Key returned: ", secKey);
-        console.log("kSecPaddingPKCS1SHA256", kSecPaddingPKCS1SHA256);
-        var hashBytesSize = 32;
-        console.log("hashBytesSize", hashBytesSize);
-        var hashBytes = malloc(hashBytesSize);
-        console.log("hashBytes", hashBytes);
-        var signedHashBytesSize = SecKeyGetBlockSize(secKey);
-        console.log("signedHashBytesSize", signedHashBytesSize);
-        var signedHashBytes = malloc(signedHashBytesSize);
-        var bitesRef = new interop.Reference(interop.types.int64, signedHashBytes);
-        console.log("signedHashBytes", signedHashBytes);
-        var result = SecKeyRawSign(secKey, kSecPaddingPKCS1SHA256, "test", hashBytesSize, signedHashBytes, reference);
-        //console.log(result, "<---- RESULT");
-        //OSStatus SecKeyRawSign(SecKeyRef key, SecPadding padding, const uint8_t *dataToSign, size_t dataToSignLen, uint8_t *sig, size_t *sigLen);
-        // var data = SecKeyRawSign(secKey, padding: SecPadding, dataToSign: string, dataToSignLen: number, sig: string, sigLen: interop.Pointer | interop.Reference<number>);
-        CFRelease(secKey);
-    }
-    console.log("------------------------");
-}
-
 var JSMasterViewController = UITableViewController.extend(
     {
       viewDidLoad : function() {
@@ -65,15 +21,14 @@ var JSMasterViewController = UITableViewController.extend(
         this.loadData();
       },
       "aboutPressed:" : function(sender) {
-//        var alertWindow = new UIAlertView({
-//          title : "About",
-//          message : "NativeScript Team",
-//          delegate : null,
-//          cancelButtonTitle : "OK",
-//          otherButtonTitles : null
-//        });
-//        alertWindow.show();
-                                                          onTap();
+        var alertWindow = new UIAlertView({
+          title : "About",
+          message : "NativeScript Team",
+          delegate : null,
+          cancelButtonTitle : "OK",
+          otherButtonTitles : null
+        });
+        alertWindow.show();
       },
       numberOfSectionsInTableView : function(tableView) { return 1; },
       tableViewNumberOfRowsInSection : function(tableView, section) {
