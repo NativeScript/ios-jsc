@@ -319,7 +319,7 @@ ObjCConstructorNative* TypeFactory::NSObjectConstructor(GlobalObject* globalObje
     return constructor;
 }
 
-ConstantArrayTypeInstance* TypeFactory::getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, Metadata::TypeEncoding* typeEncoding, Metadata::TypeEncoding* innerTypeEncoding) {
+ConstantArrayTypeInstance* TypeFactory::getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
     WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
     if (this->_cacheReferenceType.contains(innerWeak)) {
         WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
@@ -330,46 +330,71 @@ ConstantArrayTypeInstance* TypeFactory::getConstantArrayType(GlobalObject* globa
         }
     }
 
-    size_t arraySize = typeEncoding->details.constantArray.size;
-    size_t innerTypeSize;
-
-    switch (innerTypeEncoding->type) {
-    case Metadata::FloatEncoding:
-        innerTypeSize = sizeof(float);
-        break;
-    case Metadata::DoubleEncoding:
-        innerTypeSize = sizeof(double);
-        break;
-    case Metadata::IntEncoding:
-        innerTypeSize = sizeof(int);
-        break;
-    case Metadata::UIntEncoding:
-        innerTypeSize = sizeof(uint);
-        break;
-    case Metadata::CharEncoding:
-        innerTypeSize = sizeof(char);
-        break;
-    case Metadata::ShortEncoding:
-        innerTypeSize = sizeof(short);
-        break;
-    case Metadata::UShortEncoding:
-        innerTypeSize = sizeof(ushort);
-        break;
-    case Metadata::UnicharEncoding:
-        innerTypeSize = sizeof(unichar);
-        break;
-    case Metadata::LongEncoding:
-        innerTypeSize = sizeof(long);
-        break;
-    default:
-        innerTypeSize = sizeof(int);
-    }
-
-    ConstantArrayTypeInstance* result = ConstantArrayTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType, arraySize * innerTypeSize);
+    ConstantArrayTypeInstance* result = ConstantArrayTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType, typeSize);
     WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
     this->_cacheReferenceType.add(innerWeak, resultWeak);
     return result;
 }
+
+    
+    size_t resolveConstArrayTypeSize(const TypeEncoding* typeEncoding, const TypeEncoding* innerTypeEncoding) {
+        
+        size_t arraySize = 0;
+        
+        switch(typeEncoding->type) {
+            case Metadata::BinaryTypeEncodingType::ConstantArrayEncoding:
+                arraySize = typeEncoding->details.constantArray.size;
+                break;
+            case Metadata::BinaryTypeEncodingType::VectorEncoding:
+                arraySize = typeEncoding->details.vector.size;
+                break;
+            default:
+                arraySize = 0;
+                break;
+        }
+        size_t innerTypeSize = 0;
+        
+        switch (innerTypeEncoding->type) {
+            case Metadata::BinaryTypeEncodingType::FloatEncoding:
+                innerTypeSize = sizeof(float);
+                break;
+            case Metadata::BinaryTypeEncodingType::DoubleEncoding:
+                innerTypeSize = sizeof(double);
+                break;
+            case Metadata::BinaryTypeEncodingType::IntEncoding:
+                innerTypeSize = sizeof(int);
+                break;
+            case Metadata::BinaryTypeEncodingType::UIntEncoding:
+                innerTypeSize = sizeof(uint);
+                break;
+            case Metadata::BinaryTypeEncodingType::CharEncoding:
+                innerTypeSize = sizeof(char);
+                break;
+            case Metadata::BinaryTypeEncodingType::ShortEncoding:
+                innerTypeSize = sizeof(short);
+                break;
+            case Metadata::BinaryTypeEncodingType::UShortEncoding:
+                innerTypeSize = sizeof(ushort);
+                break;
+            case Metadata::BinaryTypeEncodingType::UnicharEncoding:
+                innerTypeSize = sizeof(unichar);
+                break;
+            case Metadata::BinaryTypeEncodingType::LongEncoding:
+                innerTypeSize = sizeof(long);
+                break;
+            case Metadata::BinaryTypeEncodingType::ConstantArrayEncoding:
+                innerTypeSize = resolveConstArrayTypeSize(innerTypeEncoding, innerTypeEncoding->details.constantArray.getInnerType());
+                break;
+            case Metadata::BinaryTypeEncodingType::VectorEncoding:
+                innerTypeSize = resolveConstArrayTypeSize(innerTypeEncoding, innerTypeEncoding->details.vector.getInnerType());
+                break;
+            default:
+                //throw error;
+                break;
+        }
+        
+        return innerTypeSize * arraySize;
+    }
 
 ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
     WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
@@ -499,14 +524,16 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         break;
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
+        size_t typeSize = resolveConstArrayTypeSize(typeEncoding, innerTypeEncoding);
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getConstantArrayType(globalObject, innerType, (Metadata::TypeEncoding*)typeEncoding, (Metadata::TypeEncoding*)innerTypeEncoding);
+        result = this->getConstantArrayType(globalObject, innerType, typeSize);
         break;
     }
     case BinaryTypeEncodingType::VectorEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.vector.getInnerType();
+        size_t typeSize = resolveConstArrayTypeSize(typeEncoding, innerTypeEncoding);
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getReferenceType(globalObject, innerType);
+        result = this->getConstantArrayType(globalObject, innerType, typeSize);
         break;
     }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {

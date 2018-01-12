@@ -58,7 +58,7 @@ public:
 
     ReferenceTypeInstance* getReferenceType(GlobalObject* globalObject, JSC::JSCell* innerType);
 
-    ConstantArrayTypeInstance* getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, Metadata::TypeEncoding* typeEncoding, Metadata::TypeEncoding* innerTypeEncoding);
+    ConstantArrayTypeInstance* getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
 
     FunctionReferenceTypeInstance* getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSC::JSCell* returnType, WTF::Vector<JSCell*> parametersTypes);
 
