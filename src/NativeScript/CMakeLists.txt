@@ -48,7 +48,7 @@ set(HEADER_FILES
     Marshalling/Reference/ReferencePrototype.h
     Marshalling/Reference/ReferenceTypeConstructor.h
     Marshalling/Reference/ReferenceTypeInstance.h
-    Marshalling/ConstantArrayTypeInstance.h
+    Marshalling/Reference/ConstantArrayTypeInstance.h
     Metadata/Metadata.h
     NativeScript-Prefix.h
     NativeScript.h
