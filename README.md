@@ -13,6 +13,13 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
  - [GNU Libtool](http://www.gnu.org/software/libtool/) - available in [Homebrew](http://brew.sh) as `libtool`.
  - Checkout all git submodules using `git submodule update --init`.
 
+## Architecture diagram
+The NativeScript iOS Runtime architecture can be summarized in the following diagram. 
+
+![iOS Runtime diagram](https://github.com/NativeScript/docs/blob/master/docs/img/ns-runtime-ios.png)
+
+For more details on how it works, read the [documentation](https://docs.nativescript.org/runtimes/ios/overview). 
+
 ## Local Development
 Execute the following commands:
 ```shell
