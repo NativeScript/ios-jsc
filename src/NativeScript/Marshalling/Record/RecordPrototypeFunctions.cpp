@@ -82,4 +82,4 @@ void RecordProtoFieldGetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     RecordProtoFieldGetter* object = jsCast<RecordProtoFieldGetter*>(cell);
     visitor.append(&object->_recordField);
 }
-}
+} // namespace NativeScript

@@ -141,11 +141,10 @@ private:
 
     void finishCreation(JSC::VM&, GlobalObject*);
 
-    static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
-
     JSC::JSCell* parsePrimitiveType(JSC::JSGlobalObject* globalOBject, const Metadata::TypeEncoding*& typeEncoding);
-
     size_t resolveConstArrayTypeSize(const Metadata::TypeEncoding* typeEncoding, const Metadata::TypeEncoding* innerTypeEncoding);
+
+    static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
     WTF::Vector<RecordField*> createRecordFields(GlobalObject*, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
 
@@ -179,6 +178,7 @@ private:
     JSC::WriteBarrier<PointerConstructor> _pointerConstructor;
 
     JSC::WriteBarrier<JSC::Structure> _referenceTypeStructure;
+    JSC::WriteBarrier<JSC::Structure> _constantArrayTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _objCBlockTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _functionReferenceTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _recordPrototypeStructure;

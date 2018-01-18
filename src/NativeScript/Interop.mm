@@ -7,6 +7,8 @@
 //
 
 #include "Interop.h"
+#include "ConstantArrayInstance.h"
+#include "ConstantArrayPrototype.h"
 #include "FFIFunctionCall.h"
 #include "FFISimpleType.h"
 #include "FFIType.h"
@@ -16,7 +18,6 @@
 #include "FunctionReferenceTypeInstance.h"
 #include "NSErrorWrapperConstructor.h"
 #include "ObjCBlockCall.h"
-#include "ObjCBlockType.h"
 #include "ObjCBlockType.h"
 #include "ObjCBlockTypeConstructor.h"
 #include "ObjCConstructorBase.h"
@@ -250,6 +251,9 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     ReferencePrototype* referencePrototype = ReferencePrototype::create(vm, globalObject, ReferencePrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_referenceInstanceStructure.set(vm, this, ReferenceInstance::createStructure(vm, globalObject, referencePrototype));
 
+    ConstantArrayPrototype* constantArrayPrototype = ConstantArrayPrototype::create(vm, globalObject, ConstantArrayPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
+    this->_constantArrayInstanceStructure.set(vm, this, ConstantArrayInstance::createStructure(vm, globalObject, constantArrayPrototype));
+
     ReferenceConstructor* referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype);
     this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor, ReadOnly | DontDelete);
     referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor, DontEnum);
@@ -348,6 +352,7 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Interop* interop = jsCast<Interop*>(cell);
     visitor.append(&interop->_pointerInstanceStructure);
     visitor.append(&interop->_referenceInstanceStructure);
+    visitor.append(&interop->_constantArrayInstanceStructure);
     visitor.append(&interop->_functionReferenceInstanceStructure);
     visitor.append(&interop->_nsErrorWrapperConstructor);
 }

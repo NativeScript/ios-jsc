@@ -7,6 +7,7 @@
 //
 
 #include "FFIType.h"
+#include "ConstantArrayTypeInstance.h"
 #include "FFISimpleType.h"
 #include "FunctionReferenceTypeInstance.h"
 #include "ObjCBlockType.h"
@@ -38,6 +39,11 @@ bool tryGetFFITypeMethodTable(JSValue value, const FFITypeMethodTable** methodTa
     }
 
     if (RecordConstructor* object = jsDynamicCast<RecordConstructor*>(cell)) {
+        *methodTable = &object->ffiTypeMethodTable();
+        return true;
+    }
+
+    if (ConstantArrayTypeInstance* object = jsDynamicCast<ConstantArrayTypeInstance*>(cell)) {
         *methodTable = &object->ffiTypeMethodTable();
         return true;
     }
@@ -80,4 +86,4 @@ const FFITypeMethodTable& getFFITypeMethodTable(JSCell* cell) {
 
     RELEASE_ASSERT_NOT_REACHED();
 }
-}
+} // namespace NativeScript

@@ -47,6 +47,10 @@ public:
         return this->_referenceInstanceStructure.get();
     }
 
+    JSC::Structure* constantArrayInstanceStructure() const {
+        return this->_constantArrayInstanceStructure.get();
+    }
+
     JSC::Structure* functionReferenceInstanceStructure() const {
         return this->_functionReferenceInstanceStructure.get();
     }
@@ -71,6 +75,8 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _referenceInstanceStructure;
 
+    JSC::WriteBarrier<JSC::Structure> _constantArrayInstanceStructure;
+
     JSC::WriteBarrier<JSC::Structure> _functionReferenceInstanceStructure;
 
     JSC::WriteBarrier<NSErrorWrapperConstructor> _nsErrorWrapperConstructor;
@@ -81,6 +87,6 @@ private:
 static inline Interop* interop(JSC::ExecState* execState) {
     return JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop();
 }
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__Interop__) */
