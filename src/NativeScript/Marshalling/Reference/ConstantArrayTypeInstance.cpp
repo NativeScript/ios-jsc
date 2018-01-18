@@ -1,12 +1,4 @@
-size_t typeSize = 0;
-FFISimpleType* innerFFIType = jsDynamicCast<FFISimpleType*>(innerType);
-if (innerFFIType) {
-    typeSize = innerFFIType->ffiTypeMethodTable().ffiType->size;
-}
-RecordConstructor* recordType = jsDynamicCast<RecordConstructor*>(innerType);
-if (recordType) {
-    typeSize = recordType->ffiTypeMethodTable().ffiType->size;
-} //
+//
 //  ConstantArrayTypeInstance.cpp
 //  NativeScript
 //
@@ -87,7 +79,7 @@ void ConstantArrayTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     }
 
     type->elements[this->_size] = nullptr;
-    // this->_constArrayType = type;
+    this->_constArrayType = type;
     this->_ffiTypeMethodTable.ffiType = type;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;
