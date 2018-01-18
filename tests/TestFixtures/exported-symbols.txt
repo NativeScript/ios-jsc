@@ -113,3 +113,6 @@ _TNSObjectGet
 _TNSSaveResults
 _TNSStructFunctionConflict
 _TNSStructVarConflict
+_getSimpleStruct
+_getComplexStruct
+_getMatrix

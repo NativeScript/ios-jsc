@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Jason Zhekov. All rights reserved.
 //
 
+#import <ARKit/ARKit.h>
+
 typedef struct TNSSimpleStruct {
     int x;
     int y;
@@ -57,7 +59,16 @@ typedef struct TNSComplexStruct {
             int8_t x3[2];
         } y2;
     } y1[2];
+    int64_t x4;
 } TNSComplexStruct;
+
+typedef struct TNSVerySimpleStruct {
+    int32_t x1;
+    struct {
+        int16_t x2;
+        int32_t x3;
+    } y1[2];
+} TNSVerySimpleStruct;
 
 typedef struct TNSStructWithPointers {
     void (*a)();
@@ -65,3 +76,7 @@ typedef struct TNSStructWithPointers {
     TNSSimpleStruct* y;
     struct TNSStructWithPointers* z;
 } TNSStructWithPointers;
+
+TNSVerySimpleStruct getSimpleStruct();
+TNSComplexStruct getComplexStruct();
+simd_float4x4 getMatrix();
