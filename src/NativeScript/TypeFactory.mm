@@ -192,9 +192,11 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 
         size_t offset = ffiType->size;
         unsigned short alignment = fieldFFIType->alignment;
+
         size_t padding = (alignment - (offset % alignment)) % alignment;
 
         offset += padding;
+
         ffiType->size = offset + fieldFFIType->size;
         ffiType->alignment = std::max(ffiType->alignment, fieldFFIType->alignment);
 
@@ -206,8 +208,8 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 
 #if defined(__x86_64__)
     /*
-        If on 64-bit architecture, flatten the nested structures, because libffi can't handle them.
-    */
+         If on 64-bit architecture, flatten the nested structures, because libffi can't handle them.
+         */
     if (hasNestedStruct) {
         WTF::Vector<ffi_type*> flattenedFfiTypes;
         WTF::Vector<ffi_type*> stack{ ffiType }; // simulate recursion with stack (no need of other function)
@@ -331,92 +333,11 @@ ConstantArrayTypeInstance* TypeFactory::getConstantArrayType(GlobalObject* globa
     }
 
     ConstantArrayTypeInstance* result = ConstantArrayTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType, typeSize);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
-    this->_cacheReferenceType.add(innerWeak, resultWeak);
     return result;
 }
 
-size_t resolveConstArrayTypeSize(const TypeEncoding* typeEncoding, const TypeEncoding* innerTypeEncoding) {
-
-    size_t arraySize = 0;
-
-    switch (typeEncoding->type) {
-    case Metadata::BinaryTypeEncodingType::ConstantArrayEncoding:
-        arraySize = typeEncoding->details.constantArray.size;
-        break;
-    case Metadata::BinaryTypeEncodingType::VectorEncoding:
-        arraySize = typeEncoding->details.vector.size;
-        break;
-    default:
-        arraySize = 0;
-        break;
-    }
-    size_t innerTypeSize = 0;
-
-    switch (innerTypeEncoding->type) {
-    case Metadata::BinaryTypeEncodingType::FloatEncoding:
-        innerTypeSize = sizeof(float);
-        break;
-    case Metadata::BinaryTypeEncodingType::DoubleEncoding:
-        innerTypeSize = sizeof(double);
-        break;
-    case Metadata::BinaryTypeEncodingType::IntEncoding:
-        innerTypeSize = sizeof(int);
-        break;
-    case Metadata::BinaryTypeEncodingType::UIntEncoding:
-        innerTypeSize = sizeof(uint);
-        break;
-    case Metadata::BinaryTypeEncodingType::CharEncoding:
-        innerTypeSize = sizeof(char);
-        break;
-    case Metadata::BinaryTypeEncodingType::ShortEncoding:
-        innerTypeSize = sizeof(short);
-        break;
-    case Metadata::BinaryTypeEncodingType::UShortEncoding:
-        innerTypeSize = sizeof(ushort);
-        break;
-    case Metadata::BinaryTypeEncodingType::UnicharEncoding:
-        innerTypeSize = sizeof(unichar);
-        break;
-    case Metadata::BinaryTypeEncodingType::LongEncoding:
-        innerTypeSize = sizeof(long);
-        break;
-    case Metadata::BinaryTypeEncodingType::ConstantArrayEncoding:
-        innerTypeSize = resolveConstArrayTypeSize(innerTypeEncoding, innerTypeEncoding->details.constantArray.getInnerType());
-        break;
-    case Metadata::BinaryTypeEncodingType::VectorEncoding:
-        innerTypeSize = resolveConstArrayTypeSize(innerTypeEncoding, innerTypeEncoding->details.vector.getInnerType());
-        break;
-    default:
-        //throw error;
-        break;
-    }
-
-    return innerTypeSize * arraySize;
-}
-
-ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
-    WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
-    if (this->_cacheReferenceType.contains(innerWeak)) {
-        WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
-        if (value->state() == WeakImpl::State::Live) {
-            return static_cast<ReferenceTypeInstance*>(value->jsValue().asCell());
-        } else {
-            this->_cacheReferenceType.remove(innerWeak);
-        }
-    }
-
-    ReferenceTypeInstance* result = ReferenceTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
-    this->_cacheReferenceType.add(innerWeak, resultWeak);
-    return result;
-}
-
-JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncoding) {
-    DeferGCForAWhile deferGC(globalObject->vm().heap);
-
-    JSC::JSCell* result = nullptr;
-
+JSC::JSCell* TypeFactory::parsePrimitiveType(JSC::JSGlobalObject* globalOBject, const Metadata::TypeEncoding*& typeEncoding) {
+    JSC::JSCell* result;
     switch (typeEncoding->type) {
     case BinaryTypeEncodingType::VoidEncoding:
         result = this->_voidType.get();
@@ -478,6 +399,149 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::DoubleEncoding:
         result = this->_doubleType.get();
         break;
+    default:
+        result = nullptr;
+        break;
+    }
+
+    return result;
+}
+
+size_t TypeFactory::resolveConstArrayTypeSize(const TypeEncoding* typeEncoding, const TypeEncoding* innerTypeEncoding) {
+
+    size_t arraySize = 0;
+
+    switch (typeEncoding->type) {
+    case Metadata::BinaryTypeEncodingType::ConstantArrayEncoding:
+        arraySize = typeEncoding->details.constantArray.size;
+        break;
+    case Metadata::BinaryTypeEncodingType::VectorEncoding:
+        arraySize = typeEncoding->details.vector.size;
+        break;
+    default:
+        arraySize = 1;
+        break;
+    }
+    size_t innerTypeSize = 0;
+
+    switch (innerTypeEncoding->type) {
+    case Metadata::BinaryTypeEncodingType::ConstantArrayEncoding:
+        innerTypeSize = resolveConstArrayTypeSize(innerTypeEncoding, innerTypeEncoding->details.constantArray.getInnerType());
+        break;
+    case Metadata::BinaryTypeEncodingType::VectorEncoding:
+        innerTypeSize = resolveConstArrayTypeSize(innerTypeEncoding, innerTypeEncoding->details.vector.getInnerType());
+        break;
+    case Metadata::BinaryTypeEncodingType::AnonymousStructEncoding: {
+        size_t innerEncodingsSize = 0;
+        const Metadata::TypeEncoding* encoding = innerTypeEncoding->details.anonymousRecord.getFieldsEncodings();
+        for (int i = 0; i < innerTypeEncoding->details.anonymousRecord.fieldsCount; i++) {
+            innerEncodingsSize += resolveConstArrayTypeSize(innerTypeEncoding, encoding);
+            //                    encoding = encoding->next();
+        }
+
+        innerTypeSize = innerEncodingsSize;
+    }
+    default:
+        JSC::JSCell* primitiveType = this->parsePrimitiveType(nullptr, innerTypeEncoding);
+        if (primitiveType) {
+            FFISimpleType* ffiType = jsCast<FFISimpleType*>(primitiveType);
+            innerTypeSize = ffiType->ffiTypeMethodTable().ffiType->size;
+        }
+        break;
+    }
+
+    return innerTypeSize * arraySize;
+}
+
+ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
+    WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
+    if (this->_cacheReferenceType.contains(innerWeak)) {
+        WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
+        if (value->state() == WeakImpl::State::Live) {
+            return static_cast<ReferenceTypeInstance*>(value->jsValue().asCell());
+        } else {
+            this->_cacheReferenceType.remove(innerWeak);
+        }
+    }
+
+    ReferenceTypeInstance* result = ReferenceTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType);
+    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    this->_cacheReferenceType.add(innerWeak, resultWeak);
+    return result;
+}
+
+JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncoding) {
+    DeferGCForAWhile deferGC(globalObject->vm().heap);
+
+    JSC::JSCell* result = nullptr;
+
+    result = parsePrimitiveType(globalObject, typeEncoding);
+    if (result) {
+        typeEncoding = typeEncoding->next();
+        return result;
+    }
+
+    switch (typeEncoding->type) {
+    //    case BinaryTypeEncodingType::VoidEncoding:
+    //        result = this->_voidType.get();
+    //        break;
+    //    case BinaryTypeEncodingType::BoolEncoding:
+    //        result = this->_boolType.get();
+    //        break;
+    //    case BinaryTypeEncodingType::ShortEncoding:
+    //        result = this->_int16Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::UShortEncoding:
+    //        result = this->_uint16Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::IntEncoding:
+    //        result = this->_int32Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::UIntEncoding:
+    //        result = this->_uint32Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::LongEncoding:
+    //#if defined(__LP64__)
+    //        COMPILE_ASSERT(sizeof(long) == sizeof(int64_t), "sizeof long");
+    //        result = this->_int64Type.get();
+    //#else
+    //        COMPILE_ASSERT(sizeof(long) == sizeof(int32_t), "sizeof long");
+    //        result = this->_int32Type.get();
+    //#endif
+    //        break;
+    //    case BinaryTypeEncodingType::ULongEncoding:
+    //#if defined(__LP64__)
+    //        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint64_t), "sizeof ulong");
+    //        result = this->_uint64Type.get();
+    //#else
+    //        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint32_t), "sizeof ulong");
+    //        result = this->_uint32Type.get();
+    //#endif
+    //        break;
+    //    case BinaryTypeEncodingType::LongLongEncoding:
+    //        result = this->_int64Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::ULongLongEncoding:
+    //        result = this->_uint64Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::CharEncoding:
+    //        result = this->_int8Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::UCharEncoding:
+    //        result = this->_uint8Type.get();
+    //        break;
+    //    case BinaryTypeEncodingType::UnicharEncoding:
+    //        result = this->_unicharType.get();
+    //        break;
+    //    case BinaryTypeEncodingType::CStringEncoding:
+    //        result = this->_utf8CStringType.get();
+    //        break;
+    //    case BinaryTypeEncodingType::FloatEncoding:
+    //        result = this->_floatType.get();
+    //        break;
+    //    case BinaryTypeEncodingType::DoubleEncoding:
+    //        result = this->_doubleType.get();
+    //        break;
     case BinaryTypeEncodingType::InterfaceDeclarationReference: {
         WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
         result = getObjCNativeConstructor(globalObject, declarationName);

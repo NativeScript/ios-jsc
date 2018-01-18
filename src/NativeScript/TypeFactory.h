@@ -143,6 +143,10 @@ private:
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
+    JSC::JSCell* parsePrimitiveType(JSC::JSGlobalObject* globalOBject, const Metadata::TypeEncoding*& typeEncoding);
+
+    size_t resolveConstArrayTypeSize(const Metadata::TypeEncoding* typeEncoding, const Metadata::TypeEncoding* innerTypeEncoding);
+
     WTF::Vector<RecordField*> createRecordFields(GlobalObject*, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
 
     ObjCBlockType* parseBlockType(GlobalObject*, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
