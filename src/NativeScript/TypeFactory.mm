@@ -475,73 +475,73 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
 
     JSC::JSCell* result = nullptr;
 
-    result = parsePrimitiveType(globalObject, typeEncoding);
-    if (result) {
-        typeEncoding = typeEncoding->next();
-        return result;
-    }
+    //    result = parsePrimitiveType(globalObject, typeEncoding);
+    //    if (result) {
+    //        typeEncoding = typeEncoding->next();
+    //        return result;
+    //    }
 
     switch (typeEncoding->type) {
-    //    case BinaryTypeEncodingType::VoidEncoding:
-    //        result = this->_voidType.get();
-    //        break;
-    //    case BinaryTypeEncodingType::BoolEncoding:
-    //        result = this->_boolType.get();
-    //        break;
-    //    case BinaryTypeEncodingType::ShortEncoding:
-    //        result = this->_int16Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::UShortEncoding:
-    //        result = this->_uint16Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::IntEncoding:
-    //        result = this->_int32Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::UIntEncoding:
-    //        result = this->_uint32Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::LongEncoding:
-    //#if defined(__LP64__)
-    //        COMPILE_ASSERT(sizeof(long) == sizeof(int64_t), "sizeof long");
-    //        result = this->_int64Type.get();
-    //#else
-    //        COMPILE_ASSERT(sizeof(long) == sizeof(int32_t), "sizeof long");
-    //        result = this->_int32Type.get();
-    //#endif
-    //        break;
-    //    case BinaryTypeEncodingType::ULongEncoding:
-    //#if defined(__LP64__)
-    //        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint64_t), "sizeof ulong");
-    //        result = this->_uint64Type.get();
-    //#else
-    //        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint32_t), "sizeof ulong");
-    //        result = this->_uint32Type.get();
-    //#endif
-    //        break;
-    //    case BinaryTypeEncodingType::LongLongEncoding:
-    //        result = this->_int64Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::ULongLongEncoding:
-    //        result = this->_uint64Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::CharEncoding:
-    //        result = this->_int8Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::UCharEncoding:
-    //        result = this->_uint8Type.get();
-    //        break;
-    //    case BinaryTypeEncodingType::UnicharEncoding:
-    //        result = this->_unicharType.get();
-    //        break;
-    //    case BinaryTypeEncodingType::CStringEncoding:
-    //        result = this->_utf8CStringType.get();
-    //        break;
-    //    case BinaryTypeEncodingType::FloatEncoding:
-    //        result = this->_floatType.get();
-    //        break;
-    //    case BinaryTypeEncodingType::DoubleEncoding:
-    //        result = this->_doubleType.get();
-    //        break;
+    case BinaryTypeEncodingType::VoidEncoding:
+        result = this->_voidType.get();
+        break;
+    case BinaryTypeEncodingType::BoolEncoding:
+        result = this->_boolType.get();
+        break;
+    case BinaryTypeEncodingType::ShortEncoding:
+        result = this->_int16Type.get();
+        break;
+    case BinaryTypeEncodingType::UShortEncoding:
+        result = this->_uint16Type.get();
+        break;
+    case BinaryTypeEncodingType::IntEncoding:
+        result = this->_int32Type.get();
+        break;
+    case BinaryTypeEncodingType::UIntEncoding:
+        result = this->_uint32Type.get();
+        break;
+    case BinaryTypeEncodingType::LongEncoding:
+#if defined(__LP64__)
+        COMPILE_ASSERT(sizeof(long) == sizeof(int64_t), "sizeof long");
+        result = this->_int64Type.get();
+#else
+        COMPILE_ASSERT(sizeof(long) == sizeof(int32_t), "sizeof long");
+        result = this->_int32Type.get();
+#endif
+        break;
+    case BinaryTypeEncodingType::ULongEncoding:
+#if defined(__LP64__)
+        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint64_t), "sizeof ulong");
+        result = this->_uint64Type.get();
+#else
+        COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint32_t), "sizeof ulong");
+        result = this->_uint32Type.get();
+#endif
+        break;
+    case BinaryTypeEncodingType::LongLongEncoding:
+        result = this->_int64Type.get();
+        break;
+    case BinaryTypeEncodingType::ULongLongEncoding:
+        result = this->_uint64Type.get();
+        break;
+    case BinaryTypeEncodingType::CharEncoding:
+        result = this->_int8Type.get();
+        break;
+    case BinaryTypeEncodingType::UCharEncoding:
+        result = this->_uint8Type.get();
+        break;
+    case BinaryTypeEncodingType::UnicharEncoding:
+        result = this->_unicharType.get();
+        break;
+    case BinaryTypeEncodingType::CStringEncoding:
+        result = this->_utf8CStringType.get();
+        break;
+    case BinaryTypeEncodingType::FloatEncoding:
+        result = this->_floatType.get();
+        break;
+    case BinaryTypeEncodingType::DoubleEncoding:
+        result = this->_doubleType.get();
+        break;
     case BinaryTypeEncodingType::InterfaceDeclarationReference: {
         WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
         result = getObjCNativeConstructor(globalObject, declarationName);
@@ -587,9 +587,9 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         break;
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
-        size_t typeSize = resolveConstArrayTypeSize(typeEncoding, innerTypeEncoding);
+        size_t arraySize = typeEncoding->details.constantArray.size;
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getConstantArrayType(globalObject, innerType, typeSize);
+        result = this->getConstantArrayType(globalObject, innerType, arraySize);
         break;
     }
     case BinaryTypeEncodingType::VectorEncoding: {

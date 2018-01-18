@@ -65,7 +65,13 @@ void ConstantArrayTypeInstance::write(ExecState* execState, const JSValue& value
 
 void ConstantArrayTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     Base::finishCreation(vm, innerType);
-    ffi_type* type = new ffi_type({ .size = this->_size, .alignment = const_cast<ffi_type*>(getFFITypeMethodTable(innerType).ffiType)->alignment, .type = FFI_TYPE_POINTER });
+    ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(innerType).ffiType);
+    ffi_type* type = new ffi_type({ .size = this->_size * innerFFIType->size, .alignment = innerFFIType->alignment, .type = FFI_TYPE_STRUCT });
+    type->elements = new ffi_type*[this->_size + 1];
+    for (size_t i = 0; i < this->_size; i++) {
+        type->elements[i] = innerFFIType;
+    }
+    type->elements[this->_size] = nullptr;
     this->_constArrayType = type;
     this->_ffiTypeMethodTable.ffiType = type;
     this->_ffiTypeMethodTable.read = &read;
