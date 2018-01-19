@@ -29,9 +29,9 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
         RELEASE_ASSERT(wrapper);
 
         JSC::VM& vm = execState->vm();
-        auto scope = DECLARE_CATCH_SCOPE(vm);
-
         JSLockHolder lock(execState);
+
+        auto scope = DECLARE_CATCH_SCOPE(vm);
 
         JSValue iteratorFunction = wrapper->get(execState, execState->propertyNames().iteratorSymbol);
         reportErrorIfAny(execState, scope);
@@ -60,8 +60,8 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
     ExecState* execState = reinterpret_cast<ExecState*>(state->extra[0]);
     JSValue iterator(reinterpret_cast<JSCell*>(state->extra[1]));
-    JSLockHolder lock(execState);
     JSC::VM& vm = execState->vm();
+    JSLockHolder lock(vm);
     auto scope = DECLARE_CATCH_SCOPE(vm);
 
     if (state->state == State::Done) {

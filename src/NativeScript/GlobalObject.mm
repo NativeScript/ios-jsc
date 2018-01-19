@@ -120,6 +120,7 @@ static void microtaskRunLoopSourcePerformWork(void* context) {
 
 static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void* info) {
     GlobalObject* self = static_cast<GlobalObject*>(info);
+    JSC::JSLockHolder lock(self->vm());
     VMEntryScope* currentEntryScope = self->vm().entryScope;
     if (self->vm().topCallFrame && currentEntryScope && !currentEntryScope->didPopListeners().isEmpty()) {
         FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(self->vm(), self->vm().topCallFrame->callee().asCell());

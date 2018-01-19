@@ -56,8 +56,8 @@ using namespace JSC;
 - (NSUInteger)length {
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
     VM& vm = self->_execState->vm();
-    auto scope = DECLARE_CATCH_SCOPE(vm);
     JSLockHolder lock(self->_execState);
+    auto scope = DECLARE_CATCH_SCOPE(vm);
     NSUInteger length = self->_object->get(self->_execState, self->_execState->propertyNames().byteLength).toUInt32(self->_execState);
     reportErrorIfAny(self->_execState, scope);
     return length;
