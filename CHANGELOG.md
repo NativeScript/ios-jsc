@@ -12,6 +12,7 @@ previous_url: /Changelogs/iOS Runtime
 ## Bug fixes
 - [Fixed issue with canonical module path resolution](https://github.com/NativeScript/ios-runtime/pull/847)
 - [Fixed various issues with iOS Inspector](https://github.com/NativeScript/ios-runtime/pull/835)
+- [Fixed issue with Inspector crashing on macOS versions earlier than High Sierra (10.13)](https://github.com/NativeScript/ios-runtime/pull/854)
 
 3.4.0
 =====
