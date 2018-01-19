@@ -23,8 +23,9 @@ TNSComplexStruct getComplexStruct() {
 
 simd_float4x4 getMatrix() {
     matrix_float4x4 result;
+    float pi = 3.1415;
     for (int i = 0; i < 16; i++) {
-        result.columns[i % 4][i / 4] = i;
+        result.columns[i % 4][i / 4] = i * pi;
     }
     return result;
 }

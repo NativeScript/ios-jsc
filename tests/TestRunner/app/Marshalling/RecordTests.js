@@ -207,7 +207,7 @@ describe(module.id, function () {
     it("simd_float4x4Matrix", function(){
        var simdMatrix = getMatrix();
        for (var i = 0; i < 16; i++) {
-         expect(simdMatrix.columns[i%4][Math.floor(i/4)]).toBe(i);
+         expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
