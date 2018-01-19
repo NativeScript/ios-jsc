@@ -23,11 +23,11 @@ template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void* retValue, void** argValues, void* userData) {
     FFICallback* callback = static_cast<FFICallback*>(userData);
     JSC::ExecState* execState = callback->_globalExecState;
-
     JSC::VM& vm = execState->vm();
+    JSC::JSLockHolder lock(vm);
+
     auto scope = DECLARE_CATCH_SCOPE(vm);
 
-    JSC::JSLockHolder lock(execState->vm());
     static_cast<DerivedCallback*>(callback)->ffiClosureCallback(retValue, argValues, userData);
 
     reportErrorIfAny(execState, scope);

@@ -7,6 +7,27 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+3.4.1
+=====
+## Bug fixes
+- [Fixed issue with canonical module path resolution](https://github.com/NativeScript/ios-runtime/pull/847)
+- [Fixed various issues with iOS Inspector](https://github.com/NativeScript/ios-runtime/pull/835)
+- [Fixed issue with Inspector crashing on macOS versions earlier than High Sierra (10.13)](https://github.com/NativeScript/ios-runtime/pull/854)
+
+3.4.0
+=====
+
+## Bug Fixes
+- [Fixed missing stack-trace](https://github.com/NativeScript/ios-runtime/pull/815)
+- [Fixed issue with WTF threading not initialized](https://github.com/NativeScript/NativeScript/issues/5019)
+- [Fixed issue with Inspector crashing on MacOS High Sierra](https://github.com/NativeScript/ios-runtime/pull/838)
+
+3.3.0
+=====
+
+## What's New
+- [Optimized FFI calls with CIF caching](https://github.com/NativeScript/ios-runtime/pull/795)
+
 3.2.0
 =====
 

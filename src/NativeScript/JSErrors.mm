@@ -10,6 +10,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #import "JSWarnings.h"
 #import "JSWorkerGlobalObject.h"
@@ -58,23 +59,25 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
             CFRunLoopRunInMode((CFStringRef)TNSInspectorRunLoopMode, 0.1, false);
         }
     } else {
-        std::cerr << "***** " << closingMessage << " *****\n";
+        NSLog(@"***** %s *****\n", closingMessage.operator const char*());
 
-        std::cerr << "Native stack trace:\n";
+        NSLog(@"Native stack trace:");
         WTFReportBacktrace();
 
-        std::cerr << "\nJavaScript stack trace:\n";
+        NSLog(@"JavaScript stack trace:");
         RefPtr<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
         for (size_t i = 0; i < callStack->size(); ++i) {
+            std::stringstream callstackLine;
             Inspector::ScriptCallFrame frame = callStack->at(i);
-            std::cerr << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
+            callstackLine << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
             if (frame.lineNumber() && frame.columnNumber()) {
-                std::cerr << ":" << frame.lineNumber() << ":" << frame.columnNumber();
+                callstackLine << ":" << frame.lineNumber() << ":" << frame.columnNumber();
             }
-            std::cerr << "\n";
+            NSLog(@"%s", callstackLine.str().c_str());
         }
 
-        std::cerr << "JavaScript error:\n";
+        NSLog(@"JavaScript error:");
+
         // System logs are disabled in release app builds, but we want the error to be printed in crash logs
         GlobalObjectConsoleClient::setLogToSystemConsole(true);
         globalObject->inspectorController().reportAPIException(execState, exception);

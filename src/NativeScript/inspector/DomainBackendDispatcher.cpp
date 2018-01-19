@@ -2,9 +2,9 @@
 #include "GlobalObjectInspectorController.h"
 #include "SuppressAllPauses.h"
 #include <JavaScriptCore/Completion.h>
+#include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/inspector/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/inspector/InspectorFrontendDispatchers.h>
-#include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/runtime/Exception.h>
 #include <JavaScriptCore/runtime/JSONObject.h>
 #include <stdio.h>
@@ -29,7 +29,7 @@ DomainBackendDispatcher::DomainBackendDispatcher(WTF::String domain, JSCell* con
     const HashMap<String, SupplementalBackendDispatcher*>& dispatchers = m_backendDispatcher->dispatchers();
     auto result = dispatchers.find(domain);
     if (result != dispatchers.end()) {
-        m_duplicatedDispatcher = adoptRef(*result->value);
+        m_duplicatedDispatcher = result->value;
     }
     m_backendDispatcher->registerDispatcherForDomain(domain, this);
 }
@@ -88,4 +88,4 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
 
     m_backendDispatcher->sendResponse(callId, WTFMove(messageObject));
 }
-}
+} // namespace NativeScript
