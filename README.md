@@ -1,4 +1,4 @@
-# iOS runtime for NativeScript
+# iOS Runtime for NativeScript
 
 ```shell
 git clone --recursive git@github.com:NativeScript/ios-runtime.git
