@@ -5,7 +5,7 @@ set -e
 source "$(dirname "$0")/common.sh"
 
 CONFIGURATION="Release"
-MACOSX_DEPLOYMENT_TARGET="10.12"
+MACOSX_DEPLOYMENT_TARGET="10.13"
 
 WEBKIT_SOURCE_PATH="$WORKSPACE/src/webkit"
 WEBKIT_BUILD_OUTPUT_PATH="$WORKSPACE/cmake-build/WebKit-Xcode"
