@@ -23,7 +23,7 @@
     "**/*"
   ],
   "scripts": {
-    "postinstall": "unzip -o './NativeScript Inspector.zip' -d ."
+    "postinstall": "OSVERSION=\"$(sw_vers -productVersion | grep -o \"[0-9][0-9].[0-9][0-9]\")\"; OSVERSION=${OSVERSION//.}; UNZIP_FILE=\"NativeScript Inspector Sierra\"; if [ $OSVERSION -ge 1013 ]; then UNZIP_FILE=\"NativeScript Inspector HighSierra\"; fi; unzip -o \"$UNZIP_FILE\" -d .; rm *.zip"
   },
   "license": "Apache-2.0"
 }
