@@ -3,6 +3,8 @@
 Contains the source code for the NativeScript's iOS Runtime. [NativeScript](https://www.nativescript.org/) is a framework which enables developers to write truly native mobile applications for Android and iOS using JavaScript and CSS. Each mobile platform has its own ecosystem and offers completely different development tools and language(s) - Java for Android and Objective C (Swift) for iOS. In order to translate JavaScript code to the corresponding native APIs some kind of proxy mechanism is needed. This is exactly what the "Runtime" parts of NativeScript are responsible for. The iOS Runtime may be thought of as "The Bridge" between the JavaScript and the iOS world. A NativeScript application for iOS is a standard native package (ipa) which besides the JavaScript files embed the runtime as well.
 
 
+[![Waffle.io - NativeScript Runtimes and CLI](https://badge.waffle.io/NativeScript/android-runtime.svg?columns=In%20Progress)](https://waffle.io/NativeScript/android-runtime)
+
 ```shell
 git clone --recursive git@github.com:NativeScript/ios-runtime.git
 ```
