@@ -115,4 +115,5 @@ _TNSStructFunctionConflict
 _TNSStructVarConflict
 _getSimpleStruct
 _getComplexStruct
-_getMatrix
+_getMatrix4x4
+_getMatrix4x3

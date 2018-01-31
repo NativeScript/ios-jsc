@@ -9,7 +9,9 @@
 #ifndef __NativeScript__TypeFactory__
 #define __NativeScript__TypeFactory__
 
+#include "ExtVectorTypeInstance.h"
 #include "FFIType.h"
+#include "IndexedRefTypeInstance.h"
 #include "Metadata/Metadata.h"
 #include "WeakHandleOwners.h"
 #include <unordered_map>
@@ -24,7 +26,7 @@ class ObjCConstructorNative;
 class RecordConstructor;
 class RecordField;
 class ReferenceTypeInstance;
-class ConstantArrayTypeInstance;
+class IndexedRefTypeInstance;
 class ObjCBlockType;
 class FunctionReferenceTypeInstance;
 class FFISimpleType;
@@ -58,7 +60,9 @@ public:
 
     ReferenceTypeInstance* getReferenceType(GlobalObject* globalObject, JSC::JSCell* innerType);
 
-    ConstantArrayTypeInstance* getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
+    IndexedRefTypeInstance* getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
+
+    ExtVectorTypeInstance* getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
 
     FunctionReferenceTypeInstance* getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSC::JSCell* returnType, WTF::Vector<JSCell*> parametersTypes);
 
@@ -178,7 +182,8 @@ private:
     JSC::WriteBarrier<PointerConstructor> _pointerConstructor;
 
     JSC::WriteBarrier<JSC::Structure> _referenceTypeStructure;
-    JSC::WriteBarrier<JSC::Structure> _constantArrayTypeStructure;
+    JSC::WriteBarrier<JSC::Structure> _indexedRefTypeStructure;
+    JSC::WriteBarrier<JSC::Structure> _extVectorTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _objCBlockTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _functionReferenceTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _recordPrototypeStructure;

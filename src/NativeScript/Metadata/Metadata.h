@@ -88,7 +88,7 @@ enum BinaryTypeEncodingType : Byte {
     BlockEncoding,
     AnonymousStructEncoding,
     AnonymousUnionEncoding,
-    VectorEncoding
+    ExtVectorEncoding
 };
 
 #pragma pack(push, 1)
@@ -330,12 +330,12 @@ union TypeEncodingDetails {
             return reinterpret_cast<const TypeEncoding*>(this + 1);
         }
     } constantArray;
-    struct VectorDetails {
+    struct ExtVectorDetails {
         int32_t size;
         const TypeEncoding* getInnerType() const {
             return reinterpret_cast<const TypeEncoding*>(this + 1);
         }
-    } vector;
+    } extVector;
     struct DeclarationReferenceDetails {
         String name;
     } declarationReference;
@@ -372,8 +372,8 @@ struct TypeEncoding {
         case BinaryTypeEncodingType::ConstantArrayEncoding: {
             return this->details.constantArray.getInnerType()->next();
         }
-        case BinaryTypeEncodingType::VectorEncoding: {
-            return this->details.vector.getInnerType()->next();
+        case BinaryTypeEncodingType::ExtVectorEncoding: {
+            return this->details.extVector.getInnerType()->next();
         }
         case BinaryTypeEncodingType::IncompleteArrayEncoding: {
             return this->details.incompleteArray.getInnerType()->next();

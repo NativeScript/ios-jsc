@@ -205,9 +205,18 @@ describe(module.id, function () {
     });
          
     it("simd_float4x4Matrix", function(){
-       var simdMatrix = getMatrix();
+       var simdMatrix = getMatrix4x4();
        for (var i = 0; i < 16; i++) {
          expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+       }
+    });
+         
+    it("simd_float4x3Matrix", function(){
+       var simdMatrix = getMatrix4x3();
+       for (var i = 0; i < 4; i++) {
+         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
+         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
+         expect(simdMatrix.columns[i][2].toFixed(4)).toBe((3.4567).toFixed(4));
        }
     });
 

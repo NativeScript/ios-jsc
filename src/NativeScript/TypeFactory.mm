@@ -7,7 +7,6 @@
 //
 
 #include "TypeFactory.h"
-#include "ConstantArrayTypeInstance.h"
 #include "FFINumericTypes.h"
 #include "FFIPrimitiveTypes.h"
 #include "FFISimpleType.h"
@@ -321,18 +320,33 @@ ObjCConstructorNative* TypeFactory::NSObjectConstructor(GlobalObject* globalObje
     return constructor;
 }
 
-ConstantArrayTypeInstance* TypeFactory::getConstantArrayType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
+IndexedRefTypeInstance* TypeFactory::getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
     WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
     if (this->_cacheReferenceType.contains(innerWeak)) {
         WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
         if (value->state() == WeakImpl::State::Live) {
-            return static_cast<ConstantArrayTypeInstance*>(value->jsValue().asCell());
+            return static_cast<IndexedRefTypeInstance*>(value->jsValue().asCell());
         } else {
             this->_cacheReferenceType.remove(innerWeak);
         }
     }
 
-    ConstantArrayTypeInstance* result = ConstantArrayTypeInstance::create(globalObject->vm(), this->_constantArrayTypeStructure.get(), innerType, typeSize);
+    IndexedRefTypeInstance* result = IndexedRefTypeInstance::create(globalObject->vm(), this->_indexedRefTypeStructure.get(), innerType, typeSize);
+    return result;
+}
+
+ExtVectorTypeInstance* TypeFactory::getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
+    WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
+    if (this->_cacheReferenceType.contains(innerWeak)) {
+        WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
+        if (value->state() == WeakImpl::State::Live) {
+            return static_cast<ExtVectorTypeInstance*>(value->jsValue().asCell());
+        } else {
+            this->_cacheReferenceType.remove(innerWeak);
+        }
+    }
+
+    ExtVectorTypeInstance* result = ExtVectorTypeInstance::create(globalObject->vm(), this->_extVectorTypeStructure.get(), innerType, typeSize);
     return result;
 }
 
@@ -466,14 +480,14 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
         size_t arraySize = typeEncoding->details.constantArray.size;
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getConstantArrayType(globalObject, innerType, arraySize);
+        result = this->getIndexedRefType(globalObject, innerType, arraySize);
         break;
     }
-    case BinaryTypeEncodingType::VectorEncoding: {
-        const TypeEncoding* innerTypeEncoding = typeEncoding->details.vector.getInnerType();
-        size_t arraySize = typeEncoding->details.vector.size;
+    case BinaryTypeEncodingType::ExtVectorEncoding: {
+        const TypeEncoding* innerTypeEncoding = typeEncoding->details.extVector.getInnerType();
+        size_t arraySize = typeEncoding->details.extVector.size;
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getConstantArrayType(globalObject, innerType, arraySize);
+        result = this->getExtVectorType(globalObject, innerType, arraySize);
         break;
     }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {
@@ -515,7 +529,8 @@ void TypeFactory::finishCreation(VM& vm, GlobalObject* globalObject) {
     Base::finishCreation(vm);
 
     this->_referenceTypeStructure.set(vm, this, ReferenceTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
-    this->_constantArrayTypeStructure.set(vm, this, ConstantArrayTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
+    this->_indexedRefTypeStructure.set(vm, this, IndexedRefTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
+    this->_extVectorTypeStructure.set(vm, this, ExtVectorTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_objCBlockTypeStructure.set(vm, this, ObjCBlockType::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_functionReferenceTypeStructure.set(vm, this, FunctionReferenceTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_recordPrototypeStructure.set(vm, this, RecordPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
@@ -554,7 +569,8 @@ void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(typeFactory, visitor);
 
     visitor.append(&typeFactory->_referenceTypeStructure);
-    visitor.append(&typeFactory->_constantArrayTypeStructure);
+    visitor.append(&typeFactory->_indexedRefTypeStructure);
+    visitor.append(&typeFactory->_extVectorTypeStructure);
     visitor.append(&typeFactory->_objCBlockTypeStructure);
     visitor.append(&typeFactory->_functionReferenceTypeStructure);
     visitor.append(&typeFactory->_recordPrototypeStructure);

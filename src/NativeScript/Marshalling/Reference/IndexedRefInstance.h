@@ -6,28 +6,28 @@
 //  Created by Deyan Ginev on 16.01.18.
 //
 
-#ifndef __NativeScript__ConstantArrayInstance__
-#define __NativeScript__ConstantArrayInstance__
+#ifndef __NativeScript__IndexedRefInstance__
+#define __NativeScript__IndexedRefInstance__
 
 #include "FFIType.h"
 #include "PointerInstance.h"
 
 namespace NativeScript {
 
-class ConstantArrayInstance : public JSC::JSDestructibleObject {
+class IndexedRefInstance : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
     DECLARE_INFO;
 
-    static ConstantArrayInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSValue value = JSC::jsUndefined()) {
-        ConstantArrayInstance* cell = new (NotNull, JSC::allocateCell<ConstantArrayInstance>(vm.heap)) ConstantArrayInstance(vm, structure);
+    static IndexedRefInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSValue value = JSC::jsUndefined()) {
+        IndexedRefInstance* cell = new (NotNull, JSC::allocateCell<IndexedRefInstance>(vm.heap)) IndexedRefInstance(vm, structure);
         cell->finishCreation(vm, value);
         return cell;
     }
 
-    static ConstantArrayInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* innerType, PointerInstance* pointer) {
-        ConstantArrayInstance* object = new (NotNull, JSC::allocateCell<ConstantArrayInstance>(vm.heap)) ConstantArrayInstance(vm, structure);
+    static IndexedRefInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* innerType, PointerInstance* pointer) {
+        IndexedRefInstance* object = new (NotNull, JSC::allocateCell<IndexedRefInstance>(vm.heap)) IndexedRefInstance(vm, structure);
         object->finishCreation(vm, globalObject, innerType, pointer);
         return object;
     }
@@ -59,12 +59,12 @@ public:
     static bool putByIndex(JSCell*, JSC::ExecState*, unsigned int, JSC::JSValue, bool shouldThrow);
 
 private:
-    ConstantArrayInstance(JSC::VM& vm, JSC::Structure* structure)
+    IndexedRefInstance(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ConstantArrayInstance*>(cell)->~ConstantArrayInstance();
+        JSC::jsCast<IndexedRefInstance*>(cell)->~IndexedRefInstance();
     }
 
     void finishCreation(JSC::VM&, JSC::JSValue);
@@ -83,4 +83,4 @@ private:
 };
 } // namespace NativeScript
 
-#endif /* __NativeScript__ConstantArrayInstance__ */
+#endif /* __NativeScript__IndexedRefInstance__ */

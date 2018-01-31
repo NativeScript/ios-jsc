@@ -1,33 +1,33 @@
 //
-//  ConstantArrayInstance.cpp
+//  IndexedRefInstance.cpp
 //  NativeScript
 //
 //  Created by Deyan Ginev on 16.01.18.
 //
 //
 
-#include "ConstantArrayInstance.h"
+#include "IndexedRefInstance.h"
 #include "Interop.h"
 
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ConstantArrayInstance::s_info = { "ConstantArray", &Base::s_info, 0, CREATE_METHOD_TABLE(ConstantArrayInstance) };
+const ClassInfo IndexedRefInstance::s_info = { "IndexedRef", &Base::s_info, 0, CREATE_METHOD_TABLE(IndexedRefInstance) };
 
-void ConstantArrayInstance::finishCreation(VM& vm, JSValue value) {
+void IndexedRefInstance::finishCreation(VM& vm, JSValue value) {
     Base::finishCreation(vm);
 
     this->putDirect(vm, vm.propertyNames->value, value, None);
 }
 
-void ConstantArrayInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* innerType, PointerInstance* pointer) {
+void IndexedRefInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* innerType, PointerInstance* pointer) {
     Base::finishCreation(vm);
 
     this->setType(vm, innerType);
     this->_pointer.set(vm, this, pointer);
 }
 
-void ConstantArrayInstance::createBackingStorage(VM& vm, GlobalObject* globalObject, ExecState* execState, JSCell* innerType) {
+void IndexedRefInstance::createBackingStorage(VM& vm, GlobalObject* globalObject, ExecState* execState, JSCell* innerType) {
     this->setType(vm, innerType);
 
     void* data = calloc(this->_ffiTypeMethodTable.ffiType->size, 1);
@@ -42,21 +42,21 @@ void ConstantArrayInstance::createBackingStorage(VM& vm, GlobalObject* globalObj
     }
 }
 
-void ConstantArrayInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {
+void IndexedRefInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
-    ConstantArrayInstance* referenceInstance = jsCast<ConstantArrayInstance*>(cell);
+    IndexedRefInstance* referenceInstance = jsCast<IndexedRefInstance*>(cell);
     visitor.append(&referenceInstance->_innerTypeCell);
     visitor.append(&referenceInstance->_pointer);
 }
 
-void ConstantArrayInstance::setType(VM& vm, JSCell* innerType) {
+void IndexedRefInstance::setType(VM& vm, JSCell* innerType) {
     this->_innerTypeCell.set(vm, this, innerType);
     this->_ffiTypeMethodTable = getFFITypeMethodTable(innerType);
 }
 
-bool ConstantArrayInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* execState, unsigned propertyName, PropertySlot& propertySlot) {
-    ConstantArrayInstance* reference = jsCast<ConstantArrayInstance*>(object);
+bool IndexedRefInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* execState, unsigned propertyName, PropertySlot& propertySlot) {
+    IndexedRefInstance* reference = jsCast<IndexedRefInstance*>(object);
     if (!reference->innerType()) {
         if (propertyName == 0) {
             propertySlot.setValue(object, None, reference->get(execState, execState->vm().propertyNames->value));
@@ -71,8 +71,8 @@ bool ConstantArrayInstance::getOwnPropertySlotByIndex(JSObject* object, ExecStat
     return true;
 }
 
-bool ConstantArrayInstance::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
-    ConstantArrayInstance* reference = jsCast<ConstantArrayInstance*>(cell);
+bool IndexedRefInstance::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
+    IndexedRefInstance* reference = jsCast<IndexedRefInstance*>(cell);
 
     void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
     reference->_ffiTypeMethodTable.write(execState, value, element, reference->_innerTypeCell.get());

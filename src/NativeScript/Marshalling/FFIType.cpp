@@ -7,9 +7,10 @@
 //
 
 #include "FFIType.h"
-#include "ConstantArrayTypeInstance.h"
+#include "ExtVectorTypeInstance.h"
 #include "FFISimpleType.h"
 #include "FunctionReferenceTypeInstance.h"
+#include "IndexedRefTypeInstance.h"
 #include "ObjCBlockType.h"
 #include "ObjCConstructorBase.h"
 #include "PointerConstructor.h"
@@ -43,7 +44,12 @@ bool tryGetFFITypeMethodTable(JSValue value, const FFITypeMethodTable** methodTa
         return true;
     }
 
-    if (ConstantArrayTypeInstance* object = jsDynamicCast<ConstantArrayTypeInstance*>(cell)) {
+    if (IndexedRefTypeInstance* object = jsDynamicCast<IndexedRefTypeInstance*>(cell)) {
+        *methodTable = &object->ffiTypeMethodTable();
+        return true;
+    }
+
+    if (ExtVectorTypeInstance* object = jsDynamicCast<ExtVectorTypeInstance*>(cell)) {
         *methodTable = &object->ffiTypeMethodTable();
         return true;
     }

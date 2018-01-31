@@ -1,8 +1,8 @@
 //
-//  ConstantArrayTypeInstance.h
+//  ExtVectorTypeInstance.hpp
 //  NativeScript
 //
-//  Created by Deyan Ginev on 8.01.18.
+//  Created by Teodor Dermendzhiev on 30/01/2018.
 //
 
 #include "ReferenceInstance.h"
@@ -10,12 +10,12 @@
 
 namespace NativeScript {
 using namespace JSC;
-class ConstantArrayTypeInstance : public JSDestructibleObject {
+class ExtVectorTypeInstance : public JSDestructibleObject {
 public:
     typedef JSDestructibleObject Base;
 
-    static ConstantArrayTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType, size_t size) {
-        ConstantArrayTypeInstance* cell = new (NotNull, JSC::allocateCell<ConstantArrayTypeInstance>(vm.heap)) ConstantArrayTypeInstance(vm, structure, size);
+    static ExtVectorTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType, size_t size) {
+        ExtVectorTypeInstance* cell = new (NotNull, JSC::allocateCell<ExtVectorTypeInstance>(vm.heap)) ExtVectorTypeInstance(vm, structure, size);
         cell->finishCreation(vm, innerType);
         return cell;
     }
@@ -40,19 +40,19 @@ public:
 private:
     FFITypeMethodTable _ffiTypeMethodTable;
     JSC::WriteBarrier<JSC::JSCell> _innerType;
-    ffi_type* _constArrayType;
+    ffi_type* _extVectorType;
     size_t _size;
-    ConstantArrayTypeInstance(JSC::VM& vm, JSC::Structure* structure, size_t size)
+    ExtVectorTypeInstance(JSC::VM& vm, JSC::Structure* structure, size_t size)
         : Base(vm, structure)
         , _size(size) {
     }
 
-    ~ConstantArrayTypeInstance() {
-        delete this->_constArrayType;
+    ~ExtVectorTypeInstance() {
+        delete this->_extVectorType;
     }
     static void write(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell*);
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ConstantArrayTypeInstance*>(cell)->~ConstantArrayTypeInstance();
+        JSC::jsCast<ExtVectorTypeInstance*>(cell)->~ExtVectorTypeInstance();
     }
 };
 } // namespace NativeScript

@@ -1,20 +1,20 @@
 //
-//  ConstantArrayPrototype.hpp
+//  IndexedRefPrototype.hpp
 //  NativeScript
 //
 //  Created by Deyan Ginev on 17.01.18.
 //
 
-#ifndef __NativeScript__ConstantArrayPrototype__
-#define __NativeScript__ConstantArrayPrototype__
+#ifndef __NativeScript__IndexedRefPrototype__
+#define __NativeScript__IndexedRefPrototype__
 
 namespace NativeScript {
-class ConstantArrayPrototype : public JSC::JSNonFinalObject {
+class IndexedRefPrototype : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static ConstantArrayPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        ConstantArrayPrototype* prototype = new (NotNull, JSC::allocateCell<ConstantArrayPrototype>(vm.heap)) ConstantArrayPrototype(vm, structure);
+    static IndexedRefPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        IndexedRefPrototype* prototype = new (NotNull, JSC::allocateCell<IndexedRefPrototype>(vm.heap)) IndexedRefPrototype(vm, structure);
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }
@@ -26,7 +26,7 @@ public:
     }
 
 private:
-    ConstantArrayPrototype(JSC::VM& vm, JSC::Structure* structure)
+    IndexedRefPrototype(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
 
@@ -34,4 +34,4 @@ private:
 };
 } // namespace NativeScript
 
-#endif /* __NativeScript__ConstantArrayPrototype__ */
+#endif /* __NativeScript__IndexedRefPrototype__ */

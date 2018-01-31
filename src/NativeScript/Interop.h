@@ -47,8 +47,8 @@ public:
         return this->_referenceInstanceStructure.get();
     }
 
-    JSC::Structure* constantArrayInstanceStructure() const {
-        return this->_constantArrayInstanceStructure.get();
+    JSC::Structure* indexedRefInstanceStructure() const {
+        return this->_indexedRefInstanceStructure.get();
     }
 
     JSC::Structure* functionReferenceInstanceStructure() const {
@@ -75,7 +75,7 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _referenceInstanceStructure;
 
-    JSC::WriteBarrier<JSC::Structure> _constantArrayInstanceStructure;
+    JSC::WriteBarrier<JSC::Structure> _indexedRefInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _functionReferenceInstanceStructure;
 

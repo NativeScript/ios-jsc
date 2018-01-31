@@ -79,4 +79,5 @@ typedef struct TNSStructWithPointers {
 
 TNSVerySimpleStruct getSimpleStruct();
 TNSComplexStruct getComplexStruct();
-simd_float4x4 getMatrix();
+simd_float4x4 getMatrix4x4();
+simd_float4x3 getMatrix4x3();

@@ -1,13 +1,13 @@
 //
-//  ConstantArrayTypeInstance.cpp
+//  IndexedRefTypeInstance.cpp
 //  NativeScript
 //
 //  Created by Deyan Ginev on 8.01.18.
 //
 
-#include "ConstantArrayTypeInstance.h"
-#include "ConstantArrayInstance.h"
+#include "IndexedRefTypeInstance.h"
 #include "FFISimpleType.h"
+#include "IndexedRefInstance.h"
 #include "Interop.h"
 #include "PointerInstance.h"
 #include "RecordConstructor.h"
@@ -19,9 +19,9 @@ namespace NativeScript {
 using namespace JSC;
 typedef ReferenceTypeInstance Base;
 
-const ClassInfo ConstantArrayTypeInstance::s_info = { "ConstantArrayTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(ConstantArrayTypeInstance) };
+const ClassInfo IndexedRefTypeInstance::s_info = { "IndexedRefTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(IndexedRefTypeInstance) };
 
-JSValue ConstantArrayTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
+JSValue IndexedRefTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     const void* data = buffer; //*reinterpret_cast<void* const*>(buffer);
 
     if (!data) {
@@ -29,14 +29,14 @@ JSValue ConstantArrayTypeInstance::read(ExecState* execState, const void* buffer
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    ConstantArrayTypeInstance* referenceType = jsCast<ConstantArrayTypeInstance*>(self);
+    IndexedRefTypeInstance* referenceType = jsCast<IndexedRefTypeInstance*>(self);
 
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), const_cast<void*>(data)));
-    return ConstantArrayInstance::create(execState->vm(), globalObject, globalObject->interop()->constantArrayInstanceStructure(), referenceType->innerType(), pointer);
+    return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->indexedRefInstanceStructure(), referenceType->innerType(), pointer);
 }
 
-void ConstantArrayTypeInstance::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-    ConstantArrayTypeInstance* referenceType = jsCast<ConstantArrayTypeInstance*>(self);
+void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
+    IndexedRefTypeInstance* referenceType = jsCast<IndexedRefTypeInstance*>(self);
 
     if (value.isUndefinedOrNull()) {
         // *reinterpret_cast<void**>(buffer) = nullptr;
@@ -44,7 +44,7 @@ void ConstantArrayTypeInstance::write(ExecState* execState, const JSValue& value
         return;
     }
 
-    if (ConstantArrayInstance* reference = jsDynamicCast<ConstantArrayInstance*>(value)) {
+    if (IndexedRefInstance* reference = jsDynamicCast<IndexedRefInstance*>(value)) {
         if (!reference->data()) {
             GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
             reference->createBackingStorage(execState->vm(), globalObject, execState, referenceType->innerType());
@@ -66,7 +66,7 @@ void ConstantArrayTypeInstance::write(ExecState* execState, const JSValue& value
     buffer = handle;
 }
 
-void ConstantArrayTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
+void IndexedRefTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     Base::finishCreation(vm);
     ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(innerType).ffiType);
 
@@ -79,7 +79,7 @@ void ConstantArrayTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     }
 
     type->elements[this->_size] = nullptr;
-    this->_constArrayType = type;
+    this->_indexedRefType = type;
     this->_ffiTypeMethodTable.ffiType = type;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;

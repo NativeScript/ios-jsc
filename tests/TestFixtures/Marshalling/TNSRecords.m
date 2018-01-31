@@ -21,11 +21,20 @@ TNSComplexStruct getComplexStruct() {
     return result;
 }
 
-simd_float4x4 getMatrix() {
+simd_float4x4 getMatrix4x4() {
     matrix_float4x4 result;
     float pi = 3.1415;
     for (int i = 0; i < 16; i++) {
         result.columns[i % 4][i / 4] = i * pi;
+    }
+    return result;
+}
+
+simd_float4x3 getMatrix4x3() {
+    matrix_float4x3 result;
+    simd_float3 sfloat = simd_make_float3(1.2345, 2.3456, 3.4567);
+    for (int i = 0; i < 4; i++) {
+        result.columns[i] = sfloat;
     }
     return result;
 }
