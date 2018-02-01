@@ -32,7 +32,7 @@ JSValue ExtVectorTypeInstance::read(ExecState* execState, const void* buffer, JS
     ExtVectorTypeInstance* referenceType = jsCast<ExtVectorTypeInstance*>(self);
 
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), const_cast<void*>(data)));
-    return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->indexedRefInstanceStructure(), referenceType->innerType(), pointer);
+    return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->extVectorInstanceStructure(), referenceType->innerType(), pointer);
 }
 
 void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
@@ -66,6 +66,19 @@ void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, vo
     buffer = handle;
 }
 
+const char* ExtVectorTypeInstance::encode(JSCell* cell) {
+    ExtVectorTypeInstance* self = jsCast<ExtVectorTypeInstance*>(cell);
+
+    if (!self->_compilerEncoding.empty()) {
+        return self->_compilerEncoding.c_str();
+    }
+
+    self->_compilerEncoding = "^";
+    const FFITypeMethodTable& table = getFFITypeMethodTable(self->_innerType.get());
+    self->_compilerEncoding += table.encode(self->_innerType.get());
+    return self->_compilerEncoding.c_str();
+}
+
 void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     Base::finishCreation(vm);
     ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(innerType).ffiType);
@@ -92,4 +105,12 @@ void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
 
     this->_innerType.set(vm, this, innerType);
 }
+
+void ExtVectorTypeInstance::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor) {
+    Base::visitChildren(cell, visitor);
+
+    ExtVectorTypeInstance* object = jsCast<ExtVectorTypeInstance*>(cell);
+    visitor.append(&object->_innerType);
+}
+
 } // namespace NativeScript

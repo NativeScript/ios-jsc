@@ -66,6 +66,19 @@ void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, v
     buffer = handle;
 }
 
+const char* IndexedRefTypeInstance::encode(JSCell* cell) {
+    IndexedRefTypeInstance* self = jsCast<IndexedRefTypeInstance*>(cell);
+
+    if (!self->_compilerEncoding.empty()) {
+        return self->_compilerEncoding.c_str();
+    }
+
+    self->_compilerEncoding = "^";
+    const FFITypeMethodTable& table = getFFITypeMethodTable(self->_innerType.get());
+    self->_compilerEncoding += table.encode(self->_innerType.get());
+    return self->_compilerEncoding.c_str();
+}
+
 void IndexedRefTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     Base::finishCreation(vm);
     ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(innerType).ffiType);
@@ -86,4 +99,12 @@ void IndexedRefTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
 
     this->_innerType.set(vm, this, innerType);
 }
+
+void IndexedRefTypeInstance::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor) {
+    Base::visitChildren(cell, visitor);
+
+    IndexedRefTypeInstance* object = jsCast<IndexedRefTypeInstance*>(cell);
+    visitor.append(&object->_innerType);
+}
+
 } // namespace NativeScript
