@@ -253,6 +253,7 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
 
     IndexedRefPrototype* indexedRefPrototype = IndexedRefPrototype::create(vm, globalObject, IndexedRefPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_indexedRefInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype));
+    this->_extVectorInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype));
 
     ReferenceConstructor* referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype);
     this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor, ReadOnly | DontDelete);
@@ -353,6 +354,7 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(&interop->_pointerInstanceStructure);
     visitor.append(&interop->_referenceInstanceStructure);
     visitor.append(&interop->_indexedRefInstanceStructure);
+    visitor.append(&interop->_extVectorInstanceStructure);
     visitor.append(&interop->_functionReferenceInstanceStructure);
     visitor.append(&interop->_nsErrorWrapperConstructor);
 }
