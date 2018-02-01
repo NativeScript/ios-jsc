@@ -51,7 +51,7 @@ protected:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCConstructorBase*>(cell)->~ObjCConstructorBase();
+        static_cast<ObjCConstructorBase*>(cell)->~ObjCConstructorBase();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class);
@@ -73,7 +73,7 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(JSC::VM&, JSC::JSCell*);
 
     Class _klass;
 
@@ -85,6 +85,6 @@ private:
 
     FFITypeMethodTable _ffiTypeMethodTable;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCConstructorBase__) */

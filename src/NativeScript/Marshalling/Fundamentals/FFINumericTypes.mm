@@ -22,7 +22,7 @@ using namespace JSC;
     static bool name##CanConvert(ExecState* execState, const JSValue& value, JSCell* self) {          \
         return value.isNumber();                                                                      \
     }                                                                                                 \
-    static const char* name##encode(JSCell* self) {                                                   \
+    static const char* name##encode(VM&, JSCell* self) {                                              \
         return @encode(T);                                                                            \
     }                                                                                                 \
     const FFITypeMethodTable name##TypeMethodTable = {                                                \

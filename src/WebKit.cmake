@@ -2,34 +2,7 @@ set(WEBKIT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/WebKit")
 set(WTF_SOURCE_DIR "${WEBKIT_SOURCE_DIR}/Source/WTF")
 set(JavaScriptCore_SOURCE_DIR "${WEBKIT_SOURCE_DIR}/Source/JavaScriptCore")
 set(JavaScriptCore_INCLUDE_DIRECTORIES
-    "${JavaScriptCore_SOURCE_DIR}"
-    "${JavaScriptCore_SOURCE_DIR}/API"
-    "${JavaScriptCore_SOURCE_DIR}/ForwardingHeaders"
-    "${JavaScriptCore_SOURCE_DIR}/assembler"
-    "${JavaScriptCore_SOURCE_DIR}/bindings"
-    "${JavaScriptCore_SOURCE_DIR}/builtins"
-    "${JavaScriptCore_SOURCE_DIR}/bytecode"
-    "${JavaScriptCore_SOURCE_DIR}/bytecompiler"
-    "${JavaScriptCore_SOURCE_DIR}/debugger"
-    "${JavaScriptCore_SOURCE_DIR}/dfg"
-    "${JavaScriptCore_SOURCE_DIR}/disassembler"
-    "${JavaScriptCore_SOURCE_DIR}/domjit"
-    "${JavaScriptCore_SOURCE_DIR}/ftl"
-    "${JavaScriptCore_SOURCE_DIR}/heap"
-    "${JavaScriptCore_SOURCE_DIR}/inspector"
-    "${JavaScriptCore_SOURCE_DIR}/inspector/agents"
-    "${JavaScriptCore_SOURCE_DIR}/inspector/augmentable"
-    "${JavaScriptCore_SOURCE_DIR}/inspector/remote"
-    "${JavaScriptCore_SOURCE_DIR}/interpreter"
-    "${JavaScriptCore_SOURCE_DIR}/jit"
-    "${JavaScriptCore_SOURCE_DIR}/llint"
-    "${JavaScriptCore_SOURCE_DIR}/llvm"
-    "${JavaScriptCore_SOURCE_DIR}/parser"
-    "${JavaScriptCore_SOURCE_DIR}/profiler"
-    "${JavaScriptCore_SOURCE_DIR}/replay"
-    "${JavaScriptCore_SOURCE_DIR}/runtime"
-    "${JavaScriptCore_SOURCE_DIR}/tools"
-    "${JavaScriptCore_SOURCE_DIR}/yarr"
+    "${JavaScriptCore_SOURCE_DIR}/**"
 )
 
 set(WEBKIT_CMAKE_ARGS
@@ -50,6 +23,8 @@ set(WEBKIT_CMAKE_ARGS
     -DENABLE_WEBCORE=OFF
     -DENABLE_WEBKIT=OFF
     -DENABLE_WEBKIT2=OFF
+    -DENABLE_STATIC_JSC=1
+    -DENABLE_JIT=ON
     -DCMAKE_C_COMPILER_ID=${CMAKE_C_COMPILER_ID}
     -DCMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
@@ -83,7 +58,7 @@ set(WEBKIT_INCLUDE_DIRECTORIES
     "${WEBKIT_BINARY_DIR}/DerivedSources/JavaScriptCore/inspector"
 )
 
-set(WEBKIT_LINK_DIRECTORIES "${WEBKIT_BINARY_DIR}/Source/bmalloc" "${WEBKIT_BINARY_DIR}/Source/WTF/wtf" "${WEBKIT_BINARY_DIR}/Source/JavaScriptCore")
+set(WEBKIT_LINK_DIRECTORIES "${WEBKIT_BINARY_DIR}/lib-$(PLATFORM_NAME)/$(CONFIGURATION)")
 set(WEBKIT_LIBRARIES bmalloc WTF JavaScriptCore)
 
 add_definitions(-DBUILDING_WITH_CMAKE=1 -DHAVE_CONFIG_H=1 -DSTATICALLY_LINKED_WITH_WTF)

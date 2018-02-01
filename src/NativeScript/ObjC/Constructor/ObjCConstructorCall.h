@@ -53,12 +53,12 @@ private:
     static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCConstructorCall*>(cell)->~ObjCConstructorCall();
+        static_cast<ObjCConstructorCall*>(cell)->~ObjCConstructorCall();
     }
 
     SEL _selector;
     Class _klass;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCConstructorCall__) */

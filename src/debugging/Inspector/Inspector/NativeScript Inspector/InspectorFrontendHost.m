@@ -1,5 +1,5 @@
-#import <Foundation/Foundation.h>
 #import "InspectorFrontendHost.h"
+#import <Foundation/Foundation.h>
 
 @implementation InspectorFrontendHost
 
@@ -62,15 +62,16 @@
 }
 
 - (void)showContextMenu {
-    
 }
 
 - (void)setZoomFactor:(NSString*)factor {
-    
 }
 
 - (void)openInNewTab {
-    
+}
+
+- (NSString*)userInterfaceLayoutDirection {
+    return @"ltr";
 }
 
 @end

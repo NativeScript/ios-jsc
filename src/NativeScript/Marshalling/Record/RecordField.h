@@ -51,7 +51,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<RecordField*>(cell)->~RecordField();
+        static_cast<RecordField*>(cell)->~RecordField();
     }
 
     void finishCreation(JSC::VM&, const WTF::String& fieldName, JSCell* fieldType, ptrdiff_t offset);
@@ -66,6 +66,6 @@ private:
 
     ptrdiff_t _offset;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__RecordField__) */

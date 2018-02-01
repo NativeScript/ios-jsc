@@ -7,9 +7,9 @@
 //
 
 #include "JSWorkerConstructor.h"
-#include <JavaScriptCore/CodeBlock.h>
 #include "JSWorkerInstance.h"
 #include "JSWorkerPrototype.h"
+#include <JavaScriptCore/CodeBlock.h>
 
 namespace NativeScript {
 using namespace JSC;
@@ -51,7 +51,7 @@ static EncodedJSValue JSC_HOST_CALL callJSWorker(ExecState* exec) {
     return throwVMError(exec, scope, createError(exec, "Worker function must be called as a constructor."));
 }
 
-const ClassInfo JSWorkerConstructor::s_info = { "WorkerConstructor", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerConstructor) };
+const ClassInfo JSWorkerConstructor::s_info = { "WorkerConstructor", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerConstructor) };
 
 void JSWorkerConstructor::finishCreation(VM& vm, JSWorkerPrototype* prototype) {
     Base::finishCreation(vm, WTF::ASCIILiteral("Worker"));
@@ -69,4 +69,4 @@ CallType JSWorkerConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = callJSWorker;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

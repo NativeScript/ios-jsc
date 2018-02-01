@@ -48,7 +48,7 @@ private:
     void finishCreation(JSC::VM&, const void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects);
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<FFIFunctionCall*>(cell)->~FFIFunctionCall();
+        static_cast<FFIFunctionCall*>(cell)->~FFIFunctionCall();
     }
 
     static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
@@ -58,6 +58,6 @@ private:
 
     bool _retainsReturnedCocoaObjects;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFIFunctionCall__) */

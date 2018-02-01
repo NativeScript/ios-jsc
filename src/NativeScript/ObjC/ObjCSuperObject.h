@@ -38,7 +38,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ObjCSuperObject*>(cell)->~ObjCSuperObject();
+        static_cast<ObjCSuperObject*>(cell)->~ObjCSuperObject();
     }
 
     void finishCreation(JSC::VM&, ObjCWrapperObject*, GlobalObject*);
@@ -49,6 +49,6 @@ private:
 
     JSC::WriteBarrier<ObjCWrapperObject> _wrapperObject;
 };
-}
+} // namespace NativeScript
 
 #endif

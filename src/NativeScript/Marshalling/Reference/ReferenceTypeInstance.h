@@ -43,7 +43,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ReferenceTypeInstance*>(cell)->~ReferenceTypeInstance();
+        static_cast<ReferenceTypeInstance*>(cell)->~ReferenceTypeInstance();
     }
 
     void finishCreation(JSC::VM&, JSC::JSCell*);
@@ -56,7 +56,7 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(JSC::VM&, JSC::JSCell*);
 
     static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
@@ -66,6 +66,6 @@ private:
 
     std::string _compilerEncoding;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ReferenceTypeInstance__) */

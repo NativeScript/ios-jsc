@@ -15,7 +15,7 @@ using namespace JSC;
 static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncGet(ExecState* execState);
 static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncClear(ExecState* execState);
 
-const ClassInfo JSWeakRefPrototype::s_info = { "WeakRef", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWeakRefPrototype) };
+const ClassInfo JSWeakRefPrototype::s_info = { "WeakRef", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWeakRefPrototype) };
 
 void JSWeakRefPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
@@ -25,9 +25,9 @@ void JSWeakRefPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
 }
 
 static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncGet(ExecState* execState) {
-    JSWeakRefInstance* self = jsDynamicCast<JSWeakRefInstance*>(execState->thisValue());
+    VM& vm = execState->vm();
+    JSWeakRefInstance* self = jsDynamicCast<JSWeakRefInstance*>(vm, execState->thisValue());
     if (!self) {
-        VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
         return JSValue::encode(scope.throwException(execState, createTypeError(execState, WTF::ASCIILiteral("'this' is not weak reference"))));
     }
@@ -37,9 +37,9 @@ static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncGet(ExecState* execState) {
 }
 
 static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncClear(ExecState* execState) {
-    JSWeakRefInstance* self = jsDynamicCast<JSWeakRefInstance*>(execState->thisValue());
+    VM& vm = execState->vm();
+    JSWeakRefInstance* self = jsDynamicCast<JSWeakRefInstance*>(vm, execState->thisValue());
     if (!self) {
-        VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
         return JSValue::encode(scope.throwException(execState, createTypeError(execState, WTF::ASCIILiteral("'this' is not weak reference"))));
     }
@@ -47,4 +47,4 @@ static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncClear(ExecState* execState) 
     self->clear();
     return JSValue::encode(jsUndefined());
 }
-}
+} // namespace NativeScript

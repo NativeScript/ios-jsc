@@ -32,15 +32,16 @@ using namespace JSC;
 namespace NativeScript {
 
 id toObject(ExecState* execState, const JSValue& value) {
-    if (value.inherits(ObjCWrapperObject::info())) {
+    VM& vm = execState->vm();
+    if (value.inherits(vm, ObjCWrapperObject::info())) {
         return jsCast<ObjCWrapperObject*>(value.asCell())->wrappedObject();
     }
 
-    if (value.inherits(ObjCConstructorBase::info())) {
+    if (value.inherits(vm, ObjCConstructorBase::info())) {
         return jsCast<ObjCConstructorBase*>(value.asCell())->klass();
     }
 
-    if (value.inherits(AllocatedPlaceholder::info())) {
+    if (value.inherits(vm, AllocatedPlaceholder::info())) {
         return jsCast<AllocatedPlaceholder*>(value.asCell())->wrappedObject();
     }
 
@@ -68,44 +69,43 @@ id toObject(ExecState* execState, const JSValue& value) {
         return [[static_cast<NSString*>(jsCast<JSString*>(value)->value(execState)) copy] autorelease];
     }
 
-    if (JSArray* array = jsDynamicCast<JSArray*>(value)) {
+    if (JSArray* array = jsDynamicCast<JSArray*>(vm, value)) {
         return [[[TNSArrayAdapter alloc] initWithJSObject:array
                                                 execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
-    if (value.inherits(ObjCSuperObject::info())) {
+    if (value.inherits(vm, ObjCSuperObject::info())) {
         return jsCast<ObjCSuperObject*>(value.asCell())->wrapperObject()->wrappedObject();
     }
 
-    if (value.inherits(DateInstance::info())) {
+    if (value.inherits(vm, DateInstance::info())) {
         return [NSDate dateWithTimeIntervalSince1970:(value.toNumber(execState) / 1000)];
     }
 
-    if (value.inherits(JSArrayBuffer::info()) || value.inherits(JSArrayBufferView::info())) {
+    if (value.inherits(vm, JSArrayBuffer::info()) || value.inherits(vm, JSArrayBufferView::info())) {
         return [[[TNSDataAdapter alloc] initWithJSObject:asObject(value)
                                                execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (hasHandle) {
         return static_cast<id>(handle);
     }
 
     if (value.isCell()) {
         JSCell* wrapper = value.asCell();
-        const ClassInfo* wrapperInfo = wrapper->classInfo();
+        const ClassInfo* wrapperInfo = wrapper->classInfo(vm);
         if (wrapperInfo == StringObject::info() || wrapperInfo == NumberObject::info() || wrapperInfo == BooleanObject::info()) {
             return toObject(execState, jsCast<JSWrapperObject*>(value)->internalValue());
         }
     }
 
-    if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
+    if (JSObject* object = jsDynamicCast<JSObject*>(vm, value)) {
         return [[[TNSDictionaryAdapter alloc] initWithJSObject:object
                                                      execState:execState->lexicalGlobalObject()->globalExec()] autorelease];
     }
 
-    VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
     throwVMError(execState, scope, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));
     return nil;
@@ -153,8 +153,13 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
     }
 
     auto globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    VM& vm = execState->vm();
+#ifdef ASSERT_DISABLED
+    UNUSED_PARAM(vm);
+#endif
+
     if (JSObject* wrapper = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(object)) {
-        ASSERT(wrapper->classInfo() != ObjCWrapperObject::info() || jsCast<ObjCWrapperObject*>(wrapper)->wrappedObject() == object);
+        ASSERT(wrapper->classInfo(vm) != ObjCWrapperObject::info() || jsCast<ObjCWrapperObject*>(wrapper)->wrappedObject() == object);
         return wrapper;
     }
 

@@ -35,19 +35,19 @@ private:
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<UnmanagedType*>(cell)->~UnmanagedType();
+        static_cast<UnmanagedType*>(cell)->~UnmanagedType();
     }
 
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);
     static void write(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell* self);
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell* self);
-    static const char* encode(JSC::JSCell* self);
+    static const char* encode(JSC::VM& vm, JSC::JSCell* self);
 
     void finishCreation(JSC::VM&, JSC::JSCell*);
 
     JSC::WriteBarrier<JSC::JSCell> _returnType;
     FFITypeMethodTable _ffiTypeMethodTable;
 };
-}
+} // namespace NativeScript
 
 #endif /* UnmanagedType_h */

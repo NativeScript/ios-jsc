@@ -1,8 +1,8 @@
 #pragma once
 
+#include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/inspector/InspectorBackendDispatchers.h>
 #include <JavaScriptCore/inspector/InspectorFrontendDispatchers.h>
-#include <JavaScriptCore/InspectorAgentBase.h>
 
 namespace Inspector {
 
@@ -63,7 +63,7 @@ private:
     struct TimelineRecordEntry {
         TimelineRecordEntry()
             : type(TimelineRecordType::EventDispatch) {}
-        TimelineRecordEntry(PassRefPtr<Inspector::InspectorObject> record, PassRefPtr<Inspector::InspectorObject> data, PassRefPtr<Inspector::InspectorArray> children, TimelineRecordType type)
+        TimelineRecordEntry(RefPtr<Inspector::InspectorObject>&& record, RefPtr<Inspector::InspectorObject>&& data, RefPtr<Inspector::InspectorArray>&& children, TimelineRecordType type)
             : record(record)
             , data(data)
             , children(children)
@@ -109,4 +109,4 @@ private:
     bool m_enabledFromFrontend;
     bool m_programmaticCaptureRestoreBreakpointActiveValue{ false };
 };
-}
+} // namespace Inspector

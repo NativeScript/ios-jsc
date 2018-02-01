@@ -16,7 +16,7 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo ObjCProtocolWrapper::s_info = { "ObjCProtocolWrapper", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCProtocolWrapper) };
+const ClassInfo ObjCProtocolWrapper::s_info = { "ObjCProtocolWrapper", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCProtocolWrapper) };
 
 void ObjCProtocolWrapper::finishCreation(VM& vm, ObjCPrototype* prototype, const ProtocolMeta* metadata, Protocol* aProtocol) {
     Base::finishCreation(vm);

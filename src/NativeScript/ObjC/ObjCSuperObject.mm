@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCSuperObject::s_info = { "ObjCSuperObject", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCSuperObject) };
+const ClassInfo ObjCSuperObject::s_info = { "ObjCSuperObject", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCSuperObject) };
 
 void ObjCSuperObject::finishCreation(VM& vm, ObjCWrapperObject* wrapper, GlobalObject* globalObject) {
     Base::finishCreation(vm);
@@ -28,6 +28,6 @@ void ObjCSuperObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     ObjCSuperObject* superObject = jsCast<ObjCSuperObject*>(cell);
-    visitor.append(&superObject->_wrapperObject);
+    visitor.append(superObject->_wrapperObject);
 }
 }

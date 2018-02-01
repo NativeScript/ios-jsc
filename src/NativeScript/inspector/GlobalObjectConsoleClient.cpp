@@ -47,7 +47,7 @@ GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsole
     , m_logAgent(logAgent) {
 }
 
-void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
+void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
     if (GlobalObjectConsoleClient::logToSystemConsole()) {
         if (type != JSC::MessageType::Trace) {
             this->printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
@@ -90,8 +90,8 @@ void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource s
     ConsoleClient::printConsoleMessage(source, type, level, builder.toString(), WTF::emptyString(), 0, 0);
 }
 
-void GlobalObjectConsoleClient::count(JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
-    m_consoleAgent->count(exec, arguments);
+void GlobalObjectConsoleClient::count(JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
+    m_consoleAgent->count(exec, WTFMove(arguments));
 }
 
 void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String& title) {
@@ -129,14 +129,14 @@ void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& titl
     }
 }
 
-void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) {
+void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) {
     // FIXME: JSContext inspection needs a timeline.
     warnUnimplemented(ASCIILiteral("console.timeStamp"));
 }
 
 void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {
     String message = method + " is currently ignored in JavaScript context inspection.";
-    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message, nullptr, nullptr));
+    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message));
 }
 
 WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::JSValue argument) {

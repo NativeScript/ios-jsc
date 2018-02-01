@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FFISimpleType::s_info = { "FFISimpleType", &Base::s_info, 0, CREATE_METHOD_TABLE(FFISimpleType) };
+const ClassInfo FFISimpleType::s_info = { "FFISimpleType", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FFISimpleType) };
 
 void FFISimpleType::finishCreation(VM& vm, const WTF::String& name, const FFITypeMethodTable& ffiTypeMethodTable) {
     Base::finishCreation(vm);
@@ -30,4 +30,4 @@ CallType FFISimpleType::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &readFromPointer;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

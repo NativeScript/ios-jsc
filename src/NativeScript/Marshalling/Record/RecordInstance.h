@@ -47,7 +47,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<RecordInstance*>(cell)->~RecordInstance();
+        static_cast<RecordInstance*>(cell)->~RecordInstance();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, size_t size, PointerInstance* pointer);
@@ -58,6 +58,6 @@ private:
 
     size_t _size;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__RecordInstance__) */

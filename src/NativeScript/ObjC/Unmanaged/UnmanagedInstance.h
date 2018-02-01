@@ -36,7 +36,7 @@ private:
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<UnmanagedInstance*>(cell)->~UnmanagedInstance();
+        static_cast<UnmanagedInstance*>(cell)->~UnmanagedInstance();
     }
 
     UnmanagedInstance(JSC::VM& vm, JSC::Structure* structure)
@@ -45,5 +45,5 @@ private:
 
     void finishCreation(JSC::VM&, JSC::JSCell*, void*);
 };
-}
+} // namespace NativeScript
 #endif /* UnmanagedInstance_h */

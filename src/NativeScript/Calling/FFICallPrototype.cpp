@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FFICallPrototype::s_info = { "FFIFunction", &Base::s_info, 0, CREATE_METHOD_TABLE(FFICallPrototype) };
+const ClassInfo FFICallPrototype::s_info = { "FFIFunction", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FFICallPrototype) };
 
 EncodedJSValue JSC_HOST_CALL FFICallPrototypeFuncAsync(ExecState*);
 
@@ -51,4 +51,4 @@ EncodedJSValue JSC_HOST_CALL FFICallPrototypeFuncAsync(ExecState* execState) {
 
     return JSValue::encode(call->async(execState, execState->argument(0), applyArgs));
 }
-}
+} // namespace NativeScript

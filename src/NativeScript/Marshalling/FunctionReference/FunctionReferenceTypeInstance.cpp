@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FunctionReferenceTypeInstance::s_info = { "FunctionReferenceTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceTypeInstance) };
+const ClassInfo FunctionReferenceTypeInstance::s_info = { "FunctionReferenceTypeInstance", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FunctionReferenceTypeInstance) };
 
 JSValue FunctionReferenceTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -31,7 +31,7 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
         return;
     }
 
-    if (FunctionReferenceInstance* functionReference = jsDynamicCast<FunctionReferenceInstance*>(value)) {
+    if (FunctionReferenceInstance* functionReference = jsDynamicCast<FunctionReferenceInstance*>(execState->vm(), value)) {
         if (!functionReference->functionPointer()) {
             GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
             FunctionReferenceTypeInstance* functionReferenceType = jsCast<FunctionReferenceTypeInstance*>(self);
@@ -41,9 +41,9 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a function reference."));
@@ -55,10 +55,11 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
 }
 
 bool FunctionReferenceTypeInstance::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
-    return value.isUndefinedOrNull() || value.inherits(FunctionReferenceInstance::info());
+    JSC::VM& vm = execState->vm();
+    return value.isUndefinedOrNull() || value.inherits(vm, FunctionReferenceInstance::info());
 }
 
-const char* FunctionReferenceTypeInstance::encode(JSCell* cell) {
+const char* FunctionReferenceTypeInstance::encode(VM&, JSCell* cell) {
     return "^?";
 }
 
@@ -82,7 +83,7 @@ void FunctionReferenceTypeInstance::visitChildren(JSCell* cell, SlotVisitor& vis
     Base::visitChildren(cell, visitor);
 
     FunctionReferenceTypeInstance* object = jsCast<FunctionReferenceTypeInstance*>(cell);
-    visitor.append(&object->_returnType);
+    visitor.append(object->_returnType);
     visitor.append(object->_parameterTypes.begin(), object->_parameterTypes.end());
 }
 
@@ -90,4 +91,4 @@ CallType FunctionReferenceTypeInstance::getCallData(JSCell* cell, CallData& call
     callData.native.function = &readFromPointer;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

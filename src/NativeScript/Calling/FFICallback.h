@@ -47,7 +47,7 @@ protected:
     ~FFICallback();
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<FFICallback*>(cell)->~FFICallback();
+        static_cast<FFICallback*>(cell)->~FFICallback();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
@@ -75,6 +75,6 @@ private:
     ffi_cif* _cif;
     ffi_closure* _closure;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFICallback__) */

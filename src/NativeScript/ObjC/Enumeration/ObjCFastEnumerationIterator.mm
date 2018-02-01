@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCFastEnumerationIterator::s_info = { "NSFastEnumeration Iterator", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCFastEnumerationIterator) };
+const ClassInfo ObjCFastEnumerationIterator::s_info = { "NSFastEnumeration Iterator", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCFastEnumerationIterator) };
 
 void ObjCFastEnumerationIterator::finishCreation(VM& vm, JSGlobalObject* globalObject, id object) {
     Base::finishCreation(vm);
