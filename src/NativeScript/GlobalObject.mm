@@ -41,6 +41,7 @@
 #include "__extends.h"
 #include "inlineFunctions.h"
 #include "inspector/GlobalObjectInspectorController.h"
+#include "smartStringify.h"
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/FunctionPrototype.h>
@@ -191,6 +192,8 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__time"), 0, &time, NoIntrinsic, DontEnum);
 
+    this->_smartStringifyFunction.set(vm, this, jsCast<JSFunction*>(evaluate(this->globalExec(), makeSource(WTF::String(smartStringify_js, smartStringify_js_len), SourceOrigin()), JSValue())));
+
 #ifdef DEBUG
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), WTF::ASCIILiteral("__extends.ts"));
 #else
@@ -240,6 +243,7 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(globalObject->_interop);
     visitor.append(globalObject->_typeFactory);
     visitor.append(globalObject->_typeScriptOriginalExtendsFunction);
+    visitor.append(globalObject->_smartStringifyFunction);
     visitor.append(globalObject->_ffiCallPrototype);
     visitor.append(globalObject->_objCMethodCallStructure);
     visitor.append(globalObject->_objCConstructorCallStructure);

@@ -207,6 +207,7 @@ set(NativeScript_PUBLIC_HEADERS
 set(JSFILES
     __extends.js
     inlineFunctions.js
+    smartStringify.js
 )
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_INCLUDE_DIR}" "${WEBKIT_INCLUDE_DIRECTORIES}")

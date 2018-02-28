@@ -3,6 +3,7 @@
 #define GlobalObjectConsoleClient_hpp
 
 #include "InspectorLogAgent.h"
+#include <GlobalObject.h>
 #include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/runtime/ConsoleClient.h>
 #include <stdio.h>
