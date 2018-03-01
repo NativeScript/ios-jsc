@@ -49,7 +49,7 @@ protected:
 
 private:
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ReferenceTypeInstance*>(cell)->~ReferenceTypeInstance();
+        static_cast<ReferenceTypeInstance*>(cell)->~ReferenceTypeInstance();
     }
 
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);
@@ -58,7 +58,7 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(JSC::VM&, JSC::JSCell*);
 
     std::string _compilerEncoding;
 };

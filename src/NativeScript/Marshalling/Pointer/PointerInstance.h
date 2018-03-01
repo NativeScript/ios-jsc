@@ -52,7 +52,7 @@ private:
     ~PointerInstance();
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<PointerInstance*>(cell)->~PointerInstance();
+        static_cast<PointerInstance*>(cell)->~PointerInstance();
     }
 
     void finishCreation(JSC::VM&, void*);
@@ -61,6 +61,6 @@ private:
 
     bool _isAdopted = false;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__PointerInstance__) */

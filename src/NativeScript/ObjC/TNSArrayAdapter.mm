@@ -37,7 +37,7 @@ using namespace JSC;
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
-    if (JSArray* array = jsDynamicCast<JSArray*>(object)) {
+    if (JSArray* array = jsDynamicCast<JSArray*>(self->_execState->vm(), object)) {
         return array->length();
     }
 

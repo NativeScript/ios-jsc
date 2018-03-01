@@ -11,7 +11,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo IndexedRefPrototype::s_info = { "IndexedRef", &Base::s_info, 0, CREATE_METHOD_TABLE(IndexedRefPrototype) };
+const ClassInfo IndexedRefPrototype::s_info = { "IndexedRef", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(IndexedRefPrototype) };
 
 static EncodedJSValue JSC_HOST_CALL indexedRefProtoFuncToString(ExecState* execState) {
     IndexedRefInstance* reference = jsCast<IndexedRefInstance*>(execState->thisValue());

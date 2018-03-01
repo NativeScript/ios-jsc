@@ -1,14 +1,16 @@
 #include "ClearChangedCellsFunctor.h"
 #include <JavaScriptCore/CodeBlock.h>
-#include <JavaScriptCore/Executable.h>
+#include <JavaScriptCore/ExecutableBase.h>
+#include <JavaScriptCore/FunctionCodeBlock.h>
 #include <JavaScriptCore/HeapInlines.h>
 #include <JavaScriptCore/JSModuleEnvironment.h>
 #include <JavaScriptCore/JSModuleRecord.h>
 
 namespace NativeScript {
 
-ClearChangedCellsFunctor::ClearChangedCellsFunctor(WTF::String url, WTF::Vector<DiffChunk> diff)
-    : m_url(url)
+ClearChangedCellsFunctor::ClearChangedCellsFunctor(JSC::VM& vm, WTF::String url, WTF::Vector<DiffChunk> diff)
+    : m_vm(vm)
+    , m_url(url)
     , m_diff(diff) {
 }
 
@@ -21,7 +23,7 @@ JSC::IterationStatus ClearChangedCellsFunctor::operator()(JSC::HeapCell* cell, J
 
 void ClearChangedCellsFunctor::visit(JSC::HeapCell* heapCell) const {
     JSC::JSCell* cell = static_cast<JSC::JSCell*>(heapCell);
-    if (!cell->inherits(JSC::JSFunction::info()))
+    if (!cell->inherits(m_vm, JSC::JSFunction::info()))
         return;
 
     JSC::JSFunction* function = JSC::jsCast<JSC::JSFunction*>(cell);
@@ -57,4 +59,4 @@ void ClearChangedCellsFunctor::visit(JSC::HeapCell* heapCell) const {
         }
     }
 }
-}
+} // namespace NativeScript

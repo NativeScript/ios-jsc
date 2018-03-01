@@ -18,15 +18,16 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordConstructor::s_info = { "record", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordConstructor) };
+const ClassInfo RecordConstructor::s_info = { "record", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(RecordConstructor) };
 
 static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeCell) {
-    if (RecordConstructor* recordConstructor = jsDynamicCast<RecordConstructor*>(typeCell)) {
+    JSC::VM& vm = execState->vm();
+    if (RecordConstructor* recordConstructor = jsDynamicCast<RecordConstructor*>(execState->vm(), typeCell)) {
         if (!(v1.isObject() && v2.isObject())) {
             return false;
         }
 
-        if (v1.inherits(RecordInstance::info()) && v2.inherits(RecordInstance::info())) {
+        if (v1.inherits(vm, RecordInstance::info()) && v2.inherits(vm, RecordInstance::info())) {
             RecordInstance* record1 = jsCast<RecordInstance*>(v1);
             RecordInstance* record2 = jsCast<RecordInstance*>(v2);
 
@@ -41,11 +42,10 @@ static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeC
                 return false;
             }
 
-            RecordPrototype* recordPrototype = jsDynamicCast<RecordPrototype*>(recordConstructor->get(execState, execState->vm().propertyNames->prototype));
+            RecordPrototype* recordPrototype = jsDynamicCast<RecordPrototype*>(vm, recordConstructor->get(execState, vm.propertyNames->prototype));
             for (RecordField* field : recordPrototype->fields()) {
                 Identifier fieldName = Identifier::fromString(execState, field->fieldName());
 
-                JSC::VM& vm = execState->vm();
                 auto scope = DECLARE_THROW_SCOPE(vm);
 
                 JSValue fieldValue1 = v1.get(execState, fieldName);
@@ -103,7 +103,7 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
     RecordConstructor* constructor = jsCast<RecordConstructor*>(self);
     const ffi_type* ffiType = constructor->_ffiTypeMethodTable.ffiType;
 
-    if (RecordInstance* record = jsDynamicCast<RecordInstance*>(value)) {
+    if (RecordInstance* record = jsDynamicCast<RecordInstance*>(execState->vm(), value)) {
         if (ffiType != jsCast<RecordConstructor*>(record->get(execState, execState->vm().propertyNames->constructor))->_ffiTypeMethodTable.ffiType) {
             JSValue exception = createError(execState, "Different record types");
             reportFatalErrorBeforeShutdown(execState, Exception::create(execState->vm(), exception));
@@ -116,7 +116,7 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        if (JSObject* object = jsDynamicCast<JSObject*>(value)) {
+        if (JSObject* object = jsDynamicCast<JSObject*>(execState->vm(), value)) {
             const WTF::Vector<RecordField*> fields = jsCast<RecordPrototype*>(constructor->get(execState, execState->vm().propertyNames->prototype))->fields();
             for (RecordField* field : fields) {
                 Identifier propertyName = Identifier::fromString(execState, field->fieldName());
@@ -141,12 +141,12 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
 }
 
 bool RecordConstructor::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
-    return value.isObject() || value.inherits(RecordInstance::info());
+    JSC::VM& vm = execState->vm();
+    return value.isObject() || value.inherits(vm, RecordInstance::info());
 }
 
-const char* RecordConstructor::encode(JSCell* cell) {
+const char* RecordConstructor::encode(VM& vm, JSCell* cell) {
     RecordConstructor* self = jsCast<RecordConstructor*>(cell);
-    VM& vm = self->globalObject()->vm();
 
     if (!self->_compilerEncoding.empty()) {
         return self->_compilerEncoding.c_str();
@@ -158,7 +158,7 @@ const char* RecordConstructor::encode(JSCell* cell) {
 
     RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(self->getDirect(vm, vm.propertyNames->prototype));
     for (RecordField* field : recordPrototype->fields()) {
-        ss << field->ffiTypeMethodTable().encode(field->fieldType());
+        ss << field->ffiTypeMethodTable().encode(vm, field->fieldType());
     }
 
     ss << (self->_recordType == RecordType::Struct ? "}" : ")");
@@ -185,7 +185,7 @@ void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, Rec
 
 EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    RecordConstructor* constructor = jsCast<RecordConstructor*>(execState->callee());
+    RecordConstructor* constructor = jsCast<RecordConstructor*>(execState->callee().asCell());
     const ffi_type* ffiType = constructor->_ffiTypeMethodTable.ffiType;
 
     void* data = calloc(ffiType->size, 1);
@@ -197,7 +197,7 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecStat
     if (execState->argumentCount() == 1) {
         JSValue value = execState->argument(0);
 
-        if (PointerInstance* pointerArgument = jsDynamicCast<PointerInstance*>(value)) {
+        if (PointerInstance* pointerArgument = jsDynamicCast<PointerInstance*>(execState->vm(), value)) {
             memcpy(pointer->data(), pointerArgument->data(), ffiType->size);
         } else {
             constructor->_ffiTypeMethodTable.write(execState, value, instance->data(), constructor);
@@ -221,14 +221,14 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* 
     }
 
     const JSValue value = execState->argument(0);
-    if (!value.inherits(PointerInstance::info())) {
+    if (!value.inherits(vm, PointerInstance::info())) {
         const WTF::String message = WTF::String::format("Argument must be a %s.", PointerInstance::info()->className);
         return JSValue::encode(scope.throwException(execState, createError(execState, message)));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(value);
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    RecordConstructor* constructor = jsCast<RecordConstructor*>(execState->callee());
+    RecordConstructor* constructor = jsCast<RecordConstructor*>(execState->callee().asCell());
     const ffi_type* ffiType = constructor->_ffiTypeMethodTable.ffiType;
 
     RecordInstance* instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
@@ -244,11 +244,11 @@ void RecordConstructor::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     RecordConstructor* object = jsCast<RecordConstructor*>(cell);
-    visitor.append(&object->_instancesStructure);
+    visitor.append(object->_instancesStructure);
 }
 
 RecordConstructor::~RecordConstructor() {
     delete this->_ffiTypeMethodTable.ffiType->elements;
     delete this->_ffiTypeMethodTable.ffiType;
 }
-}
+} // namespace NativeScript

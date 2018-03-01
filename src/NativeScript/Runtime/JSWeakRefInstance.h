@@ -51,11 +51,11 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<JSWeakRefInstance*>(cell)->~JSWeakRefInstance();
+        static_cast<JSWeakRefInstance*>(cell)->~JSWeakRefInstance();
     }
 
     JSC::Weak<JSObject> _handle;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__JSWeakRefInstance__) */

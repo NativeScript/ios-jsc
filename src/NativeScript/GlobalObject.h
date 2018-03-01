@@ -199,14 +199,14 @@ private:
     static void destroy(JSC::JSCell* cell) {
         static_cast<GlobalObject*>(cell)->~GlobalObject();
     }
-    
-    static void queueTaskToEventLoop(const JSC::JSGlobalObject* globalObject, WTF::Ref<JSC::Microtask>&& task);
+
+    static void queueTaskToEventLoop(JSC::JSGlobalObject& globalObject, WTF::Ref<JSC::Microtask>&& task);
+
+    static JSC::JSInternalPromise* moduleLoaderImportModule(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSString*, const JSC::SourceOrigin&);
 
     static JSC::JSInternalPromise* moduleLoaderResolve(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue referrerValue, JSC::JSValue initiator);
 
     static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue initiator);
-
-    static JSC::JSInternalPromise* moduleLoaderTranslate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSValue initiator);
 
     static JSC::JSInternalPromise* moduleLoaderInstantiate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSValue initiator);
 
@@ -267,6 +267,6 @@ private:
 
     WTF::HashMap<WTF::String, WTF::String, WTF::ASCIICaseInsensitiveHash> _modulePathCache;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__GlobalObject__) */

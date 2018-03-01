@@ -64,7 +64,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<IndexedRefInstance*>(cell)->~IndexedRefInstance();
+        static_cast<IndexedRefInstance*>(cell)->~IndexedRefInstance();
     }
 
     void finishCreation(JSC::VM&, JSC::JSValue);

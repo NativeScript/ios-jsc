@@ -43,7 +43,7 @@ private:
     ffi_type* _extVectorType;
     std::string _compilerEncoding;
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(VM&, JSC::JSCell*);
     size_t _size;
     ExtVectorTypeInstance(JSC::VM& vm, JSC::Structure* structure, size_t size)
         : Base(vm, structure)

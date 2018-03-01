@@ -142,7 +142,7 @@ static NSPointerArray* _runtimes;
 - (void)_onMemoryWarning {
     TNSPERF();
     JSLockHolder lock(self->_vm.get());
-    self->_vm->heap.collect(CollectionScope::Full);
+    self->_vm->heap.collectAsync(CollectionScope::Full);
     self->_vm->heap.releaseDelayedReleasedObjects();
 }
 #endif
@@ -164,9 +164,9 @@ static NSPointerArray* _runtimes;
 
     self->_globalObject->drainMicrotasks();
     if (error) {
-        Exception* exception = jsDynamicCast<Exception*>(error);
+        Exception* exception = jsDynamicCast<Exception*>(*self->_vm.get(), error);
         if (!exception) {
-            exception = jsDynamicCast<Exception*>(error.getObject()->getDirect(*self->_vm.get(), self->_vm.get()->propertyNames->builtinNames().nsExceptionIdentifierPrivateName()));
+            exception = jsDynamicCast<Exception*>(*self->_vm.get(), error.getObject()->getDirect(*self->_vm.get(), self->_vm.get()->propertyNames->builtinNames().nsExceptionIdentifierPrivateName()));
             if (!exception) {
                 exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
             }

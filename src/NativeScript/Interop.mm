@@ -45,43 +45,43 @@
 namespace NativeScript {
 using namespace JSC;
 
-void* tryHandleofValue(const JSValue& value, bool* hasHandle) {
+void* tryHandleofValue(VM& vm, const JSValue& value, bool* hasHandle) {
     void* handle;
 
-    if (ObjCWrapperObject* wrapper = jsDynamicCast<ObjCWrapperObject*>(value)) {
+    if (ObjCWrapperObject* wrapper = jsDynamicCast<ObjCWrapperObject*>(vm, value)) {
         *hasHandle = true;
         handle = static_cast<void*>(wrapper->wrappedObject());
-    } else if (ObjCConstructorBase* constructor = jsDynamicCast<ObjCConstructorBase*>(value)) {
+    } else if (ObjCConstructorBase* constructor = jsDynamicCast<ObjCConstructorBase*>(vm, value)) {
         *hasHandle = true;
         handle = static_cast<void*>(constructor->klass());
-    } else if (ObjCProtocolWrapper* protocolWrapper = jsDynamicCast<ObjCProtocolWrapper*>(value)) {
+    } else if (ObjCProtocolWrapper* protocolWrapper = jsDynamicCast<ObjCProtocolWrapper*>(vm, value)) {
         *hasHandle = true;
         handle = static_cast<void*>(protocolWrapper->protocol());
-    } else if (FFIFunctionCall* functionCall = jsDynamicCast<FFIFunctionCall*>(value)) {
+    } else if (FFIFunctionCall* functionCall = jsDynamicCast<FFIFunctionCall*>(vm, value)) {
         *hasHandle = true;
         handle = const_cast<void*>(functionCall->functionPointer());
-    } else if (ObjCBlockCall* blockCall = jsDynamicCast<ObjCBlockCall*>(value)) {
+    } else if (ObjCBlockCall* blockCall = jsDynamicCast<ObjCBlockCall*>(vm, value)) {
         *hasHandle = true;
         handle = static_cast<void*>(blockCall->block());
-    } else if (RecordInstance* recordInstance = jsDynamicCast<RecordInstance*>(value)) {
+    } else if (RecordInstance* recordInstance = jsDynamicCast<RecordInstance*>(vm, value)) {
         *hasHandle = true;
         handle = recordInstance->data();
-    } else if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(value)) {
+    } else if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(vm, value)) {
         *hasHandle = true;
         handle = pointer->data();
-    } else if (ReferenceInstance* referenceInstance = jsDynamicCast<ReferenceInstance*>(value)) {
+    } else if (ReferenceInstance* referenceInstance = jsDynamicCast<ReferenceInstance*>(vm, value)) {
         *hasHandle = referenceInstance->data() != nullptr;
         handle = referenceInstance->data();
-    } else if (FunctionReferenceInstance* functionReferenceInstance = jsDynamicCast<FunctionReferenceInstance*>(value)) {
+    } else if (FunctionReferenceInstance* functionReferenceInstance = jsDynamicCast<FunctionReferenceInstance*>(vm, value)) {
         *hasHandle = functionReferenceInstance->functionPointer() != nullptr;
         handle = const_cast<void*>(functionReferenceInstance->functionPointer());
-    } else if (JSArrayBuffer* arrayBuffer = jsDynamicCast<JSArrayBuffer*>(value)) {
+    } else if (JSArrayBuffer* arrayBuffer = jsDynamicCast<JSArrayBuffer*>(vm, value)) {
         *hasHandle = true;
         handle = arrayBuffer->impl()->data();
-    } else if (JSArrayBufferView* arrayBufferView = jsDynamicCast<JSArrayBufferView*>(value)) {
+    } else if (JSArrayBufferView* arrayBufferView = jsDynamicCast<JSArrayBufferView*>(vm, value)) {
         *hasHandle = true;
         if (arrayBufferView->hasArrayBuffer()) {
-            handle = arrayBufferView->buffer()->data();
+            handle = arrayBufferView->possiblySharedBuffer()->data();
         } else {
             handle = arrayBufferView->vector();
         }
@@ -96,17 +96,17 @@ void* tryHandleofValue(const JSValue& value, bool* hasHandle) {
     return handle;
 }
 
-size_t sizeofValue(const JSC::JSValue& value) {
+size_t sizeofValue(VM& vm, const JSC::JSValue& value) {
     size_t size;
 
-    if (value.inherits(ObjCWrapperObject::info()) || value.inherits(ObjCConstructorBase::info()) || value.inherits(ObjCProtocolWrapper::info()) || value.inherits(FFIFunctionCall::info()) || value.inherits(ObjCBlockCall::info()) || value.inherits(ObjCBlockType::info()) || value.inherits(PointerConstructor::info()) || value.inherits(PointerInstance::info()) || value.inherits(ReferenceConstructor::info()) || value.inherits(ReferenceInstance::info()) || value.inherits(FunctionReferenceConstructor::info()) || value.inherits(FunctionReferenceInstance::info())) {
+    if (value.inherits(vm, ObjCWrapperObject::info()) || value.inherits(vm, ObjCConstructorBase::info()) || value.inherits(vm, ObjCProtocolWrapper::info()) || value.inherits(vm, FFIFunctionCall::info()) || value.inherits(vm, ObjCBlockCall::info()) || value.inherits(vm, ObjCBlockType::info()) || value.inherits(vm, PointerConstructor::info()) || value.inherits(vm, PointerInstance::info()) || value.inherits(vm, ReferenceConstructor::info()) || value.inherits(vm, ReferenceInstance::info()) || value.inherits(vm, FunctionReferenceConstructor::info()) || value.inherits(vm, FunctionReferenceInstance::info())) {
         size = sizeof(void*);
-    } else if (FFISimpleType* simpleType = jsDynamicCast<FFISimpleType*>(value)) {
+    } else if (FFISimpleType* simpleType = jsDynamicCast<FFISimpleType*>(vm, value)) {
         const ffi_type* ffiType = simpleType->ffiTypeMethodTable().ffiType;
         size = ffiType->type == FFI_TYPE_VOID ? 0 : ffiType->size;
-    } else if (RecordConstructor* recordConstructor = jsDynamicCast<RecordConstructor*>(value)) {
+    } else if (RecordConstructor* recordConstructor = jsDynamicCast<RecordConstructor*>(vm, value)) {
         size = recordConstructor->ffiTypeMethodTable().ffiType->size;
-    } else if (RecordInstance* recordInstance = jsDynamicCast<RecordInstance*>(value)) {
+    } else if (RecordInstance* recordInstance = jsDynamicCast<RecordInstance*>(vm, value)) {
         size = recordInstance->size();
     } else {
         size = 0;
@@ -115,10 +115,10 @@ size_t sizeofValue(const JSC::JSValue& value) {
     return size;
 }
 
-const char* getCompilerEncoding(JSCell* value) {
+const char* getCompilerEncoding(VM& vm, JSCell* value) {
     const FFITypeMethodTable* table;
-    tryGetFFITypeMethodTable(value, &table);
-    return table->encode(value);
+    tryGetFFITypeMethodTable(vm, value, &table);
+    return table->encode(vm, value);
 }
 
 std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, const Metadata::MethodMeta* method) {
@@ -130,17 +130,17 @@ std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, const Metadat
 
     std::stringstream compilerEncoding;
 
-    compilerEncoding << getCompilerEncoding(returnTypeCell);
+    compilerEncoding << getCompilerEncoding(globalObject->vm(), returnTypeCell);
     compilerEncoding << "@:"; // id self, SEL _cmd
 
     for (JSCell* cell : parameterTypesCells) {
-        compilerEncoding << getCompilerEncoding(cell);
+        compilerEncoding << getCompilerEncoding(globalObject->vm(), cell);
     }
 
     return compilerEncoding.str();
 }
 
-const ClassInfo Interop::s_info = { "interop", &Base::s_info, 0, CREATE_METHOD_TABLE(Interop) };
+const ClassInfo Interop::s_info = { "interop", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(Interop) };
 
 static EncodedJSValue JSC_HOST_CALL interopFuncAlloc(ExecState* execState) {
     size_t size = static_cast<size_t>(execState->argument(0).toUInt32(execState));
@@ -148,7 +148,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAlloc(ExecState* execState) {
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     JSValue result = globalObject->interop()->pointerInstanceForPointer(execState->vm(), value);
-    if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(result)) {
+    if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(execState->vm(), result)) {
         pointer->setAdopted(true);
     }
 
@@ -160,7 +160,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    if (!pointerValue.inherits(PointerInstance::info())) {
+    if (!pointerValue.inherits(vm, PointerInstance::info())) {
         const char* className = PointerInstance::info()->className;
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("Argument must be a %s.", className))));
     }
@@ -179,8 +179,8 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
 static EncodedJSValue JSC_HOST_CALL interopFuncAdopt(ExecState* execState) {
     JSValue pointerValue = execState->argument(0);
 
-    if (!pointerValue.inherits(PointerInstance::info())) {
-        JSC::VM& vm = execState->vm();
+    JSC::VM& vm = execState->vm();
+    if (!pointerValue.inherits(vm, PointerInstance::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         const char* className = PointerInstance::info()->className;
@@ -195,11 +195,11 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAdopt(ExecState* execState) {
 
 static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
     JSValue value = execState->argument(0);
+    JSC::VM& vm = execState->vm();
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
@@ -211,11 +211,11 @@ static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
 }
 
 static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
+    JSC::VM& vm = execState->vm();
     JSValue value = execState->argument(0);
-    size_t size = sizeofValue(value);
+    size_t size = sizeofValue(vm, value);
 
     if (size == 0) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
@@ -351,12 +351,13 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     Interop* interop = jsCast<Interop*>(cell);
-    visitor.append(&interop->_pointerInstanceStructure);
-    visitor.append(&interop->_referenceInstanceStructure);
-    visitor.append(&interop->_indexedRefInstanceStructure);
-    visitor.append(&interop->_extVectorInstanceStructure);
-    visitor.append(&interop->_functionReferenceInstanceStructure);
-    visitor.append(&interop->_nsErrorWrapperConstructor);
+
+    visitor.append(interop->_pointerInstanceStructure);
+    visitor.append(interop->_referenceInstanceStructure);
+    visitor.append(interop->_indexedRefInstanceStructure);
+    visitor.append(interop->_extVectorInstanceStructure);
+    visitor.append(interop->_functionReferenceInstanceStructure);
+    visitor.append(interop->_nsErrorWrapperConstructor);
 }
 
 ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
@@ -364,7 +365,7 @@ ErrorInstance* Interop::wrapError(ExecState* execState, NSError* error) const {
 }
 
 JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const {
-    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(), ArrayBuffer::createFromBytes([data bytes], [data length], WTFMove(arrayBufferDestructorNull)));
+    JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(ArrayBufferSharingMode::Default), ArrayBuffer::createFromBytes([data bytes], [data length], [](void*) {}));
 
     // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
     arrayBuffer->putDirect(execState->vm(), execState->propertyNames().builtinNames().homeObjectPrivateName(), NativeScript::toValue(execState, data));

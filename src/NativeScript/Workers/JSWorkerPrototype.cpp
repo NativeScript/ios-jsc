@@ -6,18 +6,18 @@
 //
 //
 
-#include <JavaScriptCore/runtime/Lookup.h>
 #include "JSWorkerPrototype.h"
 #include "JSWorkerInstance.h"
+#include <JavaScriptCore/runtime/Lookup.h>
 
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo JSWorkerPrototype::s_info = { "WorkerPrototype", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerPrototype) };
+const ClassInfo JSWorkerPrototype::s_info = { "WorkerPrototype", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerPrototype) };
 
 static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec) {
     JSValue thisValue = exec->thisValue();
-    JSWorkerInstance* workerInstance = jsDynamicCast<JSWorkerInstance*>(thisValue);
+    JSWorkerInstance* workerInstance = jsDynamicCast<JSWorkerInstance*>(exec->vm(), thisValue);
     auto scope = DECLARE_THROW_SCOPE(exec->vm());
     if (UNLIKELY(!workerInstance))
         return throwVMError(exec, scope, createTypeError(exec, makeString("Can only call Worker.postMessage, on instances of Worker")));
@@ -30,7 +30,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec
 
     if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
         JSValue arg2 = exec->argument(1);
-        if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(arg2.asCell()))) {
+        if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(exec->vm(), arg2.asCell()))) {
             return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
         }
     }
@@ -41,7 +41,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec
 
 static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncTerminate(ExecState* state) {
     JSValue thisValue = state->thisValue();
-    JSWorkerInstance* castedThis = jsDynamicCast<JSWorkerInstance*>(thisValue);
+    JSWorkerInstance* castedThis = jsDynamicCast<JSWorkerInstance*>(state->vm(), thisValue);
     auto scope = DECLARE_THROW_SCOPE(state->vm());
     if (UNLIKELY(!castedThis))
         return throwVMError(state, scope, createTypeError(state, makeString("Can only call Worker.terminate, on instances of Worker")));
@@ -55,4 +55,4 @@ void JSWorkerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("postMessage")), 2, jsWorkerProtoFuncPostMessage, NoIntrinsic, DontDelete | ReadOnly);
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("terminate")), 0, jsWorkerProtoFuncTerminate, NoIntrinsic, DontDelete | ReadOnly);
 }
-}
+} // namespace NativeScript

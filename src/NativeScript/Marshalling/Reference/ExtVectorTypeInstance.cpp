@@ -19,7 +19,7 @@ namespace NativeScript {
 using namespace JSC;
 typedef ReferenceTypeInstance Base;
 
-const ClassInfo ExtVectorTypeInstance::s_info = { "ExtVectorTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(ExtVectorTypeInstance) };
+const ClassInfo ExtVectorTypeInstance::s_info = { "ExtVectorTypeInstance", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ExtVectorTypeInstance) };
 
 JSValue ExtVectorTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     const void* data = buffer; //*reinterpret_cast<void* const*>(buffer);
@@ -44,7 +44,7 @@ void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, vo
         return;
     }
 
-    if (IndexedRefInstance* reference = jsDynamicCast<IndexedRefInstance*>(value)) {
+    if (IndexedRefInstance* reference = jsDynamicCast<IndexedRefInstance*>(execState->vm(), value)) {
         if (!reference->data()) {
             GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
             reference->createBackingStorage(execState->vm(), globalObject, execState, referenceType->innerType());
@@ -52,7 +52,8 @@ void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, vo
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
@@ -66,7 +67,7 @@ void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, vo
     buffer = handle;
 }
 
-const char* ExtVectorTypeInstance::encode(JSCell* cell) {
+const char* ExtVectorTypeInstance::encode(VM& vm, JSCell* cell) {
     ExtVectorTypeInstance* self = jsCast<ExtVectorTypeInstance*>(cell);
 
     if (!self->_compilerEncoding.empty()) {
@@ -74,14 +75,14 @@ const char* ExtVectorTypeInstance::encode(JSCell* cell) {
     }
 
     self->_compilerEncoding = "^";
-    const FFITypeMethodTable& table = getFFITypeMethodTable(self->_innerType.get());
-    self->_compilerEncoding += table.encode(self->_innerType.get());
+    const FFITypeMethodTable& table = getFFITypeMethodTable(vm, self->_innerType.get());
+    self->_compilerEncoding += table.encode(vm, self->_innerType.get());
     return self->_compilerEncoding.c_str();
 }
 
 void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     Base::finishCreation(vm);
-    ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(innerType).ffiType);
+    ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(vm, innerType).ffiType);
 
     size_t arraySize = this->_size;
 
@@ -114,7 +115,7 @@ void ExtVectorTypeInstance::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& v
     Base::visitChildren(cell, visitor);
 
     ExtVectorTypeInstance* object = jsCast<ExtVectorTypeInstance*>(cell);
-    visitor.append(&object->_innerType);
+    visitor.append(object->_innerType);
 }
 
 } // namespace NativeScript

@@ -50,7 +50,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<FunctionReferenceTypeInstance*>(cell)->~FunctionReferenceTypeInstance();
+        static_cast<FunctionReferenceTypeInstance*>(cell)->~FunctionReferenceTypeInstance();
     }
 
     void finishCreation(JSC::VM&, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes);
@@ -65,7 +65,7 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(JSC::VM&, JSC::JSCell*);
 
     static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
@@ -75,6 +75,6 @@ private:
 
     FFITypeMethodTable _ffiTypeMethodTable;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FunctionReferenceTypeInstance__) */

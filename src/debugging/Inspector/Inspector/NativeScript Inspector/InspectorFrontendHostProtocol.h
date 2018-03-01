@@ -6,8 +6,8 @@
 - (NSString *)platform;
 - (NSString *)localizedStringsURL;
 - (NSString *)debuggableType;
-- (NSString*)backendCommandsURL;
-- (NSString*)zoomFactor;
+- (NSString *)backendCommandsURL;
+- (NSString *)zoomFactor;
 - (unsigned)inspectionLevel;
 - (void)loaded;
 - (void)bringToFront;
@@ -17,5 +17,6 @@
 - (void)setZoomFactor:(NSString *)factor;
 - (void)showContextMenu;
 - (void)openInNewTab;
+- (NSString *)userInterfaceLayoutDirection;
 
 @end

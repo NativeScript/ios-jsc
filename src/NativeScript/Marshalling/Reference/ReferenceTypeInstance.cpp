@@ -13,7 +13,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferenceTypeInstance::s_info = { "ReferenceTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferenceTypeInstance) };
+const ClassInfo ReferenceTypeInstance::s_info = { "ReferenceTypeInstance", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ReferenceTypeInstance) };
 
 JSValue ReferenceTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     const void* data = *reinterpret_cast<void* const*>(buffer);
@@ -37,7 +37,7 @@ void ReferenceTypeInstance::write(ExecState* execState, const JSValue& value, vo
         return;
     }
 
-    if (ReferenceInstance* reference = jsDynamicCast<ReferenceInstance*>(value)) {
+    if (ReferenceInstance* reference = jsDynamicCast<ReferenceInstance*>(execState->vm(), value)) {
         if (!reference->data()) {
             GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
             reference->createBackingStorage(execState->vm(), globalObject, execState, referenceType->innerType());
@@ -45,9 +45,9 @@ void ReferenceTypeInstance::write(ExecState* execState, const JSValue& value, vo
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a reference."));
@@ -59,10 +59,11 @@ void ReferenceTypeInstance::write(ExecState* execState, const JSValue& value, vo
 }
 
 bool ReferenceTypeInstance::canConvert(ExecState* execState, const JSValue& value, JSCell* buffer) {
-    return value.isUndefinedOrNull() || value.inherits(ReferenceInstance::info()) || value.inherits(PointerInstance::info());
+    JSC::VM& vm = execState->vm();
+    return value.isUndefinedOrNull() || value.inherits(vm, ReferenceInstance::info()) || value.inherits(vm, PointerInstance::info());
 }
 
-const char* ReferenceTypeInstance::encode(JSCell* cell) {
+const char* ReferenceTypeInstance::encode(VM& vm, JSCell* cell) {
     ReferenceTypeInstance* self = jsCast<ReferenceTypeInstance*>(cell);
 
     if (!self->_compilerEncoding.empty()) {
@@ -70,8 +71,8 @@ const char* ReferenceTypeInstance::encode(JSCell* cell) {
     }
 
     self->_compilerEncoding = "^";
-    const FFITypeMethodTable& table = getFFITypeMethodTable(self->_innerType.get());
-    self->_compilerEncoding += table.encode(self->_innerType.get());
+    const FFITypeMethodTable& table = getFFITypeMethodTable(vm, self->_innerType.get());
+    self->_compilerEncoding += table.encode(vm, self->_innerType.get());
     return self->_compilerEncoding.c_str();
 }
 
@@ -91,11 +92,11 @@ void ReferenceTypeInstance::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& v
     Base::visitChildren(cell, visitor);
 
     ReferenceTypeInstance* object = jsCast<ReferenceTypeInstance*>(cell);
-    visitor.append(&object->_innerType);
+    visitor.append(object->_innerType);
 }
 
 CallType ReferenceTypeInstance::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &readFromPointer;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

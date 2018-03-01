@@ -29,13 +29,14 @@ static JSValue objCInstancetype_read(ExecState* execState, const void* buffer, J
 
     Structure* structure;
 
-    if (ObjCConstructorBase* constructor = jsDynamicCast<ObjCConstructorBase*>(execState->thisValue())) {
+    VM& vm = execState->vm();
+    if (ObjCConstructorBase* constructor = jsDynamicCast<ObjCConstructorBase*>(vm, execState->thisValue())) {
         structure = constructor->instancesStructure();
-    } else if (AllocatedPlaceholder* allocatedPlaceholder = jsDynamicCast<AllocatedPlaceholder*>(execState->thisValue())) {
+    } else if (AllocatedPlaceholder* allocatedPlaceholder = jsDynamicCast<AllocatedPlaceholder*>(vm, execState->thisValue())) {
         structure = allocatedPlaceholder->instanceStructure();
-    } else if (ObjCWrapperObject* wrapperObject = jsDynamicCast<ObjCWrapperObject*>(execState->thisValue())) {
+    } else if (ObjCWrapperObject* wrapperObject = jsDynamicCast<ObjCWrapperObject*>(vm, execState->thisValue())) {
         structure = wrapperObject->structure();
-    } else if (ObjCSuperObject* superObject = jsDynamicCast<ObjCSuperObject*>(execState->thisValue())) {
+    } else if (ObjCSuperObject* superObject = jsDynamicCast<ObjCSuperObject*>(vm, execState->thisValue())) {
         structure = superObject->wrapperObject()->structure();
     } else {
         RELEASE_ASSERT_NOT_REACHED();
@@ -49,9 +50,10 @@ static void objCInstancetype_write(ExecState* execState, const JSValue& value, v
     *static_cast<id*>(buffer) = NativeScript::toObject(execState, value);
 }
 static bool objCInstancetype_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
-    return value.isNull() || value.inherits(ObjCWrapperObject::info()) || value.inherits(ObjCConstructorBase::info());
+    JSC::VM& vm = execState->vm();
+    return value.isNull() || value.inherits(vm, ObjCWrapperObject::info()) || value.inherits(vm, ObjCConstructorBase::info());
 }
-static const char* objCInstancetype_encode(JSC::JSCell* self) {
+static const char* objCInstancetype_encode(JSC::VM&, JSC::JSCell* self) {
     return "@";
 }
 const FFITypeMethodTable objCInstancetypeTypeMethodTable = {
@@ -74,7 +76,8 @@ static JSValue objCProtocol_read(ExecState* execState, const void* buffer, JSCel
     return protocolWrapper;
 }
 static void objCProtocol_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-    if (value.inherits(ObjCProtocolWrapper::info())) {
+    VM& vm = execState->vm();
+    if (value.inherits(vm, ObjCProtocolWrapper::info())) {
         ObjCProtocolWrapper* protocolWrapper = jsCast<ObjCProtocolWrapper*>(value);
         const Protocol* aProtocol = protocolWrapper->protocol();
         *static_cast<const Protocol**>(buffer) = aProtocol;
@@ -82,16 +85,16 @@ static void objCProtocol_write(ExecState* execState, const JSValue& value, void*
         *static_cast<Protocol**>(buffer) = nullptr;
     } else {
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a protocol."));
-        VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
         scope.throwException(execState, exception);
         return;
     }
 }
 static bool objCProtocol_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
-    return value.inherits(ObjCProtocolWrapper::info()) || value.isUndefinedOrNull();
+    VM& vm = execState->vm();
+    return value.inherits(vm, ObjCProtocolWrapper::info()) || value.isUndefinedOrNull();
 }
-static const char* objCProtocol_encode(JSC::JSCell* self) {
+static const char* objCProtocol_encode(JSC::VM&, JSC::JSCell* self) {
     return "@";
 }
 const FFITypeMethodTable objCProtocolTypeMethodTable = {
@@ -112,22 +115,23 @@ static JSValue objCClass_read(ExecState* execState, const void* buffer, JSCell* 
     return jsCast<GlobalObject*>(execState->lexicalGlobalObject())->constructorFor(klass);
 }
 static void objCClass_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
-    if (value.inherits(ObjCConstructorBase::info())) {
+    JSC::VM& vm = execState->vm();
+    if (value.inherits(vm, ObjCConstructorBase::info())) {
         *static_cast<Class*>(buffer) = jsCast<ObjCConstructorBase*>(value.asCell())->klass();
     } else if (value.isUndefinedOrNull()) {
         *static_cast<Class*>(buffer) = nullptr;
     } else {
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a class."));
-        VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
         scope.throwException(execState, exception);
         return;
     }
 }
 static bool objCClass_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
-    return value.inherits(ObjCConstructorBase::info()) || value.isUndefinedOrNull();
+    JSC::VM& vm = execState->vm();
+    return value.inherits(vm, ObjCConstructorBase::info()) || value.isUndefinedOrNull();
 }
-static const char* objCClass_encode(JSC::JSCell* self) {
+static const char* objCClass_encode(JSC::VM&, JSC::JSCell* self) {
     return "#";
 }
 const FFITypeMethodTable objCClassTypeMethodTable = {
@@ -160,7 +164,7 @@ static void objCSelector_write(ExecState* execState, const JSValue& value, void*
 static bool objCSelector_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isString() || value.isUndefinedOrNull();
 }
-static const char* objCSelector_encode(JSC::JSCell* self) {
+static const char* objCSelector_encode(JSC::VM&, JSC::JSCell* self) {
     return ":";
 }
 const FFITypeMethodTable objCSelectorTypeMethodTable = {

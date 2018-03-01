@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo IndexedRefInstance::s_info = { "IndexedRef", &Base::s_info, 0, CREATE_METHOD_TABLE(IndexedRefInstance) };
+const ClassInfo IndexedRefInstance::s_info = { "IndexedRef", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(IndexedRefInstance) };
 
 void IndexedRefInstance::finishCreation(VM& vm, JSValue value) {
     Base::finishCreation(vm);
@@ -46,13 +46,13 @@ void IndexedRefInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     IndexedRefInstance* referenceInstance = jsCast<IndexedRefInstance*>(cell);
-    visitor.append(&referenceInstance->_innerTypeCell);
-    visitor.append(&referenceInstance->_pointer);
+    visitor.append(referenceInstance->_innerTypeCell);
+    visitor.append(referenceInstance->_pointer);
 }
 
 void IndexedRefInstance::setType(VM& vm, JSCell* innerType) {
     this->_innerTypeCell.set(vm, this, innerType);
-    this->_ffiTypeMethodTable = getFFITypeMethodTable(innerType);
+    this->_ffiTypeMethodTable = getFFITypeMethodTable(vm, innerType);
 }
 
 bool IndexedRefInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* execState, unsigned propertyName, PropertySlot& propertySlot) {

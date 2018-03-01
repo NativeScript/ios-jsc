@@ -26,7 +26,7 @@ static EncodedJSValue JSC_HOST_CALL construct(ExecState* execState) {
     return JSValue::encode(weakRef);
 }
 
-const ClassInfo JSWeakRefConstructor::s_info = { "WeakRef", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWeakRefConstructor) };
+const ClassInfo JSWeakRefConstructor::s_info = { "WeakRef", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWeakRefConstructor) };
 
 JSWeakRefConstructor::JSWeakRefConstructor(VM& vm, Structure* structure)
     : Base(vm, structure) {
@@ -48,4 +48,4 @@ CallType JSWeakRefConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = construct;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

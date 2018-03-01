@@ -6,15 +6,15 @@
 //
 //
 
-#include <JavaScriptCore/JSONObject.h>
 #include "JSWorkerInstance.h"
-#include "WorkerMessagingProxy.h"
 #include "JSErrors.h"
+#include "WorkerMessagingProxy.h"
+#include <JavaScriptCore/JSONObject.h>
 
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo JSWorkerInstance::s_info = { "Worker", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerInstance) };
+const ClassInfo JSWorkerInstance::s_info = { "Worker", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerInstance) };
 
 void JSWorkerInstance::postMessage(ExecState* exec, JSValue message, JSArray* transferList) {
     UNUSED_PARAM(transferList);
@@ -34,7 +34,8 @@ void JSWorkerInstance::onmessage(JSC::ExecState* exec, JSC::JSValue message) {
         return;
     }
 
-    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(exec->lexicalGlobalObject()->objectPrototype(), JSFinalObject::defaultInlineCapacity());
+    JSGlobalObject* globalObject = exec->lexicalGlobalObject();
+    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(globalObject, globalObject->objectPrototype(), JSFinalObject::defaultInlineCapacity());
     JSFinalObject* onMessageEvent = JSFinalObject::create(exec, emptyObjectStructure);
     onMessageEvent->putDirect(exec->vm(), Identifier::fromString(&exec->vm(), "data"), message);
 

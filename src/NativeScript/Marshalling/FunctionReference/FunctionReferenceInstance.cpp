@@ -11,7 +11,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FunctionReferenceInstance::s_info = { "FunctionReference", &Base::s_info, 0, CREATE_METHOD_TABLE(FunctionReferenceInstance) };
+const ClassInfo FunctionReferenceInstance::s_info = { "FunctionReference", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FunctionReferenceInstance) };
 
 void FunctionReferenceInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function) {
     JSFunction* object = jsCast<JSFunction*>(function);
@@ -26,7 +26,7 @@ void FunctionReferenceInstance::finishCreation(VM& vm, JSGlobalObject* globalObj
 }
 
 static EncodedJSValue JSC_HOST_CALL callFunc(ExecState* execState) {
-    FunctionReferenceInstance* functionReference = jsCast<FunctionReferenceInstance*>(execState->callee());
+    FunctionReferenceInstance* functionReference = jsCast<FunctionReferenceInstance*>(execState->callee().asCell());
 
     CallData callData;
     CallType callType = getCallData(functionReference->function(), callData);
@@ -42,8 +42,8 @@ void FunctionReferenceInstance::visitChildren(JSCell* cell, SlotVisitor& visitor
     Base::visitChildren(cell, visitor);
 
     FunctionReferenceInstance* object = jsCast<FunctionReferenceInstance*>(cell);
-    visitor.append(&object->_functionCallback);
-    visitor.append(&object->_function);
+    visitor.append(object->_functionCallback);
+    visitor.append(object->_function);
 }
 
 void FunctionReferenceInstance::setCallback(VM& vm, FFIFunctionCallback* functionCallback) {
@@ -57,4 +57,4 @@ FunctionReferenceInstance::~FunctionReferenceInstance() {
     FFIFunctionCallback* functionCallback = this->_functionCallback.get();
     gcUnprotectNullTolerant(functionCallback);
 }
-}
+} // namespace NativeScript

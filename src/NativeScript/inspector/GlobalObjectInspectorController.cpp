@@ -32,10 +32,12 @@
 #include "InspectorNetworkAgent.h"
 #include "InspectorPageAgent.h"
 #include "InspectorTimelineAgent.h"
+#include <JavaScriptCore/CatchScope.h>
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/ConsoleMessage.h>
 #include <JavaScriptCore/ErrorHandlingScope.h>
 #include <JavaScriptCore/Exception.h>
+#include <JavaScriptCore/ExceptionHelpers.h>
 #include <JavaScriptCore/InjectedScriptHost.h>
 #include <JavaScriptCore/InjectedScriptManager.h>
 #include <JavaScriptCore/InspectorAgent.h>
@@ -178,6 +180,8 @@ void GlobalObjectInspectorController::connectFrontend(FrontendChannel* frontendC
 void GlobalObjectInspectorController::disconnectFrontend(FrontendChannel* frontendChannel) {
     ASSERT_ARG(frontendChannel, frontendChannel);
 
+    JSC::JSLockHolder lock(this->vm());
+
     // FIXME: change this to notify agents which frontend has disconnected (by id).
     m_agents.willDestroyFrontendAndBackend(DisconnectReason::InspectorDestroyed);
 
@@ -236,16 +240,16 @@ void GlobalObjectInspectorController::appendAPIBacktrace(ScriptCallStack* callSt
 }
 
 void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Exception* exception) {
-    if (isTerminatedExecutionException(exception))
+    VM& vm = exec->vm();
+    if (isTerminatedExecutionException(vm, exception))
         return;
 
-    VM& vm = exec->vm();
     auto scope = DECLARE_CATCH_SCOPE(vm);
     ErrorHandlingScope errorScope(vm);
 
-    RefPtr<ScriptCallStack> callStack = createScriptCallStackFromException(exec, exception, ScriptCallStack::maxCallStackSizeToCapture);
+    Ref<ScriptCallStack> callStack = createScriptCallStackFromException(exec, exception, ScriptCallStack::maxCallStackSizeToCapture);
     if (includesNativeCallStackWhenReportingExceptions())
-        appendAPIBacktrace(callStack.get());
+        appendAPIBacktrace(&callStack.get());
 
     // FIXME: <http://webkit.org/b/115087> Web Inspector: Should not evaluate JavaScript handling exceptions
     // If this is a custom exception object, call toString on it to try and get a nice string representation for the exception.
@@ -260,8 +264,8 @@ void GlobalObjectInspectorController::reportAPIException(ExecState* exec, Except
             ConsoleClient::printConsoleMessage(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, String(), 0, 0);
     }
 
-    m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack));
-    m_logAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack));
+    m_consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack.copyRef()));
+    m_logAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::JS, MessageType::Log, MessageLevel::Error, errorMessage, callStack.copyRef()));
 }
 
 bool GlobalObjectInspectorController::developerExtrasEnabled() const {
@@ -316,4 +320,4 @@ void GlobalObjectInspectorController::appendExtraAgent(std::unique_ptr<Inspector
 }
 #endif
 
-} // namespace Inspector
+} // namespace NativeScript

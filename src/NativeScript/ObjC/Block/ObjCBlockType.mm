@@ -91,7 +91,7 @@ JSBlock::JSBlockDescriptor JSBlock::kJSBlockDescriptor = {
     .dispose = &disposeBlock
 };
 
-const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockType) };
+const ClassInfo ObjCBlockType::s_info = { "ObjCBlockType", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCBlockType) };
 
 JSValue ObjCBlockType::read(ExecState* execState, const void* buffer, JSCell* self) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -136,7 +136,7 @@ bool ObjCBlockType::canConvert(ExecState* execState, const JSValue& value, JSCel
     return value.isUndefinedOrNull();
 }
 
-const char* ObjCBlockType::encode(JSCell* cell) {
+const char* ObjCBlockType::encode(VM&, JSCell* cell) {
     return "@?";
 }
 
@@ -160,7 +160,7 @@ void ObjCBlockType::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     ObjCBlockType* object = jsCast<ObjCBlockType*>(cell);
-    visitor.append(&object->_returnType);
+    visitor.append(object->_returnType);
     visitor.append(object->_parameterTypes.begin(), object->_parameterTypes.end());
 }
 

@@ -19,7 +19,7 @@ namespace NativeScript {
 using namespace JSC;
 typedef ReferenceTypeInstance Base;
 
-const ClassInfo IndexedRefTypeInstance::s_info = { "IndexedRefTypeInstance", &Base::s_info, 0, CREATE_METHOD_TABLE(IndexedRefTypeInstance) };
+const ClassInfo IndexedRefTypeInstance::s_info = { "IndexedRefTypeInstance", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(IndexedRefTypeInstance) };
 
 JSValue IndexedRefTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     const void* data = buffer; //*reinterpret_cast<void* const*>(buffer);
@@ -44,7 +44,7 @@ void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, v
         return;
     }
 
-    if (IndexedRefInstance* reference = jsDynamicCast<IndexedRefInstance*>(value)) {
+    if (IndexedRefInstance* reference = jsDynamicCast<IndexedRefInstance*>(execState->vm(), value)) {
         if (!reference->data()) {
             GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
             reference->createBackingStorage(execState->vm(), globalObject, execState, referenceType->innerType());
@@ -52,7 +52,8 @@ void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, v
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
@@ -66,7 +67,7 @@ void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, v
     buffer = handle;
 }
 
-const char* IndexedRefTypeInstance::encode(JSCell* cell) {
+const char* IndexedRefTypeInstance::encode(VM& vm, JSCell* cell) {
     IndexedRefTypeInstance* self = jsCast<IndexedRefTypeInstance*>(cell);
 
     if (!self->_compilerEncoding.empty()) {
@@ -74,14 +75,14 @@ const char* IndexedRefTypeInstance::encode(JSCell* cell) {
     }
 
     self->_compilerEncoding = "^";
-    const FFITypeMethodTable& table = getFFITypeMethodTable(self->_innerType.get());
-    self->_compilerEncoding += table.encode(self->_innerType.get());
+    const FFITypeMethodTable& table = getFFITypeMethodTable(vm, self->_innerType.get());
+    self->_compilerEncoding += table.encode(vm, self->_innerType.get());
     return self->_compilerEncoding.c_str();
 }
 
 void IndexedRefTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     Base::finishCreation(vm);
-    ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(innerType).ffiType);
+    ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(vm, innerType).ffiType);
 
     ffi_type* type = new ffi_type({ .size = this->_size * innerFFIType->size, .alignment = innerFFIType->alignment, .type = FFI_TYPE_STRUCT });
 
@@ -104,7 +105,7 @@ void IndexedRefTypeInstance::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& 
     Base::visitChildren(cell, visitor);
 
     IndexedRefTypeInstance* object = jsCast<IndexedRefTypeInstance*>(cell);
-    visitor.append(&object->_innerType);
+    visitor.append(object->_innerType);
 }
 
 } // namespace NativeScript

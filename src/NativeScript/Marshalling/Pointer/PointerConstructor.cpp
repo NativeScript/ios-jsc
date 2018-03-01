@@ -15,7 +15,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo PointerConstructor::s_info = { "Pointer", &Base::s_info, 0, CREATE_METHOD_TABLE(PointerConstructor) };
+const ClassInfo PointerConstructor::s_info = { "Pointer", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(PointerConstructor) };
 
 void PointerConstructor::finishCreation(VM& vm, PointerPrototype* pointerPrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
@@ -68,9 +68,9 @@ void PointerConstructor::write(ExecState* execState, const JSValue& value, void*
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (!hasHandle) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a pointer."));
@@ -85,10 +85,11 @@ void PointerConstructor::postCall(ExecState* execState, const JSValue& value, vo
 }
 
 bool PointerConstructor::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
-    return value.isUndefinedOrNull() || value.inherits(ReferenceInstance::info()) || value.inherits(PointerInstance::info());
+    JSC::VM& vm = execState->vm();
+    return value.isUndefinedOrNull() || value.inherits(vm, ReferenceInstance::info()) || value.inherits(vm, PointerInstance::info());
 }
 
-const char* PointerConstructor::encode(JSCell* cell) {
+const char* PointerConstructor::encode(VM&, JSCell* cell) {
     return "^v";
 }
-}
+} // namespace NativeScript

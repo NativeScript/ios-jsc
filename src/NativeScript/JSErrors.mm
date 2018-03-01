@@ -44,7 +44,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
         }
     }
 
-    JSWorkerGlobalObject* workerGlobalObject = jsDynamicCast<JSWorkerGlobalObject*>(globalObject);
+    JSWorkerGlobalObject* workerGlobalObject = jsDynamicCast<JSWorkerGlobalObject*>(globalObject->vm(), globalObject);
     bool isWorker = workerGlobalObject != nullptr;
 
     WTF::ASCIILiteral closingMessage(isWorker ? "Fatal JavaScript exception on worker thread - worker thread has been terminated." : "Fatal JavaScript exception - application has been terminated.");

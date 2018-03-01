@@ -262,7 +262,7 @@ if(${BUILD_SHARED_LIBS})
 
 elseif(${EMBED_STATIC_DEPENDENCIES})
     foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
-        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${_directory}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)")
+        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${_directory}")
     endforeach()
     foreach(_library ${WEBKIT_LIBRARIES})
         set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -l${_library}")

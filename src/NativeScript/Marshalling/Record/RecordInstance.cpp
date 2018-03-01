@@ -12,7 +12,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordInstance::s_info = { "record", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordInstance) };
+const ClassInfo RecordInstance::s_info = { "record", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(RecordInstance) };
 
 void RecordInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, size_t size, PointerInstance* pointer) {
     Base::finishCreation(vm);
@@ -26,6 +26,6 @@ void RecordInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     RecordInstance* object = jsCast<RecordInstance*>(cell);
-    visitor.append(&object->_pointer);
+    visitor.append(object->_pointer);
 }
-}
+} // namespace NativeScript

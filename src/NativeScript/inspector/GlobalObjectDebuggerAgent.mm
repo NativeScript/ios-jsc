@@ -61,13 +61,14 @@ void GlobalObjectDebuggerAgent::enable() {
     JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->mapIteratorStructure(), jsCast<JSMap*>(registry), IterateKeyValue);
 
     JSValue moduleKey, moduleEntry;
-    Identifier moduleIdentifier = Identifier::fromString(&this->m_globalObject->vm(), "module");
+    VM& vm = this->m_globalObject->vm();
+    Identifier moduleIdentifier = Identifier::fromString(&vm, "module");
     while (registryIterator->nextKeyValue(this->m_globalObject->globalExec(), moduleKey, moduleEntry)) {
-        if (JSModuleRecord* record = jsDynamicCast<JSModuleRecord*>(moduleEntry.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
+        if (JSModuleRecord* record = jsDynamicCast<JSModuleRecord*>(vm, moduleEntry.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
             SourceProvider* sourceProvider = record->sourceCode().provider();
             JSValue function = record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
             if (!function.isEmpty() && !function.isUndefinedOrNull()) {
-                if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
+                if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(vm, record->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier()))) {
                     sourceProvider = moduleFunction->sourceCode()->provider();
                 }
             }
@@ -92,7 +93,9 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         return;
     }
 
-    if (JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(value.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
+    VM& vm = this->m_globalObject->vm();
+
+    if (JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(vm, value.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
         SourceCode& sourceCode = const_cast<SourceCode&>(moduleRecord->sourceCode());
         EditableSourceProvider* sourceProvider = static_cast<EditableSourceProvider*>(sourceCode.provider());
 
@@ -102,7 +105,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
 
         JSValue value = moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
         if (!value.isEmpty()) {
-            if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(value)) {
+            if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(vm, value)) {
                 sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
                 sourceCode = *moduleFunction->sourceCode();
 
@@ -113,7 +116,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
 
                 moduleSource = moduleFunctionSource.toString();
 
-                SourceCode updatedSourceCode = makeSource(moduleSource).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn() - 1);
+                SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
                 program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
             }
         } else {
@@ -133,10 +136,10 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         }
 
         m_globalObject->vm().clearSourceProviderCaches();
-        const ClearChangedCellsFunctor functor(moduleRecord->sourceCode().provider()->url(), diff);
+        const ClearChangedCellsFunctor functor(vm, moduleRecord->sourceCode().provider()->url(), diff);
         {
             HeapIterationScope iterationScope(m_globalObject->vm().heap);
-            m_globalObject->vm().heap.objectSpace().forEachLiveCell(iterationScope, functor);
+            vm.heap.objectSpace().forEachLiveCell(iterationScope, functor);
         }
     }
 }

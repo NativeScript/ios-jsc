@@ -1,6 +1,6 @@
 #include "JSWorkerGlobalObject.h"
-#include "WorkerMessagingProxy.h"
 #include "JSErrors.h"
+#include "WorkerMessagingProxy.h"
 
 #include <JavaScriptCore/runtime/JSJob.h>
 #include <JavaScriptCore/runtime/JSONObject.h>
@@ -27,7 +27,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
 
     if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
         JSValue arg2 = exec->argument(1);
-        if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(arg2.asCell()))) {
+        if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(exec->vm(), arg2.asCell()))) {
             return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
         }
     }
@@ -36,7 +36,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
     return JSValue::encode(jsUndefined());
 }
 
-const ClassInfo JSWorkerGlobalObject::s_info = { "NativeScriptWorkerGlobal", &Base::s_info, 0, CREATE_METHOD_TABLE(JSWorkerGlobalObject) };
+const ClassInfo JSWorkerGlobalObject::s_info = { "NativeScriptWorkerGlobal", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerGlobalObject) };
 
 void JSWorkerGlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     Base::finishCreation(vm, applicationPath);
@@ -65,8 +65,8 @@ void JSWorkerGlobalObject::onmessage(ExecState* exec, JSValue message) {
     if (callType == JSC::CallType::None) {
         return;
     }
-
-    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(exec->lexicalGlobalObject()->objectPrototype(), JSFinalObject::defaultInlineCapacity());
+    JSGlobalObject* globalObject = exec->lexicalGlobalObject();
+    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(globalObject, globalObject->objectPrototype(), JSFinalObject::defaultInlineCapacity());
     JSFinalObject* onMessageEvent = JSFinalObject::create(exec, emptyObjectStructure);
     onMessageEvent->putDirect(exec->vm(), Identifier::fromString(&exec->vm(), "data"), message);
 

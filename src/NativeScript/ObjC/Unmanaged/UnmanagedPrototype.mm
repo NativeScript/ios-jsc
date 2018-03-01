@@ -8,12 +8,12 @@ static char consumedUnmanagedCheck = 'k';
 
 using namespace JSC;
 
-const ClassInfo UnmanagedPrototype::s_info = { "Unmanaged", &Base::s_info, 0, CREATE_METHOD_TABLE(UnmanagedPrototype) };
+const ClassInfo UnmanagedPrototype::s_info = { "Unmanaged", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(UnmanagedPrototype) };
 
 static EncodedJSValue takeValue(ExecState* execState, bool retained) {
-    UnmanagedInstance* instance = jsDynamicCast<UnmanagedInstance*>(execState->thisValue());
+    VM& vm = execState->vm();
+    UnmanagedInstance* instance = jsDynamicCast<UnmanagedInstance*>(vm, execState->thisValue());
     if (instance->data() == &consumedUnmanagedCheck) {
-        VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
         return throwVMTypeError(execState, scope, WTF::ASCIILiteral("Unmanaged value has already been consumed."));
     }
