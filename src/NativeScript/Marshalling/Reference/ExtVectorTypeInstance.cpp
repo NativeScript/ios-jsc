@@ -89,12 +89,16 @@ void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
         arraySize = this->_size + 1;
     }
 
-    ffi_type* type = new ffi_type({ .size = arraySize * innerFFIType->size, .alignment = innerFFIType->alignment, .type = FFI_TYPE_STRUCT });
+    ffi_type* type = new ffi_type({ .size = arraySize * innerFFIType->size, .alignment = innerFFIType->alignment, .type = FFI_TYPE_EXT_VECTOR });
+
+    ffi_type* ffiTypeEl = new ffi_type({ .size = 4,
+                                         .alignment = 4,
+                                         .type = FFI_TYPE_FLOAT });
 
     type->elements = new ffi_type*[arraySize + 1];
 
     for (size_t i = 0; i < arraySize; i++) {
-        type->elements[i] = innerFFIType;
+        type->elements[i] = ffiTypeEl;
     }
 
     type->elements[arraySize] = nullptr;
