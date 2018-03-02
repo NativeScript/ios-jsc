@@ -7,7 +7,6 @@
 //
 
 #import "TNSRecords.h"
-#import <ARKit/ARKit.h>
 
 TNSVerySimpleStruct getSimpleStruct() {
     TNSVerySimpleStruct simpleStruct = { .x1 = 100, .y1 = { { .x2 = 10, .x3 = 20 }, { .x2 = 30, .x3 = 40 } } };

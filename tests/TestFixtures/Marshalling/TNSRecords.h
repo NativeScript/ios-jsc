@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Jason Zhekov. All rights reserved.
 //
 
-#import <ARKit/ARKit.h>
+#import <simd/simd.h>
 
 typedef struct TNSSimpleStruct {
     int x;
