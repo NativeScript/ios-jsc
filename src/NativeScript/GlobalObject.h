@@ -134,6 +134,10 @@ public:
         return this->_typeScriptOriginalExtendsFunction.get();
     }
 
+    JSC::JSFunction* smartStringifyFunction() const {
+        return this->_smartStringifyFunction.get();
+    }
+
     GlobalObjectInspectorController& inspectorController() const {
         return *this->_inspectorController.get();
     }
@@ -246,6 +250,7 @@ private:
     JSC::WriteBarrier<Interop> _interop;
 
     JSC::WriteBarrier<JSC::JSFunction> _typeScriptOriginalExtendsFunction;
+    JSC::WriteBarrier<JSC::JSFunction> _smartStringifyFunction;
 
     JSC::WriteBarrier<JSC::Structure> _weakRefConstructorStructure;
     JSC::WriteBarrier<JSC::Structure> _weakRefPrototypeStructure;
