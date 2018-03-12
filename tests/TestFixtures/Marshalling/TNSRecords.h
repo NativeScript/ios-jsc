@@ -90,13 +90,13 @@ typedef struct TNSStructWithPointers {
 
 TNSVerySimpleStruct getSimpleStruct();
 TNSComplexStruct getComplexStruct();
-simd_float2x2 getMatrix2x2();
-simd_float2x3 getMatrix2x3();
-simd_float2x4 getMatrix2x4();
-simd_float3x2 getMatrix3x2();
-simd_float3x3 getMatrix3x3();
-simd_float3x4 getMatrix3x4();
-simd_float4x2 getMatrix4x2();
-simd_float4x3 getMatrix4x3();
-simd_float4x4 getMatrix4x4();
+matrix_float2x2 getMatrix2x2();
+matrix_float2x3 getMatrix2x3();
+matrix_float2x4 getMatrix2x4();
+matrix_float3x2 getMatrix3x2();
+matrix_float3x3 getMatrix3x3();
+matrix_float3x4 getMatrix3x4();
+matrix_float4x2 getMatrix4x2();
+matrix_float4x3 getMatrix4x3();
+matrix_float4x4 getMatrix4x4();
 NestedSimpleStruct getNestedStruct();
