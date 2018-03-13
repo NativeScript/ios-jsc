@@ -39,8 +39,7 @@ void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, v
     IndexedRefTypeInstance* referenceType = jsCast<IndexedRefTypeInstance*>(self);
 
     if (value.isUndefinedOrNull()) {
-        // *reinterpret_cast<void**>(buffer) = nullptr;
-        buffer = nullptr;
+        memset(buffer, 0, referenceType->ffiTypeMethodTable().ffiType->size);
         return;
     }
 
@@ -63,8 +62,7 @@ void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, v
         return;
     }
 
-    //*reinterpret_cast<void**>(buffer) = handle;
-    buffer = handle;
+    memcpy(buffer, handle, referenceType->ffiTypeMethodTable().ffiType->size);
 }
 
 const char* IndexedRefTypeInstance::encode(VM& vm, JSCell* cell) {

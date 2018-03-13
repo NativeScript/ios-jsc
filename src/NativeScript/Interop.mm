@@ -72,6 +72,9 @@ void* tryHandleofValue(VM& vm, const JSValue& value, bool* hasHandle) {
     } else if (ReferenceInstance* referenceInstance = jsDynamicCast<ReferenceInstance*>(vm, value)) {
         *hasHandle = referenceInstance->data() != nullptr;
         handle = referenceInstance->data();
+    } else if (IndexedRefInstance* indexedRefInstance = jsDynamicCast<IndexedRefInstance*>(vm, value)) {
+        *hasHandle = indexedRefInstance->data() != nullptr;
+        handle = indexedRefInstance->data();
     } else if (FunctionReferenceInstance* functionReferenceInstance = jsDynamicCast<FunctionReferenceInstance*>(vm, value)) {
         *hasHandle = functionReferenceInstance->functionPointer() != nullptr;
         handle = const_cast<void*>(functionReferenceInstance->functionPointer());

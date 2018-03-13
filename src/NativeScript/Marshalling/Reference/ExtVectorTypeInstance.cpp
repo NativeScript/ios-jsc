@@ -39,8 +39,7 @@ void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, vo
     ExtVectorTypeInstance* referenceType = jsCast<ExtVectorTypeInstance*>(self);
 
     if (value.isUndefinedOrNull()) {
-        // *reinterpret_cast<void**>(buffer) = nullptr;
-        buffer = nullptr;
+        memset(buffer, 0, referenceType->ffiTypeMethodTable().ffiType->size);
         return;
     }
 
@@ -63,8 +62,7 @@ void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, vo
         return;
     }
 
-    //*reinterpret_cast<void**>(buffer) = handle;
-    buffer = handle;
+    memcpy(buffer, handle, referenceType->ffiTypeMethodTable().ffiType->size);
 }
 
 const char* ExtVectorTypeInstance::encode(VM& vm, JSCell* cell) {
