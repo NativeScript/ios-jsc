@@ -1,15 +1,20 @@
 #include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectInspectorController.h"
 #include "InspectorTimelineAgent.h"
+#include <GlobalObject.h>
+#include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/ConsoleMessage.h>
+#include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <JavaScriptCore/ScriptValue.h>
+#include <runtime/JSONObject.h>
 #include <wtf/text/StringBuilder.h>
 
 namespace NativeScript {
+using namespace JSC;
 #if !LOG_DISABLED
 static bool sLogToSystemConsole = true;
 #else
@@ -31,6 +36,66 @@ static void appendURLAndPosition(StringBuilder& builder, const String& url, unsi
         builder.append(':');
         builder.appendNumber(columnNumber);
     }
+}
+
+static WTF::String smartStringifyObject(ExecState* exec, JSC::JSValue value) {
+    JSC::CallData smartStringifyCallData;
+    NativeScript::GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(exec->lexicalGlobalObject());
+    CallType callType = globalObject->smartStringifyFunction()->getCallData(globalObject->smartStringifyFunction(), smartStringifyCallData);
+    JSC::MarkedArgumentBuffer argumentBuffer;
+    argumentBuffer.append(value);
+    JSC::JSValue smartStringifyResult = JSC::call(exec, globalObject->smartStringifyFunction(), callType, smartStringifyCallData, exec->lexicalGlobalObject(), argumentBuffer);
+    return smartStringifyResult.toWTFString(exec);
+}
+
+static WTF::String getStringRepresentationOfObject(JSC::ExecState* exec, JSC::JSValue value) {
+    if (value.isFunction()) {
+        return "()";
+    } else if (value.inherits(exec->vm(), JSC::JSArray::info())) {
+        JSC::JSArray* arrayValue = jsCast<JSC::JSArray*>(value);
+        StringBuilder output;
+        output.append("[");
+        for (unsigned i = 0; i < arrayValue->length(); i++) {
+            JSC::JSValue item = arrayValue->JSArray::getIndex(exec, i);
+            if (item.isObject()) {
+                output.append(smartStringifyObject(exec, item));
+            } else {
+                output.append(getStringRepresentationOfObject(exec, item));
+            }
+            if (i < arrayValue->length() - 1) {
+                output.append(", ");
+            }
+        }
+        output.append("]");
+        return output.toString();
+    } else if (value.isObject()) {
+        String valueAsString = value.toWTFString(exec);
+        if (valueAsString.contains("[object Object]")) {
+            return smartStringifyObject(exec, value);
+        } else {
+            return valueAsString;
+        }
+    }
+
+    return value.toWTFString(exec);
+}
+
+static WTF::String getDirMessageForObject(JSC::ExecState* exec, JSC::JSValue object) {
+    JSC::JSObject* jsObject = object.getObject();
+    JSC::PropertyNameArray propertyNames(exec, JSC::PropertyNameMode::Strings);
+    JSC::EnumerationMode mode;
+    jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
+    StringBuilder output;
+
+    for (JSC::PropertyName propertyName : propertyNames) {
+        JSC::JSValue value = object.get(exec, propertyName);
+        output.append(WTF::String(propertyName.uid()));
+        output.append(": ");
+        output.append(getStringRepresentationOfObject(exec, value));
+        output.append("\n");
+    }
+
+    return output.toString();
 }
 
 bool GlobalObjectConsoleClient::logToSystemConsole() {
@@ -83,7 +148,11 @@ void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource s
             if (i > 0) {
                 builder.append(' ');
             }
-            builder.append(argAsString);
+            if (argAsString.contains("[object Object]")) {
+                builder.append(smartStringifyObject(exec, arguments->argumentAt(i)));
+            } else {
+                builder.append(argAsString);
+            }
         }
     }
 
@@ -145,21 +214,13 @@ WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::
 
     if (argument.isObject()) {
         output.append("\n");
-
-        JSC::JSObject* jsObject = argument.getObject();
-        JSC::PropertyNameArray propertyNames(exec, JSC::PropertyNameMode::Strings);
-        JSC::EnumerationMode mode;
-        jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
-
-        for (JSC::PropertyName propertyName : propertyNames) {
-            JSC::JSValue value = argument.get(exec, propertyName);
-            output.append(WTF::String(propertyName.uid()));
-            output.append(": ");
-            output.append(value.toWTFString(exec));
-            output.append("\n");
-        }
+        output.append("==== object dump start ====");
+        output.append("\n");
+        output.append(getDirMessageForObject(exec, argument));
+        output.append("==== object dump end ====");
+        output.append("\n");
     }
 
     return output.toString();
 }
-}
+} // namespace NativeScript
