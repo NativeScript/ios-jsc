@@ -8,6 +8,18 @@
 
 #import "TNSRecords.h"
 
+#if __IPHONE_OS_VERSION_MAX_ALLOWED < 110000
+typedef vector_float2 simd_float2;
+typedef vector_float3 simd_float3;
+typedef vector_float4 simd_float4;
+#define simd_make_float2(a, b) \
+    { a, b }
+#define simd_make_float3(a, b, c) \
+    { a, b, c }
+#define simd_make_float4(a, b, c, d) \
+    { a, b, c, d }
+#endif
+
 TNSVerySimpleStruct getSimpleStruct() {
     TNSVerySimpleStruct simpleStruct = { .x1 = 100, .y1 = { { .x2 = 10, .x3 = 20 }, { .x2 = 30, .x3 = 40 } } };
 
@@ -27,11 +39,7 @@ TNSComplexStruct getComplexStruct() {
 
 matrix_float2x2 getMatrix2x2() {
     matrix_float2x2 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float2 sfloat = simd_make_float2(1.2345, 2.3456);
-#else
-    vector_float2 sfloat = { 1.2345, 2.3456 };
-#endif
     for (int i = 0; i < 2; i++) {
         result.columns[i] = sfloat;
     }
@@ -40,11 +48,7 @@ matrix_float2x2 getMatrix2x2() {
 
 matrix_float2x3 getMatrix2x3() {
     matrix_float2x3 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float3 sfloat = simd_make_float3(1.2345, 2.3456, 3.4567);
-#else
-    vector_float3 sfloat = { 1.2345, 2.3456, 3.4567 };
-#endif
     for (int i = 0; i < 2; i++) {
         result.columns[i] = sfloat;
     }
@@ -53,11 +57,7 @@ matrix_float2x3 getMatrix2x3() {
 
 matrix_float2x4 getMatrix2x4() {
     matrix_float2x4 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float4 sfloat = simd_make_float4(1.2345, 2.3456, 3.4567, 4.5678);
-#else
-    vector_float4 sfloat = { 1.2345, 2.3456, 3.4567, 4.5678 };
-#endif
     for (int i = 0; i < 2; i++) {
         result.columns[i] = sfloat;
     }
@@ -66,11 +66,7 @@ matrix_float2x4 getMatrix2x4() {
 
 matrix_float3x2 getMatrix3x2() {
     matrix_float3x2 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float2 sfloat = simd_make_float2(1.2345, 2.3456);
-#else
-    vector_float2 sfloat = { 1.2345, 2.3456 };
-#endif
     for (int i = 0; i < 3; i++) {
         result.columns[i] = sfloat;
     }
@@ -79,11 +75,7 @@ matrix_float3x2 getMatrix3x2() {
 
 matrix_float3x3 getMatrix3x3() {
     matrix_float3x3 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float3 sfloat = simd_make_float3(1.2345, 2.3456, 3.4567);
-#else
-    vector_float3 sfloat = { 1.2345, 2.3456, 3.4567 };
-#endif
     for (int i = 0; i < 3; i++) {
         result.columns[i] = sfloat;
     }
@@ -92,11 +84,7 @@ matrix_float3x3 getMatrix3x3() {
 
 matrix_float3x4 getMatrix3x4() {
     matrix_float3x4 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float4 sfloat = simd_make_float4(1.2345, 2.3456, 3.4567, 4.5678);
-#else
-    vector_float4 sfloat = { 1.2345, 2.3456, 3.4567, 4.5678 };
-#endif
     for (int i = 0; i < 3; i++) {
         result.columns[i] = sfloat;
     }
@@ -105,11 +93,7 @@ matrix_float3x4 getMatrix3x4() {
 
 matrix_float4x2 getMatrix4x2() {
     matrix_float4x2 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float2 sfloat = simd_make_float2(1.2345, 2.3456);
-#else
-    vector_float2 sfloat = { 1.2345, 2.3456 };
-#endif
     for (int i = 0; i < 4; i++) {
         result.columns[i] = sfloat;
     }
@@ -118,11 +102,7 @@ matrix_float4x2 getMatrix4x2() {
 
 matrix_float4x3 getMatrix4x3() {
     matrix_float4x3 result;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000
     simd_float3 sfloat = simd_make_float3(1.2345, 2.3456, 3.4567);
-#else
-    vector_float3 sfloat = { 1.2345, 2.3456, 3.4567 };
-#endif
     for (int i = 0; i < 4; i++) {
         result.columns[i] = sfloat;
     }
