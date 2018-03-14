@@ -72,9 +72,10 @@ const char* IndexedRefTypeInstance::encode(VM& vm, JSCell* cell) {
         return self->_compilerEncoding.c_str();
     }
 
-    self->_compilerEncoding = "^";
+    self->_compilerEncoding = "[" + std::to_string(self->_size) + "^";
     const FFITypeMethodTable& table = getFFITypeMethodTable(vm, self->_innerType.get());
     self->_compilerEncoding += table.encode(vm, self->_innerType.get());
+    self->_compilerEncoding += "]";
     return self->_compilerEncoding.c_str();
 }
 

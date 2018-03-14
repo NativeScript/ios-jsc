@@ -22,7 +22,7 @@ typedef ReferenceTypeInstance Base;
 const ClassInfo ExtVectorTypeInstance::s_info = { "ExtVectorTypeInstance", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ExtVectorTypeInstance) };
 
 JSValue ExtVectorTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
-    const void* data = buffer; //*reinterpret_cast<void* const*>(buffer);
+    const void* data = buffer;
 
     if (!data) {
         return jsNull();
@@ -72,9 +72,10 @@ const char* ExtVectorTypeInstance::encode(VM& vm, JSCell* cell) {
         return self->_compilerEncoding.c_str();
     }
 
-    self->_compilerEncoding = "^";
+    self->_compilerEncoding = "[" + std::to_string(self->_size) + "^";
     const FFITypeMethodTable& table = getFFITypeMethodTable(vm, self->_innerType.get());
     self->_compilerEncoding += table.encode(vm, self->_innerType.get());
+    self->_compilerEncoding += "]";
     return self->_compilerEncoding.c_str();
 }
 
