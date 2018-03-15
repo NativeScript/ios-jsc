@@ -34,10 +34,10 @@ int main(int argc, const char *argv[]) {
                      forKey:NSWorkspaceLaunchConfigurationArguments];
 
     [configuration setValue:@{
-        @"DYLD_FRAMEWORK_PATH" : [[NSBundle mainBundle] privateFrameworksPath]
-      }
-                       forKey:NSWorkspaceLaunchConfigurationEnvironment];
-      
+      @"DYLD_FRAMEWORK_PATH" : [[NSBundle mainBundle] privateFrameworksPath]
+    }
+                     forKey:NSWorkspaceLaunchConfigurationEnvironment];
+
     [[NSWorkspace sharedWorkspace]
         launchApplicationAtURL:applicationBundle.bundleURL
                        options:0

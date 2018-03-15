@@ -9,7 +9,9 @@
 #ifndef __NativeScript__TypeFactory__
 #define __NativeScript__TypeFactory__
 
+#include "ExtVectorTypeInstance.h"
 #include "FFIType.h"
+#include "IndexedRefTypeInstance.h"
 #include "Metadata/Metadata.h"
 #include "WeakHandleOwners.h"
 #include <unordered_map>
@@ -24,6 +26,7 @@ class ObjCConstructorNative;
 class RecordConstructor;
 class RecordField;
 class ReferenceTypeInstance;
+class IndexedRefTypeInstance;
 class ObjCBlockType;
 class FunctionReferenceTypeInstance;
 class FFISimpleType;
@@ -56,6 +59,10 @@ public:
     ObjCConstructorNative* NSObjectConstructor(GlobalObject*);
 
     ReferenceTypeInstance* getReferenceType(GlobalObject* globalObject, JSC::JSCell* innerType);
+
+    IndexedRefTypeInstance* getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
+
+    ExtVectorTypeInstance* getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
 
     FunctionReferenceTypeInstance* getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSC::JSCell* returnType, WTF::Vector<JSCell*> parametersTypes);
 
@@ -138,6 +145,9 @@ private:
 
     void finishCreation(JSC::VM&, GlobalObject*);
 
+    JSC::JSCell* parsePrimitiveType(JSC::JSGlobalObject* globalOBject, const Metadata::TypeEncoding*& typeEncoding);
+    size_t resolveConstArrayTypeSize(const Metadata::TypeEncoding* typeEncoding, const Metadata::TypeEncoding* innerTypeEncoding);
+
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
     WTF::Vector<RecordField*> createRecordFields(GlobalObject*, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
@@ -172,6 +182,8 @@ private:
     JSC::WriteBarrier<PointerConstructor> _pointerConstructor;
 
     JSC::WriteBarrier<JSC::Structure> _referenceTypeStructure;
+    JSC::WriteBarrier<JSC::Structure> _indexedRefTypeStructure;
+    JSC::WriteBarrier<JSC::Structure> _extVectorTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _objCBlockTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _functionReferenceTypeStructure;
     JSC::WriteBarrier<JSC::Structure> _recordPrototypeStructure;

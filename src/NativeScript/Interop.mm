@@ -14,6 +14,8 @@
 #include "FunctionReferenceInstance.h"
 #include "FunctionReferenceTypeConstructor.h"
 #include "FunctionReferenceTypeInstance.h"
+#include "IndexedRefInstance.h"
+#include "IndexedRefPrototype.h"
 #include "NSErrorWrapperConstructor.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockType.h"
@@ -70,6 +72,9 @@ void* tryHandleofValue(VM& vm, const JSValue& value, bool* hasHandle) {
     } else if (ReferenceInstance* referenceInstance = jsDynamicCast<ReferenceInstance*>(vm, value)) {
         *hasHandle = referenceInstance->data() != nullptr;
         handle = referenceInstance->data();
+    } else if (IndexedRefInstance* indexedRefInstance = jsDynamicCast<IndexedRefInstance*>(vm, value)) {
+        *hasHandle = indexedRefInstance->data() != nullptr;
+        handle = indexedRefInstance->data();
     } else if (FunctionReferenceInstance* functionReferenceInstance = jsDynamicCast<FunctionReferenceInstance*>(vm, value)) {
         *hasHandle = functionReferenceInstance->functionPointer() != nullptr;
         handle = const_cast<void*>(functionReferenceInstance->functionPointer());
@@ -249,6 +254,10 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     ReferencePrototype* referencePrototype = ReferencePrototype::create(vm, globalObject, ReferencePrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_referenceInstanceStructure.set(vm, this, ReferenceInstance::createStructure(vm, globalObject, referencePrototype));
 
+    IndexedRefPrototype* indexedRefPrototype = IndexedRefPrototype::create(vm, globalObject, IndexedRefPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
+    this->_indexedRefInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype));
+    this->_extVectorInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype));
+
     ReferenceConstructor* referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype);
     this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor, ReadOnly | DontDelete);
     referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor, DontEnum);
@@ -345,8 +354,11 @@ void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     Interop* interop = jsCast<Interop*>(cell);
+
     visitor.append(interop->_pointerInstanceStructure);
     visitor.append(interop->_referenceInstanceStructure);
+    visitor.append(interop->_indexedRefInstanceStructure);
+    visitor.append(interop->_extVectorInstanceStructure);
     visitor.append(interop->_functionReferenceInstanceStructure);
     visitor.append(interop->_nsErrorWrapperConstructor);
 }

@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Jason Zhekov. All rights reserved.
 //
 
+#import <simd/simd.h>
+
 typedef struct TNSSimpleStruct {
     int x;
     int y;
@@ -57,7 +59,27 @@ typedef struct TNSComplexStruct {
             int8_t x3[2];
         } y2;
     } y1[2];
+    int64_t x4;
 } TNSComplexStruct;
+
+typedef struct TNSVerySimpleStruct {
+    int32_t x1;
+    struct {
+        int16_t x2;
+        int32_t x3;
+    } y1[2];
+} TNSVerySimpleStruct;
+
+typedef struct NestedSimpleStruct {
+    struct {
+        float x2;
+        float x3;
+    } y1;
+    struct {
+        float x2;
+        float x3;
+    } y2;
+} NestedSimpleStruct;
 
 typedef struct TNSStructWithPointers {
     void (*a)();
@@ -65,3 +87,16 @@ typedef struct TNSStructWithPointers {
     TNSSimpleStruct* y;
     struct TNSStructWithPointers* z;
 } TNSStructWithPointers;
+
+TNSVerySimpleStruct getSimpleStruct();
+TNSComplexStruct getComplexStruct();
+matrix_float2x2 getMatrix2x2();
+matrix_float2x3 getMatrix2x3();
+matrix_float2x4 getMatrix2x4();
+matrix_float3x2 getMatrix3x2();
+matrix_float3x3 getMatrix3x3();
+matrix_float3x4 getMatrix3x4();
+matrix_float4x2 getMatrix4x2();
+matrix_float4x3 getMatrix4x3();
+matrix_float4x4 getMatrix4x4();
+NestedSimpleStruct getNestedStruct();
