@@ -48,10 +48,6 @@ set(HEADER_FILES
     Marshalling/Reference/ReferencePrototype.h
     Marshalling/Reference/ReferenceTypeConstructor.h
     Marshalling/Reference/ReferenceTypeInstance.h
-    Marshalling/Reference/IndexedRefTypeInstance.h
-    Marshalling/Reference/IndexedRefInstance.h
-    Marshalling/Reference/IndexedRefPrototype.h
-    Marshalling/Reference/ExtVectorTypeInstance.h
     Metadata/Metadata.h
     NativeScript-Prefix.h
     NativeScript.h
@@ -152,10 +148,6 @@ set(SOURCE_FILES
     Marshalling/Reference/ReferencePrototype.cpp
     Marshalling/Reference/ReferenceTypeConstructor.cpp
     Marshalling/Reference/ReferenceTypeInstance.cpp
-    Marshalling/Reference/IndexedRefTypeInstance.cpp
-    Marshalling/Reference/IndexedRefInstance.cpp
-    Marshalling/Reference/IndexedRefPrototype.cpp
-    Marshalling/Reference/ExtVectorTypeInstance.cpp
     Metadata/Metadata.mm
     ObjC/AllocatedPlaceholder.cpp
     ObjC/Block/ObjCBlockCall.mm

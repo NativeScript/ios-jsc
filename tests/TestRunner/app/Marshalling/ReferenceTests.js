@@ -147,19 +147,6 @@ describe(module.id, function () {
         functionWithIntIncompleteArray(reference);
         expect(TNSGetOutput()).toBe('123');
     });
-    
-    it("ConstantArrayAssignment", function () {
-       var s1 = getSimpleStruct();
-       var s2 = getSimpleStruct();
-
-       s1.y1 = s2.y1;
-       s1.y1 = undefined;
-       expect(s1.y1[0].x2).toBe(0);
-       expect(s1.y1[1].x2).toBe(0);
-       s1.y1 = s2.y1;
-       expect(s1.y1[0].x2).toBe(10);
-       expect(s1.y1[1].x2).toBe(30);
-    });
 
     it("ConstantCArrayParameter", function () {
         var handle = interop.alloc(5 * interop.sizeof(interop.types.int32));

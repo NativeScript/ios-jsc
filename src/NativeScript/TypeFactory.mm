@@ -191,11 +191,9 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 
         size_t offset = ffiType->size;
         unsigned short alignment = fieldFFIType->alignment;
-
         size_t padding = (alignment - (offset % alignment)) % alignment;
 
         offset += padding;
-
         ffiType->size = offset + fieldFFIType->size;
         ffiType->alignment = std::max(ffiType->alignment, fieldFFIType->alignment);
 
@@ -207,8 +205,8 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 
 #if defined(__x86_64__)
     /*
-         If on 64-bit architecture, flatten the nested structures, because libffi can't handle them.
-         */
+        If on 64-bit architecture, flatten the nested structures, because libffi can't handle them.
+    */
     if (hasNestedStruct) {
         WTF::Vector<ffi_type*> flattenedFfiTypes;
         WTF::Vector<ffi_type*> stack{ ffiType }; // simulate recursion with stack (no need of other function)
@@ -270,6 +268,7 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     JSValue parentPrototype;
     JSValue parentConstructor;
 
+
     const char* superKlassName = metadata->baseName();
     if (superKlassName) {
         parentConstructor = getObjCNativeConstructor(globalObject, superKlassName);
@@ -318,36 +317,6 @@ ObjCConstructorNative* TypeFactory::NSObjectConstructor(GlobalObject* globalObje
     ObjCConstructorNative* constructor = getObjCNativeConstructor(globalObject, WTF::ASCIILiteral("NSObject"));
     this->_nsObjectConstructor.set(globalObject->vm(), this, constructor);
     return constructor;
-}
-
-IndexedRefTypeInstance* TypeFactory::getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
-    WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
-    if (this->_cacheReferenceType.contains(innerWeak)) {
-        WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
-        if (value->state() == WeakImpl::State::Live) {
-            return static_cast<IndexedRefTypeInstance*>(value->jsValue().asCell());
-        } else {
-            this->_cacheReferenceType.remove(innerWeak);
-        }
-    }
-
-    IndexedRefTypeInstance* result = IndexedRefTypeInstance::create(globalObject->vm(), this->_indexedRefTypeStructure.get(), innerType, typeSize);
-    return result;
-}
-
-ExtVectorTypeInstance* TypeFactory::getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
-    WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
-    if (this->_cacheReferenceType.contains(innerWeak)) {
-        WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
-        if (value->state() == WeakImpl::State::Live) {
-            return static_cast<ExtVectorTypeInstance*>(value->jsValue().asCell());
-        } else {
-            this->_cacheReferenceType.remove(innerWeak);
-        }
-    }
-
-    ExtVectorTypeInstance* result = ExtVectorTypeInstance::create(globalObject->vm(), this->_extVectorTypeStructure.get(), innerType, typeSize);
-    return result;
 }
 
 ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
@@ -478,16 +447,8 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         break;
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
-        size_t arraySize = typeEncoding->details.constantArray.size;
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getIndexedRefType(globalObject, innerType, arraySize);
-        break;
-    }
-    case BinaryTypeEncodingType::ExtVectorEncoding: {
-        const TypeEncoding* innerTypeEncoding = typeEncoding->details.extVector.getInnerType();
-        size_t arraySize = typeEncoding->details.extVector.size;
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
-        result = this->getExtVectorType(globalObject, innerType, arraySize);
+        result = this->getReferenceType(globalObject, innerType);
         break;
     }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {
@@ -529,8 +490,6 @@ void TypeFactory::finishCreation(VM& vm, GlobalObject* globalObject) {
     Base::finishCreation(vm);
 
     this->_referenceTypeStructure.set(vm, this, ReferenceTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
-    this->_indexedRefTypeStructure.set(vm, this, IndexedRefTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
-    this->_extVectorTypeStructure.set(vm, this, ExtVectorTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_objCBlockTypeStructure.set(vm, this, ObjCBlockType::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_functionReferenceTypeStructure.set(vm, this, FunctionReferenceTypeInstance::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_recordPrototypeStructure.set(vm, this, RecordPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
@@ -569,8 +528,6 @@ void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(typeFactory, visitor);
 
     visitor.append(typeFactory->_referenceTypeStructure);
-    visitor.append(typeFactory->_indexedRefTypeStructure);
-    visitor.append(typeFactory->_extVectorTypeStructure);
     visitor.append(typeFactory->_objCBlockTypeStructure);
     visitor.append(typeFactory->_functionReferenceTypeStructure);
     visitor.append(typeFactory->_recordPrototypeStructure);

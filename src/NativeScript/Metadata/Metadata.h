@@ -43,8 +43,7 @@ enum MetaType {
     JsCode = 4,
     Var = 5,
     Interface = 6,
-    ProtocolType = 7,
-    Vector = 8
+    ProtocolType = 7
 };
 
 enum MemberType {
@@ -87,8 +86,7 @@ enum BinaryTypeEncodingType : Byte {
     FunctionPointerEncoding,
     BlockEncoding,
     AnonymousStructEncoding,
-    AnonymousUnionEncoding,
-    ExtVectorEncoding
+    AnonymousUnionEncoding
 };
 
 #pragma pack(push, 1)
@@ -292,10 +290,10 @@ struct PtrTo {
         return valuePtr();
     }
     PtrTo<T> add(int value) const {
-        return PtrTo<T>{ .offset = this->offset + value * sizeof(T) };
+        return PtrTo<T>{.offset = this->offset + value * sizeof(T) };
     }
     PtrTo<T> addBytes(int bytes) const {
-        return PtrTo<T>{ .offset = this->offset + bytes };
+        return PtrTo<T>{.offset = this->offset + bytes };
     }
     template <typename V>
     PtrTo<V>& castTo() const {
@@ -330,12 +328,6 @@ union TypeEncodingDetails {
             return reinterpret_cast<const TypeEncoding*>(this + 1);
         }
     } constantArray;
-    struct ExtVectorDetails {
-        int32_t size;
-        const TypeEncoding* getInnerType() const {
-            return reinterpret_cast<const TypeEncoding*>(this + 1);
-        }
-    } extVector;
     struct DeclarationReferenceDetails {
         String name;
     } declarationReference;
@@ -371,9 +363,6 @@ struct TypeEncoding {
         switch (this->type) {
         case BinaryTypeEncodingType::ConstantArrayEncoding: {
             return this->details.constantArray.getInnerType()->next();
-        }
-        case BinaryTypeEncodingType::ExtVectorEncoding: {
-            return this->details.extVector.getInnerType()->next();
         }
         case BinaryTypeEncodingType::IncompleteArrayEncoding: {
             return this->details.incompleteArray.getInnerType()->next();
@@ -784,6 +773,6 @@ public:
 };
 
 #pragma pack(pop)
-} // namespace Metadata
+}
 
 #endif /* defined(__NativeScript__Metadata__) */

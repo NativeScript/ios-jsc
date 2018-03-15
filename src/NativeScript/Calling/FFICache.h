@@ -33,7 +33,6 @@ public:
     FFIMap cifCache;
 
     static FFICache* global();
-    WTF::Lock _cacheLock;
 };
 
 } // namespace NativeScript
