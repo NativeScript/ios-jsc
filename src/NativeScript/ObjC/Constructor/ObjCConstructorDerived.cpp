@@ -12,5 +12,5 @@ namespace NativeScript {
 
 using namespace JSC;
 
-const ClassInfo ObjCConstructorDerived::s_info = { "Function", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCConstructorDerived) };
-}
+const ClassInfo ObjCConstructorDerived::s_info = { "Function", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCConstructorDerived) };
+} // namespace NativeScript

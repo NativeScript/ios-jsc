@@ -65,7 +65,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<ReferenceInstance*>(cell)->~ReferenceInstance();
+        static_cast<ReferenceInstance*>(cell)->~ReferenceInstance();
     }
 
     void finishCreation(JSC::VM&, JSC::JSValue);
@@ -82,6 +82,6 @@ private:
 
     FFITypeMethodTable _ffiTypeMethodTable;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ReferenceInstance__) */

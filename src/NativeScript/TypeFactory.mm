@@ -11,6 +11,7 @@
 #include "FFIPrimitiveTypes.h"
 #include "FFISimpleType.h"
 #include "FunctionReferenceTypeInstance.h"
+#include "ManualInstrumentation.h"
 #include "Metadata.h"
 #include "ObjCBlockType.h"
 #include "ObjCConstructorNative.h"
@@ -26,13 +27,12 @@
 #include "SymbolLoader.h"
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <string>
-#include "ManualInstrumentation.h"
 
 namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo TypeFactory::s_info = { "TypeFactory", &Base::s_info, 0, CREATE_METHOD_TABLE(TypeFactory) };
+const ClassInfo TypeFactory::s_info = { "TypeFactory", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(TypeFactory) };
 
 ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
     const TypeEncoding* typeEncodingPtr = typeEncodings.first();
@@ -80,7 +80,7 @@ FunctionReferenceTypeInstance* TypeFactory::getFunctionReferenceTypeInstance(Glo
     if (this->_cacheFunctionReferenceType.contains(weakParametersTypes)) {
         WeakImpl* value = this->_cacheFunctionReferenceType.get(weakParametersTypes);
         if (value->state() == WeakImpl::State::Live) {
-            return jsDynamicCast<FunctionReferenceTypeInstance*>(value->jsValue().asCell());
+            return jsDynamicCast<FunctionReferenceTypeInstance*>(globalObject->vm(), value->jsValue().asCell());
         } else {
             this->_cacheFunctionReferenceType.remove(weakParametersTypes);
         }
@@ -97,9 +97,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
         return constructor;
     }
 
-    ffi_type* ffiType = new ffi_type({.size = 0,
-                                      .alignment = 0,
-                                      .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({ .size = 0,
+                                       .alignment = 0,
+                                       .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -142,9 +142,9 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
 }
 
 RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
-    ffi_type* ffiType = new ffi_type({.size = 0,
-                                      .alignment = 0,
-                                      .type = FFI_TYPE_STRUCT });
+    ffi_type* ffiType = new ffi_type({ .size = 0,
+                                       .alignment = 0,
+                                       .type = FFI_TYPE_STRUCT });
 
     VM& vm = globalObject->vm();
 
@@ -183,7 +183,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 #endif
     WTF::Vector<RecordField*> fields;
     for (size_t i = 0; i < fieldsTypes.size(); i++) {
-        const ffi_type* fieldFFIType = getFFITypeMethodTable(fieldsTypes[i]).ffiType;
+        const ffi_type* fieldFFIType = getFFITypeMethodTable(vm, fieldsTypes[i]).ffiType;
 #if defined(__x86_64__)
         hasNestedStruct = hasNestedStruct || (fieldFFIType->type == FFI_TYPE_STRUCT);
 #endif
@@ -268,17 +268,21 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     JSValue parentPrototype;
     JSValue parentConstructor;
 
-    // NSObject and NSProxy don't have a base class
+
     const char* superKlassName = metadata->baseName();
     if (superKlassName) {
         parentConstructor = getObjCNativeConstructor(globalObject, superKlassName);
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
     } else {
+        // NSObject and NSProxy don't have a base class and therefore inherit directly from GlobalObject.
         parentPrototype = globalObject->objectPrototype();
         parentConstructor = globalObject->functionPrototype();
     }
 
-    // The parentConstructor may have already initialized the constructor.
+    // The parentConstructor may have already initialized our constructor.
+    /// If we have a super class which somehow references us we will already be cached when
+    /// the parent constructor has been created.
+    /// TODO: Move this check in the if (superKlassName) case.
     if (ObjCConstructorNative* type = this->_cacheId.get(klassName)) {
         return type;
     }
@@ -296,10 +300,10 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     }
     prototype->materializeProperties(vm, globalObject);
     constructor->materializeProperties(vm, globalObject);
-    
+
     if (frame.check()) {
-        NSString *classNameNSStr = (NSString*)klassName.createCFString().get();
-        frame.log([@"Expose: " stringByAppendingString: classNameNSStr].UTF8String);
+        NSString* classNameNSStr = (NSString*)klassName.createCFString().get();
+        frame.log([@"Expose: " stringByAppendingString:classNameNSStr].UTF8String);
     }
 
     return constructor;
@@ -523,36 +527,36 @@ void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     TypeFactory* typeFactory = jsCast<TypeFactory*>(cell);
     Base::visitChildren(typeFactory, visitor);
 
-    visitor.append(&typeFactory->_referenceTypeStructure);
-    visitor.append(&typeFactory->_objCBlockTypeStructure);
-    visitor.append(&typeFactory->_functionReferenceTypeStructure);
-    visitor.append(&typeFactory->_recordPrototypeStructure);
-    visitor.append(&typeFactory->_recordConstructorStructure);
-    visitor.append(&typeFactory->_recordFieldStructure);
+    visitor.append(typeFactory->_referenceTypeStructure);
+    visitor.append(typeFactory->_objCBlockTypeStructure);
+    visitor.append(typeFactory->_functionReferenceTypeStructure);
+    visitor.append(typeFactory->_recordPrototypeStructure);
+    visitor.append(typeFactory->_recordConstructorStructure);
+    visitor.append(typeFactory->_recordFieldStructure);
 
-    visitor.append(&typeFactory->_noopType);
-    visitor.append(&typeFactory->_voidType);
-    visitor.append(&typeFactory->_boolType);
-    visitor.append(&typeFactory->_utf8CStringType);
-    visitor.append(&typeFactory->_unicharType);
+    visitor.append(typeFactory->_noopType);
+    visitor.append(typeFactory->_voidType);
+    visitor.append(typeFactory->_boolType);
+    visitor.append(typeFactory->_utf8CStringType);
+    visitor.append(typeFactory->_unicharType);
 
-    visitor.append(&typeFactory->_int8Type);
-    visitor.append(&typeFactory->_uint8Type);
-    visitor.append(&typeFactory->_int16Type);
-    visitor.append(&typeFactory->_uint16Type);
-    visitor.append(&typeFactory->_int32Type);
-    visitor.append(&typeFactory->_uint32Type);
-    visitor.append(&typeFactory->_int64Type);
-    visitor.append(&typeFactory->_uint64Type);
-    visitor.append(&typeFactory->_floatType);
-    visitor.append(&typeFactory->_doubleType);
+    visitor.append(typeFactory->_int8Type);
+    visitor.append(typeFactory->_uint8Type);
+    visitor.append(typeFactory->_int16Type);
+    visitor.append(typeFactory->_uint16Type);
+    visitor.append(typeFactory->_int32Type);
+    visitor.append(typeFactory->_uint32Type);
+    visitor.append(typeFactory->_int64Type);
+    visitor.append(typeFactory->_uint64Type);
+    visitor.append(typeFactory->_floatType);
+    visitor.append(typeFactory->_doubleType);
 
-    visitor.append(&typeFactory->_objCInstancetypeType);
-    visitor.append(&typeFactory->_objCProtocolType);
-    visitor.append(&typeFactory->_objCClassType);
-    visitor.append(&typeFactory->_objCSelectorType);
+    visitor.append(typeFactory->_objCInstancetypeType);
+    visitor.append(typeFactory->_objCProtocolType);
+    visitor.append(typeFactory->_objCClassType);
+    visitor.append(typeFactory->_objCSelectorType);
 
-    visitor.append(&typeFactory->_nsObjectConstructor);
-    visitor.append(&typeFactory->_pointerConstructor);
+    visitor.append(typeFactory->_nsObjectConstructor);
+    visitor.append(typeFactory->_pointerConstructor);
 }
 }

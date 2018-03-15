@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo RecordPrototype::s_info = { "record", &Base::s_info, 0, CREATE_METHOD_TABLE(RecordPrototype) };
+const ClassInfo RecordPrototype::s_info = { "record", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(RecordPrototype) };
 
 static EncodedJSValue JSC_HOST_CALL recordProtoFuncToString(ExecState* execState) {
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
@@ -74,4 +74,4 @@ void RecordPrototype::setFields(VM& vm, GlobalObject* globalObject, const WTF::V
         Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(&vm, field->fieldName()), descriptor, false);
     }
 }
-}
+} // namespace NativeScript

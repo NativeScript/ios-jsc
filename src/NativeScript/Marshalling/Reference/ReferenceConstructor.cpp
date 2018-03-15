@@ -16,7 +16,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferenceConstructor::s_info = { "Reference", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferenceConstructor) };
+const ClassInfo ReferenceConstructor::s_info = { "Reference", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ReferenceConstructor) };
 
 void ReferenceConstructor::finishCreation(VM& vm, ReferencePrototype* referencePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
@@ -30,21 +30,22 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
     ReferenceInstance* result;
 
     JSValue maybeType = execState->argument(0);
+    JSC::VM& vm = execState->vm();
     const FFITypeMethodTable* ffiTypeMethodTable;
-    if (tryGetFFITypeMethodTable(maybeType, &ffiTypeMethodTable)) {
+    if (tryGetFFITypeMethodTable(vm, maybeType, &ffiTypeMethodTable)) {
         void* handle = nullptr;
         bool adopted = true;
 
         if (execState->argumentCount() == 2) {
             JSValue value = execState->uncheckedArgument(1);
-            if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(value)) {
+            if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(vm, value)) {
                 handle = pointer->data();
                 adopted = pointer->isAdopted();
-            } else if (RecordInstance* record = jsDynamicCast<RecordInstance*>(value)) {
+            } else if (RecordInstance* record = jsDynamicCast<RecordInstance*>(vm, value)) {
                 handle = record->pointer()->data();
                 adopted = record->pointer()->isAdopted();
-            } else if (ReferenceInstance* reference = jsDynamicCast<ReferenceInstance*>(value)) {
-                if (maybeType.inherits(ReferenceTypeInstance::info())) {
+            } else if (ReferenceInstance* reference = jsDynamicCast<ReferenceInstance*>(vm, value)) {
+                if (maybeType.inherits(vm, ReferenceTypeInstance::info())) {
                     // do nothing, this is a reference to reference
                 } else if (PointerInstance* pointer = reference->pointer()) {
                     handle = pointer->data();
@@ -62,16 +63,15 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
             handle = calloc(ffiTypeMethodTable->ffiType->size, 1);
         }
 
-        PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), handle));
+        PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(vm, handle));
         pointer->setAdopted(adopted);
-        result = ReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->referenceInstanceStructure(), maybeType.asCell(), pointer);
+        result = ReferenceInstance::create(vm, globalObject, globalObject->interop()->referenceInstanceStructure(), maybeType.asCell(), pointer);
     } else if (execState->argumentCount() == 2) {
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
     } else {
-        result = ReferenceInstance::create(execState->vm(), globalObject->interop()->referenceInstanceStructure(), maybeType);
+        result = ReferenceInstance::create(vm, globalObject->interop()->referenceInstanceStructure(), maybeType);
     }
 
     return JSValue::encode(result);
@@ -86,4 +86,4 @@ CallType ReferenceConstructor::getCallData(JSCell* cell, CallData& callData) {
     callData.native.function = &constructReference;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

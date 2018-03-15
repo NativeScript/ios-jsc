@@ -15,7 +15,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ReferenceTypeConstructor::s_info = { "ReferenceType", &Base::s_info, 0, CREATE_METHOD_TABLE(ReferenceTypeConstructor) };
+const ClassInfo ReferenceTypeConstructor::s_info = { "ReferenceType", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ReferenceTypeConstructor) };
 
 void ReferenceTypeConstructor::finishCreation(VM& vm, JSObject* referenceTypePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
@@ -35,7 +35,7 @@ static EncodedJSValue JSC_HOST_CALL constructReferenceType(ExecState* execState)
 
     JSValue type = execState->uncheckedArgument(0);
     const FFITypeMethodTable* methodTable;
-    if (!tryGetFFITypeMethodTable(type, &methodTable)) {
+    if (!tryGetFFITypeMethodTable(vm, type, &methodTable)) {
         return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
     }
 
@@ -51,4 +51,4 @@ CallType ReferenceTypeConstructor::getCallData(JSCell* cell, CallData& callData)
     callData.native.function = &constructReferenceType;
     return CallType::Host;
 }
-}
+} // namespace NativeScript

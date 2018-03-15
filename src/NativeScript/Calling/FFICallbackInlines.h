@@ -9,13 +9,15 @@
 #ifndef __NativeScript__FFICallbackInlines__
 #define __NativeScript__FFICallbackInlines__
 
+#include <JavaScriptCore/CatchScope.h>
+
 #include "FFICallback.h"
 #include "JSErrors.h"
 
 namespace NativeScript {
 
 template <class DerivedCallback>
-const JSC::ClassInfo FFICallback<DerivedCallback>::s_info = { "FFICallback", 0, 0, CREATE_METHOD_TABLE(FFICallback) };
+const JSC::ClassInfo FFICallback<DerivedCallback>::s_info = { "FFICallback", nullptr, nullptr, nullptr, CREATE_METHOD_TABLE(FFICallback) };
 
 template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void* retValue, void** argValues, void* userData) {
@@ -77,7 +79,7 @@ inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlo
     this->_initialArgumentIndex = initialArgumentIndex;
 
     this->_returnTypeCell.set(vm, this, returnType);
-    this->_returnType = getFFITypeMethodTable(returnType);
+    this->_returnType = getFFITypeMethodTable(vm, returnType);
 
     size_t parametersCount = parameterTypes.size();
 
@@ -91,7 +93,7 @@ inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlo
         JSCell* parameterTypeCell = parameterTypes[i];
         this->_parameterTypesCells.append(JSC::WriteBarrier<JSCell>(vm, this, parameterTypeCell));
 
-        const FFITypeMethodTable& ffiTypeMethodTable = getFFITypeMethodTable(parameterTypeCell);
+        const FFITypeMethodTable& ffiTypeMethodTable = getFFITypeMethodTable(vm, parameterTypeCell);
         this->_parameterTypes.append(ffiTypeMethodTable);
 
         parameterTypesFFITypes[i + initialArgumentIndex] = ffiTypeMethodTable.ffiType;
@@ -109,8 +111,8 @@ inline void FFICallback<DerivedCallback>::visitChildren(JSC::JSCell* cell, JSC::
     Base::visitChildren(cell, visitor);
 
     FFICallback* ffiCall = JSC::jsCast<FFICallback*>(cell);
-    visitor.append(&ffiCall->_function);
-    visitor.append(&ffiCall->_returnTypeCell);
+    visitor.append(ffiCall->_function);
+    visitor.append(ffiCall->_returnTypeCell);
     visitor.append(ffiCall->_parameterTypesCells.begin(), ffiCall->_parameterTypesCells.end());
 }
 

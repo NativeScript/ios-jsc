@@ -14,7 +14,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo ObjCBlockCallback::s_info = { "ObjCBlockCallback", &Base::s_info, 0, CREATE_METHOD_TABLE(ObjCBlockCallback) };
+const ClassInfo ObjCBlockCallback::s_info = { "ObjCBlockCallback", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCBlockCallback) };
 
 void ObjCBlockCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     ObjCBlockCallback* blockCallback = reinterpret_cast<ObjCBlockCallback*>(userData);
@@ -34,4 +34,4 @@ void ObjCBlockCallback::ffiClosureCallback(void* retValue, void** argValues, voi
 void ObjCBlockCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, ObjCBlockType* blockType) {
     Base::finishCreation(vm, globalObject, function, blockType->returnType(), blockType->parameterTypes(), 1);
 }
-}
+} // namespace NativeScript

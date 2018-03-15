@@ -7,12 +7,12 @@
 //
 
 #include "WorkerMessagingProxy.h"
-#include <JavaScriptCore/runtime/Exception.h>
-#include <JavaScriptCore/JSONObject.h>
-#include <wtf/RunLoop.h>
-#include "TNSRuntime+Private.h"
 #include "JSErrors.h"
 #include "JSWorkerGlobalObject.h"
+#include "TNSRuntime+Private.h"
+#include <JavaScriptCore/JSONObject.h>
+#include <JavaScriptCore/runtime/Exception.h>
+#include <wtf/RunLoop.h>
 
 #define Func(localFunctionName, ...) std::bind(&WorkerMessagingProxy::localFunctionName, this, ##__VA_ARGS__)
 
@@ -141,7 +141,7 @@ void WorkerMessagingProxy::parentStartWorkerThread(const WTF::String& applicatio
     ASSERT(!_workerPort->runLoop);
 
     std::shared_ptr<WorkerMessagingProxy> sharedProxy = _parentData->workerInstance->workerMessagingProxy();
-    createThread("NativeScript: Worker", std::bind(WorkerMessagingProxy::workerThreadMain, sharedProxy, applicationPath, entryModuleId, referrer));
+    Thread::create("NativeScript: Worker", std::bind(WorkerMessagingProxy::workerThreadMain, sharedProxy, applicationPath, entryModuleId, referrer));
 }
 
 void WorkerMessagingProxy::parentTerminateWorkerThread() {
@@ -210,7 +210,7 @@ void WorkerMessagingProxy::workerThreadInitialize(std::shared_ptr<WorkerMessagin
 
     [_workerData->runtime removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     [_workerData->runtime release];
-    detachThread(currentThread());
+    Thread::current().detach();
 }
 
 void WorkerMessagingProxy::workerPostMessageToParent(WTF::String& message) {

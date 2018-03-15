@@ -11,13 +11,14 @@
 #include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/interpreter/FrameTracers.h>
 #include <dispatch/dispatch.h>
 #include <malloc/malloc.h>
 
 namespace NativeScript {
 using namespace JSC;
 
-const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, 0, CREATE_METHOD_TABLE(FFICall) };
+const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FFICall) };
 
 void deleteCif(ffi_cif* cif) {
     delete[] cif->arg_types;
@@ -30,14 +31,14 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
     this->_initialArgumentIndex = initialArgumentIndex;
 
     this->_returnTypeCell.set(vm, this, returnType);
-    this->_returnType = getFFITypeMethodTable(returnType);
+    this->_returnType = getFFITypeMethodTable(vm, returnType);
 
     size_t parametersCount = parameterTypes.size();
     this->putDirect(vm, vm.propertyNames->length, jsNumber(parametersCount), ReadOnly | DontEnum | DontDelete);
 
     const ffi_type** parameterTypesFFITypes = new const ffi_type*[parametersCount + initialArgumentIndex];
 
-    this->signatureVector.push_back(getFFITypeMethodTable(returnType).ffiType);
+    this->signatureVector.push_back(getFFITypeMethodTable(vm, returnType).ffiType);
 
     for (size_t i = 0; i < initialArgumentIndex; ++i) {
         parameterTypesFFITypes[i] = &ffi_type_pointer;
@@ -48,7 +49,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
         JSCell* parameterTypeCell = parameterTypes[i];
         this->_parameterTypesCells.append(WriteBarrier<JSCell>(vm, this, parameterTypeCell));
 
-        const FFITypeMethodTable& ffiTypeMethodTable = getFFITypeMethodTable(parameterTypeCell);
+        const FFITypeMethodTable& ffiTypeMethodTable = getFFITypeMethodTable(vm, parameterTypeCell);
         this->_parameterTypes.append(ffiTypeMethodTable);
 
         parameterTypesFFITypes[i + initialArgumentIndex] = ffiTypeMethodTable.ffiType;
@@ -98,7 +99,7 @@ void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     Base::visitChildren(cell, visitor);
 
     FFICall* ffiCall = jsCast<FFICall*>(cell);
-    visitor.append(&ffiCall->_returnTypeCell);
+    visitor.append(ffiCall->_returnTypeCell);
     visitor.append(ffiCall->_parameterTypesCells.begin(), ffiCall->_parameterTypesCells.end());
 }
 
@@ -108,7 +109,7 @@ CallType FFICall::getCallData(JSCell*, CallData& callData) {
 }
 
 EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
-    FFICall* callee = jsCast<FFICall*>(execState->callee());
+    FFICall* callee = jsCast<FFICall*>(execState->callee().asCell());
     Invocation invocation(callee);
     ReleasePoolHolder releasePoolHolder(execState);
 

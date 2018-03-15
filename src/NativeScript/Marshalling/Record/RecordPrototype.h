@@ -48,7 +48,7 @@ private:
     }
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<RecordPrototype*>(cell)->~RecordPrototype();
+        static_cast<RecordPrototype*>(cell)->~RecordPrototype();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*);
@@ -57,6 +57,6 @@ private:
 
     WTF::Vector<JSC::WriteBarrier<RecordField>> _fields;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__RecordPrototype__) */

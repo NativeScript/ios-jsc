@@ -20,10 +20,10 @@ EncodedJSValue JSC_HOST_CALL ObjCExtendFunction(ExecState* execState) {
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     JSValue instanceMethodsValue = execState->argument(0);
-    if (!instanceMethodsValue.inherits(JSObject::info())) {
+    if (!instanceMethodsValue.inherits(vm, JSObject::info())) {
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Parameter must be an object"))));
     }
-    if (instanceMethodsValue.get(execState, execState->vm().propertyNames->constructor).inherits(ObjCConstructorBase::info())) {
+    if (instanceMethodsValue.get(execState, execState->vm().propertyNames->constructor).inherits(vm, ObjCConstructorBase::info())) {
         return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The override object is used by another derived class"))));
     }
     JSObject* instanceMethods = instanceMethodsValue.toObject(execState);

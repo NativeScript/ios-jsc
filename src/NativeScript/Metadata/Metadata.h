@@ -34,6 +34,7 @@ enum MetaFlags {
     PropertyHasSetter = 3
 };
 
+/// This enum describes the possible ObjectiveC entity types.
 enum MetaType {
     Undefined = 0,
     Struct = 1,

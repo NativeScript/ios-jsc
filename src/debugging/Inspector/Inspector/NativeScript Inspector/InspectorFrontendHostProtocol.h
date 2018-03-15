@@ -3,19 +3,20 @@
 
 @protocol InspectorFrontendHostProtocol <JSExport>
 
-- (NSString *)platform;
-- (NSString *)localizedStringsURL;
-- (NSString *)debuggableType;
+- (NSString*)platform;
+- (NSString*)localizedStringsURL;
+- (NSString*)debuggableType;
 - (NSString*)backendCommandsURL;
 - (NSString*)zoomFactor;
 - (unsigned)inspectionLevel;
 - (void)loaded;
 - (void)bringToFront;
-- (void)sendMessageToBackend:(NSString *)message;
+- (void)sendMessageToBackend:(NSString*)message;
 - (void)inspectedURLChanged;
 - (void)startWindowDrag;
-- (void)setZoomFactor:(NSString *)factor;
+- (void)setZoomFactor:(NSString*)factor;
 - (void)showContextMenu;
 - (void)openInNewTab;
+- (NSString*)userInterfaceLayoutDirection;
 
 @end

@@ -6,13 +6,15 @@
 //  Copyright (c) 2015 г. Telerik. All rights reserved.
 //
 
-#include "TNSRuntime.h"
-#include "ManualInstrumentation.h"
 #include "GlobalObject.h"
 #include "Interop.h"
 #include "LiveEdit/EditableSourceProvider.h"
+#include "ManualInstrumentation.h"
 #include "ObjCTypes.h"
+#include "TNSRuntime.h"
 #include <JavaScriptCore/BuiltinNames.h>
+#include <JavaScriptCore/CatchScope.h>
+#include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
@@ -22,6 +24,7 @@
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/JSSourceCode.h>
 #include <JavaScriptCore/LiteralParser.h>
 #include <JavaScriptCore/ModuleAnalyzer.h>
 #include <JavaScriptCore/ModuleLoaderPrototype.h>
@@ -31,6 +34,81 @@
 #include <JavaScriptCore/ParserError.h>
 #include <JavaScriptCore/tools/CodeProfiling.h>
 #include <sys/stat.h>
+
+static UChar pathSeparator() {
+#if OS(WINDOWS)
+    return '\\';
+#else
+    return '/';
+#endif
+}
+
+struct DirectoryName {
+    // In unix, it is "/". In Windows, it becomes a drive letter like "C:\"
+    String rootName;
+
+    // If the directory name is "/home/WebKit", this becomes "home/WebKit". If the directory name is "/", this becomes "".
+    String queryName;
+};
+
+struct ModuleName {
+    ModuleName(const String& moduleName);
+
+    bool startsWithRoot() const {
+        return !queries.isEmpty() && queries[0].isEmpty();
+    }
+
+    Vector<String> queries;
+};
+
+ModuleName::ModuleName(const String& moduleName) {
+    // A module name given from code is represented as the UNIX style path. Like, `./A/B.js`.
+    moduleName.split('/', true, queries);
+}
+
+static std::optional<DirectoryName> extractDirectoryName(const String& absolutePathToFile) {
+    size_t firstSeparatorPosition = absolutePathToFile.find(pathSeparator());
+    if (firstSeparatorPosition == notFound)
+        return std::nullopt;
+    DirectoryName directoryName;
+    directoryName.rootName = absolutePathToFile.substring(0, firstSeparatorPosition + 1); // Include the separator.
+    size_t lastSeparatorPosition = absolutePathToFile.reverseFind(pathSeparator());
+    ASSERT_WITH_MESSAGE(lastSeparatorPosition != notFound, "If the separator is not found, this function already returns when performing the forward search.");
+    if (firstSeparatorPosition == lastSeparatorPosition)
+        directoryName.queryName = StringImpl::empty();
+    else {
+        size_t queryStartPosition = firstSeparatorPosition + 1;
+        size_t queryLength = lastSeparatorPosition - queryStartPosition; // Not include the last separator.
+        directoryName.queryName = absolutePathToFile.substring(queryStartPosition, queryLength);
+    }
+    return directoryName;
+}
+
+static String resolvePath(const DirectoryName& directoryName, const ModuleName& moduleName) {
+    Vector<String> directoryPieces;
+    directoryName.queryName.split(pathSeparator(), false, directoryPieces);
+
+    // Only first '/' is recognized as the path from the root.
+    if (moduleName.startsWithRoot())
+        directoryPieces.clear();
+
+    for (const auto& query : moduleName.queries) {
+        if (query == String(ASCIILiteral(".."))) {
+            if (!directoryPieces.isEmpty())
+                directoryPieces.removeLast();
+        } else if (!query.isEmpty() && query != String(ASCIILiteral(".")))
+            directoryPieces.append(query);
+    }
+
+    StringBuilder builder;
+    builder.append(directoryName.rootName);
+    for (size_t i = 0; i < directoryPieces.size(); ++i) {
+        builder.append(directoryPieces[i]);
+        if (i + 1 != directoryPieces.size())
+            builder.append(pathSeparator());
+    }
+    return builder.toString();
+}
 
 namespace NativeScript {
 using namespace JSC;
@@ -205,7 +283,7 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_CATCH_SCOPE(vm);
 
-    NSString* modulePath = keyValue.toWTFString(execState);
+    auto modulePath = keyValue.toWTFString(execState);
     if (JSC::Exception* e = scope.exception()) {
         scope.clearException();
         return deferred->reject(execState, e->value());
@@ -219,38 +297,21 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
         return deferred->reject(execState, self->interop()->wrapError(execState, error));
     }
 
-    return deferred->resolve(execState, self->interop()->bufferFromData(execState, moduleContent));
-}
-
-JSInternalPromise* GlobalObject::moduleLoaderTranslate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue sourceValue, JSValue initiator) {
-    JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
-
-    JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_CATCH_SCOPE(vm);
-
-    id source = NativeScript::toObject(execState, sourceValue);
-    if (Exception* exception = scope.exception()) {
-        scope.clearException();
-        return deferred->reject(execState, exception);
+    String moduleContentStr = WTF::String::fromUTF8((const LChar*)moduleContent.bytes, moduleContent.length);
+    if (moduleContentStr.isNull()) {
+        return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
     }
 
-    NSString* contents = nil;
+    WTF::StringBuilder moduleUrl;
+    moduleUrl.append("file://");
 
-    if ([source isKindOfClass:[NSData class]]) {
-        contents = [[NSString alloc] initWithData:source encoding:NSUTF8StringEncoding];
-
-        if (contents == nil) {
-            return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
-        }
-    } else if ([source isKindOfClass:[NSString class]]) {
-        contents = source;
+    if (modulePath.startsWith(self->applicationPath().impl())) {
+        moduleUrl.append(modulePath.impl()->substring(self->applicationPath().length()));
     } else {
-        return deferred->reject(execState, createTypeError(execState, WTF::String::format("Unexpected module source type '%s'.", NSStringFromClass([source class]).UTF8String)));
+        moduleUrl.append(WTF::String(modulePath.impl()));
     }
 
-    JSC::JSString* contentsJs = jsString(execState, contents);
-    [contents release];
-    return deferred->resolve(execState, contentsJs);
+    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(modulePath), moduleUrl.toString(), TextPosition(), SourceProviderSourceType::Module)));
 }
 
 static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourceCode, const Identifier& moduleKey, ParserError& parserError) {
@@ -279,22 +340,17 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         return deferred->reject(execState, exception->value());
     }
 
-    WTF::String source = execState->argument(1).toWTFString(execState);
+    JSSourceCode* jsSourceCode = jsDynamicCast<JSSourceCode*>(vm, execState->argument(1));
+    RELEASE_ASSERT(jsSourceCode);
+    SourceCode sourceCode = jsSourceCode->sourceCode();
+    WTF::String source = sourceCode.view().toString();
+
     if (Exception* exception = scope.exception()) {
         scope.clearException();
         return deferred->reject(execState, exception->value());
     }
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
-
-    WTF::StringBuilder moduleUrl;
-    moduleUrl.append("file://");
-
-    if (moduleKey.impl()->startsWith(self->applicationPath().impl())) {
-        moduleUrl.append(moduleKey.impl()->substring(self->applicationPath().length()));
-    } else {
-        moduleUrl.append(WTF::String(moduleKey.impl()));
-    }
 
     JSValue json;
     if (moduleKey.impl()->endsWith(".json")) {
@@ -312,17 +368,17 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
             }
         }
 
-        moduleUrl.clear(); // hide the module from the debugger
         source = WTF::ASCIILiteral("export default undefined;");
+        sourceCode = SourceCode(EditableSourceProvider::create(source, WTF::emptyString() /*empty url hides module from the debugger*/, WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
     }
 
-    SourceCode sourceCode = SourceCode(EditableSourceProvider::create(source, moduleUrl.toString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
     ParserError error;
     JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
 
     if (!moduleRecord || (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json)) {
+        auto moduleUrl = sourceCode.provider()->url();
         error = ParserError();
-        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
+        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
         moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
         ASSERT(!error.isValid());
 
@@ -332,7 +388,8 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         moduleFunctionSource.append("\n}}");
 
         JSObject* exception = nullptr;
-        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl.toString(), WTF::TextPosition::minimumPosition(), JSC::SourceProviderSourceType::Module));
+
+        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl, WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
         FunctionExecutable* moduleFunctionExecutable = FunctionExecutable::fromGlobalCode(Identifier::fromString(execState, "anonymous"), *execState, sourceCode, exception, -1);
         if (!moduleFunctionExecutable) {
             ASSERT(exception);
@@ -359,7 +416,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
         return JSValue::encode(throwTypeError(execState, scope, WTF::ASCIILiteral("Expected module identifier to be a string.")));
     }
 
-    JSValue callee = execState->calleeAsValue();
+    JSValue callee = execState->callee().asCell();
     JSValue refererKey = callee.get(execState, execState->propertyNames().sourceURL);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -403,10 +460,12 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                                                   }
 
                                                   return JSValue::encode(jsUndefined());
-                                              }), errorHandler);
+                                              }),
+                                              errorHandler);
 
                       return JSValue::encode(promise);
-                  }), errorHandler);
+                  }),
+                  errorHandler);
     globalObject->drainMicrotasks();
 
     if (!error.isUndefinedOrNull() && error.isCell() && error.asCell() != nullptr) {
@@ -439,7 +498,7 @@ static void putValueInScopeAndSymbolTable(VM& vm, JSModuleRecord* moduleRecord, 
 }
 
 JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue moduleRecordValue, JSValue initiator) {
-    JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(moduleRecordValue);
+    JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(execState->vm(), moduleRecordValue);
     if (!moduleRecord) {
         return jsUndefined();
     }
@@ -491,4 +550,31 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
 
     return moduleRecord->evaluate(execState);
 }
+
+JSInternalPromise* GlobalObject::moduleLoaderImportModule(JSGlobalObject* globalObject, ExecState* exec, JSModuleLoader*, JSString* moduleNameValue, const SourceOrigin& sourceOrigin) {
+    VM& vm = globalObject->vm();
+    auto scope = DECLARE_CATCH_SCOPE(vm);
+
+    auto rejectPromise = [&](JSValue error) {
+        return JSInternalPromiseDeferred::create(exec, globalObject)->reject(exec, error);
+    };
+
+    if (sourceOrigin.isNull())
+        return rejectPromise(createError(exec, ASCIILiteral("Could not resolve the module specifier.")));
+
+    auto referrer = sourceOrigin.string();
+    auto moduleName = moduleNameValue->value(exec);
+    if (UNLIKELY(scope.exception())) {
+        JSValue exception = scope.exception();
+        scope.clearException();
+        return rejectPromise(exception);
+    }
+
+    auto directoryName = extractDirectoryName(referrer.impl());
+    if (!directoryName)
+        return rejectPromise(createError(exec, makeString("Could not resolve the referrer name '", String(referrer.impl()), "'.")));
+
+    return JSC::importModule(exec, Identifier::fromString(&vm, resolvePath(directoryName.value(), ModuleName(moduleName))), jsUndefined());
 }
+
+} // namespace Nativescript

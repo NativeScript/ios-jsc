@@ -52,7 +52,7 @@ static void voidType_write(ExecState* execState, const JSValue& value, void* buf
 static bool voidType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isUndefinedOrNull();
 }
-static const char* voidType_encode(JSC::JSCell* self) {
+static const char* voidType_encode(JSC::VM&, JSC::JSCell* self) {
     return "v";
 }
 const FFITypeMethodTable voidTypeMethodTable = {
@@ -73,7 +73,7 @@ static void boolType_write(ExecState* execState, const JSValue& value, void* buf
 static bool boolType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return true;
 }
-static const char* boolType_encode(JSC::JSCell* self) {
+static const char* boolType_encode(JSC::VM&, JSC::JSCell* self) {
     return "B";
 }
 const FFITypeMethodTable boolTypeMethodTable = {
@@ -106,7 +106,7 @@ static void unicharType_write(ExecState* execState, const JSValue& value, void* 
 static bool unicharType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return value.isCell() && value.toString(execState)->length() == 1;
 }
-static const char* unicharType_encode(JSC::JSCell* self) {
+static const char* unicharType_encode(JSC::VM&, JSC::JSCell* self) {
     return "S";
 }
 const FFITypeMethodTable unicharTypeMethodTable = {
@@ -144,13 +144,13 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
     }
 
     bool hasHandle;
-    void* handle = tryHandleofValue(value, &hasHandle);
+    JSC::VM& vm = execState->vm();
+    void* handle = tryHandleofValue(vm, value, &hasHandle);
     if (hasHandle) {
         *static_cast<char**>(buffer) = static_cast<char*>(handle);
         return;
     }
 
-    JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a string."));
@@ -160,7 +160,7 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
 static bool cStringType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     return true;
 }
-static const char* cStringType_encode(JSC::JSCell* self) {
+static const char* cStringType_encode(JSC::VM&, JSC::JSCell* self) {
     return "*";
 }
 const FFITypeMethodTable utf8CStringTypeMethodTable = {
@@ -170,4 +170,4 @@ const FFITypeMethodTable utf8CStringTypeMethodTable = {
     .ffiType = &ffi_type_pointer,
     .encode = &cStringType_encode
 };
-}
+} // namespace NativeScript

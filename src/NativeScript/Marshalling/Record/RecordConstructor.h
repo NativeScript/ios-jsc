@@ -52,7 +52,7 @@ private:
     ~RecordConstructor();
 
     static void destroy(JSC::JSCell* cell) {
-        JSC::jsCast<RecordConstructor*>(cell)->~RecordConstructor();
+        static_cast<RecordConstructor*>(cell)->~RecordConstructor();
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, RecordPrototype*, const WTF::String& name, ffi_type*, RecordType);
@@ -71,7 +71,7 @@ private:
 
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
-    static const char* encode(JSC::JSCell*);
+    static const char* encode(JSC::VM&, JSC::JSCell*);
 
     JSC::WriteBarrier<JSC::Structure> _instancesStructure;
 
@@ -81,6 +81,6 @@ private:
 
     std::string _compilerEncoding;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__RecordConstructor__) */

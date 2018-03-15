@@ -86,6 +86,7 @@ Object.assign(global, {
             exposedMethod.params[parameterIndex] = type || interop.types.void;
         };
     },
+    
 });
 
 Object.defineProperty(global, "__tsEnum", {

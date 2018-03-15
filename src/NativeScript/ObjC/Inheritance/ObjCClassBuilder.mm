@@ -50,6 +50,13 @@ static IMP findNotOverridenMethod(Class klass, SEL method) {
 }
 
 static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, JSValue superPrototype) {
+    /// In general, this method swizzles the following methods on the newly created class:
+    /// 1. allocWithZone - called by alloc()
+    /// 2. retain - called by the ObjC runtime when someone references the object
+    /// 3. release - called by the ObjC runtime when the object is unreferenced by someone
+    /// The purpose of this is to synchronize the lifetime of the JavaScript instances and their native counterparts.
+    /// That is to make sure that a JavaScript object exists as long as its native counterpart does and vice-versa.
+    
     __block Class metaClass = object_getClass(newKlass);
 
     __block Class blockKlass = newKlass;
@@ -61,6 +68,8 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
       Structure* instancesStructure = globalObject->constructorFor(blockKlass)->instancesStructure();
       ObjCWrapperObject* derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
+      
+      /// TODO: This call might be unnecessary
       gcProtect(derivedWrapper);
 
       Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
@@ -71,11 +80,18 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     });
     class_addMethod(metaClass, @selector(allocWithZone:), newAllocWithZone, "@@:");
 
+    /// We swizzle the retain and release methods for the following reason:
+    /// When we instantiate a native class via a JavaScript call we add it to the object map thus
+    /// incrementing the retainCount to 1. Then, when the native object is referenced somewhere else its count will become more than 1.
+    /// Since we want to keep the corresponding JavaScript object alive even if it is not used anywhere, we call gcProtect on it.
+    /// Whenever the native object is released so that its retainCount is 1 (the object map), we unprotect the corresponding JavaScript object
+    /// in order to make both of them destroyable/GC-able. When the JavaScript object is GC-ed we release the native counterpart as well.
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
     IMP newRetain = imp_implementationWithBlock(^(id self) {
       if ([self retainCount] == 1) {
           if (JSObject* object = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(self)) {
               JSLockHolder lockHolder(globalObject->vm());
+              /// TODO: This gcProtect() call might render the same call in the allocWithZone override unnecessary. Check if this is true.
               gcProtect(object);
           }
       }
@@ -102,7 +118,7 @@ static bool isValidType(ExecState* execState, JSValue& value) {
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
     const FFITypeMethodTable* table;
-    if (!tryGetFFITypeMethodTable(value, &table)) {
+    if (!tryGetFFITypeMethodTable(vm, value, &table)) {
         scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Invalid type")));
         return false;
     }
@@ -158,7 +174,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
         return;
     }
 
-    compilerEncoding << getCompilerEncoding(returnTypeValue.asCell());
+    compilerEncoding << getCompilerEncoding(vm, returnTypeValue.asCell());
     compilerEncoding << "@:"; // id self, SEL _cmd
 
     JSValue parameterTypesValue = typeEncodingObj->get(execState, Identifier::fromString(execState, "params"));
@@ -167,7 +183,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     }
 
     WTF::Vector<JSCell*> parameterTypesCells;
-    JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(parameterTypesValue);
+    JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(vm, parameterTypesValue);
     if (parameterTypesArr) {
         for (unsigned int i = 0; i < parameterTypesArr->length(); ++i) {
             JSValue parameterType = parameterTypesArr->get(execState, i);
@@ -176,7 +192,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
             }
 
             parameterTypesCells.append(parameterType.asCell());
-            compilerEncoding << getCompilerEncoding(parameterType.asCell());
+            compilerEncoding << getCompilerEncoding(vm, parameterType.asCell());
         }
     }
 
@@ -189,8 +205,8 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 
 ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor, JSObject* prototype, const WTF::String& className) {
     // TODO: Inherit from derived constructor.
-    if (!baseConstructor.inherits(ObjCConstructorNative::info())) {
-        JSC::VM& vm = execState->vm();
+    VM& vm = execState->vm();
+    if (!baseConstructor.inherits(vm, ObjCConstructorNative::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Extends is supported only for native classes.")));
@@ -223,8 +239,8 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
 }
 
 void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolWrapper) {
-    if (!protocolWrapper.inherits(ObjCProtocolWrapper::info())) {
-        JSC::VM& vm = execState->vm();
+    VM& vm = execState->vm();
+    if (!protocolWrapper.inherits(vm, ObjCProtocolWrapper::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         WTF::String errorMessage = WTF::String::format("Protocol \"%s\" is not a protocol object.", protocolWrapper.toWTFString(execState).utf8().data());
@@ -256,7 +272,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    if (!protocolsArray.inherits(JSArray::info())) {
+    if (!protocolsArray.inherits(vm, JSArray::info())) {
         scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The protocols property must be an array")));
         return;
     }
@@ -392,6 +408,8 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
             JSValue method = propertySlot.getValue(execState, key);
             if (method.isCell()) {
                 JSValue encodingValue = jsUndefined();
+                /// We check here if we have an exposed method for the current instance method.
+                /// If we have one we will use its encoding without checking base classes and protocols.
                 if (!exposedMethods.isUndefinedOrNull()) {
                     encodingValue = exposedMethods.get(execState, key);
                 }

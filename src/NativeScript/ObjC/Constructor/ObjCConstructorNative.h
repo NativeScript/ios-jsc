@@ -12,6 +12,7 @@
 #include "ObjCConstructorBase.h"
 
 namespace NativeScript {
+/// Each instance of this class represents a native ObjC interface. They are attached to the Global Object.
 class ObjCConstructorNative : public ObjCConstructorBase {
 public:
     typedef ObjCConstructorBase Base;

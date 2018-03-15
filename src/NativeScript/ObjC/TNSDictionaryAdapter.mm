@@ -57,9 +57,9 @@ using namespace NativeScript;
     NSUInteger _index;
 }
 
-- (instancetype)initWithProperties:(PassRefPtr<PropertyNameArrayData>)properties {
+- (instancetype)initWithProperties:(RefPtr<PropertyNameArrayData>&&)properties {
     if (self) {
-        self->_properties = properties;
+        self->_properties = properties.get();
         self->_index = 0;
     }
 
@@ -108,8 +108,8 @@ using namespace NativeScript;
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
-    if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
-        return map->size(self->_execState);
+    if (JSMap* map = jsDynamicCast<JSMap*>(self->_execState->vm(), object)) {
+        return map->size();
     }
 
     PropertyNameArray properties(self->_execState, PropertyNameMode::Strings);
@@ -122,7 +122,7 @@ using namespace NativeScript;
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
-    if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
+    if (JSMap* map = jsDynamicCast<JSMap*>(self->_execState->vm(), object)) {
         JSValue key = toValue(self->_execState, aKey);
         return toObject(self->_execState, map->get(self->_execState, key));
     } else if ([aKey isKindOfClass:[NSString class]]) {
@@ -141,7 +141,7 @@ using namespace NativeScript;
     JSLockHolder lock(self->_execState);
 
     JSObject* object = self->_object.get();
-    if (JSMap* map = jsDynamicCast<JSMap*>(object)) {
+    if (JSMap* map = jsDynamicCast<JSMap*>(self->_execState->vm(), object)) {
         return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMap:map execState:self->_execState] autorelease];
     }
 

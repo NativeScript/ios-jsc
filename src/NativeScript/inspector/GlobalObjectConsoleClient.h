@@ -3,6 +3,7 @@
 #define GlobalObjectConsoleClient_hpp
 
 #include "InspectorLogAgent.h"
+#include <GlobalObject.h>
 #include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/runtime/ConsoleClient.h>
 #include <stdio.h>
@@ -19,14 +20,14 @@ public:
     static void setLogToSystemConsole(bool);
 
 protected:
-    virtual void messageWithTypeAndLevel(MessageType, MessageLevel, JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) override;
-    virtual void count(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) override;
+    virtual void messageWithTypeAndLevel(MessageType, MessageLevel, JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
+    virtual void count(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
     virtual void profile(JSC::ExecState*, const String& title) override;
     virtual void profileEnd(JSC::ExecState*, const String& title) override;
     virtual void takeHeapSnapshot(JSC::ExecState*, const String& title) override;
     virtual void time(JSC::ExecState*, const String& title) override;
     virtual void timeEnd(JSC::ExecState*, const String& title) override;
-    virtual void timeStamp(JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&) override;
+    virtual void timeStamp(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
 
 private:
     void printConsoleMessageWithArguments(MessageSource, MessageType, MessageLevel, JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&);
@@ -37,5 +38,5 @@ private:
     Inspector::InspectorConsoleAgent* m_consoleAgent;
     Inspector::InspectorLogAgent* m_logAgent;
 };
-}
+} // namespace NativeScript
 #endif /* GlobalObjectConsoleClient_h */
