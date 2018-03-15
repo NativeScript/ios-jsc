@@ -113,15 +113,3 @@ _TNSObjectGet
 _TNSSaveResults
 _TNSStructFunctionConflict
 _TNSStructVarConflict
-_getSimpleStruct
-_getComplexStruct
-_getMatrix4x4
-_getMatrix4x3
-_getMatrix4x2
-_getMatrix3x4
-_getMatrix3x3
-_getMatrix3x2
-_getMatrix2x4
-_getMatrix2x3
-_getMatrix2x2
-_getNestedStruct

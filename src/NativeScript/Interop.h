@@ -47,14 +47,6 @@ public:
         return this->_referenceInstanceStructure.get();
     }
 
-    JSC::Structure* indexedRefInstanceStructure() const {
-        return this->_indexedRefInstanceStructure.get();
-    }
-
-    JSC::Structure* extVectorInstanceStructure() const {
-        return this->_extVectorInstanceStructure.get();
-    }
-
     JSC::Structure* functionReferenceInstanceStructure() const {
         return this->_functionReferenceInstanceStructure.get();
     }
@@ -78,10 +70,6 @@ private:
     JSC::WriteBarrier<JSC::Structure> _pointerInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _referenceInstanceStructure;
-
-    JSC::WriteBarrier<JSC::Structure> _indexedRefInstanceStructure;
-
-    JSC::WriteBarrier<JSC::Structure> _extVectorInstanceStructure;
 
     JSC::WriteBarrier<JSC::Structure> _functionReferenceInstanceStructure;
 

@@ -37,20 +37,18 @@ public:
         return this->_ffiTypeMethodTable;
     }
 
-protected:
+private:
     ReferenceTypeInstance(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
-    FFITypeMethodTable _ffiTypeMethodTable;
-    void finishCreation(JSC::VM&, JSC::JSCell*);
-    JSC::WriteBarrier<JSC::JSCell> _innerType;
-    static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
-    static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
-private:
     static void destroy(JSC::JSCell* cell) {
         static_cast<ReferenceTypeInstance*>(cell)->~ReferenceTypeInstance();
     }
+
+    void finishCreation(JSC::VM&, JSC::JSCell*);
+
+    static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);
 
@@ -59,6 +57,12 @@ private:
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
     static const char* encode(JSC::VM&, JSC::JSCell*);
+
+    static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
+
+    JSC::WriteBarrier<JSC::JSCell> _innerType;
+
+    FFITypeMethodTable _ffiTypeMethodTable;
 
     std::string _compilerEncoding;
 };

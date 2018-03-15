@@ -56,7 +56,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     /// 3. release - called by the ObjC runtime when the object is unreferenced by someone
     /// The purpose of this is to synchronize the lifetime of the JavaScript instances and their native counterparts.
     /// That is to make sure that a JavaScript object exists as long as its native counterpart does and vice-versa.
-
+    
     __block Class metaClass = object_getClass(newKlass);
 
     __block Class blockKlass = newKlass;
@@ -68,7 +68,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
       Structure* instancesStructure = globalObject->constructorFor(blockKlass)->instancesStructure();
       ObjCWrapperObject* derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
-
+      
       /// TODO: This call might be unnecessary
       gcProtect(derivedWrapper);
 
