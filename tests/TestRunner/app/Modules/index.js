@@ -17,4 +17,9 @@ describe(module.id, function () {
         require("core-module-dir");
         expect(TNSGetOutput()).toBe('core-module-dir loaded');
     });
+
+    it("load-empty-file", function(){
+       let emptyModule = require("./empty-file");
+       expect(emptyModule !== undefined).toBe(true);
+    });
 });
