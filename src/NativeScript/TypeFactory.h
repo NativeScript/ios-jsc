@@ -48,9 +48,9 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    JSC::JSCell* parseType(GlobalObject*, const Metadata::TypeEncoding*&);
+    JSC::JSCell* parseType(GlobalObject*, const Metadata::TypeEncoding*&, bool isStructMember = false);
 
-    const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, const Metadata::TypeEncoding*& typeEncodings, int count);
+    const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, const Metadata::TypeEncoding*& typeEncodings, int count, bool isStructMember = false);
 
     ObjCConstructorNative* getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName);
 
