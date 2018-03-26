@@ -36,8 +36,8 @@ const ClassInfo TypeFactory::s_info = { "TypeFactory", &Base::s_info, nullptr, n
 
 ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
     const TypeEncoding* typeEncodingPtr = typeEncodings.first();
-    JSCell* returnType = this->parseType(globalObject, typeEncodingPtr);
-    const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
+    JSCell* returnType = this->parseType(globalObject, typeEncodingPtr, false);
+    const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1, false);
     return this->getObjCBlockType(globalObject, returnType, parameters);
 }
 
@@ -65,8 +65,8 @@ ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell*
 
 JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
     const TypeEncoding* typeEncodingPtr = typeEncodings.first();
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr);
-    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1);
+    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr, false);
+    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1, false);
     return this->getFunctionReferenceTypeInstance(globalObject, returnType, parameterTypes);
 }
 
@@ -430,7 +430,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     }
     case BinaryTypeEncodingType::PointerEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding);
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, false);
         if (innerType == this->_voidType.get()) {
             result = this->_pointerConstructor.get();
         } else {
@@ -460,7 +460,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
         size_t arraySize = typeEncoding->details.constantArray.size;
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, true);
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
         if (isStructMember) {
             result = this->getIndexedRefType(globalObject, innerType, arraySize);
         } else {
@@ -472,13 +472,13 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::ExtVectorEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.extVector.getInnerType();
         size_t arraySize = typeEncoding->details.extVector.size;
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, true);
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
         result = this->getExtVectorType(globalObject, innerType, arraySize);
         break;
     }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.incompleteArray.getInnerType();
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, true);
+        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
         result = this->getReferenceType(globalObject, innerType);
         break;
     }

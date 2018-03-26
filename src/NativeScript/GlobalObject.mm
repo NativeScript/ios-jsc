@@ -329,8 +329,8 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         if (functionSymbol) {
             const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
             const Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr);
-            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1);
+            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr, false);
+            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1, false);
 
             if (functionMeta->returnsUnmanaged()) {
                 JSC::Structure* unmanagedStructure = UnmanagedType::createStructure(vm, globalObject, jsNull());
@@ -346,7 +346,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule(), varMeta->name());
         if (varSymbol) {
             const Metadata::TypeEncoding* encoding = varMeta->encoding();
-            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding);
+            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding, false);
             symbolWrapper = getFFITypeMethodTable(vm, symbolType).read(execState, varSymbol, symbolType);
         }
         break;
