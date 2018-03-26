@@ -44,6 +44,7 @@ private:
     std::string _compilerEncoding;
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
     static const char* encode(VM&, JSC::JSCell*);
+    static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
     size_t _size;
     ExtVectorTypeInstance(JSC::VM& vm, JSC::Structure* structure, size_t size)
         : Base(vm, structure)

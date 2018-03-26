@@ -24,8 +24,8 @@ void ObjCConstructorCall::finishCreation(VM& vm, GlobalObject* globalObject, Cla
 
     const Metadata::TypeEncoding* encodings = metadata->encodings()->first();
 
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings);
-    const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1);
+    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
+    const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1, false);
 
     Base::initializeFFI(vm, { &preInvocation, &postInvocation }, returnType, parametersTypes, 2);
     this->_selector = metadata->selector();

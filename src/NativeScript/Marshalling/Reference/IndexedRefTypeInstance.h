@@ -43,6 +43,7 @@ private:
     std::string _compilerEncoding;
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
     static const char* encode(VM&, JSC::JSCell*);
+    static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
     ffi_type* _indexedRefType;
     size_t _size;
     IndexedRefTypeInstance(JSC::VM& vm, JSC::Structure* structure, size_t size)

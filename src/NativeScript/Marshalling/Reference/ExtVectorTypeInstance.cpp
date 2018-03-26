@@ -91,14 +91,10 @@ void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
 
     ffi_type* type = new ffi_type({ .size = arraySize * innerFFIType->size, .alignment = innerFFIType->alignment, .type = FFI_TYPE_EXT_VECTOR });
 
-    ffi_type* ffiTypeEl = new ffi_type({ .size = 4,
-                                         .alignment = 4,
-                                         .type = FFI_TYPE_FLOAT });
-
     type->elements = new ffi_type*[arraySize + 1];
 
     for (size_t i = 0; i < arraySize; i++) {
-        type->elements[i] = ffiTypeEl;
+        type->elements[i] = innerFFIType;
     }
 
     type->elements[arraySize] = nullptr;
@@ -106,8 +102,15 @@ void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
     this->_ffiTypeMethodTable.ffiType = type;
     this->_ffiTypeMethodTable.read = &read;
     this->_ffiTypeMethodTable.write = &write;
+    this->_ffiTypeMethodTable.encode = &encode;
+    this->_ffiTypeMethodTable.canConvert = &canConvert;
 
     this->_innerType.set(vm, this, innerType);
+}
+
+bool ExtVectorTypeInstance::canConvert(ExecState* execState, const JSValue& value, JSCell* buffer) {
+    JSC::VM& vm = execState->vm();
+    return value.isUndefinedOrNull() || value.inherits(vm, IndexedRefInstance::info()) || value.inherits(vm, PointerInstance::info());
 }
 
 void ExtVectorTypeInstance::visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor) {
