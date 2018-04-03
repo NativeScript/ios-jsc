@@ -14,6 +14,7 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
 - [Architecture Diagram](#architecture-diagram)
 - [Local Development](#local-development)
 - [Building a Distribution Package](#building-a-distribution-package)
+- [Contribute](#contribute)
 - [Get Help](#get-help)
 
 <!-- /TOC -->
@@ -49,6 +50,9 @@ After you open the newly generated project in Xcode you can run the `TestRunner`
 To build the [`tns-ios` npm package](https://www.npmjs.com/package/tns-ios) run `./build/scripts/package-tns-ios.sh` in the **root** of the repository. The package contains the NativeScript Cocoa Framework, the NativeScript CLI template project and the API metadata generator.
 
 To build the [`tns-ios-inspector` npm package](https://www.npmjs.com/package/tns-ios-inspector) run `./build/scripts/package-tns-ios-inspector.sh` in the **root** of the repository. The package contains the Web Inspector frontend.
+
+## Contribute
+We love PRs! Check out the [contributing guidelines](CONTRIBUTING.md). If you want to contribute, but you are not sure where to start - look for [issues labeled `help wanted`](https://github.com/NativeScript/ios-runtime/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
 ## Get Help
 Please, use [github issues](https://github.com/NativeScript/ios-runtime/issues) strictly for [reporting bugs](CONTRIBUTING.md#reporting-bugs) or [requesting features](CONTRIBUTING.md#requesting-new-features). For general questions and support, check out the [NativeScript community forum](https://discourse.nativescript.org/) or ask our experts in [NativeScript community Slack channel](http://developer.telerik.com/wp-login.php?action=slack-invitation).
