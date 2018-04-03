@@ -298,7 +298,7 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     }
 
     String moduleContentStr = WTF::String::fromUTF8((const LChar*)moduleContent.bytes, moduleContent.length);
-    if (moduleContentStr.isNull()) {
+    if (moduleContentStr.isNull() && moduleContent.length > 0) {
         return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
     }
 
