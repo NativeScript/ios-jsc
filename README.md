@@ -39,9 +39,8 @@ For more details on how it works, read the [documentation](https://docs.nativesc
 ## Local Development
 Execute the following commands:
 ```shell
-mkdir "cmake-build" && cd "cmake-build"
-cmake .. -G "Xcode"
-open "NativeScript.xcodeproj"
+./cmake-gen.sh 
+open "cmake-build/NativeScript.xcodeproj"
 ```
 
 After you open the newly generated project in Xcode you can run the `TestRunner` target or the `Gameraww` example app.
