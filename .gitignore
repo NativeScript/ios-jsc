@@ -35,4 +35,5 @@ Thumbs.db
 
 # Other
 node_modules/
+package-lock.json
 *.pyc
