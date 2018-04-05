@@ -174,7 +174,6 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
     __block Strong<FFICall> callee(execState->vm(), this);
 
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
-
       JSC::VM& vm = fakeExecState->vm();
       auto scope = DECLARE_CATCH_SCOPE(vm);
 

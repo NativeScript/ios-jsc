@@ -39,6 +39,6 @@ private:
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function, FunctionReferenceTypeInstance*);
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFIFunctionCallback__) */

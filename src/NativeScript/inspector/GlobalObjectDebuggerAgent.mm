@@ -83,7 +83,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
 
     JSValue registry = this->m_globalObject->moduleLoader()->get(this->m_globalObject->globalExec(), Identifier::fromString(&this->m_globalObject->vm(), "registry"));
     JSMap* map = jsCast<JSMap*>(registry);
-    WTF::String scriptAbsolutePath = [NSString pathWithComponents:@[ this->m_globalObject->applicationPath(), @"app", scriptIdStr ]];
+    WTF::String scriptAbsolutePath = [NSString pathWithComponents:@[this->m_globalObject->applicationPath(), @"app", scriptIdStr]];
     JSValue value = map->get(this->m_globalObject->globalExec(), JSC::jsString(&this->m_globalObject->vm(), scriptAbsolutePath));
     Identifier moduleIdentifier = Identifier::fromString(&this->m_globalObject->vm(), "module");
 

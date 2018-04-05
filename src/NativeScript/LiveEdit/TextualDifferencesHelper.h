@@ -17,4 +17,4 @@ class TextualDifferencesHelper {
 public:
     static WTF::Vector<DiffChunk> CompareStrings(WTF::String s1, WTF::String s2);
 };
-}
+} // namespace NativeScript

@@ -61,6 +61,6 @@ private:
 
     bool _canSetObjectAtIndexedSubscript;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCWrapperObject__) */

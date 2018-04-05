@@ -11,5 +11,5 @@ public:
 private:
     JSC::JSGlobalObject& m_globalObject;
 };
-}
+} // namespace NativeScript
 #endif /* SuppressAllPauses_h */

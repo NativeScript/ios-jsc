@@ -247,7 +247,7 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
             do {
                 NSString* currentNodeModulesPath = [[currentSearchPath stringByAppendingPathComponent:@"node_modules"] stringByStandardizingPath];
                 if (stat<S_IFDIR>(currentNodeModulesPath)) {
-                    absoluteFilePath = resolveAbsolutePath([currentNodeModulesPath stringByAppendingPathComponent:path], self->modulePathCache(), &error);
+                    absoluteFilePath = resolveAbsolutePath([currentNodeModulesPath stringByAppendingPathComponent:path], self -> modulePathCache(), &error);
                     if (error) {
                         return deferred->reject(execState, self->interop()->wrapError(execState, error));
                     }

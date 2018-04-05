@@ -29,4 +29,4 @@ SuppressAllPauses::~SuppressAllPauses() {
         }
     }
 }
-};
+}; // namespace NativeScript

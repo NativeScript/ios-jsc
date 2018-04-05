@@ -39,6 +39,6 @@ private:
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function, ObjCBlockType*);
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCBlockCallback__) */

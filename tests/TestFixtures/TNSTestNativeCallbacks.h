@@ -6,8 +6,8 @@
 //  Copyright (c) 2014 Telerik. All rights reserved.
 //
 
-#include "Interfaces/TNSInheritance.h"
 #include "Api/TNSApi.h"
+#include "Interfaces/TNSInheritance.h"
 #include "Marshalling/TNSRecords.h"
 
 @interface TNSTestNativeCallbacks : NSObject

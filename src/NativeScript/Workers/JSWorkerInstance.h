@@ -55,6 +55,6 @@ private:
     JSC::Identifier _onmessageIdentifier;
     JSC::Identifier _onerrorIdentifier;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__JSWorkerInstance__) */

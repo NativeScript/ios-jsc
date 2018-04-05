@@ -2,8 +2,8 @@
 @import AppKit;
 @import WebKit;
 @import JavaScriptCore;
-#import <WebKit/WebPreferencesPrivate.h>
 #import "InspectorFrontendHost.h"
+#import <WebKit/WebPreferencesPrivate.h>
 
 @implementation ViewController {
     NSString* _mainFileName;
@@ -37,7 +37,7 @@
     self->_projectName = [notification.userInfo valueForKey:@"project_name"];
     [self update:self->_projectName];
 
-    self->_socketPath= [notification.userInfo valueForKey:@"socket_path"];
+    self->_socketPath = [notification.userInfo valueForKey:@"socket_path"];
     [self connect:self->_socketPath];
 }
 
@@ -72,10 +72,9 @@
     // Breakpoints are saved on pagehide event, which for some reason is not triggered when the app closes
     WebView* webView = (WebView*)self.view;
     [webView stringByEvaluatingJavaScriptFromString:
-     @"var e = document.createEvent('Event');"
-     @"e.initEvent('pagehide', false, false);"
-     @"window.dispatchEvent(e);"
-     ];
+                 @"var e = document.createEvent('Event');"
+                 @"e.initEvent('pagehide', false, false);"
+                 @"window.dispatchEvent(e);"];
 }
 
 - (void)update:(NSString*)title {
@@ -87,7 +86,7 @@
       NSString* payload = [[NSString alloc] initWithData:(NSData*)data encoding:NSUTF16LittleEndianStringEncoding];
 
       WebView* webView = (WebView*)self.view;
-      [webView.mainFrame.javaScriptContext[@"InspectorBackend"] invokeMethod:@"dispatch" withArguments:@[ payload ]];
+      [webView.mainFrame.javaScriptContext[@"InspectorBackend"] invokeMethod:@"dispatch" withArguments:@[payload]];
     };
 
     InspectorErrorHandler error_handler = ^(NSError* error) {

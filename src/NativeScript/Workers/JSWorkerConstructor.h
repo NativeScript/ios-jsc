@@ -40,6 +40,6 @@ private:
 
     void finishCreation(JSC::VM& vm, JSWorkerPrototype* prototype);
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__JSWorkerConstructor__) */

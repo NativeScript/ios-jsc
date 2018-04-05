@@ -31,6 +31,6 @@ private:
 
     std::map<const Metadata::ModuleMeta*, std::unique_ptr<SymbolResolver>> _cache;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__SymbolLoader__) */

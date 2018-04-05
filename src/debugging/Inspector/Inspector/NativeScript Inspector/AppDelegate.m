@@ -2,7 +2,7 @@
 
 @implementation AppDelegate
 
--(BOOL)applicationShouldTerminateAfterLastWindowClosed:(nonnull NSApplication *)sender {
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(nonnull NSApplication*)sender {
     return YES;
 }
 

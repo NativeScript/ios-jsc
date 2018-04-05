@@ -25,5 +25,5 @@ private:
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*);
 };
-}
+} // namespace NativeScript
 #endif /* UnmanagedPrototype_h */

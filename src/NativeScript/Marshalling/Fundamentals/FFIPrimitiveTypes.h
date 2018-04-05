@@ -18,6 +18,6 @@ extern const FFITypeMethodTable voidTypeMethodTable;
 extern const FFITypeMethodTable boolTypeMethodTable;
 extern const FFITypeMethodTable unicharTypeMethodTable;
 extern const FFITypeMethodTable utf8CStringTypeMethodTable;
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFIPrimitiveTypes__) */

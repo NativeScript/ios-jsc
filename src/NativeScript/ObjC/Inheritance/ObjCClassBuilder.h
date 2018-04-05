@@ -14,7 +14,7 @@
 namespace Metadata {
 struct ProtocolMeta;
 struct MethodMeta;
-}
+} // namespace Metadata
 
 namespace NativeScript {
 class ObjCConstructorNative;
@@ -53,6 +53,6 @@ private:
 
     std::vector<const Metadata::ProtocolMeta*> _protocols;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCClassBuilder__) */

@@ -21,7 +21,7 @@ void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* g
     this->setWrappedObject(wrappedObject);
     this->_canSetObjectAtIndexedSubscript = [wrappedObject respondsToSelector:@selector(setObject:
                                                                                         atIndexedSubscript:)];
-    this->_objectMap = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get();
+    this->_objectMap = [TNSRuntime runtimeForVM:&globalObject->vm()] -> _objectMap.get();
     this->_objectMap->set(wrappedObject, this);
 }
 

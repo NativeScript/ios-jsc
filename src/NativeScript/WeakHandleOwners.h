@@ -92,6 +92,6 @@ public:
 private:
     WTF::HashMap<JSC::WeakImpl*, JSC::WeakImpl*, WeakImplHashTraits> m_map;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__WeakHandleOwners__) */

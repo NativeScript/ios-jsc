@@ -33,6 +33,6 @@ private:
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*);
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__PointerPrototype__) */

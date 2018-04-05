@@ -11,14 +11,14 @@
 
 @implementation TNSRuntimeInstrumentation : NSObject
 
-+ (void) initWithApplicationPath: (NSString*) applicationPath {
++ (void)initWithApplicationPath:(NSString*)applicationPath {
     BOOL enable = NO;
-    NSString *packageJsonPath = [applicationPath stringByAppendingPathComponent:@"app/package.json"];
-    NSData *data = [NSData dataWithContentsOfFile: packageJsonPath];
+    NSString* packageJsonPath = [applicationPath stringByAppendingPathComponent:@"app/package.json"];
+    NSData* data = [NSData dataWithContentsOfFile:packageJsonPath];
     if (data) {
-        NSError *error = nil;
+        NSError* error = nil;
         id packageJson = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error];
-        if (!error && [@"timeline" isEqual: packageJson[@"profiling"]]) {
+        if (!error && [@"timeline" isEqual:packageJson[@"profiling"]]) {
             enable = YES;
         }
     }
@@ -29,12 +29,12 @@
     }
 }
 
-+ (id) profile: (NSString*) name withBlock: (id (^)())block {
++ (id)profile:(NSString*)name withBlock:(id (^)())block {
     tns::instrumentation::Frame frame(name.UTF8String);
     return block();
 }
 
-+ (id) profileBlock: (id (^)()) block withName: (NSString* (^)()) nameBlock {
++ (id)profileBlock:(id (^)())block withName:(NSString* (^)())nameBlock {
     tns::instrumentation::Frame frame;
     id result = block();
     if (frame.check()) {

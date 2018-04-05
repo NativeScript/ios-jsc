@@ -37,6 +37,6 @@ static WTF::String mimeTypeByExtension(WTF::String extension) {
 
     return mimeType;
 }
-}
+} // namespace NativeScript
 
 #endif

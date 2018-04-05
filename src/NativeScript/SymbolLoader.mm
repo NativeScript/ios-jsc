@@ -7,10 +7,10 @@
 //
 
 #include "SymbolLoader.h"
+#include "ManualInstrumentation.h"
 #include "Metadata/Metadata.h"
 #include <dlfcn.h>
 #include <wtf/NeverDestroyed.h>
-#include "ManualInstrumentation.h"
 
 namespace NativeScript {
 class SymbolResolver {
@@ -86,7 +86,7 @@ SymbolResolver* SymbolLoader::resolveModule(const Metadata::ModuleMeta* module) 
     if (it != this->_cache.end()) {
         return it->second.get();
     }
-    
+
     tns::instrumentation::Frame frame;
 
     std::unique_ptr<SymbolResolver> resolver;
@@ -127,9 +127,9 @@ SymbolResolver* SymbolLoader::resolveModule(const Metadata::ModuleMeta* module) 
             }
         }
     }
-    
+
     if (frame.check()) {
-        frame.log([@"resolveModule: " stringByAppendingString: [NSString stringWithUTF8String: module->getName()]].UTF8String);
+        frame.log([@"resolveModule: " stringByAppendingString:[NSString stringWithUTF8String:module->getName()]].UTF8String);
     }
 
     return this->_cache.emplace(module, std::move(resolver)).first->second.get();

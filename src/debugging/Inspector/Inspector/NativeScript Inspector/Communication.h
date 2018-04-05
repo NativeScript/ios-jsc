@@ -2,13 +2,13 @@
 #define Communication_h
 
 #import <Foundation/Foundation.h>
-#import <netinet/in.h>
-#import <sys/types.h>
-#import <sys/socket.h>
 #import <errno.h>
+#import <netinet/in.h>
+#import <notify.h>
 #import <stdlib.h>
 #import <string.h>
-#import <notify.h>
+#import <sys/socket.h>
+#import <sys/types.h>
 
 #define CheckError(retval, handler)                             \
     ({                                                          \

@@ -47,6 +47,6 @@ private:
 
     bool _hasErrorOutParameter;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCMethodCallback__) */

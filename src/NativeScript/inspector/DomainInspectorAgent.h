@@ -22,5 +22,5 @@ private:
     RefPtr<DomainBackendDispatcher> m_domainBackendDispatcher;
     JSC::Strong<JSC::JSCell> m_constructorFunction;
 };
-}
+} // namespace NativeScript
 #endif /* DomainInspectorAgent_h */

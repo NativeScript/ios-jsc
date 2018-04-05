@@ -60,6 +60,6 @@ private:
 
     const Metadata::BaseClassMeta* _metadata;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCPrototype__) */

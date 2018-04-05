@@ -11,8 +11,8 @@
 
 @interface TNSRuntimeInstrumentation : NSObject
 
-+ (void)initWithApplicationPath: (NSString*) path;
-+ (id) profile: (NSString*) name withBlock: (id (^)())block;
-+ (id) profileBlock: (id (^)()) block withName: (NSString* (^)()) nameBlock;
++ (void)initWithApplicationPath:(NSString*)path;
++ (id)profile:(NSString*)name withBlock:(id (^)())block;
++ (id)profileBlock:(id (^)())block withName:(NSString* (^)())nameBlock;
 
 @end

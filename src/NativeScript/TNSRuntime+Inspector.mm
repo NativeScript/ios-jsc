@@ -30,7 +30,9 @@ public:
         : _messageHandler(Block_copy(handler)) {
     }
 
-    virtual ConnectionType connectionType() const override { return ConnectionType::Local; };
+    virtual ConnectionType connectionType() const override {
+        return ConnectionType::Local;
+    };
 
     virtual void sendMessageToFrontend(const WTF::String& message) override {
         WTF::RetainPtr<CFStringRef> cfMessage = message.createCFString();

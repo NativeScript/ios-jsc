@@ -589,4 +589,4 @@ WTF::Vector<DiffChunk> TextualDifferencesHelper::CompareStrings(WTF::String s1, 
 
     return posTranslator.GetResult();
 }
-}
+} // namespace NativeScript

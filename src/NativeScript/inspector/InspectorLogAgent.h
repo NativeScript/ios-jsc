@@ -38,4 +38,4 @@ private:
     NativeScript::GlobalObject& m_globalObject;
     Vector<std::unique_ptr<ConsoleMessage>> m_consoleMessages;
 };
-}
+} // namespace Inspector
