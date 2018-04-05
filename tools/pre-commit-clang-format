@@ -17,6 +17,7 @@
 # set path to clang-format binary
 # CLANG_FORMAT="/usr/bin/clang-format"
 # CLANG_FORMAT=`git config clangFormat.binary`
+
 CLANG_FORMAT=$(which clang-format)
 
 # remove any older patches from previous commits. Set to true or false.
@@ -135,9 +136,34 @@ printf "\nThe following differences were found between the code to commit "
 printf "and the clang-format rules:\n\n"
 cat "$patch"
 
-printf "\nYou can apply these changes with:\n git apply $patch\n"
+printf "\n\nYou can apply these changes with:\n git apply $patch\n\n"
 printf "(may need to be called from the root directory of your repository)\n"
 printf "Aborting commit. Apply changes and commit again or skip checking with"
 printf " --no-verify (not recommended).\n"
 
+# Ask whether to automatically apply the patch when the console is interactive
+exec < /dev/tty || exit 1
+
+echo -n $'\nApply patch now? (y/n) '
+read RESPONSE
+
+if [ "$RESPONSE" = "y" -o "$RESPONSE" = "Y" ]; then
+    echo Applying patch...
+    git apply $patch
+    # Extract modified file names from patch file.
+    # IMPORTANT [^\t] is not supported by sed and the character MUST be an actual TAB instead of \t
+    CHANGES=$(grep '+++\|---' $patch | sed 's/^[+-]\{3\} .\/\([^	]*\).*/\1/g' | sort | uniq)
+
+    echo $'\nCHANGED FILES:'
+    echo $CHANGES
+    echo -n $'\nAdd these files to index? (y/n) '
+    read RESPONSE
+    if [ "$RESPONSE" = "y" -o "$RESPONSE" = "Y" ]; then
+        echo Adding to index...
+        set +x
+        git add $CHANGES
+    fi
+fi
+
+exit 1
 exit 1
