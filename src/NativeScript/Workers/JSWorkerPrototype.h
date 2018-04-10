@@ -33,5 +33,5 @@ private:
 
     void finishCreation(JSC::VM& vm, JSC::JSGlobalObject*);
 };
-}
+} // namespace NativeScript
 #endif /* defined(__NativeScript__JSWorkerPrototype__) */

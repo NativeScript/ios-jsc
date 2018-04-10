@@ -9,9 +9,9 @@
 #ifndef __NativeScript__WorkerMessagingProxy__
 #define __NativeScript__WorkerMessagingProxy__
 
+#include "JSWorkerInstance.h"
 #include <JavaScriptCore/InternalFunction.h>
 #include <JavaScriptCore/StrongInlines.h>
-#include "JSWorkerInstance.h"
 
 @class TNSRuntime;
 
@@ -135,6 +135,6 @@ private:
     std::unique_ptr<ThreadMessagingPort> _workerPort;
     std::unique_ptr<WorkerThreadData> _workerData; // initialized and accessed only by the worker thread, therefore locking is not needed
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__WorkerMessagingProxy__) */

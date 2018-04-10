@@ -29,4 +29,4 @@ void warn(ExecState* execState, const WTF::String& message) {
         Inspector::JSGlobalObjectConsoleClient::setLogToSystemConsole(true);
     }
 }
-}
+} // namespace NativeScript

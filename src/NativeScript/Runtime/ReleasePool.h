@@ -119,6 +119,6 @@ template <typename T>
 void releaseSoon(JSC::ExecState* execState, T&& item) {
     releaseSoon(JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject()), std::move(item));
 }
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ReleasePool__) */

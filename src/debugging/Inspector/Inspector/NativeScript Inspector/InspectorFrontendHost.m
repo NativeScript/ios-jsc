@@ -6,43 +6,43 @@
 - (void)bringToFront {
 }
 
-- (NSString *)platform {
-  return @"mac";
+- (NSString*)platform {
+    return @"mac";
 }
 
-- (NSString *)localizedStringsURL {
-  return @"";
+- (NSString*)localizedStringsURL {
+    return @"";
 }
 
-- (NSString *)debuggableType {
-  return @"web";
+- (NSString*)debuggableType {
+    return @"web";
 }
 
-- (NSString *)backendCommandsURL {
-  return @"";
+- (NSString*)backendCommandsURL {
+    return @"";
 }
 
-- (NSString *)zoomFactor {
-  return @"";
+- (NSString*)zoomFactor {
+    return @"";
 }
 
 - (unsigned)inspectionLevel {
-  return 1;
+    return 1;
 }
 
-- (void)connect:(NSString *)socketPath
+- (void)connect:(NSString*)socketPath
      readHandler:(InspectorReadHandler)read_handler
     errorHandler:(InspectorErrorHandler)errorHandler {
-  self->communication_channel =
-      [[TNSCommunicationChannel alloc] initWithSocketPath:socketPath
-                                              readHandler:read_handler
-                                             errorHandler:errorHandler];
+    self->communication_channel =
+        [[TNSCommunicationChannel alloc] initWithSocketPath:socketPath
+                                                readHandler:read_handler
+                                               errorHandler:errorHandler];
 }
 
 - (void)disconnect {
-  if (self->communication_channel) {
-    self->communication_channel = nil;
-  }
+    if (self->communication_channel) {
+        self->communication_channel = nil;
+    }
 }
 
 - (void)loaded {
@@ -52,39 +52,39 @@
 }
 
 - (void)startWindowDrag {
-  [[NSApp mainWindow] performWindowDragWithEvent:[NSApp currentEvent]];
+    [[NSApp mainWindow] performWindowDragWithEvent:[NSApp currentEvent]];
 }
 
-- (void)sendMessageToBackend:(NSString *)message {
-  if (self->communication_channel) {
-    NSUInteger length =
-        [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
+- (void)sendMessageToBackend:(NSString*)message {
+    if (self->communication_channel) {
+        NSUInteger length =
+            [message lengthOfBytesUsingEncoding:NSUTF16LittleEndianStringEncoding];
 
-    NSMutableData *buffer = [NSMutableData dataWithLength:length];
-    [message getBytes:buffer.mutableBytes
-             maxLength:length
-            usedLength:NULL
-              encoding:NSUTF16LittleEndianStringEncoding
-               options:0
-                 range:NSMakeRange(0, message.length)
-        remainingRange:NULL];
+        NSMutableData* buffer = [NSMutableData dataWithLength:length];
+        [message getBytes:buffer.mutableBytes
+                 maxLength:length
+                usedLength:NULL
+                  encoding:NSUTF16LittleEndianStringEncoding
+                   options:0
+                     range:NSMakeRange(0, message.length)
+            remainingRange:NULL];
 
-    [self->communication_channel sendMessage:length
-                                     message:buffer.mutableBytes];
-  }
+        [self->communication_channel sendMessage:length
+                                         message:buffer.mutableBytes];
+    }
 }
 
 - (void)showContextMenu {
 }
 
-- (void)setZoomFactor:(NSString *)factor {
+- (void)setZoomFactor:(NSString*)factor {
 }
 
 - (void)openInNewTab {
 }
 
-- (NSString *)userInterfaceLayoutDirection {
-  return @"ltr";
+- (NSString*)userInterfaceLayoutDirection {
+    return @"ltr";
 }
 
 @end

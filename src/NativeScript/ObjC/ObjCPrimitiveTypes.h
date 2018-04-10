@@ -16,6 +16,6 @@ extern const FFITypeMethodTable objCInstancetypeTypeMethodTable;
 extern const FFITypeMethodTable objCProtocolTypeMethodTable;
 extern const FFITypeMethodTable objCClassTypeMethodTable;
 extern const FFITypeMethodTable objCSelectorTypeMethodTable;
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCSimpleTypes__) */

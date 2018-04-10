@@ -58,6 +58,6 @@ private:
     NativeScript::GlobalObject* m_globalObject{ nullptr };
 };
 
-} // namespace Inspector
+} // namespace NativeScript
 
 #endif // !defined(GlobalObjectDebuggerAgent_h)

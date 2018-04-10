@@ -89,7 +89,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     IMP retain = findNotOverridenMethod(newKlass, @selector(retain));
     IMP newRetain = imp_implementationWithBlock(^(id self) {
       if ([self retainCount] == 1) {
-          if (JSObject* object = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(self)) {
+          if (JSObject* object = [TNSRuntime runtimeForVM:&globalObject->vm()] -> _objectMap.get()->get(self)) {
               JSLockHolder lockHolder(globalObject->vm());
               /// TODO: This gcProtect() call might render the same call in the allocWithZone override unnecessary. Check if this is true.
               gcProtect(object);
@@ -103,7 +103,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
     void (*release)(id, SEL) = (void (*)(id, SEL))findNotOverridenMethod(newKlass, @selector(release));
     IMP newRelease = imp_implementationWithBlock(^(id self) {
       if ([self retainCount] == 2) {
-          if (JSObject* object = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(self)) {
+          if (JSObject* object = [TNSRuntime runtimeForVM:&globalObject->vm()] -> _objectMap.get()->get(self)) {
               JSLockHolder lockHolder(globalObject->vm());
               gcUnprotect(object);
           }

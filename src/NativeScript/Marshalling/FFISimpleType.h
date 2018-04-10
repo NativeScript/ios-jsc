@@ -47,6 +47,6 @@ private:
 
     FFITypeMethodTable _ffiTypeMethodTable;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFISimpleType__) */

@@ -50,4 +50,4 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _errorStructure;
 };
-}
+} // namespace NativeScript

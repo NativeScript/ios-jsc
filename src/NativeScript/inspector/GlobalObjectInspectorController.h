@@ -50,7 +50,7 @@ class InspectorDebuggerAgent;
 class InspectorTimelineAgent;
 class JSGlobalObjectConsoleClient;
 class ScriptCallStack;
-}
+} // namespace Inspector
 
 namespace WTF {
 class Stopwatch;
@@ -63,7 +63,7 @@ class Exception;
 class ExecState;
 class JSGlobalObject;
 class JSValue;
-}
+} // namespace JSC
 
 namespace NativeScript {
 
@@ -74,7 +74,7 @@ JSC::EncodedJSValue JSC_HOST_CALL sendEvent(JSC::ExecState* execState);
 class GlobalObjectInspectorController final
     : public Inspector::InspectorEnvironment
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-      ,
+    ,
       public Inspector::AugmentableInspectorController
 #endif
 {
@@ -92,8 +92,12 @@ public:
     void globalObjectDestroyed();
     void registerDomainDispatcher(WTF::String domainIdentifier, JSC::JSCell* constructorFunction);
 
-    bool includesNativeCallStackWhenReportingExceptions() const { return m_includeNativeCallStackWithExceptions; }
-    void setIncludesNativeCallStackWhenReportingExceptions(bool includesNativeCallStack) { m_includeNativeCallStackWithExceptions = includesNativeCallStack; }
+    bool includesNativeCallStackWhenReportingExceptions() const {
+        return m_includeNativeCallStackWithExceptions;
+    }
+    void setIncludesNativeCallStackWhenReportingExceptions(bool includesNativeCallStack) {
+        m_includeNativeCallStackWithExceptions = includesNativeCallStack;
+    }
 
     void pause();
     void reportAPIException(JSC::ExecState*, JSC::Exception*);
@@ -119,7 +123,9 @@ public:
     }
 
     virtual bool developerExtrasEnabled() const override;
-    virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override { return true; }
+    virtual bool canAccessInspectedScriptState(JSC::ExecState*) const override {
+        return true;
+    }
     virtual Inspector::InspectorFunctionCallHandler functionCallHandler() const override;
     virtual Inspector::InspectorEvaluateHandler evaluateHandler() const override;
     virtual void frontendInitialized() override;
@@ -128,11 +134,19 @@ public:
     virtual JSC::VM& vm() override;
 
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-    virtual Inspector::AugmentableInspectorControllerClient* augmentableInspectorControllerClient() const override { return m_augmentingClient; }
-    virtual void setAugmentableInspectorControllerClient(Inspector::AugmentableInspectorControllerClient* client) override { m_augmentingClient = client; }
+    virtual Inspector::AugmentableInspectorControllerClient* augmentableInspectorControllerClient() const override {
+        return m_augmentingClient;
+    }
+    virtual void setAugmentableInspectorControllerClient(Inspector::AugmentableInspectorControllerClient* client) override {
+        m_augmentingClient = client;
+    }
 
-    virtual const Inspector::FrontendRouter& frontendRouter() const override { return m_frontendRouter.get(); }
-    virtual Inspector::BackendDispatcher& backendDispatcher() override { return m_backendDispatcher.get(); }
+    virtual const Inspector::FrontendRouter& frontendRouter() const override {
+        return m_frontendRouter.get();
+    }
+    virtual Inspector::BackendDispatcher& backendDispatcher() override {
+        return m_backendDispatcher.get();
+    }
 
     virtual void appendExtraAgent(std::unique_ptr<Inspector::InspectorAgentBase>) override;
 #endif
@@ -167,6 +181,6 @@ private:
 #endif
 };
 
-} // namespace Inspector
+} // namespace NativeScript
 
 #endif // !defined(GlobalObjectInspectorController_h)

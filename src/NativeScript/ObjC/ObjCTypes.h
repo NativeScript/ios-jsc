@@ -13,6 +13,6 @@ namespace NativeScript {
 id toObject(JSC::ExecState*, const JSC::JSValue&);
 JSC::JSValue toValue(JSC::ExecState*, id, Class klass = nil);
 JSC::JSValue toValue(JSC::ExecState*, id, JSC::Structure* (^structureResolver)());
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCIdType__) */

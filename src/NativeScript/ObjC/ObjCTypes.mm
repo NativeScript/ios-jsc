@@ -158,7 +158,7 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
     UNUSED_PARAM(vm);
 #endif
 
-    if (JSObject* wrapper = [TNSRuntime runtimeForVM:&globalObject->vm()]->_objectMap.get()->get(object)) {
+    if (JSObject* wrapper = [TNSRuntime runtimeForVM:&globalObject->vm()] -> _objectMap.get()->get(object)) {
         ASSERT(wrapper->classInfo(vm) != ObjCWrapperObject::info() || jsCast<ObjCWrapperObject*>(wrapper)->wrappedObject() == object);
         return wrapper;
     }

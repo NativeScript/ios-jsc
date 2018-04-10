@@ -51,6 +51,6 @@ private:
 
     static void visitChildren(JSCell*, JSC::SlotVisitor&);
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__AllocatedPlaceholder__) */

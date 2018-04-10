@@ -98,7 +98,7 @@ using namespace NativeScript;
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_execState = execState;
         self->_vm = &execState->vm();
-        [TNSRuntime runtimeForVM:self->_vm]->_objectMap.get()->set(self, jsObject);
+        [TNSRuntime runtimeForVM:self->_vm] -> _objectMap.get()->set(self, jsObject);
     }
 
     return self;

@@ -57,6 +57,6 @@ private:
 
     Protocol* _protocol;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCProtocolObject__) */

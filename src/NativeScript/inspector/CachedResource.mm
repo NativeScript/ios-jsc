@@ -5,7 +5,7 @@ namespace Inspector {
 static Inspector::CachedResource createCacheResource(NSString* basePath, NSString* filePath, NSString* prefix) {
     NSString* symLinksResolvedFilePath = [filePath stringByResolvingSymlinksInPath];
     NSString* relativePath = [symLinksResolvedFilePath substringFromIndex:[[basePath stringByResolvingSymlinksInPath] length]];
-    NSString* displayName = [NSURL fileURLWithPath:[NSString pathWithComponents:@[ prefix, relativePath ]]].absoluteString;
+    NSString* displayName = [NSURL fileURLWithPath:[NSString pathWithComponents:@[prefix, relativePath]]].absoluteString;
 
     return Inspector::CachedResource(displayName, symLinksResolvedFilePath);
 }
@@ -14,7 +14,7 @@ static void createCachedResourcesOfDirectory(WTF::HashMap<WTF::String, Inspector
     BOOL isDirectory;
     if ([[NSFileManager defaultManager] fileExistsAtPath:bundlePath isDirectory:&isDirectory]) {
         if (isDirectory) {
-            NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:bundlePath] includingPropertiesForKeys:@[ NSURLIsDirectoryKey, NSURLIsSymbolicLinkKey ] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
+            NSDirectoryEnumerator* directoryEnumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:bundlePath] includingPropertiesForKeys:@[NSURLIsDirectoryKey, NSURLIsSymbolicLinkKey] options:NSDirectoryEnumerationSkipsHiddenFiles errorHandler:nil];
 
             NSURL* file;
             NSError* error;
@@ -26,7 +26,7 @@ static void createCachedResourcesOfDirectory(WTF::HashMap<WTF::String, Inspector
 
                 if ([isSymbolicLink boolValue]) {
                     NSString* originalPath = [[NSFileManager defaultManager] destinationOfSymbolicLinkAtPath:[file path] error:&error];
-                    createCachedResourcesOfDirectory(cachedResources, originalPath, [NSString pathWithComponents:@[ prefix, [file lastPathComponent] ]]);
+                    createCachedResourcesOfDirectory(cachedResources, originalPath, [NSString pathWithComponents:@[prefix, [file lastPathComponent]]]);
                 } else if (![isDirectory boolValue]) {
                     Inspector::CachedResource resource = createCacheResource(bundlePath, [file path], prefix);
                     cachedResources.add(resource.displayName(), resource);
@@ -44,7 +44,7 @@ WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources(NativeScri
 
     static std::once_flag flag;
     std::call_once(flag, [&globalObject]() {
-        NSString* bundlePath = [NSString pathWithComponents:@[ globalObject.applicationPath(), @"app" ]];
+        NSString* bundlePath = [NSString pathWithComponents:@[globalObject.applicationPath(), @"app"]];
 
         createCachedResourcesOfDirectory(cachedResources, bundlePath, @"app");
     });

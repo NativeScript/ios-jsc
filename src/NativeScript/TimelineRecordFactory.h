@@ -10,5 +10,4 @@ public:
     static Ref<InspectorObject> createGenericRecord(JSC::ExecState*, double startTime, int maxCallStackDepth);
     static Ref<InspectorObject> createConsoleProfileData(const String& title);
 };
-}
-
+} // namespace Inspector

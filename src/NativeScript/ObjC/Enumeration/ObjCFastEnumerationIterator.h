@@ -60,6 +60,6 @@ private:
 
     WTF::RetainPtr<id> _object;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCFastEnumerationIterator__) */

@@ -24,7 +24,7 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 @implementation TNSObjCTypes
 + (void)methodWithComplexBlock:(id (^)(int, id, SEL, NSObject*, TNSOStruct))block {
     TNSOStruct str = { 5, 6, 7 };
-    id result = block(1, @2, @selector(init), @[ @3, @4 ], str);
+    id result = block(1, @2, @selector(init), @[@3, @4], str);
     TNSLog([NSString stringWithFormat:@"\n%@", NSStringFromClass([result class])]);
 }
 
@@ -49,7 +49,7 @@ CFTypeRef TNSFunctionWithCreateCFTypeRefReturn() {
 
 - (void)methodWithComplexBlock:(id (^)(int, id, SEL, NSObject*, TNSOStruct))block {
     TNSOStruct str = { 5, 6, 7 };
-    id result = block(1, @2, @selector(init), @[ @3, @4 ], str);
+    id result = block(1, @2, @selector(init), @[@3, @4], str);
     TNSLog([NSString stringWithFormat:@"\n%@", NSStringFromClass([result class])]);
 }
 

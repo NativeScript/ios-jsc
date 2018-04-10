@@ -10,7 +10,7 @@
 #import <objc/message.h>
 
 #if !defined(UNUSED)
-#define UNUSED(variable) (void) variable
+#define UNUSED(variable) (void)variable
 #endif
 
 @implementation TNSTestNativeCallbacks
@@ -113,7 +113,7 @@
 + (id)inheritanceVariadicSelector:(id)object {
     SEL sel = NSSelectorFromString(@"variadicSelector:x:");
     NSAssert([object respondsToSelector:sel], @"Object does not respond to selector");
-    id result = ((id (*)(id, SEL, NSString*, int))objc_msgSend)(object, sel, @"native", 9);
+    id result = ((id(*)(id, SEL, NSString*, int))objc_msgSend)(object, sel, @"native", 9);
     return result;
 }
 
@@ -186,15 +186,15 @@
 + (void)apiNSErrorExpose:(TNSApi*)object {
     {
         NSError* error = nil;
-        NSAssert(((BOOL (*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 0, &error) == true, NSStringFromSelector(_cmd));
+        NSAssert(((BOOL(*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 0, &error) == true, NSStringFromSelector(_cmd));
         NSAssert(error == nil, NSStringFromSelector(_cmd));
     }
 
-    NSAssert(((BOOL (*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 1, nil) == false, NSStringFromSelector(_cmd));
+    NSAssert(((BOOL(*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 1, nil) == false, NSStringFromSelector(_cmd));
 
     {
         NSError* error = nil;
-        NSAssert(((BOOL (*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 1, &error) == false, NSStringFromSelector(_cmd));
+        NSAssert(((BOOL(*)(id, SEL, int, NSError**))objc_msgSend)(object, NSSelectorFromString(@"method:error2:"), 1, &error) == false, NSStringFromSelector(_cmd));
         TNSLog(error.domain);
     }
 }

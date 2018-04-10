@@ -22,6 +22,6 @@ extern const FFITypeMethodTable int64TypeMethodTable;
 extern const FFITypeMethodTable uint64TypeMethodTable;
 extern const FFITypeMethodTable floatTypeMethodTable;
 extern const FFITypeMethodTable doubleTypeMethodTable;
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFINumericTypes__) */

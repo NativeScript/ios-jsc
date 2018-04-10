@@ -18,5 +18,5 @@ private:
     JSC::JSGlobalObject& m_globalObject;
     JSC::Strong<JSC::JSObject> m_domainDispatcher;
 };
-}
+} // namespace NativeScript
 #endif /* DomainBackendDispatcher_h */

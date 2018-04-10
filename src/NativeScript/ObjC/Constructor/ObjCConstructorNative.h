@@ -54,6 +54,6 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _allocatedPlaceholderStructure;
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCConstructorNative__) */

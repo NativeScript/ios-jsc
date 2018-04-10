@@ -38,6 +38,6 @@ private:
 
     static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 };
-}
+} // namespace NativeScript
 
 #endif /* defined(__NativeScript__ReferenceTypeConstructor__) */

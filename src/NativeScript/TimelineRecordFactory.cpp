@@ -21,4 +21,4 @@ Ref<InspectorObject> TimelineRecordFactory::createConsoleProfileData(const Strin
     data->setString("title", title);
     return data;
 }
-}
+} // namespace Inspector
