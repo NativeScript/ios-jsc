@@ -145,7 +145,7 @@ JavaScript code:
 - Declare one variable per var statement
 - Declare variables at the top of a scope
 - Return early
-- For a more detailed guide, check the [Coding Convention](https://github.com/NativeScript/cross-platform-modules/blob/master/CodingConvention.md)
+- For a more detailed guide, check the [Coding Convention](https://github.com/NativeScript/NativeScript/blob/master/CodingConvention.md)
 
 C/C++/Objective-C code:
 
