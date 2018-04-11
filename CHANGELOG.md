@@ -7,9 +7,24 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+4.0.1
+=====
+## What's New
+- [Update WebKit to version ios-11.2.5](https://github.com/NativeScript/ios-runtime/pull/825)
+
+## Bug Fixes
+- [Fixed calling `require()` with an empty .js file](https://github.com/NativeScript/ios-runtime/issues/895)
+- [Fixed console.log() not working on real devices](https://github.com/NativeScript/ios-runtime/issues/893)
+- [Fixed plugin development issue where not all frameworks are included in iOS project](https://github.com/NativeScript/ios-runtime/issues/890)
+- [Fixed Inspector error with --debug-brk](https://github.com/NativeScript/ios-runtime/issues/887)
+- [Fixed broken Inspector’s Elements tab](https://github.com/NativeScript/ios-runtime/issues/886)
+- [Fixed issue with console.dir()](https://github.com/NativeScript/ios-runtime/issues/875)
+- [Fixed incorrect constant array type parsing](https://github.com/NativeScript/ios-runtime/pull/896)
+
 3.4.1
 =====
-## Bug fixes
+
+## Bug Fixes
 - [Fixed issue with canonical module path resolution](https://github.com/NativeScript/ios-runtime/pull/847)
 - [Fixed various issues with iOS Inspector](https://github.com/NativeScript/ios-runtime/pull/835)
 - [Fixed issue with Inspector crashing on macOS versions earlier than High Sierra (10.13)](https://github.com/NativeScript/ios-runtime/pull/854)
