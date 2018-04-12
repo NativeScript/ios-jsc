@@ -183,10 +183,13 @@ void GlobalObjectConsoleClient::takeHeapSnapshot(JSC::ExecState*, const String& 
     m_consoleAgent->takeHeapSnapshot(title);
 }
 
-void GlobalObjectConsoleClient::time(JSC::ExecState*, const String& title) {
+void GlobalObjectConsoleClient::time(JSC::ExecState* exec, const String& title) {
     std::unique_ptr<Inspector::ConsoleMessage> startMsg = m_consoleAgent->startTiming(title);
     if (startMsg) {
         ConsoleClient::printConsoleMessage(startMsg->source(), startMsg->type(), startMsg->level(), startMsg->message(), startMsg->url(), startMsg->line(), startMsg->column());
+
+        m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, startMsg->type(), startMsg->level(), startMsg->message(), WTF::emptyString(), 0, 0, exec));
+        m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, startMsg->type(), startMsg->level(), startMsg->message(), WTF::emptyString(), 0, 0, exec));
     }
 }
 
@@ -195,6 +198,8 @@ void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& titl
     std::unique_ptr<Inspector::ConsoleMessage> stopMsg = m_consoleAgent->stopTiming(title, WTFMove(callStack));
     if (stopMsg) {
         ConsoleClient::printConsoleMessage(stopMsg->source(), stopMsg->type(), stopMsg->level(), stopMsg->message(), stopMsg->url(), stopMsg->line(), stopMsg->column());
+        m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, stopMsg->type(), stopMsg->level(), stopMsg->message(), WTF::emptyString(), 0, 0, exec));
+        m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, stopMsg->type(), stopMsg->level(), stopMsg->message(), WTF::emptyString(), 0, 0, exec));
     }
 }
 
