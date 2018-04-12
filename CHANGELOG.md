@@ -14,12 +14,10 @@ previous_url: /Changelogs/iOS Runtime
 
 ## Bug Fixes
 - [Fixed calling `require()` with an empty .js file](https://github.com/NativeScript/ios-runtime/issues/895)
-- [Fixed console.log() not working on real devices](https://github.com/NativeScript/ios-runtime/issues/893)
-- [Fixed plugin development issue where not all frameworks are included in iOS project](https://github.com/NativeScript/ios-runtime/issues/890)
 - [Fixed Inspector error with --debug-brk](https://github.com/NativeScript/ios-runtime/issues/887)
 - [Fixed broken Inspector’s Elements tab](https://github.com/NativeScript/ios-runtime/issues/886)
 - [Fixed issue with console.dir()](https://github.com/NativeScript/ios-runtime/issues/875)
-- [Fixed incorrect constant array type parsing](https://github.com/NativeScript/ios-runtime/pull/896)
+- [Fixed issue with missing console.time() messages](https://github.com/NativeScript/ios-runtime/issues/843)
 
 3.4.1
 =====
