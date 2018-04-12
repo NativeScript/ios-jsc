@@ -113,50 +113,15 @@ GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsole
 }
 
 void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
-    if (GlobalObjectConsoleClient::logToSystemConsole()) {
-        if (type != JSC::MessageType::Trace) {
-            this->printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
-        } else {
-            ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
-        }
-    }
 
-    String message;
-    arguments->getFirstArgumentAsString(message);
+    String message = this->createMessageFromArguments(type, exec, WTFMove(arguments));
+
+    if (GlobalObjectConsoleClient::logToSystemConsole()) {
+        GlobalObjectConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0);
+    }
 
     m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec));
     m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTFMove(arguments), exec));
-}
-
-void GlobalObjectConsoleClient::printConsoleMessageWithArguments(MessageSource source, MessageType type, MessageLevel level, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
-    RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
-    const Inspector::ScriptCallFrame& lastCaller = callStack->size() > 0 ? callStack->at(0) : Inspector::ScriptCallFrame("", "", JSC::noSourceID, 0, 0);
-
-    StringBuilder builder;
-
-    if (!lastCaller.sourceURL().isEmpty()) {
-        appendURLAndPosition(builder, lastCaller.sourceURL(), lastCaller.lineNumber(), lastCaller.columnNumber());
-        builder.appendLiteral(": ");
-    }
-
-    if (type == JSC::MessageType::Dir) {
-        JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
-        builder.append(this->getDirMessage(exec, argumentValue));
-    } else {
-        for (size_t i = 0; i < arguments->argumentCount(); ++i) {
-            String argAsString = arguments->argumentAt(i).toString(arguments->globalState());
-            if (i > 0) {
-                builder.append(' ');
-            }
-            if (argAsString.contains("[object Object]")) {
-                builder.append(smartStringifyObject(exec, arguments->argumentAt(i)));
-            } else {
-                builder.append(argAsString);
-            }
-        }
-    }
-
-    ConsoleClient::printConsoleMessage(source, type, level, builder.toString(), WTF::emptyString(), 0, 0);
 }
 
 void GlobalObjectConsoleClient::count(JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
@@ -223,4 +188,36 @@ WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::
 
     return output.toString();
 }
+
+WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType type, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
+
+    RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
+    const Inspector::ScriptCallFrame& lastCaller = callStack->size() > 0 ? callStack->at(0) : Inspector::ScriptCallFrame("", "", JSC::noSourceID, 0, 0);
+
+    StringBuilder builder;
+
+    if (!lastCaller.sourceURL().isEmpty()) {
+        appendURLAndPosition(builder, lastCaller.sourceURL(), lastCaller.lineNumber(), lastCaller.columnNumber());
+        builder.appendLiteral(": ");
+    }
+
+    if (type == JSC::MessageType::Dir) {
+        JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
+        builder.append(this->getDirMessage(exec, argumentValue));
+    } else {
+        for (size_t i = 0; i < arguments->argumentCount(); ++i) {
+            String argAsString = arguments->argumentAt(i).toString(arguments->globalState());
+            if (i > 0) {
+                builder.append(' ');
+            }
+            if (argAsString.contains("[object Object]")) {
+                builder.append(smartStringifyObject(exec, arguments->argumentAt(i)));
+            } else {
+                builder.append(argAsString);
+            }
+        }
+    }
+    return builder.toString();
+}
+
 } // namespace NativeScript
