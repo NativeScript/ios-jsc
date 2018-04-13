@@ -120,8 +120,8 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
         GlobalObjectConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0);
     }
 
-    m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec));
-    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTFMove(arguments), exec));
+    std::unique_ptr<Inspector::ConsoleMessage> consoleMessage = std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec);
+    this->addMessageToAgentsConsole(WTFMove(consoleMessage));
 }
 
 void GlobalObjectConsoleClient::count(JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
@@ -153,8 +153,7 @@ void GlobalObjectConsoleClient::time(JSC::ExecState* exec, const String& title) 
     if (startMsg) {
         ConsoleClient::printConsoleMessage(startMsg->source(), startMsg->type(), startMsg->level(), startMsg->message(), startMsg->url(), startMsg->line(), startMsg->column());
 
-        m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, startMsg->type(), startMsg->level(), startMsg->message(), WTF::emptyString(), 0, 0, exec));
-        m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, startMsg->type(), startMsg->level(), startMsg->message(), WTF::emptyString(), 0, 0, exec));
+        this->addMessageToAgentsConsole(WTFMove(startMsg));
     }
 }
 
@@ -163,8 +162,7 @@ void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& titl
     std::unique_ptr<Inspector::ConsoleMessage> stopMsg = m_consoleAgent->stopTiming(title, WTFMove(callStack));
     if (stopMsg) {
         ConsoleClient::printConsoleMessage(stopMsg->source(), stopMsg->type(), stopMsg->level(), stopMsg->message(), stopMsg->url(), stopMsg->line(), stopMsg->column());
-        m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, stopMsg->type(), stopMsg->level(), stopMsg->message(), WTF::emptyString(), 0, 0, exec));
-        m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, stopMsg->type(), stopMsg->level(), stopMsg->message(), WTF::emptyString(), 0, 0, exec));
+        this->addMessageToAgentsConsole(WTFMove(stopMsg));
     }
 }
 
@@ -175,7 +173,8 @@ void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, Ref<Inspector::Script
 
 void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {
     String message = method + " is currently ignored in JavaScript context inspection.";
-    m_consoleAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message));
+    std::unique_ptr<Inspector::ConsoleMessage> consoleMessage = std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::Log, MessageLevel::Warning, message);
+    this->addMessageToAgentsConsole(WTFMove(consoleMessage));
 }
 
 WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::JSValue argument) {
@@ -223,6 +222,11 @@ WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType ty
         }
     }
     return builder.toString();
+}
+
+void GlobalObjectConsoleClient::addMessageToAgentsConsole(std::unique_ptr<Inspector::ConsoleMessage>&& message) {
+    m_logAgent->addMessageToConsole(WTFMove(message));
+    m_consoleAgent->addMessageToConsole(WTFMove(message));
 }
 
 } // namespace NativeScript
