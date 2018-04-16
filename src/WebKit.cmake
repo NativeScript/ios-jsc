@@ -1,5 +1,6 @@
 set(WEBKIT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src/WebKit")
 set(WTF_SOURCE_DIR "${WEBKIT_SOURCE_DIR}/Source/WTF")
+set(BMALLOC_SOURCE_DIR "${WEBKIT_SOURCE_DIR}/Source/bmalloc")
 set(JavaScriptCore_SOURCE_DIR "${WEBKIT_SOURCE_DIR}/Source/JavaScriptCore")
 set(JavaScriptCore_INCLUDE_DIRECTORIES
     "${JavaScriptCore_SOURCE_DIR}/**"
@@ -52,6 +53,7 @@ get_property(WEBKIT_BINARY_DIR TARGET WebKit PROPERTY _EP_BINARY_DIR)
 set(WEBKIT_INCLUDE_DIRECTORIES
     "${WEBKIT_SOURCE_DIR}/Source"
     "${WTF_SOURCE_DIR}"
+    "${BMALLOC_SOURCE_DIR}"
     ${JavaScriptCore_INCLUDE_DIRECTORIES}
     "${WEBKIT_BINARY_DIR}"
     "${WEBKIT_BINARY_DIR}/DerivedSources"
