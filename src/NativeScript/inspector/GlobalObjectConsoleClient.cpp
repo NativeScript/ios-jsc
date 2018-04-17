@@ -114,12 +114,14 @@ GlobalObjectConsoleClient::GlobalObjectConsoleClient(Inspector::InspectorConsole
 
 void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, MessageLevel level, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
 
-    String message = this->createMessageFromArguments(type, exec, WTFMove(arguments));
-
+    String message = this->createMessageFromArguments(type, exec, arguments.copyRef());
     if (GlobalObjectConsoleClient::logToSystemConsole()) {
-        GlobalObjectConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0);
+        if (type != JSC::MessageType::Trace) {
+            GlobalObjectConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0);
+        } else {
+            ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
+        }
     }
-
     std::unique_ptr<Inspector::ConsoleMessage> consoleMessage = std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec);
     this->addMessageToAgentsConsole(WTFMove(consoleMessage));
 }
@@ -179,7 +181,6 @@ void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {
 
 WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::JSValue argument) {
     StringBuilder output;
-    output.append(argument.toWTFString(exec));
 
     if (argument.isObject()) {
         output.append("\n");
@@ -188,6 +189,8 @@ WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::
         output.append(getDirMessageForObject(exec, argument));
         output.append("==== object dump end ====");
         output.append("\n");
+    } else {
+        output.append(argument.toWTFString(exec));
     }
 
     return output.toString();
