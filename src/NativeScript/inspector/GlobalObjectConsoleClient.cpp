@@ -225,7 +225,9 @@ WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType ty
 }
 
 void GlobalObjectConsoleClient::addMessageToAgentsConsole(std::unique_ptr<Inspector::ConsoleMessage>&& message) {
-    m_logAgent->addMessageToConsole(WTFMove(message));
+
+    m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(*message.get()));
+
     m_consoleAgent->addMessageToConsole(WTFMove(message));
 }
 
