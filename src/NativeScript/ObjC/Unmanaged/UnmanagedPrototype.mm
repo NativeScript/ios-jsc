@@ -42,7 +42,7 @@ static EncodedJSValue JSC_HOST_CALL takeUnretainedValue(ExecState* execState) {
 void UnmanagedPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("takeRetainedValue")), 1, takeRetainedValue, NoIntrinsic, DontDelete | ReadOnly);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("takeUnretainedValue")), 1, takeUnretainedValue, NoIntrinsic, DontDelete | ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("takeRetainedValue")), 1, takeRetainedValue, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("takeUnretainedValue")), 1, takeUnretainedValue, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 }

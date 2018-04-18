@@ -43,7 +43,7 @@ public:
 
 private:
     FunctionReferenceInstance(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
+        : Base(vm, structure, &callFunc, nullptr) {
     }
 
     static void destroy(JSC::JSCell* cell) {
@@ -54,11 +54,11 @@ private:
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
-    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
-
     JSC::WriteBarrier<FFIFunctionCallback> _functionCallback;
 
     JSC::WriteBarrier<JSC::JSCell> _function;
+
+    static JSC::EncodedJSValue JSC_HOST_CALL callFunc(JSC::ExecState* execState);
 };
 } // namespace NativeScript
 

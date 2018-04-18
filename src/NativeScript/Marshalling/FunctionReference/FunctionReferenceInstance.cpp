@@ -20,22 +20,17 @@ void FunctionReferenceInstance::finishCreation(VM& vm, JSGlobalObject* globalObj
     Base::finishCreation(vm, object->jsExecutable()->ecmaName().string());
 
     size_t length = object->get(execState, vm.propertyNames->length).toUInt32(execState);
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(length), ReadOnly | DontEnum | DontDelete);
+    this->putDirect(vm, vm.propertyNames->length, jsNumber(length), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 
     this->_function = WriteBarrier<JSCell>(vm, this, function);
 }
 
-static EncodedJSValue JSC_HOST_CALL callFunc(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL FunctionReferenceInstance::callFunc(ExecState* execState) {
     FunctionReferenceInstance* functionReference = jsCast<FunctionReferenceInstance*>(execState->callee().asCell());
 
     CallData callData;
     CallType callType = getCallData(functionReference->function(), callData);
     return JSValue::encode(call(execState, functionReference->function(), callType, callData, execState->globalThisValue(), execState));
-}
-
-CallType FunctionReferenceInstance::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &callFunc;
-    return JSC::CallType::Host;
 }
 
 void FunctionReferenceInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {

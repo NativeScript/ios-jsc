@@ -82,7 +82,7 @@ static WTF::String getStringRepresentationOfObject(JSC::ExecState* exec, JSC::JS
 
 static WTF::String getDirMessageForObject(JSC::ExecState* exec, JSC::JSValue object) {
     JSC::JSObject* jsObject = object.getObject();
-    JSC::PropertyNameArray propertyNames(exec, JSC::PropertyNameMode::Strings);
+    JSC::PropertyNameArray propertyNames(exec, JSC::PropertyNameMode::Strings, JSC::PrivateSymbolMode::Include);
     JSC::EnumerationMode mode;
     jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
     StringBuilder output;

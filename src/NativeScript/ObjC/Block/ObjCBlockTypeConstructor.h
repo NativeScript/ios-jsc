@@ -29,14 +29,12 @@ public:
 
 private:
     ObjCBlockTypeConstructor(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
+        : Base(vm, structure, &constructObjCBlockTypeConstructor, &constructObjCBlockTypeConstructor) {
     }
 
     void finishCreation(JSC::VM&, JSObject*);
 
-    static JSC::ConstructType getConstructData(JSC::JSCell*, JSC::ConstructData&);
-
-    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
+    static JSC::EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(JSC::ExecState* execState);
 };
 } // namespace NativeScript
 

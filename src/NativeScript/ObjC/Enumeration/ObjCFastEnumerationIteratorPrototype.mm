@@ -19,9 +19,9 @@ EncodedJSValue JSC_HOST_CALL FastEnumerationIteratorPrototypeFuncNext(ExecState*
 
 void ObjCFastEnumerationIteratorPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
-    vm.prototypeMap.addPrototype(this);
+    didBecomePrototype();
 
-    JSC_NATIVE_FUNCTION(vm.propertyNames->next, FastEnumerationIteratorPrototypeFuncNext, DontEnum, 0);
+    JSC_NATIVE_FUNCTION(vm.propertyNames->next, FastEnumerationIteratorPrototypeFuncNext, static_cast<unsigned>(PropertyAttribute::DontEnum), 0);
 }
 
 EncodedJSValue JSC_HOST_CALL FastEnumerationIteratorPrototypeFuncNext(ExecState* execState) {

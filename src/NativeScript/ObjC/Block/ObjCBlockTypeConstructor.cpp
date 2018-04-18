@@ -18,10 +18,10 @@ const ClassInfo ObjCBlockTypeConstructor::s_info = { "BlockType", &Base::s_info,
 void ObjCBlockTypeConstructor::finishCreation(VM& vm, JSObject* objCBlockTypePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
 
-    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, objCBlockTypePrototype, DontEnum | DontDelete | ReadOnly);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, objCBlockTypePrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 
-static EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     JSC::VM& vm = execState->vm();
@@ -50,13 +50,4 @@ static EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState*
     return JSValue::encode(globalObject->typeFactory()->getObjCBlockType(globalObject, returnType.asCell(), parametersTypes));
 }
 
-ConstructType ObjCBlockTypeConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
-    constructData.native.function = &constructObjCBlockTypeConstructor;
-    return ConstructType::Host;
-}
-
-CallType ObjCBlockTypeConstructor::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &constructObjCBlockTypeConstructor;
-    return CallType::Host;
-}
 } // namespace NativeScript

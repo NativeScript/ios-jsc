@@ -32,13 +32,13 @@ public:
 
 private:
     JSWorkerConstructor(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
+        : Base(vm, structure, callJSWorker, constructJSWorker) {
     }
 
-    static JSC::ConstructType getConstructData(JSC::JSCell* cell, JSC::ConstructData& constructData);
-    static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
-
     void finishCreation(JSC::VM& vm, JSWorkerPrototype* prototype);
+
+    static JSC::EncodedJSValue JSC_HOST_CALL callJSWorker(JSC::ExecState* exec);
+    static JSC::EncodedJSValue JSC_HOST_CALL constructJSWorker(JSC::ExecState* exec);
 };
 } // namespace NativeScript
 

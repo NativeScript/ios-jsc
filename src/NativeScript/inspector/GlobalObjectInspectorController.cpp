@@ -106,9 +106,9 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     , m_jsAgentContext(m_agentContext, m_globalObject)
 
 {
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, DontEnum);
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, DontEnum);
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, DontEnum);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);

@@ -43,9 +43,11 @@ void JSWorkerGlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
     _onmessageIdentifier = Identifier::fromString(&vm, "onmessage");
 
-    this->putDirect(vm, Identifier::fromString(&vm, "self"), this->globalExec()->globalThisValue(), DontEnum | ReadOnly | DontDelete);
-    this->putDirectNativeFunction(vm, this, vm.propertyNames->close, 0, jsWorkerGlobalObjectClose, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
-    this->putDirectNativeFunction(vm, this, vm.propertyNames->postMessage, 2, jsWorkerGlobalObjectPostMessage, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
+    auto& builtinNames = static_cast<JSVMClientData*>(vm.clientData)->builtinNames();
+
+    this->putDirect(vm, Identifier::fromString(&vm, "self"), this->globalExec()->globalThisValue(), PropertyAttribute::DontEnum | PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete);
+    this->putDirectNativeFunction(vm, this, vm.clientData->close, 0, jsWorkerGlobalObjectClose, NoIntrinsic, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, this, vm.propertyNames->postMessage, 2, jsWorkerGlobalObjectPostMessage, NoIntrinsic, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 
 void JSWorkerGlobalObject::postMessage(JSC::ExecState* exec, JSC::JSValue message, JSC::JSArray* transferList) {

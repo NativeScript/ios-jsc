@@ -46,7 +46,7 @@ public:
 
 private:
     RecordConstructor(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
+        : Base(vm, structure, &createRecordInstance, &constructRecordInstance) {
     }
 
     ~RecordConstructor();
@@ -60,10 +60,8 @@ private:
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
     static JSC::EncodedJSValue JSC_HOST_CALL constructRecordInstance(JSC::ExecState*);
-    static JSC::ConstructType getConstructData(JSC::JSCell*, JSC::ConstructData&);
 
     static JSC::EncodedJSValue JSC_HOST_CALL createRecordInstance(JSC::ExecState*);
-    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);
 

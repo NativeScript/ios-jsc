@@ -249,7 +249,7 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
 
     PointerConstructor* pointerConstructor = globalObject->typeFactory()->pointerConstructor();
     this->_pointerInstanceStructure.set(vm, this, PointerInstance::createStructure(globalObject, pointerConstructor->get(globalObject->globalExec(), vm.propertyNames->prototype)));
-    this->putDirect(vm, Identifier::fromString(&vm, pointerConstructor->name()), pointerConstructor, ReadOnly | DontDelete);
+    this->putDirect(vm, Identifier::fromString(&vm, pointerConstructor->name()), pointerConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
 
     ReferencePrototype* referencePrototype = ReferencePrototype::create(vm, globalObject, ReferencePrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_referenceInstanceStructure.set(vm, this, ReferenceInstance::createStructure(vm, globalObject, referencePrototype));
@@ -259,81 +259,81 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->_extVectorInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype));
 
     ReferenceConstructor* referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype);
-    this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor, ReadOnly | DontDelete);
-    referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor, DontEnum);
+    this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     JSObject* functionReferencePrototype = jsCast<JSObject*>(constructEmptyObject(globalObject->globalExec(), globalObject->functionPrototype()));
     this->_functionReferenceInstanceStructure.set(vm, this, FunctionReferenceInstance::createStructure(vm, globalObject, functionReferencePrototype));
 
     FunctionReferenceConstructor* functionReferenceConstructor = FunctionReferenceConstructor::create(vm, FunctionReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferencePrototype);
-    this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name()), functionReferenceConstructor, ReadOnly | DontDelete);
-    functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, DontEnum);
+    this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name()), functionReferenceConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
     this->putDirect(vm, Identifier::fromString(&vm, "NSErrorWrapper"), this->_nsErrorWrapperConstructor.get());
 
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, ReadOnly | DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, ReadOnly | DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("adopt")), 0, &interopFuncAdopt, NoIntrinsic, ReadOnly | DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("handleof")), 0, &interopFuncHandleof, NoIntrinsic, ReadOnly | DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("sizeof")), 0, &interopFuncSizeof, NoIntrinsic, ReadOnly | DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("bufferFromData")), 1, &interopFuncBufferFromData, NoIntrinsic, ReadOnly | DontDelete);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("adopt")), 0, &interopFuncAdopt, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("handleof")), 0, &interopFuncHandleof, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("sizeof")), 0, &interopFuncSizeof, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("bufferFromData")), 1, &interopFuncBufferFromData, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
 
     JSObject* types = constructEmptyObject(globalObject->globalExec());
-    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("types")), types, None);
+    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("types")), types, static_cast<unsigned>(PropertyAttribute::None));
 
     JSObject* voidType = globalObject->typeFactory()->voidType();
-    types->putDirect(vm, Identifier::fromString(&vm, voidType->methodTable()->className(voidType)), voidType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, voidType->methodTable()->className(voidType)), voidType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* boolType = globalObject->typeFactory()->boolType();
-    types->putDirect(vm, Identifier::fromString(&vm, boolType->methodTable()->className(boolType)), boolType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, boolType->methodTable()->className(boolType)), boolType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* utf8CStringType = globalObject->typeFactory()->utf8CStringType();
-    types->putDirect(vm, Identifier::fromString(&vm, utf8CStringType->methodTable()->className(utf8CStringType)), utf8CStringType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, utf8CStringType->methodTable()->className(utf8CStringType)), utf8CStringType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* unicharType = globalObject->typeFactory()->unicharType();
-    types->putDirect(vm, Identifier::fromString(&vm, unicharType->methodTable()->className(unicharType)), unicharType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, unicharType->methodTable()->className(unicharType)), unicharType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* int8Type = globalObject->typeFactory()->int8Type();
-    types->putDirect(vm, Identifier::fromString(&vm, int8Type->methodTable()->className(int8Type)), int8Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int8Type->methodTable()->className(int8Type)), int8Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* uint8Type = globalObject->typeFactory()->uint8Type();
-    types->putDirect(vm, Identifier::fromString(&vm, uint8Type->methodTable()->className(uint8Type)), uint8Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint8Type->methodTable()->className(uint8Type)), uint8Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* int16Type = globalObject->typeFactory()->int16Type();
-    types->putDirect(vm, Identifier::fromString(&vm, int16Type->methodTable()->className(int16Type)), int16Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int16Type->methodTable()->className(int16Type)), int16Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* uint16Type = globalObject->typeFactory()->uint16Type();
-    types->putDirect(vm, Identifier::fromString(&vm, uint16Type->methodTable()->className(uint16Type)), uint16Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint16Type->methodTable()->className(uint16Type)), uint16Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* int32Type = globalObject->typeFactory()->int32Type();
-    types->putDirect(vm, Identifier::fromString(&vm, int32Type->methodTable()->className(int32Type)), int32Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int32Type->methodTable()->className(int32Type)), int32Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* uint32Type = globalObject->typeFactory()->uint32Type();
-    types->putDirect(vm, Identifier::fromString(&vm, uint32Type->methodTable()->className(uint32Type)), uint32Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint32Type->methodTable()->className(uint32Type)), uint32Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* int64Type = globalObject->typeFactory()->int64Type();
-    types->putDirect(vm, Identifier::fromString(&vm, int64Type->methodTable()->className(int64Type)), int64Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, int64Type->methodTable()->className(int64Type)), int64Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* uint64Type = globalObject->typeFactory()->uint64Type();
-    types->putDirect(vm, Identifier::fromString(&vm, uint64Type->methodTable()->className(uint64Type)), uint64Type, None);
+    types->putDirect(vm, Identifier::fromString(&vm, uint64Type->methodTable()->className(uint64Type)), uint64Type, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* floatType = globalObject->typeFactory()->floatType();
-    types->putDirect(vm, Identifier::fromString(&vm, floatType->methodTable()->className(floatType)), floatType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, floatType->methodTable()->className(floatType)), floatType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* doubleType = globalObject->typeFactory()->doubleType();
-    types->putDirect(vm, Identifier::fromString(&vm, doubleType->methodTable()->className(doubleType)), doubleType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, doubleType->methodTable()->className(doubleType)), doubleType, static_cast<unsigned>(PropertyAttribute::None));
 
     JSObject* objCIdType = globalObject->typeFactory()->NSObjectConstructor(globalObject);
-    types->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("id")), objCIdType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("id")), objCIdType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* objCProtocolType = globalObject->typeFactory()->objCProtocolType();
-    types->putDirect(vm, Identifier::fromString(&vm, objCProtocolType->methodTable()->className(objCProtocolType)), objCProtocolType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, objCProtocolType->methodTable()->className(objCProtocolType)), objCProtocolType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* objCClassType = globalObject->typeFactory()->objCClassType();
-    types->putDirect(vm, Identifier::fromString(&vm, objCClassType->methodTable()->className(objCClassType)), objCClassType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, objCClassType->methodTable()->className(objCClassType)), objCClassType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* objCSelectorType = globalObject->typeFactory()->objCSelectorType();
-    types->putDirect(vm, Identifier::fromString(&vm, objCSelectorType->methodTable()->className(objCSelectorType)), objCSelectorType, None);
+    types->putDirect(vm, Identifier::fromString(&vm, objCSelectorType->methodTable()->className(objCSelectorType)), objCSelectorType, static_cast<unsigned>(PropertyAttribute::None));
 
     JSObject* referenceTypePrototype = constructEmptyObject(globalObject->globalExec());
     ReferenceTypeConstructor* referenceTypeConstructor = ReferenceTypeConstructor::create(vm, ReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referenceTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, referenceTypeConstructor->name()), referenceTypeConstructor, ReadOnly | DontDelete);
-    referenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, referenceTypeConstructor, DontEnum);
+    types->putDirect(vm, Identifier::fromString(&vm, referenceTypeConstructor->name()), referenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    referenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, referenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     JSObject* functionReferenceTypePrototype = constructEmptyObject(globalObject->globalExec());
     FunctionReferenceTypeConstructor* functionReferenceTypeConstructor = FunctionReferenceTypeConstructor::create(vm, FunctionReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferenceTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, functionReferenceTypeConstructor->name()), functionReferenceTypeConstructor, ReadOnly | DontDelete);
-    functionReferenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceTypeConstructor, DontEnum);
+    types->putDirect(vm, Identifier::fromString(&vm, functionReferenceTypeConstructor->name()), functionReferenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    functionReferenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     JSObject* objCBlockTypePrototype = constructEmptyObject(globalObject->globalExec());
     ObjCBlockTypeConstructor* objCBlockTypeConstructor = ObjCBlockTypeConstructor::create(vm, ObjCBlockTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), objCBlockTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, objCBlockTypeConstructor->name()), objCBlockTypeConstructor, ReadOnly | DontDelete);
-    objCBlockTypePrototype->putDirect(vm, vm.propertyNames->constructor, objCBlockTypeConstructor, DontEnum);
+    types->putDirect(vm, Identifier::fromString(&vm, objCBlockTypeConstructor->name()), objCBlockTypeConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    objCBlockTypePrototype->putDirect(vm, vm.propertyNames->constructor, objCBlockTypeConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
 }
 
 JSValue Interop::pointerInstanceForPointer(VM& vm, void* value) {
@@ -371,7 +371,7 @@ JSArrayBuffer* Interop::bufferFromData(ExecState* execState, NSData* data) const
     JSArrayBuffer* arrayBuffer = JSArrayBuffer::create(execState->vm(), execState->lexicalGlobalObject()->arrayBufferStructure(ArrayBufferSharingMode::Default), ArrayBuffer::createFromBytes([data bytes], [data length], [](void*) {}));
 
     // make the ArrayBuffer hold on to the NSData instance so as to keep its bytes alive
-    arrayBuffer->putDirect(execState->vm(), execState->propertyNames().builtinNames().homeObjectPrivateName(), NativeScript::toValue(execState, data));
+    arrayBuffer->putDirect(execState->vm(), execState->vm().propertyNames->builtinNames().homeObjectPrivateName(), NativeScript::toValue(execState, data));
     return arrayBuffer;
 }
 }

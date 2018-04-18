@@ -101,7 +101,7 @@ const Metadata::InterfaceMeta* ObjCConstructorBase::metadata() {
         ObjCPrototype* objcPrototype = nullptr;
         VM& vm = *this->vm();
         while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(vm, proto))) {
-            proto = jsDynamicCast<JSObject*>(vm, proto->getPrototypeDirect());
+            proto = jsDynamicCast<JSObject*>(vm, proto->getPrototypeDirect(vm));
         }
         ASSERT(objcPrototype != nullptr);
         const Metadata::BaseClassMeta* metadata = objcPrototype->metadata();
@@ -148,7 +148,7 @@ bool ObjCConstructorBase::getOwnPropertySlot(JSObject* object, ExecState* execSt
 
     if (propertyName == execState->vm().propertyNames->prototype) {
         ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(object);
-        propertySlot.setValue(object, None, constructor->_prototype.get());
+        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), constructor->_prototype.get());
         return true;
     }
 
@@ -186,7 +186,7 @@ void ObjCConstructorBase::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 }
 
 static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, ObjCConstructorBase* constructor, JSFinalObject* initializer, MarkedArgumentBuffer& arguments) {
-    PropertyNameArray properties(execState, PropertyNameMode::Strings);
+    PropertyNameArray properties(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
     initializer->getOwnPropertyNames(initializer, execState, properties, EnumerationMode(DontEnumPropertiesMode::Exclude, JSObjectPropertiesMode::Include));
     if (properties.size() == 0) {
         return JSValue();
@@ -230,7 +230,7 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
     return JSValue();
 }
 
-static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* execState) {
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
     JSC::VM& vm = execState->vm();
 
@@ -252,7 +252,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
             if (initializerArguments.size() == 1 && initializerArguments.at(0).isUndefined()) {
                 // methods such as -[MDLTransform initWithIdentity] are called as new MDLTransform({ identity: void 0 })
                 // check to see if the method takes zero arguments and empty the arguments buffer
-                if (initializer.get(execState, execState->propertyNames().length).asInt32() == 0) {
+                if (initializer.get(execState, execState->vm().propertyNames->length).asInt32() == 0) {
                     initializerArguments.clear();
                 }
             }
@@ -302,13 +302,7 @@ static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
     }
 }
 
-ConstructType ObjCConstructorBase::getConstructData(JSCell* cell, ConstructData& constructData) {
-    constructData.native.function = constructObjCClass;
-
-    return ConstructType::Host;
-}
-
-static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::createObjCClass(ExecState* execState) {
     JSValue argument = execState->argument(0);
 
     bool hasHandle;
@@ -326,11 +320,5 @@ static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
       return constructor->instancesStructure();
     });
     return JSValue::encode(result);
-}
-
-CallType ObjCConstructorBase::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = createObjCClass;
-
-    return CallType::Host;
 }
 }
