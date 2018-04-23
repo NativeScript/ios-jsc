@@ -42,12 +42,12 @@
 #include <JavaScriptCore/InjectedScriptManager.h>
 #include <JavaScriptCore/InspectorAgent.h>
 #include <JavaScriptCore/InspectorBackendDispatcher.h>
+#include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
 #include <JavaScriptCore/InspectorHeapAgent.h>
 #include <JavaScriptCore/InspectorScriptProfilerAgent.h>
 #include <JavaScriptCore/JSGlobalObject.h>
-#include <JavaScriptCore/JSGlobalObjectConsoleAgent.h>
 #include <JavaScriptCore/JSGlobalObjectRuntimeAgent.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
@@ -113,7 +113,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);
     auto heapAgent = std::make_unique<InspectorHeapAgent>(m_jsAgentContext);
-    auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_jsAgentContext, heapAgent.get()); // TODO Add InspectorHeapAgent
+    auto consoleAgent = std::make_unique<InspectorConsoleAgent>(m_jsAgentContext, heapAgent.get()); // TODO Add InspectorHeapAgent
     auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_jsAgentContext, consoleAgent.get());
     auto pageAgent = std::make_unique<InspectorPageAgent>(m_jsAgentContext);
     auto scriptProfilerAgent = std::make_unique<InspectorScriptProfilerAgent>(m_jsAgentContext);

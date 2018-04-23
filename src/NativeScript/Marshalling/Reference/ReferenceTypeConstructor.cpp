@@ -23,7 +23,7 @@ void ReferenceTypeConstructor::finishCreation(VM& vm, JSObject* referenceTypePro
     this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, referenceTypePrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 
-EncodedJSValue JSC_HOST_CALL constructReferenceType(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL ReferenceTypeConstructor::constructReferenceType(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     JSC::VM& vm = execState->vm();

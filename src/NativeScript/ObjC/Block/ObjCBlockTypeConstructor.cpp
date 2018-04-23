@@ -21,7 +21,7 @@ void ObjCBlockTypeConstructor::finishCreation(VM& vm, JSObject* objCBlockTypePro
     this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, objCBlockTypePrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 
-EncodedJSValue JSC_HOST_CALL constructObjCBlockTypeConstructor(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL ObjCBlockTypeConstructor::constructObjCBlockTypeConstructor(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     JSC::VM& vm = execState->vm();

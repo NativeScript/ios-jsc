@@ -22,6 +22,7 @@
 #import <UIKit/UIApplication.h>
 #endif
 
+#include "JSClientData.h"
 #include "JSErrors.h"
 #include "ManualInstrumentation.h"
 #include "Metadata/Metadata.h"
@@ -53,7 +54,7 @@ static NSPointerArray* _runtimes;
     WTF::LockHolder lock(_runtimesLock);
     Thread* currentThread = &WTF::Thread::current();
     for (TNSRuntime* runtime in _runtimes) {
-        if (runtime.thread == currentThread)
+        if (runtime->thread == currentThread)
             return runtime;
     }
     return nil;
@@ -90,11 +91,13 @@ static NSPointerArray* _runtimes;
     TNSPERF();
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
-        self->_thread = &WTF::Thread::current();
+        self->thread = &WTF::Thread::current();
         self->_applicationPath = [[applicationPath stringByStandardizingPath] retain];
         self->_objectMap = std::make_unique<JSC::WeakGCMap<id, JSC::JSObject>>(*self->_vm);
 
-        self->_thread->m_apiData = static_cast<void*>(self);
+        JSVMClientData::initNormalWorld(self->_vm.get());
+
+        self->thread->m_apiData = static_cast<void*>(self);
 
 #if PLATFORM(IOS)
         [[NSNotificationCenter defaultCenter] addObserver:self

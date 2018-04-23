@@ -22,7 +22,7 @@ void RecordProtoFieldSetter::finishCreation(VM& vm, RecordField* field) {
     this->putDirect(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 }
 
-EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldSetter(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL RecordProtoFieldSetter::recordProtoFuncFieldSetter(ExecState* execState) {
     RecordProtoFieldSetter* setter = jsCast<RecordProtoFieldSetter*>(execState->callee().asCell());
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
     void* data = record->data();
@@ -52,7 +52,7 @@ void RecordProtoFieldGetter::finishCreation(VM& vm, RecordField* fieldMetadata) 
     this->putDirect(vm, vm.propertyNames->length, jsNumber(0), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 }
 
-EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldGetter(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL RecordProtoFieldGetter::recordProtoFuncFieldGetter(ExecState* execState) {
     RecordProtoFieldGetter* getter = jsCast<RecordProtoFieldGetter*>(execState->callee().asCell());
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
     void* data = record->data();

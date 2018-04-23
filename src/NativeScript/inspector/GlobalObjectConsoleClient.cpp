@@ -82,7 +82,7 @@ static WTF::String getStringRepresentationOfObject(JSC::ExecState* exec, JSC::JS
 
 static WTF::String getDirMessageForObject(JSC::ExecState* exec, JSC::JSValue object) {
     JSC::JSObject* jsObject = object.getObject();
-    JSC::PropertyNameArray propertyNames(exec, JSC::PropertyNameMode::Strings, JSC::PrivateSymbolMode::Include);
+    JSC::PropertyNameArray propertyNames(&exec->vm(), JSC::PropertyNameMode::Strings, JSC::PrivateSymbolMode::Include);
     JSC::EnumerationMode mode;
     jsObject->getPropertyNames(jsObject, exec, propertyNames, mode);
     StringBuilder output;
@@ -222,5 +222,10 @@ WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::
     }
 
     return output.toString();
+}
+void GlobalObjectConsoleClient::record(ExecState*, Ref<Inspector::ScriptArguments>&&) {
+}
+
+void GlobalObjectConsoleClient::recordEnd(ExecState*, Ref<Inspector::ScriptArguments>&&) {
 }
 } // namespace NativeScript

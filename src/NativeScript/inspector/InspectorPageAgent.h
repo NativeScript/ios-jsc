@@ -22,14 +22,14 @@ public:
 
     virtual void enable(ErrorString&) override;
     virtual void disable(ErrorString&) override;
-    virtual void reload(ErrorString&, const bool* const opt_in_ignoreCache, const bool* const opt_in_revalidateAllResources, const String* const opt_in_scriptToEvaluateOnLoad) override;
+    virtual void reload(ErrorString&, const bool* const optionalReloadFromOrigin, const bool* const optionalRevalidateAllResources) override;
     virtual void navigate(ErrorString&, const String& in_url) override;
-    virtual void getCookies(ErrorString&, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::Cookie>>& out_cookies) override;
+    virtual void getCookies(ErrorString&, RefPtr<JSON::ArrayOf<Inspector::Protocol::Page::Cookie>>& cookies) override;
     virtual void deleteCookie(ErrorString&, const String& in_cookieName, const String& in_url) override;
     virtual void getResourceTree(ErrorString&, RefPtr<Inspector::Protocol::Page::FrameResourceTree>& out_frameTree) override;
     virtual void getResourceContent(ErrorString&, const String& in_frameId, const String& in_url, String* out_content, bool* out_base64Encoded) override;
-    virtual void searchInResource(ErrorString&, const String& frameId, const String& url, const String& query, const bool* optionalCaseSensitive, const bool* optionalIsRegex, const String* optionalRequestId, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>>&) override;
-    virtual void searchInResources(ErrorString&, const String& in_text, const bool* in_caseSensitive, const bool* in_isRegex, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::SearchResult>>& out_result) override;
+    virtual void searchInResource(ErrorString&, const String& frameId, const String& url, const String& query, const bool* const optionalCaseSensitive, const bool* const optionalIsRegex, const String* const optionalRequestId, RefPtr<JSON::ArrayOf<Inspector::Protocol::GenericTypes::SearchMatch>>&) override;
+    virtual void searchInResources(ErrorString&, const String&, const bool* const caseSensitive, const bool* const isRegex, RefPtr<JSON::ArrayOf<Inspector::Protocol::Page::SearchResult>>&) override;
     virtual void setShowPaintRects(ErrorString&, bool in_result) override;
 
     virtual void setEmulatedMedia(ErrorString&, const String& in_media) override;

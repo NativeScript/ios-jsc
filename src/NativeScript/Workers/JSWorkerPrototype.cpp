@@ -52,7 +52,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncTerminate(ExecState* state)
 void JSWorkerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("postMessage")), 2, jsWorkerProtoFuncPostMessage, NoIntrinsic, DontDelete | ReadOnly);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("terminate")), 0, jsWorkerProtoFuncTerminate, NoIntrinsic, DontDelete | ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("postMessage")), 2, jsWorkerProtoFuncPostMessage, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("terminate")), 0, jsWorkerProtoFuncTerminate, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 } // namespace NativeScript
