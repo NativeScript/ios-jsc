@@ -15,7 +15,7 @@ public:
     }
 
     static JSC::Structure* createStructure(JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
-        return JSC::Structure::create(globalObject->vm(), globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
+        return JSC::Structure::create(globalObject->vm(), globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
     }
 
     JSC::JSCell* returnType() const {
