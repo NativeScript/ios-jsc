@@ -214,8 +214,6 @@ private:
 
     static JSC::JSObject* moduleLoaderCreateImportMetaProperties(JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue, JSC::JSModuleRecord*, JSC::JSValue);
 
-    //    static JSC::JSInternalPromise* moduleLoaderInstantiate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSModuleRecord* moduleRecord, JSC::JSValue initiator);
-
     static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue, JSC::JSValue initiator);
 
     static WTF::String defaultLanguage();
