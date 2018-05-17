@@ -24,7 +24,7 @@ void FunctionReferenceConstructor::finishCreation(VM& vm, JSValue prototype) {
 EncodedJSValue JSC_HOST_CALL FunctionReferenceConstructor::constructFunctionReferenceInstance(ExecState* execState) {
     CallData callData;
 
-    if (!(execState->argumentCount() == 1 && getCallData(execState->uncheckedArgument(0).asCell(), callData) != CallType::None)) {
+    if (!(execState->argumentCount() == 1 && JSC::getCallData(execState->uncheckedArgument(0), callData) != CallType::None)) {
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 

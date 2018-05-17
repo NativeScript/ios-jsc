@@ -269,6 +269,7 @@ Identifier GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecS
     if (!absoluteFilePath) {
         WTF::String errorMessage = WTF::String::format("Could not find module '%s'. Computed path '%s'.", keyValue.toWTFString(execState).utf8().data(), absolutePath.UTF8String);
         throwException(execState, scope, createError(execState, errorMessage));
+        return Identifier();
     }
 
     return Identifier::fromString(&vm, String(absoluteFilePath));

@@ -29,7 +29,7 @@ EncodedJSValue JSC_HOST_CALL FunctionReferenceInstance::callFunc(ExecState* exec
     FunctionReferenceInstance* functionReference = jsCast<FunctionReferenceInstance*>(execState->callee().asCell());
 
     CallData callData;
-    CallType callType = getCallData(functionReference->function(), callData);
+    CallType callType = JSC::getCallData(functionReference->function(), callData);
     return JSValue::encode(call(execState, functionReference->function(), callType, callData, execState->globalThisValue(), execState));
 }
 
