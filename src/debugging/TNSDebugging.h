@@ -19,8 +19,12 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-// Synchronization object for serializing access to inspector variable and data
-// socket
+// {N} CLI is relying on this message in order to receive the inspector port number. Please do not change it!
+// Parsing regex is 'NativeScript debugger has opened inspector socket on port (\d+) for (.*)\.'
+// It's defined in 'ios-log-parser-service.ts'
+#define LOG_DEBUGGER_PORT NSLog(@"NativeScript debugger has opened inspector socket on port %d for %@.", currentInspectorPort, [[NSBundle mainBundle] bundleIdentifier])
+
+// Synchronization object for serializing access to inspector variable and data socket
 
 id inspectorLock() {
     static dispatch_once_t once;
@@ -32,7 +36,7 @@ id inspectorLock() {
 }
 static TNSRuntimeInspector* inspector = nil;
 static BOOL isWaitingForDebugger = NO;
-static int32_t cleanupRequestsCount = 0;
+static int currentInspectorPort = 0;
 
 typedef void (^TNSInspectorProtocolHandler)(NSString* message, NSError* error);
 
@@ -75,17 +79,33 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
     setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr,
                sizeof(so_reuseaddr));
     struct sockaddr_in addr = {
-        sizeof(addr), AF_INET, htons(18181), { INADDR_ANY }, { 0 }
+        sizeof(addr), AF_INET, htons(18182), { INADDR_ANY }, { 0 }
     };
-    if (!CheckError(
-            bind(listenSocket, (const struct sockaddr*)&addr, sizeof(addr)),
-            connectedHandler)) {
-        return nil;
+
+    if (bind(listenSocket, (const struct sockaddr*)&addr, sizeof(addr)) != 0) {
+
+        // Try getting a random port if the default one is unavailable
+        addr.sin_port = htons(0);
+
+        if (!CheckError(
+                bind(listenSocket, (const struct sockaddr*)&addr, sizeof(addr)),
+                connectedHandler)) {
+
+            return nil;
+        }
     }
 
     if (!CheckError(listen(listenSocket, 0), connectedHandler)) {
         return nil;
     }
+
+    // read actually allocated listening port
+    socklen_t len = sizeof(addr);
+    if (!CheckError(getsockname(listenSocket, (struct sockaddr*)&addr, &len), connectedHandler)) {
+        return nil;
+    }
+
+    currentInspectorPort = ntohs(addr.sin_port);
 
     __block dispatch_source_t listenSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, listenSocket, 0, queue);
 
@@ -242,8 +262,6 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                                      TNSRuntime* runtime) {
     __block dispatch_source_t listenSource = nil;
 
-    __block dispatch_block_t scheduleInspectorServerCleanup = nil;
-
     dispatch_block_t clearInspector = ^{
       // Keep a working copy for calling into the VM after releasing inspectorLock
       TNSRuntimeInspector* tempInspector = nil;
@@ -252,7 +270,6 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
               tempInspector = inspector;
               inspector = nil;
               NSSetUncaughtExceptionHandler(NULL);
-              scheduleInspectorServerCleanup();
           }
       }
       // Release and dealloc old inspector; must be outside of the inspectorLock
@@ -268,23 +285,6 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
       }
 
       clearInspector();
-    };
-
-    scheduleInspectorServerCleanup = ^{
-      dispatch_time_t delay = dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC * 30);
-      OSAtomicIncrement32Barrier(&cleanupRequestsCount);
-      dispatch_after(delay, dispatch_get_main_queue(), ^{
-        if (OSAtomicDecrement32Barrier(&cleanupRequestsCount) == 0) {
-            bool stopListening = false;
-            @synchronized(inspectorLock()) {
-                stopListening = inspector == nil;
-            }
-
-            if (stopListening) {
-                clear();
-            }
-        }
-      });
     };
 
     [[NSNotificationCenter defaultCenter]
@@ -368,16 +368,14 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
             CFRunLoopRef runloop = CFRunLoopGetMain();
             CFRunLoopPerformBlock(
                 runloop, (__bridge CFTypeRef)(inspectorRunloopModes), ^{
-                  // Keep a working copy for calling into the VM after releasing
-                  // inspectorLock
+                  // Keep a working copy for calling into the VM after releasing inspectorLock
                   TNSRuntimeInspector* tempInspector = nil;
                   @synchronized(inspectorLock()) {
                       tempInspector = inspector;
                   }
 
                   if (tempInspector) {
-                      //                      NSLog(@"NativeScript Debugger
-                      //                      receiving: %@", message);
+                      // NSLog(@"NativeScript Debugger receiving: %@", message);
                       [tempInspector dispatchMessage:message];
                   }
                 });
@@ -412,8 +410,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
           dispatch_after(delay, dispatch_get_main_queue(), ^{
             if (isWaitingForDebugger) {
                 isWaitingForDebugger = NO;
-                NSLog(@"NativeScript waiting for debugger timeout elapsed. "
-                      @"Continuing execution.");
+                NSLog(@"NativeScript waiting for debugger timeout elapsed. Continuing execution.");
             }
           });
 
@@ -434,15 +431,12 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
           // Remove any existing frontend connections
           clearInspector();
 
-          // Keep current listening source if existing, schedule cleanup before
-          // check will guard it from previous timer (if such has been started)
-          scheduleInspectorServerCleanup();
-
           if (!listenSource) {
               listenSource = TNSCreateInspectorServer(
                   connectionHandler, ioErrorHandler, clearInspector);
           }
 
+          LOG_DEBUGGER_PORT;
           notify_post(NOTIFICATION("ReadyForAttach"));
         });
 
@@ -451,8 +445,10 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                              &attachAvailabilityQuerySubscription,
                              dispatch_get_main_queue(), ^(int token) {
                                if (inspector) {
+                                   LOG_DEBUGGER_PORT;
                                    notify_post(NOTIFICATION("AlreadyConnected"));
                                } else if (listenSource) {
+                                   LOG_DEBUGGER_PORT;
                                    notify_post(NOTIFICATION("ReadyForAttach"));
                                } else {
                                    notify_post(NOTIFICATION("AttachAvailable"));
