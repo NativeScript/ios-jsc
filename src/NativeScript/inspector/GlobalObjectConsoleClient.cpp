@@ -122,8 +122,9 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
             ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
         }
     }
+
     std::unique_ptr<Inspector::ConsoleMessage> consoleMessage = std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec);
-    this->addMessageToAgentsConsole(WTFMove(consoleMessage));
+    this->addMessageToAgentsConsole(WTFMove(consoleMessage), WTFMove(arguments), exec);
 }
 
 void GlobalObjectConsoleClient::count(JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
@@ -196,7 +197,7 @@ WTF::String GlobalObjectConsoleClient::getDirMessage(JSC::ExecState* exec, JSC::
     return output.toString();
 }
 
-WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType type, JSC::ExecState* exec, RefPtr<Inspector::ScriptArguments>&& arguments) {
+WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType type, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
 
     RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
     const Inspector::ScriptCallFrame& lastCaller = callStack->size() > 0 ? callStack->at(0) : Inspector::ScriptCallFrame("", "", JSC::noSourceID, 0, 0);
@@ -209,6 +210,7 @@ WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType ty
     }
 
     if (type == JSC::MessageType::Dir) {
+        // don't enumerate args as console.dir supports only one argument
         JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
         builder.append(this->getDirMessage(exec, argumentValue));
     } else {
@@ -228,10 +230,17 @@ WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType ty
 }
 
 void GlobalObjectConsoleClient::addMessageToAgentsConsole(std::unique_ptr<Inspector::ConsoleMessage>&& message) {
-
     m_logAgent->addMessageToConsole(std::make_unique<Inspector::ConsoleMessage>(*message.get()));
 
     m_consoleAgent->addMessageToConsole(WTFMove(message));
 }
 
+void GlobalObjectConsoleClient::addMessageToAgentsConsole(std::unique_ptr<Inspector::ConsoleMessage>&& message, Ref<Inspector::ScriptArguments>&& arguments, JSC::ExecState* exec) {
+
+    auto consoleMessage = std::make_unique<Inspector::ConsoleMessage>(message->source(), message->type(), message->level(),
+                                                                      message->message(), WTFMove(arguments), exec);
+
+    m_logAgent->addMessageToConsole(WTFMove(message));
+    m_consoleAgent->addMessageToConsole(WTFMove(consoleMessage));
+}
 } // namespace NativeScript
