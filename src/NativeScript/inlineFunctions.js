@@ -14,6 +14,12 @@ Object.assign(global, {
     NSMakeRange(location, length) {
         return new NSRange({ location, length });
     },
+    SCNVector3Make(x, y, z) {
+        return new SCNVector3({ x, y, z });
+    },
+    SCNVector4Make(x, y, z, w) {
+        return new SCNVector3({ x, y, z, w });
+    },
 
     // Decorators support    
     __decorate(decorators, target, key, desc) {
