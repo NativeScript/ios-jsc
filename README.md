@@ -37,13 +37,17 @@ The NativeScript iOS Runtime architecture can be summarized in the following dia
 For more details on how it works, read the [documentation](https://docs.nativescript.org/runtimes/ios/overview). 
 
 ## Local Development
-Execute the following commands:
+To be able to open and build {N} iOS Runtime in Xcode you need to configure it for WebKit development and generate the Xcode project files using cmake. To do this execute the following:
+
 ```shell
+sudo ./src/webkit/Tools/Scripts/configure-xcode-for-ios-development 
 ./cmake-gen.sh 
 open "cmake-build/NativeScript.xcodeproj"
 ```
 
 After you open the newly generated project in Xcode you can run the `TestRunner` target or the `Gameraww` example app.
+
+For more information on WebKit configuration see [Building iOS Port section of WebKit's README](https://github.com/WebKit/webkit/blob/master/ReadMe.md#building-ios-port)
 
 ## Building a Distribution Package
 To build the [`tns-ios` npm package](https://www.npmjs.com/package/tns-ios) run `./build/scripts/package-tns-ios.sh` in the **root** of the repository. The package contains the NativeScript Cocoa Framework, the NativeScript CLI template project and the API metadata generator.

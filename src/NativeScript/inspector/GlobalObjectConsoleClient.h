@@ -32,10 +32,12 @@ protected:
     virtual void recordEnd(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
 
 private:
-    void printConsoleMessageWithArguments(MessageSource, MessageType, MessageLevel, JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&);
     void warnUnimplemented(const String& method);
     void internalAddMessage(MessageType, MessageLevel, JSC::ExecState*, RefPtr<Inspector::ScriptArguments>&&);
     WTF::String getDirMessage(JSC::ExecState*, JSC::JSValue);
+    WTF::String createMessageFromArguments(MessageType, JSC::ExecState*, Ref<Inspector::ScriptArguments>&&);
+    void addMessageToAgentsConsole(std::unique_ptr<Inspector::ConsoleMessage>&&);
+    void addMessageToAgentsConsole(std::unique_ptr<Inspector::ConsoleMessage>&& message, Ref<Inspector::ScriptArguments>&& arguments, JSC::ExecState* exec);
 
     Inspector::InspectorConsoleAgent* m_consoleAgent;
     Inspector::InspectorLogAgent* m_logAgent;
