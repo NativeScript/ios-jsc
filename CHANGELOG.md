@@ -14,6 +14,17 @@ previous_url: /Changelogs/iOS Runtime
 - [Fixed empty tabs in Chrome DevTools](https://github.com/NativeScript/ios-runtime/issues/927)
 - [Fixed Inspector: console.dir(object) prints "undefined"](https://github.com/NativeScript/ios-runtime/issues/930)
 
+4.1.0
+=====
+## What's New
+- [Improvement: Don't close inspector socket after 30 sec. timeout](https://github.com/NativeScript/ios-runtime/pull/907)
+- [Feature: SIMD matrices support](https://github.com/NativeScript/ios-runtime/issues/836)
+
+## Bug Fixes
+- [Fixed default debugging port is changed to 18183](https://github.com/NativeScript/ios-runtime/pull/926)
+- [Fixed console.time() doesn't print anything in Chrome DevTools console](https://github.com/NativeScript/ios-runtime/issues/888)
+- [FIxed in Chrome DevTools console console.dir() prints only [object Object]](https://github.com/NativeScript/ios-runtime/issues/906)
+
 4.0.1
 =====
 ## What's New
