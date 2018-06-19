@@ -7,6 +7,13 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+4.1.1
+=====
+## Bug Fixes
+- [Fixed Chrome DevTools doesn't reconnect everytime from the first attempt](https://github.com/NativeScript/ios-runtime/issues/940)
+- [Fixed empty tabs in Chrome DevTools](https://github.com/NativeScript/ios-runtime/issues/927)
+- [Fixed Inspector: console.dir(object) prints "undefined"](https://github.com/NativeScript/ios-runtime/issues/930)
+
 4.0.1
 =====
 ## What's New
