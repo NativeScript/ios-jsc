@@ -266,12 +266,13 @@ static void TNSInspectorUncaughtExceptionHandler(NSException* exception) {
 static void TNSEnableRemoteInspector(int argc, char** argv,
                                      TNSRuntime* runtime) {
     __block dispatch_source_t listenSource = nil;
+    __block dispatch_io_t current_connection_inspector_io = nil;
 
     dispatch_block_t clearInspector = ^{
       // Keep a working copy for calling into the VM after releasing inspectorLock
       TNSRuntimeInspector* tempInspector = nil;
       @synchronized(inspectorLock()) {
-          if (inspector) {
+          if (inspector && current_connection_inspector_io == inspector_io) {
               tempInspector = inspector;
               inspector = nil;
               NSSetUncaughtExceptionHandler(NULL);
@@ -347,6 +348,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
 
           inspector = tempInspector;
           inspector_io = io;
+          current_connection_inspector_io = io;
           NSSetUncaughtExceptionHandler(&TNSInspectorUncaughtExceptionHandler);
       }
 
