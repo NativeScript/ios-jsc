@@ -55,6 +55,7 @@ set(HEADER_FILES
     Metadata/Metadata.h
     NativeScript-Prefix.h
     NativeScript.h
+    NativeScriptEmbedder.h
     ObjC/AllocatedPlaceholder.h
     ObjC/Block/ObjCBlockCall.h
     ObjC/Block/ObjCBlockCallback.h
@@ -206,6 +207,7 @@ set(SOURCE_FILES
 
 set(NativeScript_PUBLIC_HEADERS
     NativeScript.h
+    NativeScriptEmbedder.h
     TNSRuntimeInstrumentation.h
     TNSRuntime+Diagnostics.h
     TNSRuntime+Inspector.h
