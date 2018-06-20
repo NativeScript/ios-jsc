@@ -105,6 +105,7 @@ set(HEADER_FILES
     Workers/JSWorkerInstance.h
     Workers/JSWorkerPrototype.h
     Workers/WorkerMessagingProxy.h
+    module.modulemap
 )
 
 set(SOURCE_FILES
@@ -212,6 +213,7 @@ set(NativeScript_PUBLIC_HEADERS
     TNSRuntime+Diagnostics.h
     TNSRuntime+Inspector.h
     TNSRuntime.h
+    module.modulemap
 )
 
 set(JSFILES
