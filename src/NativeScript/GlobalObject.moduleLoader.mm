@@ -312,21 +312,6 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(modulePath), moduleUrl.toString(), TextPosition(), SourceProviderSourceType::Module)));
 }
 
-//static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourceCode, const Identifier& moduleKey, ParserError& parserError) {
-//    CodeProfiling profile(sourceCode);
-//
-//    std::unique_ptr<ModuleProgramNode> moduleProgramNode = parse<ModuleProgramNode>(
-//        &execState->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin,
-//        JSParserStrictMode::Strict, JSParserScriptMode::Module, SourceParseMode::ModuleAnalyzeMode, SuperBinding::NotNeeded, parserError);
-//
-//    if (!moduleProgramNode) {
-//        return nullptr;
-//    }
-//
-//    ModuleAnalyzer moduleAnalyzer(execState, moduleKey, sourceCode, moduleProgramNode->varDeclarations(), moduleProgramNode->lexicalVariables());
-//    return moduleAnalyzer.analyze(*moduleProgramNode);
-//}
-
 JSObject* GlobalObject::moduleLoaderCreateImportMetaProperties(JSGlobalObject* globalObject, ExecState* exec, JSModuleLoader*, JSValue key, JSModuleRecord*, JSValue) {
     VM& vm = exec->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
