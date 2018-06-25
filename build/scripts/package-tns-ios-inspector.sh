@@ -9,9 +9,9 @@ checkpoint "tns-ios-inspector started"
 PACKAGE_DIR="$DIST_DIR/inspector-package"
 
 mkdir -p "$PACKAGE_DIR"
-cp -r "$WORKSPACE/src/debugging/WebInspectorUI" "$PACKAGE_DIR/WebInspectorUI"
 cp -R -a "$BINARIES_DIR/NativeScript Inspector Sierra.zip" "$PACKAGE_DIR"
 cp -R -a "$BINARIES_DIR/NativeScript Inspector HighSierra.zip" "$PACKAGE_DIR"
+tar -zxf "$BINARIES_DIR/WebInspectorUI.tgz" -C "$PACKAGE_DIR"
 cp -r "$WORKSPACE/build/npm/inspector_package.json" "$PACKAGE_DIR/package.json"
 
 python "$WORKSPACE/build/scripts/update-version.py" "$PACKAGE_DIR/package.json"
