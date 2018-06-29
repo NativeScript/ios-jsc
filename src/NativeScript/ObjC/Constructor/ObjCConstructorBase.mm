@@ -21,6 +21,7 @@
 #include <JavaScriptCore/JSMap.h>
 #include <wtf/text/StringBuilder.h>
 
+#import "IsObjcObject.h"
 #import "TNSArrayAdapter.h"
 #import "TNSDataAdapter.h"
 #import "TNSDictionaryAdapter.h"
@@ -36,6 +37,7 @@ const unsigned ObjCConstructorBase::StructureFlags = OverridesGetOwnPropertySlot
 JSValue ObjCConstructorBase::read(ExecState* execState, void const* buffer, JSCell* self) {
     ObjCConstructorBase* type = jsCast<ObjCConstructorBase*>(self);
     id value = *static_cast<const id*>(buffer);
+    value = IsObjcObject(value) ? value : nil;
     return toValue(execState, value, type->_klass);
 }
 

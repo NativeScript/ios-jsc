@@ -1,5 +1,5 @@
 set(HEADER_FILES
-    Calling/FFICache.h	
+    Calling/FFICache.h
     Calling/FFICall.h
     Calling/FFICallback.h
     Calling/FFICallbackInlines.h
@@ -59,7 +59,7 @@ set(HEADER_FILES
     ObjC/Block/ObjCBlockCall.h
     ObjC/Block/ObjCBlockCallback.h
     ObjC/Block/ObjCBlockType.h
-    ObjC/Block/ObjCBlockTypeConstructor.h
+	ObjC/Block/ObjCBlockTypeConstructor.h
     ObjC/Constructor/ObjCConstructorBase.h
     ObjC/Constructor/ObjCConstructorCall.h
     ObjC/Constructor/ObjCConstructorDerived.h
@@ -70,6 +70,7 @@ set(HEADER_FILES
     ObjC/Inheritance/ObjCClassBuilder.h
     ObjC/Inheritance/ObjCExtend.h
     ObjC/Inheritance/ObjCTypeScriptExtend.h
+	ObjC/IsObjcObject.h
     ObjC/NSErrorWrapperConstructor.h
     ObjC/ObjCMethodCall.h
     ObjC/ObjCMethodCallback.h
@@ -171,6 +172,7 @@ set(SOURCE_FILES
     ObjC/Enumeration/ObjCFastEnumerationIterator.mm
     ObjC/Enumeration/ObjCFastEnumerationIteratorPrototype.mm
     ObjC/Enumeration/TNSFastEnumerationAdapter.mm
+    ObjC/IsObjcObject.cpp
     ObjC/Inheritance/ObjCClassBuilder.mm
     ObjC/Inheritance/ObjCExtend.mm
     ObjC/Inheritance/ObjCTypeScriptExtend.mm
