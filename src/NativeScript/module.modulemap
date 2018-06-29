@@ -1,0 +1,4 @@
+module InlineFunctions {
+    header "InlineFunctions.h"
+    export *
+}

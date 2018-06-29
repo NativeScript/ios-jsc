@@ -7,6 +7,7 @@ set(HEADER_FILES
     Calling/FFIFunctionCall.h
     Calling/FFIFunctionCallback.h
     GlobalObject.h
+    InlineFunctions.h
     inspector/CachedResource.h
     inspector/DomainBackendDispatcher.h
     inspector/DomainInspectorAgent.h
@@ -53,6 +54,7 @@ set(HEADER_FILES
     Marshalling/Reference/IndexedRefPrototype.h
     Marshalling/Reference/ExtVectorTypeInstance.h
     Metadata/Metadata.h
+    module.modulemap
     NativeScript-Prefix.h
     NativeScript.h
     ObjC/AllocatedPlaceholder.h
@@ -114,6 +116,7 @@ set(SOURCE_FILES
     Calling/FFIFunctionCallback.cpp
     GlobalObject.mm
     GlobalObject.moduleLoader.mm
+    InlineFunctions.mm
     inspector/CachedResource.mm
     inspector/DomainBackendDispatcher.cpp
     inspector/DomainInspectorAgent.cpp
@@ -205,6 +208,8 @@ set(SOURCE_FILES
 )
 
 set(NativeScript_PUBLIC_HEADERS
+    InlineFunctions.h
+    module.modulemap
     NativeScript.h
     TNSRuntimeInstrumentation.h
     TNSRuntime+Diagnostics.h
