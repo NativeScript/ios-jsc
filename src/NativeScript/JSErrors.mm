@@ -32,6 +32,23 @@ namespace NativeScript {
 
 using namespace JSC;
 
+void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
+    if (JSC::Exception* exception = scope.exception()) {
+        NSMutableDictionary* threadData = [[NSThread currentThread] threadDictionary];
+        NSNumber* zeroRecursionForThread = threadData[NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY];
+        unsigned zeroRecursion = zeroRecursionForThread != nil ? [zeroRecursionForThread unsignedIntValue] : 0;
+        NativeScript::GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+
+        bool treatExceptionsAsUncaught = scope.recursionDepth() == zeroRecursion
+                                         || globalObject->isUIApplicationMainAtTopOfCallstack();
+
+        if (treatExceptionsAsUncaught) {
+            scope.clearException();
+            reportFatalErrorBeforeShutdown(execState, exception);
+        }
+    }
+}
+
 void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks) {
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
 

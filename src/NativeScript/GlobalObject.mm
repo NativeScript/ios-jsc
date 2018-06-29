@@ -12,6 +12,7 @@
 #include "FFIFunctionCall.h"
 #include "FFIFunctionCallback.h"
 #include "Interop.h"
+#include "JSErrors.h"
 #include "JSWeakRefConstructor.h"
 #include "JSWeakRefInstance.h"
 #include "JSWeakRefPrototype.h"
@@ -123,20 +124,25 @@ static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRun
     GlobalObject* self = static_cast<GlobalObject*>(info);
     JSC::JSLockHolder lock(self->vm());
     VMEntryScope* currentEntryScope = self->vm().entryScope;
-    if (self->vm().topCallFrame && currentEntryScope && !currentEntryScope->didPopListeners().isEmpty()) {
-        FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(self->vm(), self->vm().topCallFrame->callee().asCell());
-        const Meta* meta = Metadata::MetaFile::instance()->globalTable()->findMeta("UIApplicationMain");
+    if (self->vm().topCallFrame && currentEntryScope) {
+        NSMutableDictionary* threadData = [[NSThread currentThread] threadDictionary];
 
-        if (function_call && meta && function_call->functionPointer() == SymbolLoader::instance().loadFunctionSymbol(meta->topLevelModule(), meta->name())) {
+        if (threadData[NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY] == nil || currentEntryScope->didPopListeners().size()) {
+            if (self->isUIApplicationMainAtTopOfCallstack()) {
+                // set zero recursion count to the current value, in order to correctly
+                // detect unhandled exceptions below UIApplicationMain
+                auto scope = DECLARE_THROW_SCOPE(self->vm());
+                threadData[NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY] = @(scope.recursionDepth());
 
-            self->vm().entryScope = nullptr;
+                self->vm().entryScope = nullptr;
 
-            for (auto& listener : currentEntryScope->didPopListeners())
-                listener();
+                for (auto& listener : currentEntryScope->didPopListeners())
+                    listener();
 
-            currentEntryScope->didPopListeners().clear();
+                currentEntryScope->didPopListeners().clear();
 
-            self->vm().entryScope = currentEntryScope;
+                self->vm().entryScope = currentEntryScope;
+            }
         }
     }
 }
@@ -484,6 +490,22 @@ bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* 
     }
 
     return result.toBoolean(execState);
+}
+
+const Meta* getUIApplicationMainMeta() {
+    static const Meta* meta = nullptr;
+    if (!meta) {
+        meta = Metadata::MetaFile::instance()->globalTable()->findMeta("UIApplicationMain");
+    }
+
+    return meta;
+}
+
+bool GlobalObject::isUIApplicationMainAtTopOfCallstack() {
+    const Meta* meta = getUIApplicationMainMeta();
+    FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(this->vm(), this->vm().topCallFrame->callee().asCell());
+
+    return function_call && meta && function_call->functionPointer() == SymbolLoader::instance().loadFunctionSymbol(meta->topLevelModule(), meta->name());
 }
 
 void GlobalObject::queueTaskToEventLoop(JSGlobalObject& globalObject, WTF::Ref<Microtask>&& task) {
