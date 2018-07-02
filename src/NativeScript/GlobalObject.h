@@ -186,6 +186,8 @@ public:
 
     bool callJsUncaughtErrorCallback(JSC::ExecState* execState, JSC::Exception* exception, WTF::NakedPtr<JSC::Exception>& outException);
 
+    bool isUIApplicationMainAtTopOfCallstack();
+
 protected:
     static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
 
