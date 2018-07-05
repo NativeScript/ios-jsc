@@ -23,6 +23,37 @@ function(CreateNativeScriptApp _target _main _plist _resources)
         if(NOT ${EMBED_STATIC_DEPENDENCIES})
             target_link_libraries(${_target} ${WEBKIT_LIBRARIES} ffi)
         endif()
+    else()
+        set_target_properties(${_target} PROPERTIES
+            XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS    "@executable_path/Frameworks"
+        )
+
+        # Create Frameworks directory in app bundle
+        add_custom_command(
+            TARGET
+            ${_target}
+            POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory
+            ${CMAKE_CURRENT_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/${_target}.app/Frameworks
+        )
+
+        # Copy the framework into the bundle
+        add_custom_command(
+            TARGET
+            ${_target}
+            POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/
+            ${CMAKE_CURRENT_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/${_target}.app/Frameworks
+        )
+
+        # Codesign the framework in it's new spot
+        add_custom_command(
+            TARGET
+            ${_target}
+            POST_BUILD COMMAND codesign --force --verbose
+            ${CMAKE_CURRENT_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/${_target}.app/Frameworks/NativeScript.framework
+            --sign \"$(EXPANDED_CODE_SIGN_IDENTITY)\"
+        )
+
     endif()
 
     set_target_properties(${_target} PROPERTIES
