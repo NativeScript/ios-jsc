@@ -1,3 +1,5 @@
+project(NativeScriptFramework)
+
 set(HEADER_FILES
     Calling/FFICache.h
     Calling/FFICall.h
