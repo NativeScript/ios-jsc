@@ -102,7 +102,7 @@ set(HEADER_FILES
     TNSRuntime.h
     TypeFactory.h
     WeakHandleOwners.h
-    BuiltinNames.h
+    WebCoreBuiltinNames.h
     JSClientData.h
     Workers/JSWorkerConstructor.h
     Workers/JSWorkerGlobalObject.h
@@ -203,7 +203,6 @@ set(SOURCE_FILES
     TNSRuntime+Inspector.mm
     TNSRuntime.mm
     TypeFactory.mm
-    BuiltinNames.cpp
     JSClientData.cpp
     Workers/JSWorkerConstructor.cpp
     Workers/JSWorkerGlobalObject.mm

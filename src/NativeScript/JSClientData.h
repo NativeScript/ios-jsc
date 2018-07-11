@@ -22,7 +22,7 @@
 #pragma once
 
 //#include "DOMWrapperWorld.h"
-#include "BuiltinNames.h"
+#include "WebCoreBuiltinNames.h"
 //#include "WebCoreJSBuiltins.h"
 #include <wtf/HashSet.h>
 #include <wtf/RefPtr.h>
@@ -59,7 +59,7 @@ public:
     //            m_worldSet.remove(&world);
     //        }
 
-    NativeScript::BuiltinNames& builtinNames() {
+    WebCore::WebCoreBuiltinNames& builtinNames() {
         return m_builtinNames;
     }
     //        JSBuiltinFunctions& builtinFunctions() { return m_builtinFunctions; }
@@ -79,7 +79,7 @@ private:
     //        RefPtr<DOMWrapperWorld> m_normalWorld;
     //
     //        JSBuiltinFunctions m_builtinFunctions;
-    NativeScript::BuiltinNames m_builtinNames;
+    WebCore::WebCoreBuiltinNames m_builtinNames;
 
     //        JSC::CompleteSubspace m_outputConstraintSpace;
     //        JSC::CompleteSubspace m_globalObjectOutputConstraintSpace;
