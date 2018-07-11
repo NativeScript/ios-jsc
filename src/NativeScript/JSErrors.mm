@@ -20,6 +20,7 @@
 #include "inspector/GlobalObjectConsoleClient.h"
 #include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/APICast.h>
+#include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 
@@ -30,7 +31,9 @@ void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler) {
 
 namespace NativeScript {
 
+using namespace WTF;
 using namespace JSC;
+using namespace Inspector;
 
 void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
     if (JSC::Exception* exception = scope.exception()) {
@@ -82,19 +85,10 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
         WTFReportBacktrace();
 
         NSLog(@"JavaScript stack trace:");
-        RefPtr<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
-        for (size_t i = 0; i < callStack->size(); ++i) {
-            std::stringstream callstackLine;
-            Inspector::ScriptCallFrame frame = callStack->at(i);
-            callstackLine << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
-            if (frame.lineNumber() && frame.columnNumber()) {
-                callstackLine << ":" << frame.lineNumber() << ":" << frame.columnNumber();
-            }
-            NSLog(@"%s", callstackLine.str().c_str());
-        }
+        Ref<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
+        dumpJsCallStack(callStack.get());
 
         NSLog(@"JavaScript error:");
-
         // System logs are disabled in release app builds, but we want the error to be printed in crash logs
         GlobalObjectConsoleClient::setLogToSystemConsole(true);
         globalObject->inspectorController().reportAPIException(execState, exception);
@@ -115,6 +109,22 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
             *(int*)(uintptr_t)0xDEADDEAD = 0;
             __builtin_trap();
         }
+    }
+}
+
+void dumpExecJsCallStack(ExecState* execState) {
+    dumpJsCallStack(createScriptCallStack(execState).get());
+}
+
+void dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
+    for (size_t i = 0; i < frames.size(); ++i) {
+        std::stringstream callstackLine;
+        Inspector::ScriptCallFrame frame = frames.at(i);
+        callstackLine << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
+        if (frame.lineNumber() && frame.columnNumber()) {
+            callstackLine << ":" << frame.lineNumber() << ":" << frame.columnNumber();
+        }
+        NSLog(@"%s", callstackLine.str().c_str());
     }
 }
 }
