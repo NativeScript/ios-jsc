@@ -25,7 +25,7 @@ JSValue ReferenceTypeInstance::read(ExecState* execState, const void* buffer, JS
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ReferenceTypeInstance* referenceType = jsCast<ReferenceTypeInstance*>(self);
 
-    PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), const_cast<void*>(data)));
+    PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, const_cast<void*>(data)));
     return ReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->referenceInstanceStructure(), referenceType->innerType(), pointer);
 }
 

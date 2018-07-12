@@ -36,7 +36,7 @@ EncodedJSValue JSC_HOST_CALL PointerConstructor::constructPointerInstance(ExecSt
         value = reinterpret_cast<void*>(execState->argument(0).toUInt32(execState));
     }
 
-    JSValue result = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->pointerInstanceForPointer(execState->vm(), value);
+    JSValue result = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->pointerInstanceForPointer(execState, value);
     return JSValue::encode(result);
 }
 
@@ -48,7 +48,7 @@ JSValue PointerConstructor::read(ExecState* execState, const void* buffer, JSCel
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    return globalObject->interop()->pointerInstanceForPointer(execState->vm(), const_cast<void*>(data));
+    return globalObject->interop()->pointerInstanceForPointer(execState, const_cast<void*>(data));
 }
 
 void PointerConstructor::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {

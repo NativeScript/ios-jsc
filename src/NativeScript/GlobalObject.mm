@@ -502,6 +502,10 @@ const Meta* getUIApplicationMainMeta() {
 }
 
 bool GlobalObject::isUIApplicationMainAtTopOfCallstack() {
+    if (!this->vm().topCallFrame) {
+        return false;
+    }
+
     const Meta* meta = getUIApplicationMainMeta();
     FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(this->vm(), this->vm().topCallFrame->callee().asCell());
 

@@ -39,9 +39,9 @@ EncodedJSValue JSC_HOST_CALL readFromPointer(ExecState* execState) {
 
 const ClassInfo PointerInstance::s_info = { "Pointer", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(PointerInstance) };
 
-void PointerInstance::finishCreation(VM& vm, void* value) {
-    Base::finishCreation(vm);
-    this->preventExtensions(this, vm.topCallFrame);
+void PointerInstance::finishCreation(ExecState* execState, void* value) {
+    Base::finishCreation(execState->vm());
+    this->preventExtensions(this, execState);
     this->_data = value;
 }
 
