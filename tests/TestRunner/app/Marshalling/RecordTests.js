@@ -45,6 +45,7 @@ describe(module.id, function () {
         (function () {
             var size = interop.sizeof(TNSNestedStruct);
             expect(size).toBeGreaterThan(0);
+            expect(size).toBe(2 * interop.sizeof(TNSSimpleStruct));
             var buffer = interop.alloc(size);
             var record = new TNSNestedStruct(buffer);
             TNSTestNativeCallbacks.recordsNestedStruct(record);
@@ -180,7 +181,7 @@ describe(module.id, function () {
         record.z = new TNSStructWithPointers();
         expect(record.z.value.z).toBe(null);
     });
-         
+
     it("simpleStructWithConstArray", function(){
         //{.x1 = 100, .y1 = {{.x2 = 10, .x3 = 20}, {.x2 = 30, .x3 = 40}}}
        var struct = getSimpleStruct();
@@ -190,7 +191,7 @@ describe(module.id, function () {
        expect(struct.y1[1].x2).toBe(30);
        expect(struct.y1[1].x3).toBe(40);
     });
-         
+
     it("complexStructWithConstArray", function(){
         //{.x1 = 100, .y1 = {{.x2 = 10, .y2 = {.x3 = {1, 2}}},{.x2 = 20, .y2 = {.x3 = {3, 4}}}}};
         var struct = getComplexStruct();
@@ -203,14 +204,14 @@ describe(module.id, function () {
         expect(struct.y1[1].y2.x3[1]).toBe(4);
        expect(struct.x4).toBe(123456);
     });
-         
+
     it("simd_float4x4Matrix", function(){
        var simdMatrix = getMatrix4x4();
        for (var i = 0; i < 16; i++) {
          expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
-         
+
     it("simd_float4x3Matrix", function(){
        var simdMatrix = getMatrix4x3();
        for (var i = 0; i < 4; i++) {
