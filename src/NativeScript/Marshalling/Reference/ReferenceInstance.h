@@ -80,6 +80,10 @@ private:
 
     JSC::WriteBarrier<JSC::JSCell> _innerTypeCell;
 
+    // Keep strong references to all JS objects whose pointers/handles have been
+    // assigned as values in `putByIndex`
+    std::map<unsigned, JSC::WriteBarrier<JSC::JSCell>> assignedValues;
+
     FFITypeMethodTable _ffiTypeMethodTable;
 };
 } // namespace NativeScript
