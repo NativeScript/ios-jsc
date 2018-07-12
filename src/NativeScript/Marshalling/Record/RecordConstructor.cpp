@@ -93,7 +93,7 @@ JSValue RecordConstructor::read(ExecState* execState, const void* buffer, JSCell
 
     void* data = malloc(size);
     memcpy(data, buffer, size);
-    PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), data));
+    PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data));
     pointer->setAdopted(true);
     RecordInstance* record = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), size, pointer);
     return record;
@@ -189,7 +189,7 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecStat
     const ffi_type* ffiType = constructor->_ffiTypeMethodTable.ffiType;
 
     void* data = calloc(ffiType->size, 1);
-    PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState->vm(), data));
+    PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data));
     pointer->setAdopted(true);
 
     RecordInstance* instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);

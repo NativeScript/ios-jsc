@@ -14,12 +14,12 @@ using namespace JSC;
 
 const ClassInfo RecordInstance::s_info = { "record", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(RecordInstance) };
 
-void RecordInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, size_t size, PointerInstance* pointer) {
-    Base::finishCreation(vm);
-    this->preventExtensions(this, vm.topCallFrame);
+void RecordInstance::finishCreation(ExecState* execState, JSGlobalObject* globalObject, size_t size, PointerInstance* pointer) {
+    Base::finishCreation(execState->vm());
+    this->preventExtensions(this, execState);
 
     this->_size = size;
-    this->_pointer.set(vm, this, pointer);
+    this->_pointer.set(execState->vm(), this, pointer);
 }
 
 void RecordInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {

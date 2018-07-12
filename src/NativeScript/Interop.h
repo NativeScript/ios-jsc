@@ -41,7 +41,7 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    JSC::JSValue pointerInstanceForPointer(JSC::VM&, void*);
+    JSC::JSValue pointerInstanceForPointer(JSC::ExecState*, void*);
 
     JSC::Structure* referenceInstanceStructure() const {
         return this->_referenceInstanceStructure.get();

@@ -21,7 +21,7 @@ static EncodedJSValue JSC_HOST_CALL pointerProtoFuncAdd(ExecState* execState) {
     void* newValue = reinterpret_cast<void*>(reinterpret_cast<char*>(value) + offset);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSValue result = globalObject->interop()->pointerInstanceForPointer(execState->vm(), newValue);
+    JSValue result = globalObject->interop()->pointerInstanceForPointer(execState, newValue);
     return JSValue::encode(result);
 }
 
@@ -31,7 +31,7 @@ static EncodedJSValue JSC_HOST_CALL pointerProtoFuncSubtract(ExecState* execStat
     void* newValue = reinterpret_cast<void*>(reinterpret_cast<char*>(value) - offset);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSValue result = globalObject->interop()->pointerInstanceForPointer(execState->vm(), newValue);
+    JSValue result = globalObject->interop()->pointerInstanceForPointer(execState, newValue);
     return JSValue::encode(result);
 }
 

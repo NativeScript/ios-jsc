@@ -63,7 +63,7 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
             handle = calloc(ffiTypeMethodTable->ffiType->size, 1);
         }
 
-        PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(vm, handle));
+        PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, handle));
         pointer->setAdopted(adopted);
         result = ReferenceInstance::create(vm, globalObject, globalObject->interop()->referenceInstanceStructure(), maybeType.asCell(), pointer);
     } else if (execState->argumentCount() == 2) {
