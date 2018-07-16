@@ -31,7 +31,7 @@ void ReferenceInstance::createBackingStorage(VM& vm, GlobalObject* globalObject,
     this->setType(vm, innerType);
 
     void* data = calloc(this->_ffiTypeMethodTable.ffiType->size, 1);
-    this->_pointer.set(vm, this, jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(vm, data)));
+    this->_pointer.set(vm, this, jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data)));
     this->_pointer->setAdopted(true);
 
     PropertySlot propertySlot(this, PropertySlot::InternalMethodType::GetOwnProperty);
