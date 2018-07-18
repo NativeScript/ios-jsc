@@ -62,7 +62,7 @@ public:
 
     IndexedRefTypeInstance* getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
 
-    ExtVectorTypeInstance* getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
+    ExtVectorTypeInstance* getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize, bool isStructMember);
 
     FunctionReferenceTypeInstance* getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSC::JSCell* returnType, WTF::Vector<JSCell*> parametersTypes);
 

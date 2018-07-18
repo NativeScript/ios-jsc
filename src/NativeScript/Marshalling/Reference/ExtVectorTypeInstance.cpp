@@ -22,7 +22,11 @@ typedef ReferenceTypeInstance Base;
 const ClassInfo ExtVectorTypeInstance::s_info = { "ExtVectorTypeInstance", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ExtVectorTypeInstance) };
 
 JSValue ExtVectorTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
-    const void* data = buffer;
+    ExtVectorTypeInstance* vectorInstance = jsCast<ExtVectorTypeInstance*>(self);
+    const size_t size = vectorInstance->_ffiTypeMethodTable.ffiType->size;
+    void* data = malloc(size);
+
+    memcpy(data, buffer, size);
 
     if (!data) {
         return jsNull();
@@ -32,6 +36,7 @@ JSValue ExtVectorTypeInstance::read(ExecState* execState, const void* buffer, JS
     ExtVectorTypeInstance* referenceType = jsCast<ExtVectorTypeInstance*>(self);
 
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, const_cast<void*>(data)));
+    pointer->setAdopted(true);
     return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->extVectorInstanceStructure(), referenceType->innerType(), pointer);
 }
 
@@ -79,13 +84,13 @@ const char* ExtVectorTypeInstance::encode(VM& vm, JSCell* cell) {
     return self->_compilerEncoding.c_str();
 }
 
-void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType) {
+void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType, bool isStructMember) {
     Base::finishCreation(vm);
     ffi_type* innerFFIType = const_cast<ffi_type*>(getFFITypeMethodTable(vm, innerType).ffiType);
 
     size_t arraySize = this->_size;
 
-    if (this->_size % 2) {
+    if (this->_size % 2 && isStructMember) {
         arraySize = this->_size + 1;
     }
 
