@@ -35,6 +35,7 @@ id inspectorLock() {
     return lock;
 }
 static TNSRuntimeInspector* inspector = nil;
+static dispatch_io_t inspector_io = nil;
 static BOOL isWaitingForDebugger = NO;
 static int currentInspectorPort = 0;
 
@@ -43,7 +44,7 @@ typedef void (^TNSInspectorProtocolHandler)(NSString* message, NSError* error);
 typedef void (^TNSInspectorSendMessageBlock)(NSString* message);
 
 typedef TNSInspectorProtocolHandler (^TNSInspectorFrontendConnectedHandler)(
-    TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error);
+    TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error, dispatch_io_t io);
 
 typedef void (^TNSInspectorIoErrorHandler)(
     NSObject* dummy /*make compatible with CheckError macro*/, NSError* error);
@@ -82,6 +83,10 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
         sizeof(addr), AF_INET, htons(18183), { INADDR_ANY }, { 0 }
     };
 
+    // Adapter block for CheckError macro
+    TNSInspectorProtocolHandler (^connectedErrorHandler)(TNSInspectorSendMessageBlock, NSError*) = ^(TNSInspectorSendMessageBlock sendMessage, NSError* error) {
+      return connectedHandler(sendMessage, error, nil);
+    };
     if (bind(listenSocket, (const struct sockaddr*)&addr, sizeof(addr)) != 0) {
 
         // Try getting a random port if the default one is unavailable
@@ -89,19 +94,19 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
 
         if (!CheckError(
                 bind(listenSocket, (const struct sockaddr*)&addr, sizeof(addr)),
-                connectedHandler)) {
+                connectedErrorHandler)) {
 
             return nil;
         }
     }
 
-    if (!CheckError(listen(listenSocket, 0), connectedHandler)) {
+    if (!CheckError(listen(listenSocket, 0), connectedErrorHandler)) {
         return nil;
     }
 
     // read actually allocated listening port
     socklen_t len = sizeof(addr);
-    if (!CheckError(getsockname(listenSocket, (struct sockaddr*)&addr, &len), connectedHandler)) {
+    if (!CheckError(getsockname(listenSocket, (struct sockaddr*)&addr, &len), connectedErrorHandler)) {
         return nil;
     }
 
@@ -177,7 +182,7 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
         }
       };
 
-      protocolHandler = connectedHandler(sender, nil);
+      protocolHandler = connectedHandler(sender, nil, io);
       if (!protocolHandler) {
           dataSocketErrorHandler(nil, nil);
           return;
@@ -261,15 +266,21 @@ static void TNSInspectorUncaughtExceptionHandler(NSException* exception) {
 static void TNSEnableRemoteInspector(int argc, char** argv,
                                      TNSRuntime* runtime) {
     __block dispatch_source_t listenSource = nil;
+    __block dispatch_io_t current_connection_inspector_io = nil;
 
     dispatch_block_t clearInspector = ^{
       // Keep a working copy for calling into the VM after releasing inspectorLock
       TNSRuntimeInspector* tempInspector = nil;
       @synchronized(inspectorLock()) {
-          if (inspector) {
+          if (inspector && current_connection_inspector_io == inspector_io) {
               tempInspector = inspector;
               inspector = nil;
               NSSetUncaughtExceptionHandler(NULL);
+
+              if (inspector_io) {
+                  dispatch_io_close(inspector_io, DISPATCH_IO_STOP);
+                  inspector_io = 0;
+              }
           }
       }
       // Release and dealloc old inspector; must be outside of the inspectorLock
@@ -304,7 +315,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                 }];
 
     TNSInspectorFrontendConnectedHandler connectionHandler = ^TNSInspectorProtocolHandler(
-        TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error) {
+        TNSInspectorSendMessageBlock sendMessageToFrontend, NSError* error, dispatch_io_t io) {
       if (error) {
           if (listenSource) {
               clear();
@@ -336,6 +347,8 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
           NSLog(@"NativeScript debugger attached.");
 
           inspector = tempInspector;
+          inspector_io = io;
+          current_connection_inspector_io = io;
           NSSetUncaughtExceptionHandler(&TNSInspectorUncaughtExceptionHandler);
       }
 

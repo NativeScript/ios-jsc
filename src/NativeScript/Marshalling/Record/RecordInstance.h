@@ -19,7 +19,7 @@ public:
 
     static RecordInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, size_t size, PointerInstance* pointer) {
         RecordInstance* cell = new (NotNull, JSC::allocateCell<RecordInstance>(vm.heap)) RecordInstance(vm, structure);
-        cell->finishCreation(vm, globalObject, size, pointer);
+        cell->finishCreation(globalObject->globalExec(), globalObject, size, pointer);
         return cell;
     }
 
@@ -50,7 +50,7 @@ private:
         static_cast<RecordInstance*>(cell)->~RecordInstance();
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, size_t size, PointerInstance* pointer);
+    void finishCreation(JSC::ExecState*, JSC::JSGlobalObject*, size_t size, PointerInstance* pointer);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 

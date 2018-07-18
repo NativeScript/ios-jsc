@@ -1,5 +1,7 @@
+project(NativeScriptFramework)
+
 set(HEADER_FILES
-    Calling/FFICache.h	
+    Calling/FFICache.h
     Calling/FFICall.h
     Calling/FFICallback.h
     Calling/FFICallbackInlines.h

@@ -19,7 +19,7 @@ _Bool* functionWith_BoolPtr(_Bool* x) {
 }
 
 unsigned char* functionWithUCharPtr(unsigned char* x) {
-    TNSLog([NSString stringWithFormat:@"%hhu", *x]);
+    TNSLog([NSString stringWithFormat:@"%s", x]);
     return x;
 }
 

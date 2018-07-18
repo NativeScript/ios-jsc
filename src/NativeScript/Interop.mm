@@ -150,7 +150,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAlloc(ExecState* execState) {
     void* value = calloc(size, 1);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSValue result = globalObject->interop()->pointerInstanceForPointer(execState->vm(), value);
+    JSValue result = globalObject->interop()->pointerInstanceForPointer(execState, value);
     if (PointerInstance* pointer = jsDynamicCast<PointerInstance*>(execState->vm(), result)) {
         pointer->setAdopted(true);
     }
@@ -209,7 +209,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSValue pointer = globalObject->interop()->pointerInstanceForPointer(execState->vm(), handle);
+    JSValue pointer = globalObject->interop()->pointerInstanceForPointer(execState, handle);
     return JSValue::encode(pointer);
 }
 
@@ -336,7 +336,7 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     objCBlockTypePrototype->putDirect(vm, vm.propertyNames->constructor, objCBlockTypeConstructor, DontEnum);
 }
 
-JSValue Interop::pointerInstanceForPointer(VM& vm, void* value) {
+JSValue Interop::pointerInstanceForPointer(ExecState* execState, void* value) {
     if (!value) {
         return jsNull();
     }
@@ -345,7 +345,7 @@ JSValue Interop::pointerInstanceForPointer(VM& vm, void* value) {
         return pointerInstance;
     }
 
-    PointerInstance* pointerInstance = PointerInstance::create(vm, this->_pointerInstanceStructure.get(), value);
+    PointerInstance* pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
     this->_pointerToInstance.set(value, pointerInstance);
     return pointerInstance;
 }
