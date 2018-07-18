@@ -25,6 +25,7 @@
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/JSSourceCode.h>
+#include <JavaScriptCore/JSString.h>
 #include <JavaScriptCore/LiteralParser.h>
 #include <JavaScriptCore/ModuleAnalyzer.h>
 #include <JavaScriptCore/ModuleLoaderPrototype.h>
@@ -346,16 +347,19 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
         return JSValue::encode(jsUndefined());
     });
 
-    JSModuleRecord* record;
+    JSModuleRecord* record = nullptr;
     promise->then(execState, JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&record, errorHandler, frame](ExecState* execState) {
-                      JSValue moduleKey = execState->argument(0);
-
                       JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
                       JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->vm().propertyNames->builtinNames().loadAndEvaluateModulePublicName()));
                       CallData callData;
                       CallType callType = JSC::getCallData(function, callData);
-
                       JSInternalPromise* promise = jsCast<JSInternalPromise*>(JSC::call(execState, function, callType, callData, moduleLoader, execState));
+
+                      // IMPORTANT! Convert `moduleKey` to `WTF::String` and keep it for use in the chained lambda function.
+                      // `moduleKeyJs` MUST NOT be kept for future use because it is an argument to this continuation
+                      // and is eligible for garbage collection as soon as it returns.
+                      JSValue moduleKeyJs = execState->argument(0);
+                      String moduleKey = moduleKeyJs.toWTFString(execState);
                       promise = promise->then(execState, JSNativeStdFunction::create(execState->vm(), execState->lexicalGlobalObject(), 1, String(), [moduleKey, &record, frame](ExecState* execState) {
                                                   JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
                                                   JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->vm().propertyNames->builtinNames().ensureRegisteredPublicName()));
@@ -364,12 +368,12 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                                                   CallType callType = JSC::getCallData(function, callData);
 
                                                   MarkedArgumentBuffer args;
-                                                  args.append(moduleKey);
+                                                  args.append(JSValue(jsString(execState, moduleKey)));
                                                   JSValue entry = JSC::call(execState, function, callType, callData, moduleLoader, args);
                                                   record = jsCast<JSModuleRecord*>(entry.get(execState, Identifier::fromString(execState, "module")));
 
                                                   if (frame.check()) {
-                                                      NSString* moduleName = (NSString*)moduleKey.toWTFString(execState).createCFString().get();
+                                                      NSString* moduleName = (NSString*)moduleKey.createCFString().get();
                                                       NSString* appPath = [TNSRuntime current].applicationPath;
                                                       if ([moduleName hasPrefix:appPath]) {
                                                           moduleName = [moduleName substringFromIndex:appPath.length];
