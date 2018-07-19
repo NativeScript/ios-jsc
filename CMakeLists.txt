@@ -1,5 +1,33 @@
 cmake_minimum_required(VERSION 3.3)
+
+option(BUILD_SHARED_LIBS "Build NativeScript as a Cocoa Framework" OFF)
+option(USE_CCACHE "Build NativeScript using ccache" ON)
+option(EMBED_STATIC_DEPENDENCIES "Embed JavaScriptCore and libffi in the NativeScript static library" OFF)
+
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND AND USE_CCACHE)
+  MESSAGE( STATUS "## Using CCache when building!")
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND AND USE_CCACHE)
+
 project(NativeScript)
+
+get_property(RULE_LAUNCH_COMPILE GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
+if(RULE_LAUNCH_COMPILE AND CMAKE_GENERATOR STREQUAL "Xcode")
+    # Set up wrapper scripts
+    configure_file(launch-c.in   launch-c)
+    configure_file(launch-cxx.in launch-cxx)
+    execute_process(COMMAND chmod a+rx
+                            "${CMAKE_BINARY_DIR}/launch-c"
+                            "${CMAKE_BINARY_DIR}/launch-cxx")
+
+    # Set Xcode project attributes to route compilation through our scripts
+    set(CMAKE_XCODE_ATTRIBUTE_CC         "${CMAKE_BINARY_DIR}/launch-c")
+    set(CMAKE_XCODE_ATTRIBUTE_CXX        "${CMAKE_BINARY_DIR}/launch-cxx")
+    set(CMAKE_XCODE_ATTRIBUTE_LD         "${CMAKE_BINARY_DIR}/launch-c")
+    set(CMAKE_XCODE_ATTRIBUTE_LDPLUSPLUS "${CMAKE_BINARY_DIR}/launch-cxx")
+endif()
 
 set(CMAKE_XCODE_ATTRIBUTE_SDKROOT "iphoneos")
 set(CMAKE_XCODE_ATTRIBUTE_SUPPORTED_PLATFORMS "iphoneos iphonesimulator")
@@ -35,9 +63,6 @@ list(GET VERSIONS 1 NATIVESCRIPT_VERSION)
 list(GET VERSIONS 2 NATIVESCRIPT_FRAMEWORK_VERSION)
 
 # TODO: Clang Analyzer, Tidy ...
-
-option(BUILD_SHARED_LIBS "Build NativeScript as a Cocoa Framework" OFF)
-option(EMBED_STATIC_DEPENDENCIES "Embed JavaScriptCore and libffi in the NativeScript static library" OFF)
 
 include(src/WebKit.cmake)
 include(src/MetadataGenerator.cmake)
