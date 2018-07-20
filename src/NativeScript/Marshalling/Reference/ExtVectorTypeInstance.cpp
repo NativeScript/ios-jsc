@@ -90,9 +90,15 @@ void ExtVectorTypeInstance::finishCreation(JSC::VM& vm, JSCell* innerType, bool 
 
     size_t arraySize = this->_size;
 
+#if defined(__x86_64__)
     if (this->_size % 2 && isStructMember) {
         arraySize = this->_size + 1;
     }
+#else
+    if (this->_size % 2) {
+        arraySize = this->_size + 1;
+    }
+#endif
 
     ffi_type* type = new ffi_type({ .size = arraySize * innerFFIType->size, .alignment = innerFFIType->alignment, .type = FFI_TYPE_EXT_VECTOR });
 
