@@ -115,38 +115,21 @@ namespace NativeScript {
 using namespace JSC;
 
 template <mode_t mode>
-static NSString* stat(NSString* path) {
+static mode_t stat(NSString* path) {
     struct stat statbuf;
     if (stat(path.fileSystemRepresentation, &statbuf) == 0) {
-        if ((statbuf.st_mode & S_IFMT) == mode) {
-            return path;
-        }
+        return (statbuf.st_mode & S_IFMT) & mode;
     }
 
-    return nil;
+    return 0;
 }
 
 static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::String, WTF::String, WTF::ASCIICaseInsensitiveHash>& cache, NSError** error) {
     if (cache.contains(absolutePath)) {
         return cache.get(absolutePath);
     }
-
-    if (stat<S_IFREG>(absolutePath)) {
-        cache.set(absolutePath, absolutePath);
-        return absolutePath;
-    }
-
-    if (NSString* path = stat<S_IFREG>([absolutePath stringByAppendingPathExtension:@"js"])) {
-        cache.set(absolutePath, path);
-        return path;
-    }
-
-    if (NSString* path = stat<S_IFREG>([absolutePath stringByAppendingPathExtension:@"json"])) {
-        cache.set(absolutePath, path);
-        return path;
-    }
-
-    if (stat<S_IFDIR>(absolutePath)) {
+    mode_t absolutePathStat = stat<S_IFDIR | S_IFREG>(absolutePath);
+    if (absolutePathStat & S_IFDIR) {
         NSString* mainName = @"index.js";
 
         NSString* packageJsonPath = [absolutePath stringByAppendingPathComponent:@"package.json"];
@@ -173,6 +156,23 @@ static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::S
 
         cache.set(absolutePath, resolved);
         return resolved;
+    }
+
+    if (absolutePathStat & S_IFREG) {
+        cache.set(absolutePath, absolutePath);
+        return absolutePath;
+    }
+
+    NSString* candidatePath = [absolutePath stringByAppendingPathExtension:@"js"];
+    if (stat<S_IFREG>(candidatePath)) {
+        cache.set(absolutePath, candidatePath);
+        return candidatePath;
+    }
+
+    candidatePath = [absolutePath stringByAppendingPathExtension:@"json"];
+    if (stat<S_IFREG>(candidatePath)) {
+        cache.set(absolutePath, candidatePath);
+        return candidatePath;
     }
 
     return nil;
