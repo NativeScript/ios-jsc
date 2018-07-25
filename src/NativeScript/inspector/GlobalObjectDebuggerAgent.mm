@@ -94,39 +94,43 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
     while (registryIterator->nextKeyValue(this->m_globalObject->globalExec(), moduleKey, moduleEntry)) {
         if (JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(vm, moduleEntry.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
             SourceCode& sourceCode = const_cast<SourceCode&>(moduleRecord->sourceCode());
+            JSValue function = moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
+            JSFunction* moduleFunction = nullptr;
+            if (!function.isEmpty() && !function.isUndefinedOrNull()) {
+                moduleFunction = jsDynamicCast<JSFunction*>(vm, function);
+                if (moduleFunction != nullptr) {
+                    sourceCode = *moduleFunction->sourceCode();
+                }
+            }
+
             EditableSourceProvider* sourceProvider = static_cast<EditableSourceProvider*>(sourceCode.provider());
             if (sourceProvider->asID() == scriptId) {
-
                 WTF::String moduleSource;
                 ParserError parseError;
                 std::unique_ptr<ScopeNode> program;
+                if (moduleFunction != nullptr) {
+                    // Wrap the new source in a CommonJS function if not already wrapped
+                    bool addPrologueAndEpilogue = !scriptSource.startsWith(COMMONJS_FUNCTION_PROLOGUE);
 
-                JSValue value = moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
-                if (value.isEmpty()) {
+                    WTF::StringBuilder moduleFunctionSource;
+                    if (addPrologueAndEpilogue) {
+                        moduleFunctionSource.append(COMMONJS_FUNCTION_PROLOGUE);
+                    }
+
+                    moduleFunctionSource.append(scriptSource);
+
+                    if (addPrologueAndEpilogue) {
+                        moduleFunctionSource.append(COMMONJS_FUNCTION_EPILOGUE);
+                    }
+
+                    moduleSource = moduleFunctionSource.toString();
+
+                    SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
+                    program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
+                } else {
                     // No need to wrap the new source in a CommonJS function
                     moduleSource = scriptSource;
                     program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::ModuleEvaluateMode, SuperBinding::NotNeeded, parseError);
-                } else {
-                    if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(vm, value)) {
-                        // No need to wrap the new source in a CommonJS function
-                        sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
-                        sourceCode = *moduleFunction->sourceCode();
-
-                        WTF::StringBuilder moduleFunctionSource;
-                        moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
-                        moduleFunctionSource.append(scriptSource);
-                        moduleFunctionSource.append("\n}}");
-
-                        moduleSource = moduleFunctionSource.toString();
-
-                        SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
-                        program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
-                    }
-                    error = String::format("Inconsistent script id %s (%s). Property %s is not a JSFunction",
-                                           scriptIdStr.utf8().data(),
-                                           sourceProvider->sourceOrigin().string().utf8().data(),
-                                           m_globalObject->commonJSModuleFunctionIdentifier().utf8().data());
-                    return;
                 }
 
                 if (!program) {
