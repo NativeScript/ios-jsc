@@ -26,6 +26,9 @@
 // For malloc_size
 #include <malloc/malloc.h>
 
+// Do not thoroughly check valid memory pointers - it's too computationally intensive and slows down the runtime by 3 to 10 times
+#define SKIP_CHECK_FOR_KNOWN_CLASS 1
+
 #pragma mark - Expose non exported Tagged Pointer functions from objc4-706/runtime/objc-internal.h
 
 #if TARGET_OS_OSX && __x86_64__
@@ -274,6 +277,7 @@ bool IsObjcObject(const void* inPtr) {
         return false;
     }
 
+#if !defined(SKIP_CHECK_FOR_KNOWN_CLASS) || !SKIP_CHECK_FOR_KNOWN_CLASS
     //
     // Verifies that the found Class is a known class.
     //
@@ -292,6 +296,7 @@ bool IsObjcObject(const void* inPtr) {
     if (!isKnownClass) {
         return false;
     }
+#endif // !defined(SKIP_CHECK_FOR_KNOWN_CLASS) || !SKIP_CHECK_FOR_KNOWN_CLASS
 
     //
     // From Greg Parker
