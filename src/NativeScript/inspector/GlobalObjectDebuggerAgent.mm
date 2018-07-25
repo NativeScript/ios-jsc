@@ -41,6 +41,7 @@
 #include <JavaScriptCore/config.h>
 #include <JavaScriptCore/heap/MarkedSpaceInlines.h>
 #include <JavaScriptCore/inspector/agents/InspectorConsoleAgent.h>
+#include <cstdlib>
 #include <wtf/text/StringBuilder.h>
 
 using namespace JSC;
@@ -78,70 +79,77 @@ void GlobalObjectDebuggerAgent::enable() {
 
     this->m_globalObject->debugger()->activateBreakpoints();
 }
-
 void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, const String& scriptIdStr, const String& scriptSource) {
-
-    JSValue registry = this->m_globalObject->moduleLoader()->get(this->m_globalObject->globalExec(), Identifier::fromString(&this->m_globalObject->vm(), "registry"));
-    JSMap* map = jsCast<JSMap*>(registry);
-    WTF::String scriptAbsolutePath = [NSString pathWithComponents:@[this->m_globalObject->applicationPath(), @"app", scriptIdStr]];
-    JSValue value = map->get(this->m_globalObject->globalExec(), JSC::jsString(&this->m_globalObject->vm(), scriptAbsolutePath));
-    Identifier moduleIdentifier = Identifier::fromString(&this->m_globalObject->vm(), "module");
-
-    if (value.isUndefined()) {
-        error = String::format("Could not find module at path: '%s'", scriptAbsolutePath.utf8().data());
-
-        return;
-    }
+    intptr_t scriptId = static_cast<intptr_t>(atol(scriptIdStr.utf8().data()));
 
     VM& vm = this->m_globalObject->vm();
+    ExecState* exec = this->m_globalObject->globalExec();
 
-    if (JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(vm, value.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
-        SourceCode& sourceCode = const_cast<SourceCode&>(moduleRecord->sourceCode());
-        EditableSourceProvider* sourceProvider = static_cast<EditableSourceProvider*>(sourceCode.provider());
+    JSValue registry = this->m_globalObject->moduleLoader()->get(exec, Identifier::fromString(&this->m_globalObject->vm(), "registry"));
+    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->mapIteratorStructure(), jsCast<JSMap*>(registry), IterateKeyValue);
+    JSValue moduleKey, moduleEntry;
+    Identifier moduleIdentifier = Identifier::fromString(&vm, "module");
 
-        WTF::String moduleSource;
-        ParserError parseError;
-        std::unique_ptr<ScopeNode> program;
+    // Search for the module having an ID equal to scriptId
+    while (registryIterator->nextKeyValue(this->m_globalObject->globalExec(), moduleKey, moduleEntry)) {
+        if (JSModuleRecord* moduleRecord = jsDynamicCast<JSModuleRecord*>(vm, moduleEntry.get(this->m_globalObject->globalExec(), moduleIdentifier))) {
+            SourceCode& sourceCode = const_cast<SourceCode&>(moduleRecord->sourceCode());
+            EditableSourceProvider* sourceProvider = static_cast<EditableSourceProvider*>(sourceCode.provider());
+            if (sourceProvider->asID() == scriptId) {
 
-        JSValue value = moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
-        if (!value.isEmpty()) {
-            if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(vm, value)) {
-                sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
-                sourceCode = *moduleFunction->sourceCode();
+                WTF::String moduleSource;
+                ParserError parseError;
+                std::unique_ptr<ScopeNode> program;
 
-                WTF::StringBuilder moduleFunctionSource;
-                moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
-                moduleFunctionSource.append(scriptSource);
-                moduleFunctionSource.append("\n}}");
+                JSValue value = moduleRecord->getDirect(this->m_globalObject->vm(), m_globalObject->commonJSModuleFunctionIdentifier());
+                if (value.isEmpty()) {
+                    // No need to wrap the new source in a CommonJS function
+                    moduleSource = scriptSource;
+                    program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::ModuleEvaluateMode, SuperBinding::NotNeeded, parseError);
+                } else {
+                    if (JSFunction* moduleFunction = jsDynamicCast<JSFunction*>(vm, value)) {
+                        // No need to wrap the new source in a CommonJS function
+                        sourceProvider = static_cast<EditableSourceProvider*>(moduleFunction->sourceCode()->provider());
+                        sourceCode = *moduleFunction->sourceCode();
 
-                moduleSource = moduleFunctionSource.toString();
+                        WTF::StringBuilder moduleFunctionSource;
+                        moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
+                        moduleFunctionSource.append(scriptSource);
+                        moduleFunctionSource.append("\n}}");
 
-                SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
-                program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
+                        moduleSource = moduleFunctionSource.toString();
+
+                        SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
+                        program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
+                    }
+                    error = String::format("Inconsistent script id %s (%s). Property %s is not a JSFunction",
+                                           scriptIdStr.utf8().data(),
+                                           sourceProvider->sourceOrigin().string().utf8().data(),
+                                           m_globalObject->commonJSModuleFunctionIdentifier().utf8().data());
+                    return;
+                }
+
+                if (!program) {
+                    error = parseError.message();
+                    return;
+                }
+
+                WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source().toString());
+                sourceProvider->setSource(moduleSource);
+                sourceCode.setEndOffset(sourceProvider->source().length());
+
+                m_globalObject->vm().clearSourceProviderCaches();
+                const ClearChangedCellsFunctor functor(vm, moduleRecord->sourceCode().provider()->url(), diff);
+                {
+                    HeapIterationScope iterationScope(m_globalObject->vm().heap);
+                    vm.heap.objectSpace().forEachLiveCell(iterationScope, functor);
+                }
+                return;
             }
-        } else {
-            moduleSource = scriptSource;
-            program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::ModuleEvaluateMode, SuperBinding::NotNeeded, parseError);
-        }
-
-        WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source().toString());
-        sourceProvider->setSource(moduleSource);
-        sourceCode.setEndOffset(sourceProvider->source().length());
-
-        if (!program) {
-            JSObject* errorObject = parseError.toErrorObject(this->m_globalObject, sourceCode);
-            Exception* exception = Exception::create(this->m_globalObject->vm(), errorObject);
-
-            reportFatalErrorBeforeShutdown(this->m_globalObject->globalExec(), exception);
-        }
-
-        m_globalObject->vm().clearSourceProviderCaches();
-        const ClearChangedCellsFunctor functor(vm, moduleRecord->sourceCode().provider()->url(), diff);
-        {
-            HeapIterationScope iterationScope(m_globalObject->vm().heap);
-            vm.heap.objectSpace().forEachLiveCell(iterationScope, functor);
         }
     }
+
+    error = String::format("Could not find script with ID: '%s'", scriptIdStr.utf8().data());
 }
 
 InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& error, const int* executionContextId) {
