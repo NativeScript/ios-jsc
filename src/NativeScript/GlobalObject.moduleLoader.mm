@@ -128,10 +128,46 @@ static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::S
     if (cache.contains(absolutePath)) {
         return cache.get(absolutePath);
     }
-    mode_t absolutePathStat = stat<S_IFDIR | S_IFREG>(absolutePath);
-    if (absolutePathStat & S_IFDIR) {
-        NSString* mainName = @"index.js";
+    // LOAD_AS_FILE(X)
+    // 1. If X is a file, load X as JavaScript text.  STOP
+    // 2. If X.js is a file, load X.js as JavaScript text.  STOP
+    // 3. If X.json is a file, parse X.json to a JavaScript Object.  STOP
 
+    mode_t absolutePathStat = stat<S_IFDIR | S_IFREG>(absolutePath);
+    if (absolutePathStat & S_IFREG) {
+        cache.set(absolutePath, absolutePath);
+        return absolutePath;
+    }
+
+    NSString* candidatePath = [absolutePath stringByAppendingPathExtension:@"js"];
+    if (stat<S_IFREG>(candidatePath)) {
+        cache.set(absolutePath, candidatePath);
+        return candidatePath;
+    }
+
+    candidatePath = [absolutePath stringByAppendingPathExtension:@"json"];
+    if (stat<S_IFREG>(candidatePath)) {
+        cache.set(absolutePath, candidatePath);
+        return candidatePath;
+    }
+
+    if (absolutePathStat & S_IFDIR) {
+        //LOAD_AS_DIRECTORY(X)
+        // 1. If X/package.json is a file,
+        //    a. Parse X/package.json, and look for "main" field.
+        //    b. let M = X + (json main field)
+        //    c. LOAD_AS_FILE(M)
+        //    d. LOAD_INDEX(M)
+        // 2. LOAD_INDEX(X)
+
+        // LOAD_INDEX(X)
+        // 1. If X/index.js is a file, load X/index.js as JavaScript text.  STOP
+        // 2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP
+
+        // pass index to LOAD_AS_FILE if no package.json is found to cover both .js and .json cases
+        // (as a side effect there'll be an additional case 0. If X/index is a file, load it as JS text
+        // which is not present in the specification but shouldn't do any harm)
+        NSString* mainName = @"index";
         NSString* packageJsonPath = [absolutePath stringByAppendingPathComponent:@"package.json"];
         if (stat<S_IFREG>(packageJsonPath)) {
             NSData* packageJsonData = [NSData dataWithContentsOfFile:packageJsonPath options:0 error:error];
@@ -156,23 +192,6 @@ static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::S
 
         cache.set(absolutePath, resolved);
         return resolved;
-    }
-
-    if (absolutePathStat & S_IFREG) {
-        cache.set(absolutePath, absolutePath);
-        return absolutePath;
-    }
-
-    NSString* candidatePath = [absolutePath stringByAppendingPathExtension:@"js"];
-    if (stat<S_IFREG>(candidatePath)) {
-        cache.set(absolutePath, candidatePath);
-        return candidatePath;
-    }
-
-    candidatePath = [absolutePath stringByAppendingPathExtension:@"json"];
-    if (stat<S_IFREG>(candidatePath)) {
-        cache.set(absolutePath, candidatePath);
-        return candidatePath;
     }
 
     return nil;
@@ -239,6 +258,18 @@ Identifier GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecS
         throwException(execState, scope, self->interop()->wrapError(execState, error));
     }
 
+    // From https://nodejs.org/api/modules.html:
+    //    require(X) from module at path Y
+    //    1. If X is a core module,
+    //        a. return the core module
+    //        b. STOP
+    //    2. If X begins with '/'
+    //        a. set Y to be the filesystem root
+    //    3. If X begins with './' or '/' or '../'
+    //        a. LOAD_AS_FILE(Y + X)
+    //        b. LOAD_AS_DIRECTORY(Y + X)
+    //    4. LOAD_NODE_MODULES(X, dirname(Y))
+    //    5. THROW "not found"
     if (isModuleRequire) {
         if (!absoluteFilePath) {
             NSString* currentSearchPath = [static_cast<NSString*>(referrerValue.toWTFString(execState)) stringByDeletingLastPathComponent];
