@@ -383,9 +383,9 @@ JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalO
         ASSERT(!error.isValid());
 
         WTF::StringBuilder moduleFunctionSource;
-        moduleFunctionSource.append("{function anonymous(require, module, exports, __dirname, __filename) {");
+        moduleFunctionSource.append(COMMONJS_FUNCTION_PROLOGUE);
         moduleFunctionSource.append(source);
-        moduleFunctionSource.append("\n}}");
+        moduleFunctionSource.append(COMMONJS_FUNCTION_EPILOGUE);
 
         JSObject* exception = nullptr;
 

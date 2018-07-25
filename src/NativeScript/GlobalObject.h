@@ -15,6 +15,9 @@
 #include <objc/runtime.h>
 #include <wtf/Deque.h>
 
+#define COMMONJS_FUNCTION_PROLOGUE "{function anonymous(require, module, exports, __dirname, __filename) {"
+#define COMMONJS_FUNCTION_EPILOGUE "\n}}"
+
 namespace NativeScript {
 class ObjCConstructorBase;
 class ObjCProtocolWrapper;
