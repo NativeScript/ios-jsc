@@ -132,3 +132,4 @@ simd_double4 getDouble4();
 NestedSimpleStruct getNestedStruct();
 StructWithFloatAndDouble getStructWithFloatAndDouble();
 StructWithVectorAndDouble getStructWithVectorAndDouble();
+TNSStructWithFloat2 getStructWithFloat2();
