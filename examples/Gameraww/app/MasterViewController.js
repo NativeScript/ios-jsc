@@ -21,6 +21,7 @@ var JSMasterViewController = UITableViewController.extend(
         this.loadData();
       },
       "aboutPressed:" : function(sender) {
+        throw new Error("crash!");
         var alertWindow = new UIAlertView({
           title : "About",
           message : "NativeScript Team",
