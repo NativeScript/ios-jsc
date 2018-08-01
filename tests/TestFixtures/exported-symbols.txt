@@ -143,3 +143,9 @@ _getDouble4
 _getStructWithFloat2
 _getStructWithFloatAndDouble
 _getStructWithVectorAndDouble
+_getStructWith2Floats
+_getStructWith3Floats
+_getStructWith4Floats
+_getStructWith2Doubles
+_getStructWith3Doubles
+_getStructWith4Doubles

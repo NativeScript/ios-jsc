@@ -46,6 +46,66 @@ TNSStructWithFloat2 getStructWithFloat2() {
     return result;
 }
 
+TNSStructWith2Floats getStructWith2Floats() {
+    TNSStructWith2Floats result = {
+        .f1 = 1.2345,
+        .f2 = 2.3456
+    };
+
+    return result;
+}
+
+TNSStructWith3Floats getStructWith3Floats() {
+    TNSStructWith3Floats result = {
+        .f1 = 1.2345,
+        .f2 = 2.3456,
+        .f3 = 3.4567
+    };
+
+    return result;
+}
+
+TNSStructWith4Floats getStructWith4Floats() {
+    TNSStructWith4Floats result = {
+        .f1 = 1.2345,
+        .f2 = 2.3456,
+        .f3 = 3.4567,
+        .f4 = 4.5678
+    };
+
+    return result;
+}
+
+TNSStructWith2Doubles getStructWith2Doubles() {
+    TNSStructWith2Doubles result = {
+        .d1 = 1.2345,
+        .d2 = 2.3456
+    };
+
+    return result;
+}
+
+TNSStructWith3Doubles getStructWith3Doubles() {
+    TNSStructWith3Doubles result = {
+        .d1 = 1.2345,
+        .d2 = 2.3456,
+        .d3 = 3.4567
+    };
+
+    return result;
+}
+
+TNSStructWith4Doubles getStructWith4Doubles() {
+    TNSStructWith4Doubles result = {
+        .d1 = 1.2345,
+        .d2 = 2.3456,
+        .d3 = 3.4567,
+        .d4 = 4.5678
+    };
+
+    return result;
+}
+
 matrix_float2x2 getMatrixFloat2x2() {
     matrix_float2x2 result;
     float pi = 3.1415;

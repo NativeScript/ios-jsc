@@ -212,7 +212,48 @@ describe(module.id, function () {
         expect(struct.i).toBe(5);
     });
 
-
+     it("getStructWith2Floats", function(){
+        var struct = getStructWith2Floats();
+        expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
+     });
+         
+     it("getStructWith2Doubles", function(){
+        var struct = getStructWith2Doubles();
+        expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
+      });
+         
+     it("getStructWith3Floats", function(){
+        var struct = getStructWith3Floats();
+        expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.f3.toFixed(4)).toBe(3.4567.toFixed(4));
+      });
+     
+     it("getStructWith3Doubles", function(){
+        var struct = getStructWith3Doubles();
+        expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.d3.toFixed(4)).toBe(3.4567.toFixed(4));
+      });
+         
+     it("getStructWith4Floats", function(){
+        var struct = getStructWith4Floats();
+        expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.f3.toFixed(4)).toBe(3.4567.toFixed(4));
+        expect(struct.f4.toFixed(4)).toBe(4.5678.toFixed(4));
+     });
+     
+     it("getStructWith4Doubles", function(){
+        var struct = getStructWith4Doubles();
+        expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.d3.toFixed(4)).toBe(3.4567.toFixed(4));
+        expect(struct.d4.toFixed(4)).toBe(4.5678.toFixed(4));
+     });
+         
     it("structWithFloatAndDouble", function(){
         var struct = getStructWithFloatAndDouble();
         expect(struct.fl.toFixed(2)).toBe(3.14.toFixed(2));

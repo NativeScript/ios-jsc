@@ -81,6 +81,42 @@ typedef struct NestedSimpleStruct {
     } y2;
 } NestedSimpleStruct;
 
+typedef struct TNSStructWith2Floats {
+    float f1;
+    float f2;
+} TNSStructWith2Floats;
+
+typedef struct TNSStructWith3Floats {
+    float f1;
+    float f2;
+    float f3;
+} TNSStructWith3Floats;
+
+typedef struct TNSStructWith4Floats {
+    float f1;
+    float f2;
+    float f3;
+    float f4;
+} TNSStructWith4Floats;
+
+typedef struct TNSStructWith2Doubles {
+    double d1;
+    double d2;
+} TNSStructWith2Doubles;
+
+typedef struct TNSStructWith3Doubles {
+    double d1;
+    double d2;
+    double d3;
+} TNSStructWith3Doubles;
+
+typedef struct TNSStructWith4Doubles {
+    double d1;
+    double d2;
+    double d3;
+    double d4;
+} TNSStructWith4Doubles;
+
 typedef struct TNSStructWithPointers {
     void (*a)();
     int* x;
@@ -133,3 +169,9 @@ NestedSimpleStruct getNestedStruct();
 StructWithFloatAndDouble getStructWithFloatAndDouble();
 StructWithVectorAndDouble getStructWithVectorAndDouble();
 TNSStructWithFloat2 getStructWithFloat2();
+TNSStructWith4Floats getStructWith4Floats();
+TNSStructWith3Floats getStructWith3Floats();
+TNSStructWith2Floats getStructWith2Floats();
+TNSStructWith4Doubles getStructWith4Doubles();
+TNSStructWith3Doubles getStructWith3Doubles();
+TNSStructWith2Doubles getStructWith2Doubles();
