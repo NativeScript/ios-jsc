@@ -149,3 +149,9 @@ _getStructWith4Floats
 _getStructWith2Doubles
 _getStructWith3Doubles
 _getStructWith4Doubles
+_incrementDouble2
+_incrementDouble3
+_incrementDouble4
+_incrementFloat2
+_incrementFloat3
+_incrementFloat4

@@ -305,6 +305,36 @@ simd_double4 getDouble4() {
     return d;
 }
 
+simd_double2 incrementDouble2(simd_double2 v) {
+    simd_double2 result = v + simd_make_double2(1, 1);
+    return result;
+}
+
+simd_double3 incrementDouble3(simd_double3 v) {
+    simd_double3 result = v + simd_make_double3(1, 1, 1);
+    return result;
+}
+
+simd_double4 incrementDouble4(simd_double4 v) {
+    simd_double4 result = v + simd_make_double4(1, 1, 1, 1);
+    return result;
+}
+
+simd_float2 incrementFloat2(simd_float2 v) {
+    simd_float2 result = v + simd_make_float2(1, 1);
+    return result;
+}
+
+simd_float3 incrementFloat3(simd_float3 v) {
+    simd_float3 result = v + simd_make_float3(1, 1, 1);
+    return result;
+}
+
+simd_float4 incrementFloat4(simd_float4 v) {
+    simd_float4 result = v + simd_make_float4(1, 1, 1, 1);
+    return result;
+}
+
 StructWithFloatAndDouble getStructWithFloatAndDouble() {
     StructWithFloatAndDouble str;
     str.fl = 3.14;
