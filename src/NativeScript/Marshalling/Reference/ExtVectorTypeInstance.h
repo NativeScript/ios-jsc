@@ -14,9 +14,9 @@ class ExtVectorTypeInstance : public JSDestructibleObject {
 public:
     typedef JSDestructibleObject Base;
 
-    static ExtVectorTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType, size_t size) {
+    static ExtVectorTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType, size_t size, bool isStructMember) {
         ExtVectorTypeInstance* cell = new (NotNull, JSC::allocateCell<ExtVectorTypeInstance>(vm.heap)) ExtVectorTypeInstance(vm, structure, size);
-        cell->finishCreation(vm, innerType);
+        cell->finishCreation(vm, innerType, isStructMember);
         return cell;
     }
 
@@ -34,7 +34,7 @@ public:
         return this->_innerType.get();
     }
 
-    void finishCreation(JSC::VM&, JSC::JSCell*);
+    void finishCreation(JSC::VM&, JSC::JSCell*, bool isStructMember);
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);
 
 private:
