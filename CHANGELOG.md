@@ -7,6 +7,18 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+4.2.0
+=====
+## What's New
+- [Introduce a setting for discarding uncaught exceptions from called JS methods](https://github.com/NativeScript/ios-runtime/issues/965)
+- [Introduce NativeScriptEmbedder protocol](https://github.com/NativeScript/ios-runtime/issues/972)
+
+## Bug Fixes
+- [Correctly find source of CommonJS modules in setScriptSource](https://github.com/NativeScript/ios-runtime/issues/958)
+- [App cannot be deployed on device when NS is built as a dynamic framework](https://github.com/NativeScript/ios-runtime/issues/970)
+- [App not crashing on unhandled exception](https://github.com/NativeScript/ios-runtime/issues/971)
+- [Throw an Objective C exception on fatal error](https://github.com/NativeScript/ios-runtime/issues/969)
+
 4.1.1
 =====
 ## Bug Fixes
