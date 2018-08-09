@@ -13,14 +13,10 @@
 #include <JavaScriptCore/Exception.h>
 
 namespace NativeScript {
-void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*, bool callJsUncaughtErrorCallback = true);
 
-inline void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
-    if (JSC::Exception* exception = scope.exception()) {
-        scope.clearException();
-        reportFatalErrorBeforeShutdown(execState, exception);
-    }
-}
+void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope);
+void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*, bool callJsUncaughtErrorCallback = true, bool dontCrash = false);
+
 } // namespace NativeScript
 
 #endif /* defined(__NativeScript__JSErrors__) */

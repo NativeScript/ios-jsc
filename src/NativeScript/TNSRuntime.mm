@@ -44,7 +44,15 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
     return globalObject->moduleLoader()->loadAndEvaluateModule(exec, moduleNameJsValue, referrerJsValue, initiator);
 }
 
+@interface TNSRuntime ()
+
+@property(nonatomic, retain) id appPackageJsonData;
+
+@end
+
 @implementation TNSRuntime
+
+@synthesize appPackageJsonData;
 
 static WTF::Lock _runtimesLock;
 static NSPointerArray* _runtimes;
@@ -178,6 +186,22 @@ static NSPointerArray* _runtimes;
 - (JSValueRef)convertObject:(id)object {
     JSLockHolder lock(*self->_vm);
     return toRef(self->_globalObject->globalExec(), toValue(self->_globalObject->globalExec(), object));
+}
+
+- (id)appPackageJson {
+
+    if (self->appPackageJsonData != nil) {
+        return self->appPackageJsonData;
+    }
+
+    NSString* packageJsonPath = [self->_applicationPath stringByAppendingPathComponent:@"app/package.json"];
+    NSData* data = [NSData dataWithContentsOfFile:packageJsonPath];
+    if (data) {
+        NSError* error = nil;
+        self->appPackageJsonData = [[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error] retain];
+    }
+
+    return self->appPackageJsonData;
 }
 
 - (void)dealloc {
