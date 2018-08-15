@@ -46,13 +46,15 @@ void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
                                          || globalObject->isUIApplicationMainAtTopOfCallstack();
 
         if (treatExceptionsAsUncaught) {
+            id discardExceptionsValue = [[TNSRuntime current] appPackageJson][@"discardUncaughtJsExceptions"];
+            bool discardExceptions = [discardExceptionsValue boolValue];
             scope.clearException();
-            reportFatalErrorBeforeShutdown(execState, exception);
+            reportFatalErrorBeforeShutdown(execState, exception, true, discardExceptions);
         }
     }
 }
 
-void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks) {
+void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks, bool dontCrash) {
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
 
     NakedPtr<Exception> errorCallbackException;
@@ -84,9 +86,9 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
         NSLog(@"Native stack trace:");
         WTFReportBacktrace();
 
-        NSLog(@"JavaScript stack trace:");
         Ref<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
-        dumpJsCallStack(callStack.get());
+        NSLog(@"JavaScript stack trace:");
+        std::string jsCallstack = dumpJsCallStack(callStack.get());
 
         NSLog(@"JavaScript error:");
         // System logs are disabled in release app builds, but we want the error to be printed in crash logs
@@ -106,8 +108,17 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                     reportFatalErrorBeforeShutdown(execState, errorCallbackException, false);
             }
         } else {
-            *(int*)(uintptr_t)0xDEADDEAD = 0;
-            __builtin_trap();
+            if (dontCrash) {
+                NSLog(@"NativeScript discarding uncaught JS exception!");
+            } else {
+                String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
+                NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
+                                                                                                       message.utf8().data(),
+                                                                                                       jsCallstack.c_str()]
+                                                                     reason:nil
+                                                                   userInfo:nil];
+                @throw objcException;
+            }
         }
     }
 }
@@ -116,15 +127,19 @@ void dumpExecJsCallStack(ExecState* execState) {
     dumpJsCallStack(createScriptCallStack(execState).get());
 }
 
-void dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
+std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
+    std::stringstream jsCallstack;
     for (size_t i = 0; i < frames.size(); ++i) {
-        std::stringstream callstackLine;
         Inspector::ScriptCallFrame frame = frames.at(i);
-        callstackLine << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
+        jsCallstack << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
         if (frame.lineNumber() && frame.columnNumber()) {
-            callstackLine << ":" << frame.lineNumber() << ":" << frame.columnNumber();
+            jsCallstack << ":" << frame.lineNumber() << ":" << frame.columnNumber();
         }
-        NSLog(@"%s", callstackLine.str().c_str());
+        jsCallstack << std::endl;
     }
+
+    NSLog(@"%s", jsCallstack.str().c_str());
+    
+    return jsCallstack.str();
 }
-}
+} // namespace NativeScript

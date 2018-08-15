@@ -19,9 +19,9 @@
 namespace NativeScript {
 
 void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope);
-void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*, bool callJsUncaughtErrorCallback = true);
+void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*, bool callJsUncaughtErrorCallback = true, bool dontCrash = false);
 void dumpExecJsCallStack(JSC::ExecState* execState);
-void dumpJsCallStack(const Inspector::ScriptCallStack& frames);
+std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames);
 
 } // namespace NativeScript
 
