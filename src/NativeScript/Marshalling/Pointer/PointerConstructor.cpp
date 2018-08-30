@@ -26,11 +26,11 @@ void PointerConstructor::finishCreation(VM& vm, PointerPrototype* pointerPrototy
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 
-    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, pointerPrototype, DontEnum | DontDelete | ReadOnly);
-    this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum | DontDelete);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, pointerPrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 }
 
-static EncodedJSValue JSC_HOST_CALL constructPointerInstance(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL PointerConstructor::constructPointerInstance(ExecState* execState) {
     void* value = nullptr;
     if (execState->argumentCount() == 1) {
         value = reinterpret_cast<void*>(execState->argument(0).toUInt32(execState));
@@ -38,16 +38,6 @@ static EncodedJSValue JSC_HOST_CALL constructPointerInstance(ExecState* execStat
 
     JSValue result = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->pointerInstanceForPointer(execState, value);
     return JSValue::encode(result);
-}
-
-ConstructType PointerConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
-    constructData.native.function = &constructPointerInstance;
-    return ConstructType::Host;
-}
-
-CallType PointerConstructor::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &constructPointerInstance;
-    return CallType::Host;
 }
 
 JSValue PointerConstructor::read(ExecState* execState, const void* buffer, JSCell* self) {

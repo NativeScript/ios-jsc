@@ -17,7 +17,7 @@ const ClassInfo ReferenceInstance::s_info = { "Reference", &Base::s_info, nullpt
 void ReferenceInstance::finishCreation(VM& vm, JSValue value) {
     Base::finishCreation(vm);
 
-    this->putDirect(vm, vm.propertyNames->value, value, None);
+    this->putDirect(vm, vm.propertyNames->value, value, static_cast<unsigned>(PropertyAttribute::None));
 }
 
 void ReferenceInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* innerType, PointerInstance* pointer) {
@@ -48,6 +48,10 @@ void ReferenceInstance::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     ReferenceInstance* referenceInstance = jsCast<ReferenceInstance*>(cell);
     visitor.append(referenceInstance->_innerTypeCell);
     visitor.append(referenceInstance->_pointer);
+
+    for (auto it : referenceInstance->assignedValues) {
+        visitor.append(it.second);
+    }
 }
 
 void ReferenceInstance::setType(VM& vm, JSCell* innerType) {
@@ -59,7 +63,7 @@ bool ReferenceInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* e
     ReferenceInstance* reference = jsCast<ReferenceInstance*>(object);
     if (!reference->innerType()) {
         if (propertyName == 0) {
-            propertySlot.setValue(object, None, reference->get(execState, execState->vm().propertyNames->value));
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), reference->get(execState, execState->vm().propertyNames->value));
             return true;
         }
         return false;
@@ -67,7 +71,7 @@ bool ReferenceInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* e
 
     const void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
     JSValue value = reference->_ffiTypeMethodTable.read(execState, element, reference->_innerTypeCell.get());
-    propertySlot.setValue(object, None, value);
+    propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), value);
     return true;
 }
 
@@ -76,6 +80,10 @@ bool ReferenceInstance::putByIndex(JSCell* cell, ExecState* execState, unsigned 
 
     void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
     reference->_ffiTypeMethodTable.write(execState, value, element, reference->_innerTypeCell.get());
+
+    if (value.isCell()) {
+        reference->assignedValues[propertyName].set(execState->vm(), reference, value.asCell());
+    }
 
     return true;
 }

@@ -42,12 +42,12 @@
 #include <JavaScriptCore/InjectedScriptManager.h>
 #include <JavaScriptCore/InspectorAgent.h>
 #include <JavaScriptCore/InspectorBackendDispatcher.h>
+#include <JavaScriptCore/InspectorConsoleAgent.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
 #include <JavaScriptCore/InspectorHeapAgent.h>
 #include <JavaScriptCore/InspectorScriptProfilerAgent.h>
 #include <JavaScriptCore/JSGlobalObject.h>
-#include <JavaScriptCore/JSGlobalObjectConsoleAgent.h>
 #include <JavaScriptCore/JSGlobalObjectRuntimeAgent.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
@@ -106,14 +106,14 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     , m_jsAgentContext(m_agentContext, m_globalObject)
 
 {
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, DontEnum);
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, DontEnum);
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, DontEnum);
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);
     auto heapAgent = std::make_unique<InspectorHeapAgent>(m_jsAgentContext);
-    auto consoleAgent = std::make_unique<JSGlobalObjectConsoleAgent>(m_jsAgentContext, heapAgent.get()); // TODO Add InspectorHeapAgent
+    auto consoleAgent = std::make_unique<InspectorConsoleAgent>(m_jsAgentContext, heapAgent.get()); // TODO Add InspectorHeapAgent
     auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_jsAgentContext, consoleAgent.get());
     auto pageAgent = std::make_unique<InspectorPageAgent>(m_jsAgentContext);
     auto scriptProfilerAgent = std::make_unique<InspectorScriptProfilerAgent>(m_jsAgentContext);

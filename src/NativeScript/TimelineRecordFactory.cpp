@@ -4,8 +4,8 @@
 
 namespace Inspector {
 
-Ref<InspectorObject> TimelineRecordFactory::createGenericRecord(JSC::ExecState* state, double startTime, int maxCallStackDepth) {
-    Ref<InspectorObject> record = InspectorObject::create();
+Ref<JSON::Object> TimelineRecordFactory::createGenericRecord(JSC::ExecState* state, double startTime, int maxCallStackDepth) {
+    Ref<JSON::Object> record = JSON::Object::create();
     record->setDouble(ASCIILiteral("startTime"), startTime);
 
     if (maxCallStackDepth) {
@@ -16,8 +16,8 @@ Ref<InspectorObject> TimelineRecordFactory::createGenericRecord(JSC::ExecState* 
     return record;
 }
 
-Ref<InspectorObject> TimelineRecordFactory::createConsoleProfileData(const String& title) {
-    Ref<InspectorObject> data = InspectorObject::create();
+Ref<JSON::Object> TimelineRecordFactory::createConsoleProfileData(const String& title) {
+    Ref<JSON::Object> data = JSON::Object::create();
     data->setString("title", title);
     return data;
 }

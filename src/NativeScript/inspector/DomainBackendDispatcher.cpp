@@ -34,11 +34,11 @@ DomainBackendDispatcher::DomainBackendDispatcher(WTF::String domain, JSCell* con
     m_backendDispatcher->registerDispatcherForDomain(domain, this);
 }
 
-void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<Inspector::InspectorObject>&& message) {
+void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<JSON::Object>&& message) {
     ExecState* globalExec = m_globalObject.globalExec();
     MarkedArgumentBuffer dispatchArguments;
 
-    RefPtr<Inspector::InspectorObject> paramsContainer;
+    RefPtr<JSON::Object> paramsContainer;
     message->getObject(ASCIILiteral("params"), paramsContainer);
     if (paramsContainer) {
         dispatchArguments.append(JSONParse(globalExec, paramsContainer->toJSONString()));
@@ -66,7 +66,7 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
         dispatchResult = call(globalExec, functionValue, dispatchCallType, dispatchCallData, m_domainDispatcher.get(), dispatchArguments, exception);
     }
 
-    RefPtr<Inspector::InspectorObject> messageObject = Inspector::InspectorObject::create();
+    RefPtr<JSON::Object> messageObject = JSON::Object::create();
     Inspector::ErrorString error;
     if (exception) {
         error = exception->value().toString(globalExec)->value(globalExec);
@@ -74,8 +74,8 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<In
 
     WTF::String resultMessage = JSONStringify(globalExec, dispatchResult, 0);
     if (!resultMessage.isEmpty()) {
-        RefPtr<Inspector::InspectorValue> parsedMessage;
-        if (!Inspector::InspectorValue::parseJSON(resultMessage, parsedMessage)) {
+        RefPtr<JSON::Value> parsedMessage;
+        if (!JSON::Value::parseJSON(resultMessage, parsedMessage)) {
             m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::ParseError, ASCIILiteral("Message must be in JSON format"));
             return;
         }

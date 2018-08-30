@@ -31,7 +31,7 @@ void InspectorPageAgent::enable(ErrorString&) {
 void InspectorPageAgent::disable(ErrorString&) {
 }
 
-void InspectorPageAgent::reload(ErrorString&, const bool* const opt_in_ignoreCache, const bool* const opt_in_revalidateAllResources, const String* const opt_in_scriptToEvaluateOnLoad) {
+void InspectorPageAgent::reload(ErrorString&, const bool* const optionalReloadFromOrigin, const bool* const optionalRevalidateAllResources) {
     JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&m_globalObject.vm(), "__onLiveSync"));
     JSC::CallData callData;
     JSC::CallType callType = getCallData(liveSyncCallback, callData);
@@ -53,8 +53,8 @@ void InspectorPageAgent::navigate(ErrorString&, const String& in_url) {
     ASSERT_NOT_REACHED();
 }
 
-void InspectorPageAgent::getCookies(ErrorString&, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::Cookie>>& out_cookies) {
-    out_cookies = Inspector::Protocol::Array<Inspector::Protocol::Page::Cookie>::create();
+void InspectorPageAgent::getCookies(ErrorString&, RefPtr<JSON::ArrayOf<Inspector::Protocol::Page::Cookie>>& cookies) {
+    cookies = JSON::ArrayOf<Inspector::Protocol::Page::Cookie>::create();
 }
 
 void InspectorPageAgent::deleteCookie(ErrorString&, const String& in_cookieName, const String& in_url) {
@@ -73,7 +73,7 @@ void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protoco
 
     WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
 
-    RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::FrameResource>> subresources = Inspector::Protocol::Array<Inspector::Protocol::Page::FrameResource>::create();
+    RefPtr<JSON::ArrayOf<Inspector::Protocol::Page::FrameResource>> subresources = JSON::ArrayOf<Inspector::Protocol::Page::FrameResource>::create();
     out_frameTree = Inspector::Protocol::Page::FrameResourceTree::create()
                         .setFrame(frameObject.copyRef())
                         .setResources(subresources.copyRef())
@@ -91,9 +91,9 @@ void InspectorPageAgent::getResourceTree(ErrorString&, RefPtr<Inspector::Protoco
     }
 }
 
-void InspectorPageAgent::searchInResource(ErrorString& out_error, const String& frameId, const String& url, const String& query, const bool* optionalCaseSensitive, const bool* optionalIsRegex, const String* optionalRequestId, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>>& out_result) {
+void InspectorPageAgent::searchInResource(ErrorString& out_error, const String& frameId, const String& url, const String& query, const bool* optionalCaseSensitive, const bool* optionalIsRegex, const String* optionalRequestId, RefPtr<JSON::ArrayOf<Inspector::Protocol::GenericTypes::SearchMatch>>& out_result) {
 
-    out_result = Inspector::Protocol::Array<Inspector::Protocol::GenericTypes::SearchMatch>::create();
+    out_result = JSON::ArrayOf<Inspector::Protocol::GenericTypes::SearchMatch>::create();
 
     bool isRegex = optionalIsRegex ? *optionalIsRegex : false;
     bool caseSensitive = optionalCaseSensitive ? *optionalCaseSensitive : false;
@@ -118,8 +118,8 @@ static Ref<Inspector::Protocol::Page::SearchResult> buildObjectForSearchResult(c
         .release();
 }
 
-void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, const bool* in_caseSensitive, const bool* in_isRegex, RefPtr<Inspector::Protocol::Array<Inspector::Protocol::Page::SearchResult>>& out_result) {
-    out_result = Inspector::Protocol::Array<Inspector::Protocol::Page::SearchResult>::create();
+void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, const bool* in_caseSensitive, const bool* in_isRegex, RefPtr<JSON::ArrayOf<Inspector::Protocol::Page::SearchResult>>& out_result) {
+    out_result = JSON::ArrayOf<Inspector::Protocol::Page::SearchResult>::create();
 
     bool isRegex = in_isRegex ? *in_isRegex : false;
     bool caseSensitive = in_caseSensitive ? *in_caseSensitive : false;

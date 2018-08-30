@@ -14,7 +14,7 @@
 namespace NativeScript {
 using namespace JSC;
 
-static EncodedJSValue JSC_HOST_CALL constructJSWorker(ExecState* exec) {
+EncodedJSValue JSC_HOST_CALL JSWorkerConstructor::constructJSWorker(ExecState* exec) {
     auto scope = DECLARE_THROW_SCOPE(exec->vm());
     if (exec->argumentCount() < 1)
         return throwVMError(exec, scope, createNotEnoughArgumentsError(exec));
@@ -46,7 +46,7 @@ static EncodedJSValue JSC_HOST_CALL constructJSWorker(ExecState* exec) {
     return JSValue::encode(worker);
 }
 
-static EncodedJSValue JSC_HOST_CALL callJSWorker(ExecState* exec) {
+EncodedJSValue JSC_HOST_CALL JSWorkerConstructor::callJSWorker(ExecState* exec) {
     auto scope = DECLARE_THROW_SCOPE(exec->vm());
     return throwVMError(exec, scope, createError(exec, "Worker function must be called as a constructor."));
 }
@@ -56,17 +56,8 @@ const ClassInfo JSWorkerConstructor::s_info = { "WorkerConstructor", &Base::s_in
 void JSWorkerConstructor::finishCreation(VM& vm, JSWorkerPrototype* prototype) {
     Base::finishCreation(vm, WTF::ASCIILiteral("Worker"));
 
-    this->putDirect(vm, vm.propertyNames->prototype, prototype, DontEnum | DontDelete | ReadOnly);
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum);
+    this->putDirect(vm, vm.propertyNames->prototype, prototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum);
 }
 
-ConstructType JSWorkerConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
-    constructData.native.function = constructJSWorker;
-    return ConstructType::Host;
-}
-
-CallType JSWorkerConstructor::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = callJSWorker;
-    return CallType::Host;
-}
 } // namespace NativeScript

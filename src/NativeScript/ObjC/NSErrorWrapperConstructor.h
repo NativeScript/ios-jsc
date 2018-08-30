@@ -24,7 +24,7 @@ public:
     DECLARE_INFO;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
-        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
     }
 
     JSC::Structure* errorStructure() const {
@@ -35,7 +35,7 @@ public:
 
 private:
     NSErrorWrapperConstructor(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
+        : Base(vm, structure, &constructErrorWrapper, &constructErrorWrapper) {
     }
 
     static void destroy(JSC::JSCell* cell);
@@ -44,10 +44,8 @@ private:
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
-    static JSC::ConstructType getConstructData(JSC::JSCell*, JSC::ConstructData&);
-
-    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
-
     JSC::WriteBarrier<JSC::Structure> _errorStructure;
+
+    static JSC::EncodedJSValue JSC_HOST_CALL constructErrorWrapper(JSC::ExecState* execState);
 };
 } // namespace NativeScript

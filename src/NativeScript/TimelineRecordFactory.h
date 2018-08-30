@@ -1,13 +1,13 @@
 #pragma once
 
 #include <JavaScriptCore/InspectorProtocolObjects.h>
-#include <inspector/InspectorValues.h>
+#include <wtf/JSONValues.h>
 
 namespace Inspector {
 
 class TimelineRecordFactory {
 public:
-    static Ref<InspectorObject> createGenericRecord(JSC::ExecState*, double startTime, int maxCallStackDepth);
-    static Ref<InspectorObject> createConsoleProfileData(const String& title);
+    static Ref<JSON::Object> createGenericRecord(JSC::ExecState*, double startTime, int maxCallStackDepth);
+    static Ref<JSON::Object> createConsoleProfileData(const String& title);
 };
 } // namespace Inspector

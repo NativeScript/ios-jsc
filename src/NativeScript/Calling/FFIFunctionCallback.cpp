@@ -27,6 +27,7 @@ void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, v
         return;
     }
 
+    ASSERT(!arguments.hasOverflowed());
     functionCallback->callFunction(functionCallback->_globalExecState->globalThisValue(), arguments, retValue);
 }
 

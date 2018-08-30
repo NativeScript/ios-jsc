@@ -14,7 +14,7 @@ public:
 
     virtual void enable(ErrorString&) override;
     virtual void disable(ErrorString&) override;
-    virtual void setExtraHTTPHeaders(ErrorString&, const Inspector::InspectorObject& headers) override;
+    virtual void setExtraHTTPHeaders(ErrorString&, const JSON::Object& headers) override;
     virtual void getResponseBody(ErrorString&, const String& requestId, String* content, bool* base64Encoded) override;
     virtual void setResourceCachingDisabled(ErrorString&, bool in_disabled) override;
     virtual void loadResource(ErrorString&, const String& frameId, const String& url, Ref<LoadResourceCallback>&&) override;

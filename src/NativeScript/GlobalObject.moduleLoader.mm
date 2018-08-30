@@ -25,6 +25,7 @@
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/JSSourceCode.h>
+#include <JavaScriptCore/JSString.h>
 #include <JavaScriptCore/LiteralParser.h>
 #include <JavaScriptCore/ModuleAnalyzer.h>
 #include <JavaScriptCore/ModuleLoaderPrototype.h>
@@ -114,40 +115,59 @@ namespace NativeScript {
 using namespace JSC;
 
 template <mode_t mode>
-static NSString* stat(NSString* path) {
+static mode_t stat(NSString* path) {
     struct stat statbuf;
     if (stat(path.fileSystemRepresentation, &statbuf) == 0) {
-        if ((statbuf.st_mode & S_IFMT) == mode) {
-            return path;
-        }
+        return (statbuf.st_mode & S_IFMT) & mode;
     }
 
-    return nil;
+    return 0;
 }
 
 static NSString* resolveAbsolutePath(NSString* absolutePath, WTF::HashMap<WTF::String, WTF::String, WTF::ASCIICaseInsensitiveHash>& cache, NSError** error) {
     if (cache.contains(absolutePath)) {
         return cache.get(absolutePath);
     }
+    // LOAD_AS_FILE(X)
+    // 1. If X is a file, load X as JavaScript text.  STOP
+    // 2. If X.js is a file, load X.js as JavaScript text.  STOP
+    // 3. If X.json is a file, parse X.json to a JavaScript Object.  STOP
 
-    if (stat<S_IFREG>(absolutePath)) {
+    mode_t absolutePathStat = stat<S_IFDIR | S_IFREG>(absolutePath);
+    if (absolutePathStat & S_IFREG) {
         cache.set(absolutePath, absolutePath);
         return absolutePath;
     }
 
-    if (NSString* path = stat<S_IFREG>([absolutePath stringByAppendingPathExtension:@"js"])) {
-        cache.set(absolutePath, path);
-        return path;
+    NSString* candidatePath = [absolutePath stringByAppendingPathExtension:@"js"];
+    if (stat<S_IFREG>(candidatePath)) {
+        cache.set(absolutePath, candidatePath);
+        return candidatePath;
     }
 
-    if (NSString* path = stat<S_IFREG>([absolutePath stringByAppendingPathExtension:@"json"])) {
-        cache.set(absolutePath, path);
-        return path;
+    candidatePath = [absolutePath stringByAppendingPathExtension:@"json"];
+    if (stat<S_IFREG>(candidatePath)) {
+        cache.set(absolutePath, candidatePath);
+        return candidatePath;
     }
 
-    if (stat<S_IFDIR>(absolutePath)) {
-        NSString* mainName = @"index.js";
+    if (absolutePathStat & S_IFDIR) {
+        //LOAD_AS_DIRECTORY(X)
+        // 1. If X/package.json is a file,
+        //    a. Parse X/package.json, and look for "main" field.
+        //    b. let M = X + (json main field)
+        //    c. LOAD_AS_FILE(M)
+        //    d. LOAD_INDEX(M)
+        // 2. LOAD_INDEX(X)
 
+        // LOAD_INDEX(X)
+        // 1. If X/index.js is a file, load X/index.js as JavaScript text.  STOP
+        // 2. If X/index.json is a file, parse X/index.json to a JavaScript object. STOP
+
+        // pass index to LOAD_AS_FILE if no package.json is found to cover both .js and .json cases
+        // (as a side effect there'll be an additional case 0. If X/index is a file, load it as JS text
+        // which is not present in the specification but shouldn't do any harm)
+        NSString* mainName = @"index";
         NSString* packageJsonPath = [absolutePath stringByAppendingPathComponent:@"package.json"];
         if (stat<S_IFREG>(packageJsonPath)) {
             NSData* packageJsonData = [NSData dataWithContentsOfFile:packageJsonPath options:0 error:error];
@@ -195,21 +215,18 @@ NSString* normalizePath(NSString* path) {
     return result;
 }
 
-JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue referrerValue, JSValue initiator) {
-    JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
+Identifier GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue referrerValue, JSValue initiator) {
 
+    const Identifier key = keyValue.toPropertyKey(execState);
     if (keyValue.isSymbol()) {
-        return deferred->resolve(execState, keyValue);
+        return key;
     }
 
     JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_CATCH_SCOPE(vm);
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
     NSString* path = keyValue.toWTFString(execState);
-    if (JSC::Exception* e = scope.exception()) {
-        scope.clearException();
-        return deferred->reject(execState, e);
-    }
+    RETURN_IF_EXCEPTION(scope, {});
 
     GlobalObject* self = jsCast<GlobalObject*>(globalObject);
 
@@ -238,9 +255,21 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
     NSError* error = nil;
     NSString* absoluteFilePath = resolveAbsolutePath(absolutePath, self->modulePathCache(), &error);
     if (error) {
-        return deferred->reject(execState, self->interop()->wrapError(execState, error));
+        throwException(execState, scope, self->interop()->wrapError(execState, error));
     }
 
+    // From https://nodejs.org/api/modules.html:
+    //    require(X) from module at path Y
+    //    1. If X is a core module,
+    //        a. return the core module
+    //        b. STOP
+    //    2. If X begins with '/'
+    //        a. set Y to be the filesystem root
+    //    3. If X begins with './' or '/' or '../'
+    //        a. LOAD_AS_FILE(Y + X)
+    //        b. LOAD_AS_DIRECTORY(Y + X)
+    //    4. LOAD_NODE_MODULES(X, dirname(Y))
+    //    5. THROW "not found"
     if (isModuleRequire) {
         if (!absoluteFilePath) {
             NSString* currentSearchPath = [static_cast<NSString*>(referrerValue.toWTFString(execState)) stringByDeletingLastPathComponent];
@@ -249,7 +278,7 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
                 if (stat<S_IFDIR>(currentNodeModulesPath)) {
                     absoluteFilePath = resolveAbsolutePath([currentNodeModulesPath stringByAppendingPathComponent:path], self -> modulePathCache(), &error);
                     if (error) {
-                        return deferred->reject(execState, self->interop()->wrapError(execState, error));
+                        throwException(execState, scope, self->interop()->wrapError(execState, error));
                     }
 
                     if (absoluteFilePath) {
@@ -264,20 +293,21 @@ JSInternalPromise* GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObjec
             absolutePath = [[[static_cast<NSString*>(self->applicationPath()) stringByAppendingPathComponent:@"app/tns_modules"] stringByAppendingPathComponent:path] stringByStandardizingPath];
             absoluteFilePath = resolveAbsolutePath(absolutePath, self->modulePathCache(), &error);
             if (error) {
-                return deferred->reject(execState, self->interop()->wrapError(execState, error));
+                throwException(execState, scope, self->interop()->wrapError(execState, error));
             }
         }
     }
 
     if (!absoluteFilePath) {
         WTF::String errorMessage = WTF::String::format("Could not find module '%s'. Computed path '%s'.", keyValue.toWTFString(execState).utf8().data(), absolutePath.UTF8String);
-        return deferred->reject(execState, createError(execState, errorMessage));
+        throwException(execState, scope, createError(execState, errorMessage));
+        return Identifier();
     }
 
-    return deferred->resolve(execState, jsString(execState, absoluteFilePath));
+    return Identifier::fromString(&vm, String(absoluteFilePath));
 }
 
-JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue initiator) {
+JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSC::JSValue parameters, JSValue initiator) {
     JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
 
     JSC::VM& vm = execState->vm();
@@ -314,97 +344,17 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
     return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(modulePath), moduleUrl.toString(), TextPosition(), SourceProviderSourceType::Module)));
 }
 
-static JSModuleRecord* parseModule(ExecState* execState, const SourceCode& sourceCode, const Identifier& moduleKey, ParserError& parserError) {
-    CodeProfiling profile(sourceCode);
+JSObject* GlobalObject::moduleLoaderCreateImportMetaProperties(JSGlobalObject* globalObject, ExecState* exec, JSModuleLoader*, JSValue key, JSModuleRecord*, JSValue) {
+    VM& vm = exec->vm();
+    auto scope = DECLARE_THROW_SCOPE(vm);
 
-    std::unique_ptr<ModuleProgramNode> moduleProgramNode = parse<ModuleProgramNode>(
-        &execState->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin,
-        JSParserStrictMode::Strict, JSParserScriptMode::Module, SourceParseMode::ModuleAnalyzeMode, SuperBinding::NotNeeded, parserError);
+    JSObject* metaProperties = constructEmptyObject(exec, globalObject->nullPrototypeObjectStructure());
+    RETURN_IF_EXCEPTION(scope, nullptr);
 
-    if (!moduleProgramNode) {
-        return nullptr;
-    }
+    metaProperties->putDirect(vm, Identifier::fromString(&vm, "filename"), key);
+    RETURN_IF_EXCEPTION(scope, nullptr);
 
-    ModuleAnalyzer moduleAnalyzer(execState, moduleKey, sourceCode, moduleProgramNode->varDeclarations(), moduleProgramNode->lexicalVariables());
-    return moduleAnalyzer.analyze(*moduleProgramNode);
-}
-
-JSInternalPromise* GlobalObject::moduleLoaderInstantiate(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSValue sourceValue, JSValue initiator) {
-    JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
-    JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_CATCH_SCOPE(vm);
-
-    const Identifier moduleKey = execState->argument(0).toPropertyKey(execState);
-    if (Exception* exception = scope.exception()) {
-        scope.clearException();
-        return deferred->reject(execState, exception->value());
-    }
-
-    JSSourceCode* jsSourceCode = jsDynamicCast<JSSourceCode*>(vm, execState->argument(1));
-    RELEASE_ASSERT(jsSourceCode);
-    SourceCode sourceCode = jsSourceCode->sourceCode();
-    WTF::String source = sourceCode.view().toString();
-
-    if (Exception* exception = scope.exception()) {
-        scope.clearException();
-        return deferred->reject(execState, exception->value());
-    }
-
-    GlobalObject* self = jsCast<GlobalObject*>(globalObject);
-
-    JSValue json;
-    if (moduleKey.impl()->endsWith(".json")) {
-        if (source.is8Bit()) {
-            LiteralParser<LChar> jsonParser(execState, source.characters8(), source.length(), StrictJSON);
-            json = jsonParser.tryLiteralParse();
-            if (!json) {
-                return deferred->reject(execState, createSyntaxError(execState, jsonParser.getErrorMessage()));
-            }
-        } else {
-            LiteralParser<UChar> jsonParser(execState, source.characters16(), source.length(), StrictJSON);
-            json = jsonParser.tryLiteralParse();
-            if (!json) {
-                return deferred->reject(execState, createSyntaxError(execState, jsonParser.getErrorMessage()));
-            }
-        }
-
-        source = WTF::ASCIILiteral("export default undefined;");
-        sourceCode = SourceCode(EditableSourceProvider::create(source, WTF::emptyString() /*empty url hides module from the debugger*/, WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
-    }
-
-    ParserError error;
-    JSModuleRecord* moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
-
-    if (!moduleRecord || (moduleRecord->requestedModules().isEmpty() && moduleRecord->exportEntries().isEmpty() && moduleRecord->starExportEntries().isEmpty() && !json)) {
-        auto moduleUrl = sourceCode.provider()->url();
-        error = ParserError();
-        sourceCode = SourceCode(EditableSourceProvider::create(WTF::ASCIILiteral("export default undefined;"), WTF::emptyString(), WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
-        moduleRecord = parseModule(execState, sourceCode, moduleKey, error);
-        ASSERT(!error.isValid());
-
-        WTF::StringBuilder moduleFunctionSource;
-        moduleFunctionSource.append(COMMONJS_FUNCTION_PROLOGUE);
-        moduleFunctionSource.append(source);
-        moduleFunctionSource.append(COMMONJS_FUNCTION_EPILOGUE);
-
-        JSObject* exception = nullptr;
-
-        sourceCode = SourceCode(EditableSourceProvider::create(moduleFunctionSource.toString(), moduleUrl, WTF::TextPosition(), JSC::SourceProviderSourceType::Module));
-        FunctionExecutable* moduleFunctionExecutable = FunctionExecutable::fromGlobalCode(Identifier::fromString(execState, "anonymous"), *execState, sourceCode, exception, -1);
-        if (!moduleFunctionExecutable) {
-            ASSERT(exception);
-            return deferred->reject(execState, exception);
-        }
-
-        JSFunction* moduleFunction = JSFunction::create(vm, moduleFunctionExecutable, self);
-        moduleRecord->putDirect(vm, self->_commonJSModuleFunctionIdentifier, moduleFunction);
-    } else if (json) {
-        moduleRecord->putDirect(vm, vm.propertyNames->JSON, json);
-    } else if (error.isValid()) {
-        return deferred->reject(execState, error.toErrorObject(globalObject, sourceCode));
-    }
-
-    return deferred->resolve(execState, moduleRecord);
+    return metaProperties;
 }
 
 EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState) {
@@ -417,7 +367,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
     }
 
     JSValue callee = execState->callee().asCell();
-    JSValue refererKey = callee.get(execState, execState->propertyNames().sourceURL);
+    JSValue refererKey = callee.get(execState, vm.propertyNames->sourceURL);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     JSInternalPromise* promise = globalObject->moduleLoader()->resolve(execState, moduleName, refererKey, refererKey);
@@ -428,30 +378,33 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
         return JSValue::encode(jsUndefined());
     });
 
-    JSModuleRecord* record;
+    JSModuleRecord* record = nullptr;
     promise->then(execState, JSNativeStdFunction::create(execState->vm(), globalObject, 1, String(), [&record, errorHandler, frame](ExecState* execState) {
-                      JSValue moduleKey = execState->argument(0);
-
                       JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
-                      JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->propertyNames().builtinNames().loadAndEvaluateModulePublicName()));
+                      JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->vm().propertyNames->builtinNames().loadAndEvaluateModulePublicName()));
                       CallData callData;
                       CallType callType = JSC::getCallData(function, callData);
-
                       JSInternalPromise* promise = jsCast<JSInternalPromise*>(JSC::call(execState, function, callType, callData, moduleLoader, execState));
+
+                      // IMPORTANT! Convert `moduleKey` to `WTF::String` and keep it for use in the chained lambda function.
+                      // `moduleKeyJs` MUST NOT be kept for future use because it is an argument to this continuation
+                      // and is eligible for garbage collection as soon as it returns.
+                      JSValue moduleKeyJs = execState->argument(0);
+                      String moduleKey = moduleKeyJs.toWTFString(execState);
                       promise = promise->then(execState, JSNativeStdFunction::create(execState->vm(), execState->lexicalGlobalObject(), 1, String(), [moduleKey, &record, frame](ExecState* execState) {
                                                   JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
-                                                  JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->propertyNames().builtinNames().ensureRegisteredPublicName()));
+                                                  JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->vm().propertyNames->builtinNames().ensureRegisteredPublicName()));
 
                                                   CallData callData;
                                                   CallType callType = JSC::getCallData(function, callData);
 
                                                   MarkedArgumentBuffer args;
-                                                  args.append(moduleKey);
+                                                  args.append(JSValue(jsString(execState, moduleKey)));
                                                   JSValue entry = JSC::call(execState, function, callType, callData, moduleLoader, args);
                                                   record = jsCast<JSModuleRecord*>(entry.get(execState, Identifier::fromString(execState, "module")));
 
                                                   if (frame.check()) {
-                                                      NSString* moduleName = (NSString*)moduleKey.toWTFString(execState).createCFString().get();
+                                                      NSString* moduleName = (NSString*)moduleKey.createCFString().get();
                                                       NSString* appPath = [TNSRuntime current].applicationPath;
                                                       if ([moduleName hasPrefix:appPath]) {
                                                           moduleName = [moduleName substringFromIndex:appPath.length];
@@ -474,11 +427,11 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
 
     // maybe the require'd module is a CommonJS module?
     if (JSValue moduleFunction = record->getDirect(execState->vm(), globalObject->_commonJSModuleFunctionIdentifier)) {
-        JSValue module = moduleFunction.get(execState, execState->propertyNames().builtinNames().moduleEvaluationPrivateName());
+        JSValue module = moduleFunction.get(execState, execState->vm().propertyNames->builtinNames().moduleEvaluationPrivateName());
         return JSValue::encode(module.get(execState, Identifier::fromString(execState, "exports")));
     }
 
-    JSModuleRecord::Resolution resolution = record->resolveExport(execState, execState->propertyNames().defaultKeyword);
+    JSModuleRecord::Resolution resolution = record->resolveExport(execState, execState->vm().propertyNames->defaultKeyword);
     if (resolution.type == JSModuleRecord::Resolution::Type::Resolved) {
         JSValue defaultExport = record->moduleEnvironment()->get(execState, resolution.localName);
         ASSERT(!defaultExport.isEmpty());
@@ -511,7 +464,7 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
         Identifier exportsIdentifier = Identifier::fromString(&vm, "exports");
 
         JSObject* module = constructEmptyObject(execState);
-        jsCast<JSObject*>(moduleFunction)->putDirect(vm, vm.propertyNames->builtinNames().moduleEvaluationPrivateName(), module, ReadOnly | DontDelete | DontEnum);
+        jsCast<JSObject*>(moduleFunction)->putDirect(vm, vm.propertyNames->builtinNames().moduleEvaluationPrivateName(), module, PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete | PropertyAttribute::DontEnum);
         module->putDirect(vm, Identifier::fromString(&vm, "id"), jsString(&vm, moduleUrl.path));
         module->putDirect(vm, Identifier::fromString(&vm, "filename"), jsString(&vm, moduleUrl.path));
 
@@ -519,7 +472,7 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
         module->putDirect(vm, exportsIdentifier, exports);
 
         JSFunction* require = JSFunction::create(vm, globalObject, 1, WTF::ASCIILiteral("require"), commonJSRequire);
-        require->putDirect(vm, vm.propertyNames->sourceURL, keyValue, ReadOnly | DontDelete | DontEnum);
+        require->putDirect(vm, vm.propertyNames->sourceURL, keyValue, PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete | PropertyAttribute::DontEnum);
         module->putDirect(vm, Identifier::fromString(&vm, "require"), require);
 
         MarkedArgumentBuffer args;
@@ -551,7 +504,7 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
     return moduleRecord->evaluate(execState);
 }
 
-JSInternalPromise* GlobalObject::moduleLoaderImportModule(JSGlobalObject* globalObject, ExecState* exec, JSModuleLoader*, JSString* moduleNameValue, const SourceOrigin& sourceOrigin) {
+JSInternalPromise* GlobalObject::moduleLoaderImportModule(JSGlobalObject* globalObject, ExecState* exec, JSModuleLoader*, JSString* moduleNameValue, JSValue parameters, const SourceOrigin& sourceOrigin) {
     VM& vm = globalObject->vm();
     auto scope = DECLARE_CATCH_SCOPE(vm);
 
@@ -574,7 +527,9 @@ JSInternalPromise* GlobalObject::moduleLoaderImportModule(JSGlobalObject* global
     if (!directoryName)
         return rejectPromise(createError(exec, makeString("Could not resolve the referrer name '", String(referrer.impl()), "'.")));
 
-    return JSC::importModule(exec, Identifier::fromString(&vm, resolvePath(directoryName.value(), ModuleName(moduleName))), jsUndefined());
+    auto result = JSC::importModule(exec, Identifier::fromString(&vm, resolvePath(directoryName.value(), ModuleName(moduleName))), parameters, jsUndefined());
+    scope.releaseAssertNoException();
+    return result;
 }
 
 } // namespace Nativescript

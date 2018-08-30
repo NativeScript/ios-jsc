@@ -31,7 +31,7 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToString(ExecState* execState
 
 static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) {
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
-    RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(record->getPrototypeDirect());
+    RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(record->getPrototypeDirect(execState->vm()));
 
     JSObject* result = constructEmptyObject(execState);
 
@@ -47,8 +47,8 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) 
 void RecordPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, recordProtoFuncToString, NoIntrinsic, DontEnum);
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toJSON, 0, recordProtoFuncToJSON, NoIntrinsic, DontEnum);
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, recordProtoFuncToString, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toJSON, 0, recordProtoFuncToJSON, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 }
 
 void RecordPrototype::visitChildren(JSCell* cell, SlotVisitor& visitor) {

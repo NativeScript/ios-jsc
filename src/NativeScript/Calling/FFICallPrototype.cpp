@@ -19,9 +19,9 @@ EncodedJSValue JSC_HOST_CALL FFICallPrototypeFuncAsync(ExecState*);
 
 void FFICallPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
-    vm.prototypeMap.addPrototype(this);
+    didBecomePrototype();
 
-    JSC_NATIVE_FUNCTION(Identifier::fromString(&vm, "async"), FFICallPrototypeFuncAsync, DontEnum, 0);
+    JSC_NATIVE_FUNCTION(Identifier::fromString(&vm, "async"), FFICallPrototypeFuncAsync, static_cast<unsigned>(PropertyAttribute::DontEnum), 0);
 }
 
 EncodedJSValue JSC_HOST_CALL FFICallPrototypeFuncAsync(ExecState* execState) {
@@ -40,7 +40,7 @@ EncodedJSValue JSC_HOST_CALL FFICallPrototypeFuncAsync(ExecState* execState) {
                 return JSValue::encode(throwStackOverflowError(execState, scope));
             asArray(array)->fillArgList(execState, applyArgs);
         } else {
-            unsigned length = asObject(array)->get(execState, execState->propertyNames().length).toUInt32(execState);
+            unsigned length = asObject(array)->get(execState, vm.propertyNames->length).toUInt32(execState);
             if (length > JSC::maxArguments)
                 return JSValue::encode(throwStackOverflowError(execState, scope));
 
