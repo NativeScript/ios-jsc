@@ -19,10 +19,10 @@ void RecordProtoFieldSetter::finishCreation(VM& vm, RecordField* field) {
     Base::finishCreation(vm, WTF::emptyString());
 
     this->_recordField.set(vm, this, field);
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
+    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum | DontDelete);
 }
 
-EncodedJSValue JSC_HOST_CALL RecordProtoFieldSetter::recordProtoFuncFieldSetter(ExecState* execState) {
+static EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldSetter(ExecState* execState) {
     RecordProtoFieldSetter* setter = jsCast<RecordProtoFieldSetter*>(execState->callee().asCell());
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
     void* data = record->data();
@@ -34,6 +34,11 @@ EncodedJSValue JSC_HOST_CALL RecordProtoFieldSetter::recordProtoFuncFieldSetter(
     void* buffer = reinterpret_cast<void*>(reinterpret_cast<char*>(data) + fieldOffset);
     recordField->ffiTypeMethodTable().write(execState, execState->argument(0), buffer, fieldType);
     return JSValue::encode(jsUndefined());
+}
+
+CallType RecordProtoFieldSetter::getCallData(JSCell* cell, CallData& callData) {
+    callData.native.function = recordProtoFuncFieldSetter;
+    return CallType::Host;
 }
 
 void RecordProtoFieldSetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {
@@ -49,10 +54,10 @@ void RecordProtoFieldGetter::finishCreation(VM& vm, RecordField* fieldMetadata) 
     Base::finishCreation(vm, WTF::emptyString());
 
     this->_recordField.set(vm, this, fieldMetadata);
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(0), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
+    this->putDirect(vm, vm.propertyNames->length, jsNumber(0), ReadOnly | DontEnum | DontDelete);
 }
 
-EncodedJSValue JSC_HOST_CALL RecordProtoFieldGetter::recordProtoFuncFieldGetter(ExecState* execState) {
+static EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldGetter(ExecState* execState) {
     RecordProtoFieldGetter* getter = jsCast<RecordProtoFieldGetter*>(execState->callee().asCell());
     RecordInstance* record = jsCast<RecordInstance*>(execState->thisValue());
     void* data = record->data();
@@ -64,6 +69,11 @@ EncodedJSValue JSC_HOST_CALL RecordProtoFieldGetter::recordProtoFuncFieldGetter(
     const void* buffer = reinterpret_cast<void*>(reinterpret_cast<char*>(data) + fieldOffset);
     JSValue value = recordField->ffiTypeMethodTable().read(execState, buffer, fieldType);
     return JSValue::encode(value);
+}
+
+CallType RecordProtoFieldGetter::getCallData(JSCell* cell, CallData& callData) {
+    callData.native.function = recordProtoFuncFieldGetter;
+    return CallType::Host;
 }
 
 void RecordProtoFieldGetter::visitChildren(JSCell* cell, SlotVisitor& visitor) {

@@ -297,7 +297,7 @@ private:
 static bool CompareSubstrings(WTF::String s1, int pos1,
                               WTF::String s2, int pos2, int len) {
     for (int i = 0; i < len; i++) {
-        if (s1.characterAt(i + pos1) != s2.characterAt(i + pos2)) {
+        if (s1.at(i + pos1) != s2.at(i + pos2)) {
             return false;
         }
     }
@@ -406,7 +406,7 @@ public:
         return len2_;
     }
     bool Equals(int index1, int index2) {
-        return s1_.characterAt(offset1_ + index1) == s2_.characterAt(offset2_ + index2);
+        return s1_.at(offset1_ + index1) == s2_.at(offset2_ + index2);
     }
 
 private:

@@ -52,6 +52,9 @@ import "./ObjCConstructors";
 
 import "./MetadataTests";
 
+// Tests common for all runtimes.
+require("./shared").runAllTests();
+
 import "./ApiTests";
 import "./DeclarationConflicts";
 
@@ -59,9 +62,6 @@ import "./Promises";
 import "./Modules";
 
 import "./RuntimeImplementedAPIs";
-
-// Tests common for all runtimes.
-require("./shared").runAllTests();
 
 execute();
 

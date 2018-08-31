@@ -29,14 +29,23 @@ static EncodedJSValue JSC_HOST_CALL construct(ExecState* execState) {
 const ClassInfo JSWeakRefConstructor::s_info = { "WeakRef", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWeakRefConstructor) };
 
 JSWeakRefConstructor::JSWeakRefConstructor(VM& vm, Structure* structure)
-    : Base(vm, structure, construct, construct) {
+    : Base(vm, structure) {
 }
 
 void JSWeakRefConstructor::finishCreation(VM& vm, JSWeakRefPrototype* prototype) {
     Base::finishCreation(vm, WTF::ASCIILiteral("WeakRef"));
 
-    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, prototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
-    this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, prototype, DontEnum | DontDelete | ReadOnly);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum | DontDelete);
 }
 
+ConstructType JSWeakRefConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
+    constructData.native.function = construct;
+    return ConstructType::Host;
+}
+
+CallType JSWeakRefConstructor::getCallData(JSCell* cell, CallData& callData) {
+    callData.native.function = construct;
+    return CallType::Host;
+}
 } // namespace NativeScript

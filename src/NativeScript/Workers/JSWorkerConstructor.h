@@ -27,18 +27,18 @@ public:
     }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
-        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
 private:
     JSWorkerConstructor(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure, callJSWorker, constructJSWorker) {
+        : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM& vm, JSWorkerPrototype* prototype);
+    static JSC::ConstructType getConstructData(JSC::JSCell* cell, JSC::ConstructData& constructData);
+    static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL callJSWorker(JSC::ExecState* exec);
-    static JSC::EncodedJSValue JSC_HOST_CALL constructJSWorker(JSC::ExecState* exec);
+    void finishCreation(JSC::VM& vm, JSWorkerPrototype* prototype);
 };
 } // namespace NativeScript
 

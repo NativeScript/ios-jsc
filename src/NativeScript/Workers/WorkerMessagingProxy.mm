@@ -16,9 +16,9 @@
 
 #define Func(localFunctionName, ...) std::bind(&WorkerMessagingProxy::localFunctionName, this, ##__VA_ARGS__)
 
-#define ASSERT_IS_PARENT_THREAD ASSERT(_parentData->thread == &WTF::Thread::current())
+#define ASSERT_IS_PARENT_THREAD ASSERT(_parentData->threadId == WTF::currentThread())
 
-#define ASSERT_IS_WORKER_THREAD ASSERT(_workerData->thread == &WTF::Thread::current())
+#define ASSERT_IS_WORKER_THREAD ASSERT(_workerData->threadId == WTF::currentThread())
 
 namespace NativeScript {
 using namespace JSC;
@@ -121,7 +121,7 @@ void WorkerMessagingProxy::workerPrependTask(std::function<void()> task) {
 
 WorkerMessagingProxy::WorkerMessagingProxy(JSWorkerInstance* worker)
     : _parentPort(std::make_unique<ThreadMessagingPort>(CFRunLoopGetCurrent(), NativeScript::parentPerformWork, this))
-    , _parentData(std::make_unique<ParentThreadData>(&WTF::Thread::current(), worker))
+    , _parentData(std::make_unique<ParentThreadData>(WTF::currentThread(), worker))
     , _workerPort(std::make_unique<ThreadMessagingPort>(nullptr, NativeScript::workerPerformWork, this))
     , _workerData(nullptr) {
     ASSERT_IS_PARENT_THREAD;
@@ -198,7 +198,7 @@ void WorkerMessagingProxy::workerThreadInitialize(std::shared_ptr<WorkerMessagin
     }
 
     @autoreleasepool {
-        _workerData = std::make_unique<WorkerThreadData>(&WTF::Thread::current(), applicationPath, entryModuleId, referrer);
+        _workerData = std::make_unique<WorkerThreadData>(WTF::currentThread(), applicationPath, entryModuleId, referrer);
         _workerData->runtime = [[TNSWorkerRuntime alloc] initWithApplicationPath:_workerData->applicationPath];
         _workerData->globalObject()->setWorkerMessagingProxy(messagingProxy);
         [_workerData->runtime scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];

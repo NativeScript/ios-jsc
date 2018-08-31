@@ -47,7 +47,7 @@ public:
 
 protected:
     ObjCConstructorBase(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure, createObjCClass, constructObjCClass) {
+        : Base(vm, structure) {
     }
 
     static void destroy(JSC::JSCell* cell) {
@@ -60,11 +60,11 @@ protected:
 
     static bool getOwnPropertySlot(JSC::JSObject*, JSC::ExecState*, JSC::PropertyName, JSC::PropertySlot&);
 
+    static JSC::ConstructType getConstructData(JSC::JSCell*, JSC::ConstructData&);
+
+    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
+
     const Metadata::InterfaceMeta* _metadata;
-
-    static JSC::EncodedJSValue JSC_HOST_CALL constructObjCClass(JSC::ExecState* execState);
-
-    static JSC::EncodedJSValue JSC_HOST_CALL createObjCClass(JSC::ExecState* execState);
 
 private:
     static JSC::JSValue read(JSC::ExecState*, void const*, JSC::JSCell*);

@@ -27,10 +27,13 @@ public:
     }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
-        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
 private:
+    static JSC::ConstructType getConstructData(JSC::JSCell* cell, JSC::ConstructData& constructData);
+    static JSC::CallType getCallData(JSC::JSCell* cell, JSC::CallData& callData);
+
     JSWeakRefConstructor(JSC::VM& vm, JSC::Structure* structure);
     void finishCreation(JSC::VM& vm, JSWeakRefPrototype* prototype);
 };

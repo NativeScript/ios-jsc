@@ -25,17 +25,19 @@ public:
     DECLARE_INFO;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
-        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
 private:
     ReferenceConstructor(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure, &constructReference, &constructReference) {
+        : Base(vm, structure) {
     }
 
     void finishCreation(JSC::VM&, ReferencePrototype*);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL constructReference(JSC::ExecState* execState);
+    static JSC::ConstructType getConstructData(JSC::JSCell*, JSC::ConstructData&);
+
+    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 };
 } // namespace NativeScript
 

@@ -22,6 +22,6 @@ static EncodedJSValue JSC_HOST_CALL indexedRefProtoFuncToString(ExecState* execS
 void IndexedRefPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, indexedRefProtoFuncToString, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, indexedRefProtoFuncToString, NoIntrinsic, DontEnum);
 }
 } // namespace NativeScript

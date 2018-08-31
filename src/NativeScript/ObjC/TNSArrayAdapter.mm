@@ -41,7 +41,7 @@ using namespace JSC;
         return array->length();
     }
 
-    return object->get(self->_execState, self->_execState->vm().propertyNames->length).toUInt32(self->_execState);
+    return object->get(self->_execState, self->_execState->propertyNames().length).toUInt32(self->_execState);
 }
 
 - (id)objectAtIndex:(NSUInteger)index {
@@ -60,7 +60,7 @@ using namespace JSC;
         state->state = 1;
         state->mutationsPtr = reinterpret_cast<unsigned long*>(self);
         state->extra[0] = 0; // current index
-        state->extra[1] = self->_object->get(self->_execState, self->_vm->propertyNames->length).toUInt32(self->_execState);
+        state->extra[1] = self->_object->get(self->_execState, self->_execState->propertyNames().length).toUInt32(self->_execState);
     }
 
     NSUInteger currentIndex = state->extra[0];

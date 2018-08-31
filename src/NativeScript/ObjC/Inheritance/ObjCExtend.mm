@@ -34,7 +34,7 @@ EncodedJSValue JSC_HOST_CALL ObjCExtendFunction(ExecState* execState) {
 
     if (!execState->argument(1).isUndefinedOrNull()) {
         JSValue inheritInfo = execState->argument(1);
-        JSValue classNameValue = inheritInfo.get(execState, execState->vm().propertyNames->name);
+        JSValue classNameValue = inheritInfo.get(execState, execState->propertyNames().name);
         if (!classNameValue.isUndefined()) {
             className = classNameValue.toString(execState)->value(execState);
         }

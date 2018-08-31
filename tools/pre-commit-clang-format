@@ -113,11 +113,6 @@ do
         continue;
     fi
 
-    # Do not check symlinked files
-    if [ -L "$file" ]; then
-        continue;
-    fi
-
     # clang-format our sourcefile, create a patch with diff and append it to our $patch
     # The sed call is necessary to transform the patch from
     #    --- $file timestamp

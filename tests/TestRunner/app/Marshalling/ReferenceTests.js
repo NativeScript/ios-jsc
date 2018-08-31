@@ -125,26 +125,12 @@ describe(module.id, function () {
         expect(TNSSimpleStruct.equals(strRef.value, {x: 2, y: 3}));
     });
 
-    it("CString marshalling from JS string", function () {
-        functionWithUCharPtr('test');
-        expect(TNSGetOutput()).toBe('test');
+    it("CString1", function () {
+        expect(NSString.stringWithUTF8String(functionWithCharPtr('test')).toString()).toBe('test');
     });
 
-    it("CString as arg/return value", function () {
-        const ptr = interop.alloc(5 * interop.sizeof(interop.types.uint8));
-        var reference = new interop.Reference(interop.types.uint8, ptr);
-        const str = "test";
-        for (ii in str) {
-            const i = parseInt(ii);
-            reference[i] = str.charCodeAt(i);
-        }
-        reference[str.length] = 0;
-
-        const result = functionWithCharPtr(ptr);
-
-        expect(TNSGetOutput()).toBe('test');
-        expect(interop.handleof(result).toNumber() == interop.handleof(ptr).toNumber());
-        expect(NSString.stringWithUTF8String(result).toString()).toBe('test');
+    it("CString2", function () {
+        expect(NSString.stringWithUTF8String(functionWithUCharPtr('test')).toString()).toBe('test');
     });
 
     // TODO: Create array type and constructor
@@ -161,18 +147,18 @@ describe(module.id, function () {
         functionWithIntIncompleteArray(reference);
         expect(TNSGetOutput()).toBe('123');
     });
-
+    
     it("ConstantArrayAssignment", function () {
-        var s1 = getSimpleStruct();
-        var s2 = getSimpleStruct();
+       var s1 = getSimpleStruct();
+       var s2 = getSimpleStruct();
 
-        s1.y1 = s2.y1;
-        s1.y1 = undefined;
-        expect(s1.y1[0].x2).toBe(0);
-        expect(s1.y1[1].x2).toBe(0);
-        s1.y1 = s2.y1;
-        expect(s1.y1[0].x2).toBe(10);
-        expect(s1.y1[1].x2).toBe(30);
+       s1.y1 = s2.y1;
+       s1.y1 = undefined;
+       expect(s1.y1[0].x2).toBe(0);
+       expect(s1.y1[1].x2).toBe(0);
+       s1.y1 = s2.y1;
+       expect(s1.y1[0].x2).toBe(10);
+       expect(s1.y1[1].x2).toBe(30);
     });
 
     it("ConstantCArrayParameter", function () {

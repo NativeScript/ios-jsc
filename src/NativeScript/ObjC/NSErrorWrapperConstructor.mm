@@ -44,7 +44,7 @@ ErrorInstance* NSErrorWrapperConstructor::createError(ExecState* execState, NSEr
     return wrappedError;
 }
 
-EncodedJSValue JSC_HOST_CALL NSErrorWrapperConstructor::constructErrorWrapper(ExecState* execState) {
+static EncodedJSValue JSC_HOST_CALL constructErrorWrapper(ExecState* execState) {
     NSErrorWrapperConstructor* self = jsCast<NSErrorWrapperConstructor*>(execState->callee().asCell());
     NSError* error = NativeScript::toObject(execState, execState->argument(0));
 
@@ -56,5 +56,15 @@ EncodedJSValue JSC_HOST_CALL NSErrorWrapperConstructor::constructErrorWrapper(Ex
     }
 
     return JSValue::encode(self->createError(execState, error));
+}
+
+ConstructType NSErrorWrapperConstructor::getConstructData(JSCell*, ConstructData& constructData) {
+    constructData.native.function = &constructErrorWrapper;
+    return ConstructType::Host;
+}
+
+CallType NSErrorWrapperConstructor::getCallData(JSCell*, CallData& callData) {
+    callData.native.function = &constructErrorWrapper;
+    return CallType::Host;
 }
 }

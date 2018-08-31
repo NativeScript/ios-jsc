@@ -25,15 +25,15 @@ class JSWorkerGlobalObject;
 class WorkerMessagingProxy {
 
     struct ParentThreadData {
-        ParentThreadData(WTF::Thread* thread, JSWorkerInstance* workerInstance)
-            : thread(thread)
+        ParentThreadData(WTF::ThreadIdentifier threadId, JSWorkerInstance* workerInstance)
+            : threadId(threadId)
             , workerInstance(*workerInstance->vm(), workerInstance)
             , globalObject(JSC::jsCast<GlobalObject*>(workerInstance->globalObject()))
             , askedToStartWorker(false)
             , askedToTerminateWorker(false) {
         }
 
-        WTF::Thread* thread;
+        WTF::ThreadIdentifier threadId;
         JSC::Strong<JSWorkerInstance> workerInstance;
         GlobalObject* globalObject;
         bool askedToStartWorker;
@@ -41,15 +41,15 @@ class WorkerMessagingProxy {
     };
 
     struct WorkerThreadData {
-        WorkerThreadData(WTF::Thread* thread, const WTF::String& applicationPath, const WTF::String& entryModuleId, const WTF::String& referrer)
-            : thread(thread)
+        WorkerThreadData(WTF::ThreadIdentifier threadId, const WTF::String& applicationPath, const WTF::String& entryModuleId, const WTF::String& referrer)
+            : threadId(threadId)
             , applicationPath(applicationPath)
             , entryModuleId(entryModuleId)
             , referrer(referrer)
             , stopExecutingQueueTasksInTheCurrentLoopTick(false) {
         }
 
-        const WTF::Thread* thread;
+        const WTF::ThreadIdentifier threadId;
         const WTF::String applicationPath;
         const WTF::String entryModuleId;
         const WTF::String referrer;

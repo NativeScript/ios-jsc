@@ -9,7 +9,7 @@ namespace NativeScript {
 class JS_EXPORT_PRIVATE DomainBackendDispatcher final : public Inspector::SupplementalBackendDispatcher {
 public:
     static Ref<DomainBackendDispatcher> create(WTF::String domain, JSC::JSCell* constructorFunction, Inspector::JSAgentContext&);
-    virtual void dispatch(long callId, const String& method, Ref<JSON::Object>&& message) override;
+    virtual void dispatch(long callId, const String& method, Ref<Inspector::InspectorObject>&& message) override;
 
 private:
     DomainBackendDispatcher(WTF::String domain, JSC::JSCell* constructorFunction, Inspector::JSAgentContext&);

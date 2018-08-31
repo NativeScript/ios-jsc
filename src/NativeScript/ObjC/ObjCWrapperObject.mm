@@ -34,7 +34,7 @@ bool ObjCWrapperObject::getOwnPropertySlotByIndex(JSObject* object, ExecState* e
     ObjCWrapperObject* wrapper = jsCast<ObjCWrapperObject*>(object);
 
     JSValue value = toValue(execState, [wrapper->wrappedObject() objectAtIndexedSubscript:propertyName]);
-    propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), value);
+    propertySlot.setValue(object, None, value);
     return true;
 }
 

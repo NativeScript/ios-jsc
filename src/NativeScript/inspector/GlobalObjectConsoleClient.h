@@ -28,8 +28,6 @@ protected:
     virtual void time(JSC::ExecState*, const String& title) override;
     virtual void timeEnd(JSC::ExecState*, const String& title) override;
     virtual void timeStamp(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
-    virtual void record(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
-    virtual void recordEnd(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
 
 private:
     void warnUnimplemented(const String& method);

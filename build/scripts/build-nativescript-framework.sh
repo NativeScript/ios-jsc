@@ -10,11 +10,10 @@ mkdir -p "$WORKSPACE/cmake-build" && pushd "$_"
 # Delete the CMake cache because a previous build could have generated the runtime with a static library.
 rm -f "CMakeCache.txt"
 cmake .. -G"Xcode" -D"BUILD_SHARED_LIBS=ON"
-# TODO: fix build when iphoneos build is started first
-checkpoint "Building NativeScript.framework - iphonesimulator SDK"
-xcodebuild -configuration "Release" -sdk "iphonesimulator" -target "NativeScript" -quiet
 checkpoint "Building NativeScript.framework - iphoneos SDK"
 xcodebuild -configuration "Release" -sdk "iphoneos" -target "NativeScript" -quiet
+checkpoint "Building NativeScript.framework - iphonesimulator SDK"
+xcodebuild -configuration "Release" -sdk "iphonesimulator" -target "NativeScript" -quiet
 popd
 
 checkpoint "Packaging NativeScript.framework"

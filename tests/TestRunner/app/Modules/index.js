@@ -13,24 +13,13 @@ describe(module.id, function () {
         require("core-module");
         expect(TNSGetOutput()).toBe('core-module loaded');
     });
-
     it("core-module-dir", function () {
         require("core-module-dir");
         expect(TNSGetOutput()).toBe('core-module-dir loaded');
     });
 
     it("load-empty-file", function(){
-        let emptyModule = require("./empty-file");
-        expect(emptyModule !== undefined).toBe(true);
-     });
-
-     it("not strict by default", function(){
-        let module = require("./strict-violation-default");
-        expect(module).toBeDefined();
-     });
-
-     it("'use strict'; statement is respected", function(){
-        let requireFunc = () => require("./strict-violation-use-strict");
-        expect(requireFunc).toThrowError("Cannot delete unqualified property 'x' in strict mode.");
-     });
+       let emptyModule = require("./empty-file");
+       expect(emptyModule !== undefined).toBe(true);
+    });
 });

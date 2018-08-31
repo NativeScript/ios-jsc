@@ -21,7 +21,6 @@
 #include <JavaScriptCore/JSMap.h>
 #include <wtf/text/StringBuilder.h>
 
-#import "IsObjcObject.h"
 #import "TNSArrayAdapter.h"
 #import "TNSDataAdapter.h"
 #import "TNSDictionaryAdapter.h"
@@ -37,7 +36,6 @@ const unsigned ObjCConstructorBase::StructureFlags = OverridesGetOwnPropertySlot
 JSValue ObjCConstructorBase::read(ExecState* execState, void const* buffer, JSCell* self) {
     ObjCConstructorBase* type = jsCast<ObjCConstructorBase*>(self);
     id value = *static_cast<const id*>(buffer);
-    value = IsObjcObject(value) ? value : nil;
     return toValue(execState, value, type->_klass);
 }
 
@@ -103,7 +101,7 @@ const Metadata::InterfaceMeta* ObjCConstructorBase::metadata() {
         ObjCPrototype* objcPrototype = nullptr;
         VM& vm = *this->vm();
         while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(vm, proto))) {
-            proto = jsDynamicCast<JSObject*>(vm, proto->getPrototypeDirect(vm));
+            proto = jsDynamicCast<JSObject*>(vm, proto->getPrototypeDirect());
         }
         ASSERT(objcPrototype != nullptr);
         const Metadata::BaseClassMeta* metadata = objcPrototype->metadata();
@@ -150,7 +148,7 @@ bool ObjCConstructorBase::getOwnPropertySlot(JSObject* object, ExecState* execSt
 
     if (propertyName == execState->vm().propertyNames->prototype) {
         ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(object);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), constructor->_prototype.get());
+        propertySlot.setValue(object, None, constructor->_prototype.get());
         return true;
     }
 
@@ -188,7 +186,7 @@ void ObjCConstructorBase::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 }
 
 static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, ObjCConstructorBase* constructor, JSFinalObject* initializer, MarkedArgumentBuffer& arguments) {
-    PropertyNameArray properties(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
+    PropertyNameArray properties(execState, PropertyNameMode::Strings);
     initializer->getOwnPropertyNames(initializer, execState, properties, EnumerationMode(DontEnumPropertiesMode::Exclude, JSObjectPropertiesMode::Include));
     if (properties.size() == 0) {
         return JSValue();
@@ -232,7 +230,7 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
     return JSValue();
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* execState) {
+static EncodedJSValue JSC_HOST_CALL constructObjCClass(ExecState* execState) {
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
     JSC::VM& vm = execState->vm();
 
@@ -254,7 +252,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
             if (initializerArguments.size() == 1 && initializerArguments.at(0).isUndefined()) {
                 // methods such as -[MDLTransform initWithIdentity] are called as new MDLTransform({ identity: void 0 })
                 // check to see if the method takes zero arguments and empty the arguments buffer
-                if (initializer.get(execState, execState->vm().propertyNames->length).asInt32() == 0) {
+                if (initializer.get(execState, execState->propertyNames().length).asInt32() == 0) {
                     initializerArguments.clear();
                 }
             }
@@ -304,7 +302,13 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
     }
 }
 
-EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::createObjCClass(ExecState* execState) {
+ConstructType ObjCConstructorBase::getConstructData(JSCell* cell, ConstructData& constructData) {
+    constructData.native.function = constructObjCClass;
+
+    return ConstructType::Host;
+}
+
+static EncodedJSValue JSC_HOST_CALL createObjCClass(ExecState* execState) {
     JSValue argument = execState->argument(0);
 
     bool hasHandle;
@@ -322,5 +326,11 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::createObjCClass(ExecState* exe
       return constructor->instancesStructure();
     });
     return JSValue::encode(result);
+}
+
+CallType ObjCConstructorBase::getCallData(JSCell* cell, CallData& callData) {
+    callData.native.function = createObjCClass;
+
+    return CallType::Host;
 }
 }

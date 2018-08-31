@@ -74,7 +74,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
       Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
       ObjCSuperObject* superObject = ObjCSuperObject::create(vm, superStructure, derivedWrapper, globalObject);
-      derivedWrapper->putDirect(vm, vm.propertyNames->superKeyword, superObject, PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
+      derivedWrapper->putDirect(vm, vm.propertyNames->superKeyword, superObject, ReadOnly | DontEnum | DontDelete);
 
       return instance;
     });
@@ -233,7 +233,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     Structure* structure = ObjCConstructorDerived::createStructure(execState->vm(), globalObject, this->_baseConstructor.get());
     ObjCConstructorDerived* derivedConstructor = ObjCConstructorDerived::create(execState->vm(), globalObject, structure, prototype, klass);
 
-    prototype->putDirect(execState->vm(), execState->vm().propertyNames->constructor, derivedConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    prototype->putDirect(execState->vm(), execState->vm().propertyNames->constructor, derivedConstructor, DontEnum);
 
     this->_constructor = Strong<ObjCConstructorDerived>(execState->vm(), derivedConstructor);
 }
@@ -277,7 +277,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
         return;
     }
 
-    uint32_t length = protocolsArray.get(execState, execState->vm().propertyNames->length).toUInt32(execState);
+    uint32_t length = protocolsArray.get(execState, execState->propertyNames().length).toUInt32(execState);
     for (uint32_t i = 0; i < length; i++) {
         JSValue protocolWrapper = protocolsArray.get(execState, i);
         this->implementProtocol(execState, protocolWrapper);
@@ -386,7 +386,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 }
 
 void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instanceMethods, JSValue exposedMethods) {
-    PropertyNameArray prototypeKeys(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
+    PropertyNameArray prototypeKeys(execState, PropertyNameMode::Strings);
     instanceMethods->methodTable()->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, EnumerationMode());
 
     for (Identifier key : prototypeKeys) {
@@ -429,7 +429,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
     }
 
     if (exposedMethods.isObject()) {
-        PropertyNameArray exposedMethodsKeys(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
+        PropertyNameArray exposedMethodsKeys(execState, PropertyNameMode::Strings);
         JSObject* exposedMethodsObject = exposedMethods.toObject(execState);
         exposedMethodsObject->methodTable()->getOwnPropertyNames(exposedMethodsObject, execState, exposedMethodsKeys, EnumerationMode());
 
@@ -441,7 +441,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
         }
     }
 
-    if (instanceMethods->hasOwnProperty(execState, execState->vm().propertyNames->iteratorSymbol)) {
+    if (instanceMethods->hasOwnProperty(execState, execState->propertyNames().iteratorSymbol)) {
         class_addProtocol(this->_constructor->klass(), @protocol(NSFastEnumeration));
         class_addProtocol(object_getClass(this->_constructor->klass()), @protocol(NSFastEnumeration));
 
@@ -486,7 +486,7 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
 }
 
 void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMethods) {
-    PropertyNameArray keys(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
+    PropertyNameArray keys(execState, PropertyNameMode::Strings);
     staticMethods->methodTable()->getOwnPropertyNames(staticMethods, execState, keys, EnumerationMode());
 
     JSC::VM& vm = execState->vm();
