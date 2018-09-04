@@ -28,7 +28,7 @@ using namespace NativeScript;
 
 - (instancetype)initWithMap:(JSMap*)map execState:(ExecState*)execState {
     if (self) {
-        _iterator.set(execState->vm(), JSMapIterator::create(execState->vm(), execState->lexicalGlobalObject()->mapIteratorStructure(), map, JSC::IterateKey));
+        _iterator.set(execState->vm(), JSMapIterator::create(execState->vm(), execState->vm().mapIteratorStructure.get(), map, JSC::IterateKey));
         self->_execState = execState;
     }
 
@@ -112,7 +112,7 @@ using namespace NativeScript;
         return map->size();
     }
 
-    PropertyNameArray properties(self->_execState, PropertyNameMode::Strings);
+    PropertyNameArray properties(&self->_execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
     object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return properties.size();
 }
@@ -145,7 +145,7 @@ using namespace NativeScript;
         return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMap:map execState:self->_execState] autorelease];
     }
 
-    PropertyNameArray properties(self->_execState, PropertyNameMode::Strings);
+    PropertyNameArray properties(&self->_execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
     object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return [[[TNSDictionaryAdapterObjectKeysEnumerator alloc] initWithProperties:properties.releaseData()] autorelease];
 }

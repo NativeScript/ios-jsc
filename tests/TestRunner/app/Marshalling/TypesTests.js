@@ -97,7 +97,7 @@ describe(module.id, function () {
         ref[1][0] = 2;
         ref[1][1] = 3;
 
-        expect(ref[0][0]).toBe(0);
+		expect(ref[0][0]).toBe(0);
         expect(ref[0][1]).toBe(1);
         expect(ref[1][0]).toBe(2);
         expect(ref[1][1]).toBe(3);

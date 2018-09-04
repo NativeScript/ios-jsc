@@ -2,6 +2,7 @@
 #include "JSErrors.h"
 #include "WorkerMessagingProxy.h"
 
+#include "JSClientData.h"
 #include <JavaScriptCore/runtime/JSJob.h>
 #include <JavaScriptCore/runtime/JSONObject.h>
 
@@ -43,9 +44,11 @@ void JSWorkerGlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
     _onmessageIdentifier = Identifier::fromString(&vm, "onmessage");
 
-    this->putDirect(vm, Identifier::fromString(&vm, "self"), this->globalExec()->globalThisValue(), DontEnum | ReadOnly | DontDelete);
-    this->putDirectNativeFunction(vm, this, vm.propertyNames->close, 0, jsWorkerGlobalObjectClose, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
-    this->putDirectNativeFunction(vm, this, vm.propertyNames->postMessage, 2, jsWorkerGlobalObjectPostMessage, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
+    auto& builtinNames = static_cast<JSVMClientData*>(vm.clientData)->builtinNames();
+
+    this->putDirect(vm, Identifier::fromString(&vm, "self"), this->globalExec()->globalThisValue(), PropertyAttribute::DontEnum | PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete);
+    this->putDirectNativeFunction(vm, this, builtinNames.closePublicName(), 0, jsWorkerGlobalObjectClose, NoIntrinsic, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, this, builtinNames.postMessagePublicName(), 2, jsWorkerGlobalObjectPostMessage, NoIntrinsic, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 
 void JSWorkerGlobalObject::postMessage(JSC::ExecState* exec, JSC::JSValue message, JSC::JSArray* transferList) {
@@ -66,7 +69,7 @@ void JSWorkerGlobalObject::onmessage(ExecState* exec, JSValue message) {
         return;
     }
     JSGlobalObject* globalObject = exec->lexicalGlobalObject();
-    Structure* emptyObjectStructure = exec->vm().prototypeMap.emptyObjectStructureForPrototype(globalObject, globalObject->objectPrototype(), JSFinalObject::defaultInlineCapacity());
+    Structure* emptyObjectStructure = exec->vm().structureCache.emptyObjectStructureForPrototype(globalObject, globalObject->objectPrototype(), JSFinalObject::defaultInlineCapacity());
     JSFinalObject* onMessageEvent = JSFinalObject::create(exec, emptyObjectStructure);
     onMessageEvent->putDirect(exec->vm(), Identifier::fromString(&exec->vm(), "data"), message);
 

@@ -22,7 +22,7 @@ InspectorTimelineAgent::InspectorTimelineAgent(JSAgentContext& context, Inspecto
     this->m_backendDispatcher = TimelineBackendDispatcher::create(context.backendDispatcher, this);
 }
 
-void InspectorTimelineAgent::sendEvent(RefPtr<InspectorObject>&& event) {
+void InspectorTimelineAgent::sendEvent(RefPtr<JSON::Object>&& event) {
     if (!m_frontendDispatcher)
         return;
 
@@ -57,7 +57,7 @@ void InspectorTimelineAgent::stop(ErrorString&) {
     m_enabledFromFrontend = false;
 }
 
-void InspectorTimelineAgent::setInstruments(ErrorString& errorString, const InspectorArray& instruments) {
+void InspectorTimelineAgent::setInstruments(ErrorString& errorString, const JSON::Array& instruments) {
     Vector<Protocol::Timeline::Instrument> newInstruments;
     newInstruments.reserveCapacity(instruments.length());
 
@@ -259,9 +259,9 @@ double InspectorTimelineAgent::timestamp() {
     return m_globalObject.inspectorController().executionStopwatch()->elapsedTime();
 }
 
-InspectorTimelineAgent::TimelineRecordEntry InspectorTimelineAgent::createRecordEntry(RefPtr<InspectorObject>&& data, TimelineRecordType type, bool captureCallStack) {
-    Ref<InspectorObject> record = TimelineRecordFactory::createGenericRecord(m_globalObject.globalExec(), timestamp(), captureCallStack ? m_maxCallStackDepth : 0);
-    return TimelineRecordEntry(WTFMove(record), WTFMove(data), InspectorArray::create(), type);
+InspectorTimelineAgent::TimelineRecordEntry InspectorTimelineAgent::createRecordEntry(RefPtr<JSON::Object>&& data, TimelineRecordType type, bool captureCallStack) {
+    Ref<JSON::Object> record = TimelineRecordFactory::createGenericRecord(m_globalObject.globalExec(), timestamp(), captureCallStack ? m_maxCallStackDepth : 0);
+    return TimelineRecordEntry(WTFMove(record), WTFMove(data), JSON::Array::create(), type);
 }
 
 static Inspector::Protocol::Timeline::EventType toProtocol(TimelineRecordType type) {
@@ -318,7 +318,7 @@ static Inspector::Protocol::Timeline::EventType toProtocol(TimelineRecordType ty
     return Inspector::Protocol::Timeline::EventType::TimeStamp;
 }
 
-void InspectorTimelineAgent::addRecordToTimeline(RefPtr<InspectorObject>&& record, TimelineRecordType type) {
+void InspectorTimelineAgent::addRecordToTimeline(RefPtr<JSON::Object>&& record, TimelineRecordType type) {
     ASSERT_ARG(record, record);
     record->setString("type", Inspector::Protocol::InspectorHelpers::getEnumConstantValue(toProtocol(type)));
 

@@ -13,9 +13,11 @@ typedef void (*TNSUncaughtErrorHandler)(JSContextRef ctx, JSValueRef error);
 
 FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler);
 
-@interface TNSRuntime : NSObject
-
-@property(nonatomic, readonly) uint32_t threadId;
+@interface TNSRuntime : NSObject {
+#ifdef __cplusplus
+    WTF::Thread* thread;
+#endif
+}
 
 @property(nonatomic, retain, readonly) NSString* applicationPath;
 
@@ -36,6 +38,8 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 - (void)executeModule:(NSString*)entryPointModuleIdentifier referredBy:(NSString*)referer;
 
 - (JSValueRef)convertObject:(id)object;
+
+- (id)appPackageJson;
 @end
 
 @interface TNSWorkerRuntime : TNSRuntime

@@ -15,9 +15,6 @@
 #include <objc/runtime.h>
 #include <wtf/Deque.h>
 
-#define COMMONJS_FUNCTION_PROLOGUE "{function anonymous(require, module, exports, __dirname, __filename) {"
-#define COMMONJS_FUNCTION_EPILOGUE "\n}}"
-
 namespace NativeScript {
 class ObjCConstructorBase;
 class ObjCProtocolWrapper;
@@ -189,6 +186,8 @@ public:
 
     bool callJsUncaughtErrorCallback(JSC::ExecState* execState, JSC::Exception* exception, WTF::NakedPtr<JSC::Exception>& outException);
 
+    bool isUIApplicationMainAtTopOfCallstack();
+
 protected:
     static JSC::EncodedJSValue JSC_HOST_CALL commonJSRequire(JSC::ExecState*);
 
@@ -209,13 +208,13 @@ private:
 
     static void queueTaskToEventLoop(JSC::JSGlobalObject& globalObject, WTF::Ref<JSC::Microtask>&& task);
 
-    static JSC::JSInternalPromise* moduleLoaderImportModule(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSString*, const JSC::SourceOrigin&);
+    static JSC::JSInternalPromise* moduleLoaderImportModule(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSString*, JSC::JSValue, const JSC::SourceOrigin&);
 
-    static JSC::JSInternalPromise* moduleLoaderResolve(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue referrerValue, JSC::JSValue initiator);
+    static JSC::Identifier moduleLoaderResolve(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue referrerValue, JSC::JSValue initiator);
 
-    static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue initiator);
+    static JSC::JSInternalPromise* moduleLoaderFetch(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue parameters, JSC::JSValue initiator);
 
-    static JSC::JSInternalPromise* moduleLoaderInstantiate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue sourceValue, JSC::JSValue initiator);
+    static JSC::JSObject* moduleLoaderCreateImportMetaProperties(JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue, JSC::JSModuleRecord*, JSC::JSValue);
 
     static JSC::JSValue moduleLoaderEvaluate(JSC::JSGlobalObject*, JSC::ExecState*, JSC::JSModuleLoader*, JSC::JSValue keyValue, JSC::JSValue moduleRecordValue, JSC::JSValue initiator);
 

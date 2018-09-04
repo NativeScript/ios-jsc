@@ -21,7 +21,7 @@ void InspectorNetworkAgent::enable(ErrorString&) {
 void InspectorNetworkAgent::disable(ErrorString&) {
 }
 
-void InspectorNetworkAgent::setExtraHTTPHeaders(ErrorString&, const Inspector::InspectorObject& headers) {
+void InspectorNetworkAgent::setExtraHTTPHeaders(ErrorString&, const JSON::Object& headers) {
 }
 
 void InspectorNetworkAgent::getResponseBody(ErrorString&, const String& requestId, String* content, bool* base64Encoded) {

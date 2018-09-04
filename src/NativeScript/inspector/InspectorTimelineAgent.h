@@ -57,26 +57,26 @@ public:
     void start(ErrorString&, const int* maxCallStackDepth = nullptr) final;
     void stop(ErrorString&) final;
     void setAutoCaptureEnabled(ErrorString&, bool) final;
-    void setInstruments(ErrorString&, const Inspector::InspectorArray&) final;
+    void setInstruments(ErrorString&, const JSON::Array&) final;
 
 private:
     struct TimelineRecordEntry {
         TimelineRecordEntry()
             : type(TimelineRecordType::EventDispatch) {}
-        TimelineRecordEntry(RefPtr<Inspector::InspectorObject>&& record, RefPtr<Inspector::InspectorObject>&& data, RefPtr<Inspector::InspectorArray>&& children, TimelineRecordType type)
+        TimelineRecordEntry(RefPtr<JSON::Object>&& record, RefPtr<JSON::Object>&& data, RefPtr<JSON::Array>&& children, TimelineRecordType type)
             : record(record)
             , data(data)
             , children(children)
             , type(type) {
         }
 
-        RefPtr<Inspector::InspectorObject> record;
-        RefPtr<Inspector::InspectorObject> data;
-        RefPtr<Inspector::InspectorArray> children;
+        RefPtr<JSON::Object> record;
+        RefPtr<JSON::Object> data;
+        RefPtr<JSON::Array> children;
         TimelineRecordType type;
     };
 
-    void sendEvent(RefPtr<Inspector::InspectorObject>&&);
+    void sendEvent(RefPtr<JSON::Object>&&);
     void startProgrammaticCapture();
     void stopProgrammaticCapture();
     void internalStart(const int* maxCallStackDepth = nullptr);
@@ -88,11 +88,11 @@ private:
     void toggleTimelineInstrument(InstrumentState);
     void toggleInstruments(InstrumentState);
 
-    TimelineRecordEntry createRecordEntry(RefPtr<Inspector::InspectorObject>&& data, TimelineRecordType, bool captureCallStack);
+    TimelineRecordEntry createRecordEntry(RefPtr<JSON::Object>&& data, TimelineRecordType, bool captureCallStack);
 
     void didCompleteRecordEntry(const TimelineRecordEntry&);
 
-    void addRecordToTimeline(RefPtr<Inspector::InspectorObject>&&, TimelineRecordType);
+    void addRecordToTimeline(RefPtr<JSON::Object>&&, TimelineRecordType);
 
     double timestamp();
     std::unique_ptr<TimelineFrontendDispatcher> m_frontendDispatcher;

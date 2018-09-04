@@ -22,6 +22,7 @@
 #import <UIKit/UIApplication.h>
 #endif
 
+#include "JSClientData.h"
 #include "JSErrors.h"
 #include "ManualInstrumentation.h"
 #include "Metadata/Metadata.h"
@@ -35,7 +36,7 @@ using namespace NativeScript;
 
 JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer, JSValue initiator = jsUndefined()) {
     JSLockHolder lock(exec);
-    RELEASE_ASSERT(exec->vm().atomicStringTable() == wtfThreadData().atomicStringTable());
+    RELEASE_ASSERT(exec->vm().atomicStringTable() == Thread::current().atomicStringTable());
     RELEASE_ASSERT(!exec->vm().isCollectorBusyOnCurrentThread());
 
     JSGlobalObject* globalObject = exec->vmEntryGlobalObject();
@@ -44,16 +45,24 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
     return globalObject->moduleLoader()->loadAndEvaluateModule(exec, moduleNameJsValue, referrerJsValue, initiator);
 }
 
+@interface TNSRuntime ()
+
+@property(nonatomic, retain) id appPackageJsonData;
+
+@end
+
 @implementation TNSRuntime
+
+@synthesize appPackageJsonData;
 
 static WTF::Lock _runtimesLock;
 static NSPointerArray* _runtimes;
 
 + (TNSRuntime*)current {
     WTF::LockHolder lock(_runtimesLock);
-    ThreadIdentifier currentThreadId = WTF::currentThread();
+    Thread* currentThread = &WTF::Thread::current();
     for (TNSRuntime* runtime in _runtimes) {
-        if (runtime.threadId == currentThreadId)
+        if (runtime->thread == currentThread)
             return runtime;
     }
     return nil;
@@ -90,11 +99,13 @@ static NSPointerArray* _runtimes;
     TNSPERF();
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
-        self->_threadId = WTF::currentThread();
+        self->thread = &WTF::Thread::current();
         self->_applicationPath = [[applicationPath stringByStandardizingPath] retain];
         self->_objectMap = std::make_unique<JSC::WeakGCMap<id, JSC::JSObject>>(*self->_vm);
 
-        WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
+        JSVMClientData::initNormalWorld(self->_vm.get());
+
+        self->thread->m_apiData = static_cast<void*>(self);
 
 #if PLATFORM(IOS)
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -178,6 +189,22 @@ static NSPointerArray* _runtimes;
 - (JSValueRef)convertObject:(id)object {
     JSLockHolder lock(*self->_vm);
     return toRef(self->_globalObject->globalExec(), toValue(self->_globalObject->globalExec(), object));
+}
+
+- (id)appPackageJson {
+
+    if (self->appPackageJsonData != nil) {
+        return self->appPackageJsonData;
+    }
+
+    NSString* packageJsonPath = [self->_applicationPath stringByAppendingPathComponent:@"app/package.json"];
+    NSData* data = [NSData dataWithContentsOfFile:packageJsonPath];
+    if (data) {
+        NSError* error = nil;
+        self->appPackageJsonData = [[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error] retain];
+    }
+
+    return self->appPackageJsonData;
 }
 
 - (void)dealloc {

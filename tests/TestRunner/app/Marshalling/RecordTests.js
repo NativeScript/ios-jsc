@@ -204,7 +204,7 @@ describe(module.id, function () {
         expect(struct.y1[1].y2.x3[1]).toBe(4);
        expect(struct.x4).toBe(123456);
     });
-         
+
     it("getStructWithFloat2", function(){
         var struct = getStructWithFloat2();
         expect(struct.f[0].toFixed(4)).toBe(1.2345.toFixed(4));
@@ -217,27 +217,27 @@ describe(module.id, function () {
         expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
         expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
      });
-         
+
      it("getStructWith2Doubles", function(){
         var struct = getStructWith2Doubles();
         expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
         expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
       });
-         
+
      it("getStructWith3Floats", function(){
         var struct = getStructWith3Floats();
         expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
         expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
         expect(struct.f3.toFixed(4)).toBe(3.4567.toFixed(4));
       });
-     
+
      it("getStructWith3Doubles", function(){
         var struct = getStructWith3Doubles();
         expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
         expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
         expect(struct.d3.toFixed(4)).toBe(3.4567.toFixed(4));
       });
-         
+
      it("getStructWith4Floats", function(){
         var struct = getStructWith4Floats();
         expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
@@ -245,7 +245,7 @@ describe(module.id, function () {
         expect(struct.f3.toFixed(4)).toBe(3.4567.toFixed(4));
         expect(struct.f4.toFixed(4)).toBe(4.5678.toFixed(4));
      });
-     
+
      it("getStructWith4Doubles", function(){
         var struct = getStructWith4Doubles();
         expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
@@ -253,7 +253,7 @@ describe(module.id, function () {
         expect(struct.d3.toFixed(4)).toBe(3.4567.toFixed(4));
         expect(struct.d4.toFixed(4)).toBe(4.5678.toFixed(4));
      });
-         
+
     it("structWithFloatAndDouble", function(){
         var struct = getStructWithFloatAndDouble();
         expect(struct.fl.toFixed(2)).toBe(3.14.toFixed(2));
@@ -276,7 +276,7 @@ describe(module.id, function () {
         var fi = incrementFloat2(f);
         expect(fi[0].toFixed(4)).toBe(2.2345.toFixed(4));
         expect(fi[1].toFixed(4)).toBe(3.3456.toFixed(4));
-       
+
     });
 
     it("simd_float3", function(){
@@ -334,7 +334,7 @@ describe(module.id, function () {
 //        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
 //        expect(di[2].toFixed(4)).toBe(4.4567.toFixed(4));
 //        expect(di[3].toFixed(4)).toBe(5.5678.toFixed(4));
-    
+
     });
 
     it("simd_float4x4Matrix", function(){

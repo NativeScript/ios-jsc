@@ -21,11 +21,11 @@ const ClassInfo ReferenceConstructor::s_info = { "Reference", &Base::s_info, nul
 void ReferenceConstructor::finishCreation(VM& vm, ReferencePrototype* referencePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
 
-    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, referencePrototype, DontEnum | DontDelete | ReadOnly);
-    this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(2), ReadOnly | DontEnum | DontDelete);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, referencePrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(2), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 }
 
-static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
+EncodedJSValue JSC_HOST_CALL ReferenceConstructor::constructReference(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ReferenceInstance* result;
 
@@ -51,7 +51,7 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
                     handle = pointer->data();
                     adopted = pointer->isAdopted();
                 } else {
-                    value = reference->get(execState, execState->propertyNames().value);
+                    value = reference->get(execState, execState->vm().propertyNames->value);
                 }
             }
 
@@ -77,13 +77,4 @@ static EncodedJSValue JSC_HOST_CALL constructReference(ExecState* execState) {
     return JSValue::encode(result);
 }
 
-ConstructType ReferenceConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
-    constructData.native.function = &constructReference;
-    return ConstructType::Host;
-}
-
-CallType ReferenceConstructor::getCallData(JSCell* cell, CallData& callData) {
-    callData.native.function = &constructReference;
-    return CallType::Host;
-}
 } // namespace NativeScript

@@ -110,7 +110,7 @@ private:
 
     globalObject->microtasks().swap(other);
 
-    loadAndEvaluateModule(_runtime->_globalObject->globalExec(), WTF::ASCIILiteral("inspector_modules.js"));
+    loadAndEvaluateModule(_runtime->_globalObject->globalExec(), WTF::ASCIILiteral("inspector_modules.js"), jsUndefined(), jsUndefined());
 
     globalObject->drainMicrotasks();
     globalObject->microtasks().swap(other);

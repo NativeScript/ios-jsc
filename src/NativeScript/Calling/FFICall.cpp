@@ -34,7 +34,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
     this->_returnType = getFFITypeMethodTable(vm, returnType);
 
     size_t parametersCount = parameterTypes.size();
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(parametersCount), ReadOnly | DontEnum | DontDelete);
+    this->putDirect(vm, vm.propertyNames->length, jsNumber(parametersCount), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 
     const ffi_type** parameterTypesFFITypes = new const ffi_type*[parametersCount + initialArgumentIndex];
 
@@ -104,11 +104,6 @@ void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     FFICall* ffiCall = jsCast<FFICall*>(cell);
     visitor.append(ffiCall->_returnTypeCell);
     visitor.append(ffiCall->_parameterTypesCells.begin(), ffiCall->_parameterTypesCells.end());
-}
-
-CallType FFICall::getCallData(JSCell*, CallData& callData) {
-    callData.native.function = &call;
-    return JSC::CallType::Host;
 }
 
 EncodedJSValue JSC_HOST_CALL FFICall::call(ExecState* execState) {
