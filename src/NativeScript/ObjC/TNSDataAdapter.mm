@@ -58,7 +58,7 @@ using namespace JSC;
     VM& vm = self->_execState->vm();
     JSLockHolder lock(self->_execState);
     auto scope = DECLARE_CATCH_SCOPE(vm);
-    NSUInteger length = self->_object->get(self->_execState, vm.propertyNames->byteLength).toUInt32(self->_execState);
+    NSUInteger length = self->_object->get(self->_execState, self->_execState->propertyNames().byteLength).toUInt32(self->_execState);
     reportErrorIfAny(self->_execState, scope);
     return length;
 }

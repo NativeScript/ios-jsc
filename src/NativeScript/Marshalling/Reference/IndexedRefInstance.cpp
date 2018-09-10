@@ -17,7 +17,7 @@ const ClassInfo IndexedRefInstance::s_info = { "IndexedRef", &Base::s_info, null
 void IndexedRefInstance::finishCreation(VM& vm, JSValue value) {
     Base::finishCreation(vm);
 
-    this->putDirect(vm, vm.propertyNames->value, value, static_cast<unsigned>(PropertyAttribute::None));
+    this->putDirect(vm, vm.propertyNames->value, value, None);
 }
 
 void IndexedRefInstance::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* innerType, PointerInstance* pointer) {
@@ -59,7 +59,7 @@ bool IndexedRefInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* 
     IndexedRefInstance* reference = jsCast<IndexedRefInstance*>(object);
     if (!reference->innerType()) {
         if (propertyName == 0) {
-            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), reference->get(execState, execState->vm().propertyNames->value));
+            propertySlot.setValue(object, None, reference->get(execState, execState->vm().propertyNames->value));
             return true;
         }
         return false;
@@ -67,7 +67,7 @@ bool IndexedRefInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* 
 
     const void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
     JSValue value = reference->_ffiTypeMethodTable.read(execState, element, reference->_innerTypeCell.get());
-    propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), value);
+    propertySlot.setValue(object, None, value);
     return true;
 }
 

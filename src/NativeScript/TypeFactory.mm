@@ -106,7 +106,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     // Handle linked list structures
     RecordPrototype* recordPrototype = RecordPrototype::create(vm, globalObject, _recordPrototypeStructure.get());
     RecordConstructor* constructor = RecordConstructor::create(vm, globalObject, _recordConstructorStructure.get(), recordPrototype, structName, ffiType, RecordType::Struct);
-    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor, DontEnum);
 
     auto addResult = this->_cacheStruct.set(structName, constructor);
     if (!addResult.isNewEntry) {
@@ -151,7 +151,7 @@ RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* glob
     // Handle linked list structures
     RecordPrototype* recordPrototype = RecordPrototype::create(vm, globalObject, _recordPrototypeStructure.get());
     RecordConstructor* constructor = RecordConstructor::create(vm, globalObject, _recordConstructorStructure.get(), recordPrototype, "?", ffiType, RecordType::Struct);
-    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor, DontEnum);
 
     WTF::Vector<JSCell*> fieldsTypes;
     WTF::Vector<WTF::String> fieldsNames;
@@ -293,7 +293,7 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
     ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, klass);
-    prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor, DontEnum | DontDelete | ReadOnly);
 
     auto addResult = this->_cacheId.set(klassName, constructor);
     if (!addResult.isNewEntry) {
@@ -525,7 +525,7 @@ void TypeFactory::finishCreation(VM& vm, GlobalObject* globalObject) {
 
     PointerPrototype* pointerPrototype = PointerPrototype::create(vm, globalObject, PointerPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
     this->_pointerConstructor.set(vm, this, PointerConstructor::create(vm, PointerConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), pointerPrototype));
-    pointerPrototype->putDirect(vm, vm.propertyNames->constructor, this->_pointerConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
+    pointerPrototype->putDirect(vm, vm.propertyNames->constructor, this->_pointerConstructor.get(), DontEnum);
 
     this->_noopType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("noop"), noopTypeMethodTable));
     this->_voidType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("void"), voidTypeMethodTable));

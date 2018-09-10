@@ -28,8 +28,6 @@ static Inspector::Protocol::Log::LogEntry::Source messageSourceValue(MessageSour
     case MessageSource::ConsoleAPI:
     case MessageSource::ContentBlocker:
     case MessageSource::CSS:
-    case MessageSource::WebRTC:
-    case MessageSource::Media:
     case MessageSource::Other:
         return Inspector::Protocol::Log::LogEntry::Source::Other;
     }
@@ -107,7 +105,7 @@ void InspectorLogAgent::clear(ErrorString&) {
     m_expiredConsoleMessageCount = 0;
 }
 
-void InspectorLogAgent::startViolationsReport(ErrorString&, const JSON::Array& in_config) {
+void InspectorLogAgent::startViolationsReport(ErrorString&, const Inspector::InspectorArray& in_config) {
 }
 
 void InspectorLogAgent::stopViolationsReport(ErrorString&) {
@@ -142,7 +140,7 @@ void InspectorLogAgent::addMessageToFrontend(ConsoleMessage* consoleMessage) {
     jsonObj->setUrl(consoleMessage->url());
 
     if (consoleMessage->callStack()) {
-        Ref<JSON::ArrayOf<Inspector::Protocol::Console::CallFrame>> callFrames = JSON::ArrayOf<Inspector::Protocol::Console::CallFrame>::create();
+        Ref<Inspector::Protocol::Array<Inspector::Protocol::Console::CallFrame>> callFrames = Inspector::Protocol::Array<Inspector::Protocol::Console::CallFrame>::create();
 
         for (size_t i = 0; i < consoleMessage->callStack()->size(); i++) {
             callFrames->addItem(buildInspectorObject(consoleMessage->callStack()->at(i)));

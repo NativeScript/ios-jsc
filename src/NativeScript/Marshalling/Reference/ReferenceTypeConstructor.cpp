@@ -20,10 +20,10 @@ const ClassInfo ReferenceTypeConstructor::s_info = { "ReferenceType", &Base::s_i
 void ReferenceTypeConstructor::finishCreation(VM& vm, JSObject* referenceTypePrototype) {
     Base::finishCreation(vm, this->classInfo()->className);
 
-    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, referenceTypePrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, referenceTypePrototype, DontEnum | DontDelete | ReadOnly);
 }
 
-EncodedJSValue JSC_HOST_CALL ReferenceTypeConstructor::constructReferenceType(ExecState* execState) {
+static EncodedJSValue JSC_HOST_CALL constructReferenceType(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     JSC::VM& vm = execState->vm();
@@ -42,4 +42,13 @@ EncodedJSValue JSC_HOST_CALL ReferenceTypeConstructor::constructReferenceType(Ex
     return JSValue::encode(globalObject->typeFactory()->getReferenceType(globalObject, type.asCell()));
 }
 
+ConstructType ReferenceTypeConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
+    constructData.native.function = &constructReferenceType;
+    return ConstructType::Host;
+}
+
+CallType ReferenceTypeConstructor::getCallData(JSCell* cell, CallData& callData) {
+    callData.native.function = &constructReferenceType;
+    return CallType::Host;
+}
 } // namespace NativeScript

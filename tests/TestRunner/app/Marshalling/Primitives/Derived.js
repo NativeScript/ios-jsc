@@ -15,17 +15,6 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe("127");
     });
-    it("Exception in callback propagates to caller and doesn't crash app", function () {
-		const jsCallback = TNSPrimitives.extend({
-			methodWithChar: function (x) {
-				throw new Error("Called with " + x);
-			}
-		}).alloc().init();
-
-		// const invocation = () => jsCallback.methodWithChar(NSNumber.numberWithInt(127));
-		const invocation = () => jsCallback.performSelectorWithObject("methodWithChar:", NSNumber.numberWithInt(127));
-        expect(invocation).toThrow();
-    });
     it("DerivedMethodWithChar2", function () {
         var result = TNSPrimitives.extend({
             methodWithChar: function (x) {

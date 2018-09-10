@@ -57,26 +57,26 @@ public:
     void start(ErrorString&, const int* maxCallStackDepth = nullptr) final;
     void stop(ErrorString&) final;
     void setAutoCaptureEnabled(ErrorString&, bool) final;
-    void setInstruments(ErrorString&, const JSON::Array&) final;
+    void setInstruments(ErrorString&, const Inspector::InspectorArray&) final;
 
 private:
     struct TimelineRecordEntry {
         TimelineRecordEntry()
             : type(TimelineRecordType::EventDispatch) {}
-        TimelineRecordEntry(RefPtr<JSON::Object>&& record, RefPtr<JSON::Object>&& data, RefPtr<JSON::Array>&& children, TimelineRecordType type)
+        TimelineRecordEntry(RefPtr<Inspector::InspectorObject>&& record, RefPtr<Inspector::InspectorObject>&& data, RefPtr<Inspector::InspectorArray>&& children, TimelineRecordType type)
             : record(record)
             , data(data)
             , children(children)
             , type(type) {
         }
 
-        RefPtr<JSON::Object> record;
-        RefPtr<JSON::Object> data;
-        RefPtr<JSON::Array> children;
+        RefPtr<Inspector::InspectorObject> record;
+        RefPtr<Inspector::InspectorObject> data;
+        RefPtr<Inspector::InspectorArray> children;
         TimelineRecordType type;
     };
 
-    void sendEvent(RefPtr<JSON::Object>&&);
+    void sendEvent(RefPtr<Inspector::InspectorObject>&&);
     void startProgrammaticCapture();
     void stopProgrammaticCapture();
     void internalStart(const int* maxCallStackDepth = nullptr);
@@ -88,11 +88,11 @@ private:
     void toggleTimelineInstrument(InstrumentState);
     void toggleInstruments(InstrumentState);
 
-    TimelineRecordEntry createRecordEntry(RefPtr<JSON::Object>&& data, TimelineRecordType, bool captureCallStack);
+    TimelineRecordEntry createRecordEntry(RefPtr<Inspector::InspectorObject>&& data, TimelineRecordType, bool captureCallStack);
 
     void didCompleteRecordEntry(const TimelineRecordEntry&);
 
-    void addRecordToTimeline(RefPtr<JSON::Object>&&, TimelineRecordType);
+    void addRecordToTimeline(RefPtr<Inspector::InspectorObject>&&, TimelineRecordType);
 
     double timestamp();
     std::unique_ptr<TimelineFrontendDispatcher> m_frontendDispatcher;

@@ -20,7 +20,7 @@ const ClassInfo ObjCProtocolWrapper::s_info = { "ObjCProtocolWrapper", &Base::s_
 
 void ObjCProtocolWrapper::finishCreation(VM& vm, ObjCPrototype* prototype, const ProtocolMeta* metadata, Protocol* aProtocol) {
     Base::finishCreation(vm);
-    this->putDirect(vm, vm.propertyNames->prototype, prototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirect(vm, vm.propertyNames->prototype, prototype, DontEnum | DontDelete | ReadOnly);
     this->_metadata = metadata;
     this->_protocol = aProtocol;
 }
@@ -48,7 +48,7 @@ bool ObjCProtocolWrapper::getOwnPropertySlot(JSObject* object, ExecState* execSt
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         ObjCMethodCall* call = ObjCMethodCall::create(execState->vm(), globalObject, globalObject->objCMethodCallStructure(), method);
         object->putDirect(execState->vm(), propertyName, call);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), call);
+        propertySlot.setValue(object, None, call);
         return true;
     }
 

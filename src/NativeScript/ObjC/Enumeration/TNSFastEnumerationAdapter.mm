@@ -33,7 +33,7 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
         auto scope = DECLARE_CATCH_SCOPE(vm);
 
-        JSValue iteratorFunction = wrapper->get(execState, execState->vm().propertyNames->iteratorSymbol);
+        JSValue iteratorFunction = wrapper->get(execState, execState->propertyNames().iteratorSymbol);
         reportErrorIfAny(execState, scope);
 
         CallData iteratorFunctionCallData;
@@ -60,7 +60,6 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
     ExecState* execState = reinterpret_cast<ExecState*>(state->extra[0]);
     JSValue iterator(reinterpret_cast<JSCell*>(state->extra[1]));
-    IterationRecord iterationRecord = { iterator, iterator.get(execState, execState->vm().propertyNames->next) };
     JSC::VM& vm = execState->vm();
     JSLockHolder lock(vm);
     auto scope = DECLARE_CATCH_SCOPE(vm);
@@ -73,11 +72,11 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
     state->itemsPtr = buffer;
 
     while (count < length) {
-        JSValue next = iteratorStep(execState, iterationRecord);
+        JSValue next = iteratorStep(execState, iterator);
         reportErrorIfAny(execState, scope);
 
         if (next.isFalse()) {
-            iteratorClose(execState, iterationRecord);
+            iteratorClose(execState, iterator);
             reportErrorIfAny(execState, scope);
             gcUnprotect(iterator);
 

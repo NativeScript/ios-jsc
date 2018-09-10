@@ -21,7 +21,7 @@ public:
     virtual void enable(ErrorString&) override;
     virtual void disable(ErrorString&) override;
     virtual void clear(ErrorString&) override;
-    virtual void startViolationsReport(ErrorString&, const JSON::Array& in_config) override;
+    virtual void startViolationsReport(ErrorString&, const Inspector::InspectorArray& in_config) override;
     virtual void stopViolationsReport(ErrorString&) override;
 
     void addMessageToConsole(std::unique_ptr<ConsoleMessage>);

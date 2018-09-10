@@ -46,7 +46,7 @@ void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const B
     this->_metadata = metadata;
 
     if ([objc_getClass(metadata->name()) instancesRespondToSelector:@selector(countByEnumeratingWithState:objects:count:)]) {
-        this->putDirect(vm, vm.propertyNames->iteratorSymbol, JSFunction::create(vm, globalObject, 0, vm.propertyNames->builtinNames().valuesPublicName().string(), getIterator), static_cast<unsigned>(PropertyAttribute::DontEnum));
+        this->putDirect(vm, vm.propertyNames->iteratorSymbol, JSFunction::create(vm, globalObject, 0, vm.propertyNames->builtinNames().valuesPublicName().string(), getIterator), DontEnum);
     }
 }
 
@@ -67,7 +67,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
         GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
         ObjCMethodCall* method = ObjCMethodCall::create(globalObject->vm(), globalObject, globalObject->objCMethodCallStructure(), memberMeta);
         object->putDirect(execState->vm(), propertyName, method);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method);
+        propertySlot.setValue(object, None, method);
         return true;
     }
 

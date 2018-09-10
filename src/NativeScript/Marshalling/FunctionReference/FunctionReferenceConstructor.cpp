@@ -17,14 +17,14 @@ const ClassInfo FunctionReferenceConstructor::s_info = { "FunctionReference", &B
 
 void FunctionReferenceConstructor::finishCreation(VM& vm, JSValue prototype) {
     Base::finishCreation(vm, this->classInfo()->className);
-    this->putDirect(vm, vm.propertyNames->prototype, prototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
+    this->putDirect(vm, vm.propertyNames->prototype, prototype, DontEnum | DontDelete | ReadOnly);
+    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum | DontDelete);
 }
 
-EncodedJSValue JSC_HOST_CALL FunctionReferenceConstructor::constructFunctionReferenceInstance(ExecState* execState) {
+static EncodedJSValue JSC_HOST_CALL constructFunctionReferenceInstance(ExecState* execState) {
     CallData callData;
 
-    if (!(execState->argumentCount() == 1 && JSC::getCallData(execState->uncheckedArgument(0), callData) != CallType::None)) {
+    if (!(execState->argumentCount() == 1 && getCallData(execState->uncheckedArgument(0), callData) != CallType::None)) {
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
@@ -37,4 +37,13 @@ EncodedJSValue JSC_HOST_CALL FunctionReferenceConstructor::constructFunctionRefe
     return JSValue::encode(functionReference);
 }
 
+ConstructType FunctionReferenceConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
+    constructData.native.function = &constructFunctionReferenceInstance;
+    return ConstructType::Host;
+}
+
+CallType FunctionReferenceConstructor::getCallData(JSCell* cell, CallData& callData) {
+    callData.native.function = &constructFunctionReferenceInstance;
+    return CallType::Host;
+}
 } // namespace NativeScript

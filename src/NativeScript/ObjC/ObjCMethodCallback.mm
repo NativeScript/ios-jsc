@@ -80,24 +80,20 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
         return;
     }
 
-    // BUG: moved before the call because if the call throws a JS exception, length is reported as 0
-    size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
-
     JSValue thisValue = toValue(execState, target);
     methodCallback->callFunction(thisValue, arguments, retValue);
 
     if (methodCallback->_hasErrorOutParameter) {
-        //        size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
+        size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
         if (methodCallbackLength == methodCallback->parametersCount() - 1) {
             Exception* exception = scope.exception();
             if (exception) {
                 scope.clearException();
                 memset(retValue, 0, methodCallback->_returnType.ffiType->size);
+                NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:@{ @"TNSJavaScriptError": NativeScript::toObject(execState, exception->value()) }];
 
                 NSError**** outErrorPtr = reinterpret_cast<NSError****>(argValues + (methodCallback->parametersCount() + methodCallback->_initialArgumentIndex - 1));
                 if (**outErrorPtr) {
-                    NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:@{ @"TNSJavaScriptError": NativeScript::toObject(execState, exception->value()) }];
-
                     ***outErrorPtr = nserror;
                 }
             } else if (methodCallback->_returnTypeCell.get() == static_cast<JSCell*>(jsCast<GlobalObject*>(execState->lexicalGlobalObject())->typeFactory()->boolType())) {

@@ -12,7 +12,6 @@
 #include "FFIFunctionCall.h"
 #include "FFIFunctionCallback.h"
 #include "Interop.h"
-#include "JSErrors.h"
 #include "JSWeakRefConstructor.h"
 #include "JSWeakRefInstance.h"
 #include "JSWeakRefPrototype.h"
@@ -92,7 +91,7 @@ const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, nu
 
 const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderImportModule, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderCreateImportMetaProperties, &moduleLoaderEvaluate, nullptr /*promiseRejectionTracker*/, &defaultLanguage };
+const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderImportModule, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderInstantiate, &moduleLoaderEvaluate, nullptr /*promiseRejectionTracker*/, &defaultLanguage };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
     : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable) {
@@ -124,25 +123,20 @@ static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRun
     GlobalObject* self = static_cast<GlobalObject*>(info);
     JSC::JSLockHolder lock(self->vm());
     VMEntryScope* currentEntryScope = self->vm().entryScope;
-    if (self->vm().topCallFrame && currentEntryScope) {
-        NSMutableDictionary* threadData = [[NSThread currentThread] threadDictionary];
+    if (self->vm().topCallFrame && currentEntryScope && !currentEntryScope->didPopListeners().isEmpty()) {
+        FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(self->vm(), self->vm().topCallFrame->callee().asCell());
+        const Meta* meta = Metadata::MetaFile::instance()->globalTable()->findMeta("UIApplicationMain");
 
-        if (threadData[NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY] == nil || currentEntryScope->didPopListeners().size()) {
-            if (self->isUIApplicationMainAtTopOfCallstack()) {
-                // set zero recursion count to the current value, in order to correctly
-                // detect unhandled exceptions below UIApplicationMain
-                auto scope = DECLARE_THROW_SCOPE(self->vm());
-                threadData[NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY] = @(scope.recursionDepth());
+        if (function_call && meta && function_call->functionPointer() == SymbolLoader::instance().loadFunctionSymbol(meta->topLevelModule(), meta->name())) {
 
-                self->vm().entryScope = nullptr;
+            self->vm().entryScope = nullptr;
 
-                for (auto& listener : currentEntryScope->didPopListeners())
-                    listener();
+            for (auto& listener : currentEntryScope->didPopListeners())
+                listener();
 
-                currentEntryScope->didPopListeners().clear();
+            currentEntryScope->didPopListeners().clear();
 
-                self->vm().entryScope = currentEntryScope;
-            }
+            self->vm().entryScope = currentEntryScope;
         }
     }
 }
@@ -155,7 +149,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_inspectorController = std::make_unique<GlobalObjectInspectorController>(*this);
     this->_inspectorController->setIncludesNativeCallStackWhenReportingExceptions(false);
     this->setConsoleClient(this->_inspectorController->consoleClient());
-    this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly));
+    this->putDirect(vm, vm.propertyNames->global, globalExec->globalThisValue(), DontEnum | ReadOnly | DontDelete);
 
     this->_applicationPath = applicationPath;
 
@@ -194,9 +188,9 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_interopIdentifier = Identifier::fromString(&vm, Interop::info()->className);
     this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())));
 
-    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__collect"), 0, &collectGarbage, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__collect"), 0, &collectGarbage, NoIntrinsic, DontEnum);
 
-    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__time"), 0, &time, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__time"), 0, &time, NoIntrinsic, DontEnum);
 
     this->_smartStringifyFunction.set(vm, this, jsCast<JSFunction*>(evaluate(this->globalExec(), makeSource(WTF::String(smartStringify_js, smartStringify_js_len), SourceOrigin()), JSValue())));
 
@@ -206,20 +200,20 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin());
 #endif
     this->_typeScriptOriginalExtendsFunction.set(vm, this, jsCast<JSFunction*>(evaluate(globalExec, sourceCode, globalExec->thisValue())));
-    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__extends"), 2, ObjCTypeScriptExtendFunction, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly));
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__extends"), 2, ObjCTypeScriptExtendFunction, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
 
     ObjCConstructorNative* NSObjectConstructor = this->typeFactory()->NSObjectConstructor(this);
-    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("extend")), 2, ObjCExtendFunction, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
-    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, NSObjectAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontDelete));
+    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("extend")), 2, ObjCExtendFunction, NoIntrinsic, DontEnum);
+    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, NSObjectAlloc, NoIntrinsic, DontDelete);
 
     MarkedArgumentBuffer descriptionFunctionArgs;
     descriptionFunctionArgs.append(jsString(globalExec, WTF::ASCIILiteral("return this.description;")));
     ObjCPrototype* NSObjectPrototype = jsCast<ObjCPrototype*>(NSObjectConstructor->get(globalExec, vm.propertyNames->prototype));
-    NSObjectPrototype->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, descriptionFunctionArgs), static_cast<unsigned>(PropertyAttribute::DontEnum));
+    NSObjectPrototype->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, descriptionFunctionArgs), DontEnum);
 
     MarkedArgumentBuffer staticDescriptionFunctionArgs;
     staticDescriptionFunctionArgs.append(jsString(globalExec, WTF::ASCIILiteral("return Function.prototype.toString.call(this);")));
-    NSObjectConstructor->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, staticDescriptionFunctionArgs), static_cast<unsigned>(PropertyAttribute::DontEnum));
+    NSObjectConstructor->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, staticDescriptionFunctionArgs), DontEnum);
 
     NSObjectConstructor->setPrototypeDirect(vm, NSObjectPrototype);
 
@@ -230,9 +224,9 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     _runLoopBeforeWaitingObserver = WTF::adoptCF(CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopBeforeWaiting, YES, 0, &runLoopBeforeWaitingPerformWork, &observerContext));
 
     _commonJSModuleFunctionIdentifier = Identifier::fromString(&vm, "CommonJSModuleFunction");
-    this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly));
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "require"), 1, commonJSRequire, NoIntrinsic, DontEnum | DontDelete | ReadOnly);
 
-    this->putDirect(vm, Identifier::fromString(&vm, "__runtimeVersion"), jsString(&vm, STRINGIZE_VALUE_OF(NATIVESCRIPT_VERSION)), static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly));
+    this->putDirect(vm, Identifier::fromString(&vm, "__runtimeVersion"), jsString(&vm, STRINGIZE_VALUE_OF(NATIVESCRIPT_VERSION)), DontEnum | ReadOnly | DontDelete);
 
     NakedPtr<Exception> exception;
     evaluate(this->globalExec(), makeSource(WTF::String(inlineFunctions_js, inlineFunctions_js_len), SourceOrigin()), JSValue(), exception);
@@ -280,7 +274,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     VM& vm = execState->vm();
 
     if (propertyName == globalObject->_interopIdentifier) {
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly), globalObject->interop());
+        propertySlot.setValue(object, DontEnum | ReadOnly | DontDelete, globalObject->interop());
         return true;
     }
 
@@ -374,12 +368,12 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         throwVMError(execState, scope, createReferenceError(execState, errorMessage));
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), jsUndefined());
+        propertySlot.setValue(object, None, jsUndefined());
         return true;
     }
 
     object->putDirectWithoutTransition(vm, propertyName, symbolWrapper);
-    propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), symbolWrapper);
+    propertySlot.setValue(object, None, symbolWrapper);
     return true;
 }
 
@@ -460,7 +454,7 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     ObjCProtocolWrapper* protocolWrapper = createProtocolWrapper(this, static_cast<const ProtocolMeta*>(meta), aProtocol);
 
     this->_objCProtocolWrappers.insert({ aProtocol, Strong<ObjCProtocolWrapper>(this->vm(), protocolWrapper) });
-    this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, DontDelete | ReadOnly);
 
     return protocolWrapper;
 }
@@ -490,26 +484,6 @@ bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* 
     }
 
     return result.toBoolean(execState);
-}
-
-const Meta* getUIApplicationMainMeta() {
-    static const Meta* meta = nullptr;
-    if (!meta) {
-        meta = Metadata::MetaFile::instance()->globalTable()->findMeta("UIApplicationMain");
-    }
-
-    return meta;
-}
-
-bool GlobalObject::isUIApplicationMainAtTopOfCallstack() {
-    if (!this->vm().topCallFrame) {
-        return false;
-    }
-
-    const Meta* meta = getUIApplicationMainMeta();
-    FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(this->vm(), this->vm().topCallFrame->callee().asCell());
-
-    return function_call && meta && function_call->functionPointer() == SymbolLoader::instance().loadFunctionSymbol(meta->topLevelModule(), meta->name());
 }
 
 void GlobalObject::queueTaskToEventLoop(JSGlobalObject& globalObject, WTF::Ref<Microtask>&& task) {

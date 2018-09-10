@@ -167,7 +167,7 @@ const char* RecordConstructor::encode(VM& vm, JSCell* cell) {
 }
 
 void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, RecordPrototype* recordPrototype, const WTF::String& name, ffi_type* ffiType, RecordType recordType) {
-    Base::finishCreation(vm, name.characterAt(0) == '?' ? WTF::emptyString() : name);
+    Base::finishCreation(vm, name.at(0) == '?' ? WTF::emptyString() : name);
 
     this->_ffiTypeMethodTable.ffiType = ffiType;
     this->_ffiTypeMethodTable.read = &read;
@@ -176,9 +176,9 @@ void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, Rec
     this->_ffiTypeMethodTable.encode = &encode;
     this->_recordType = recordType;
 
-    this->putDirect(vm, vm.propertyNames->prototype, recordPrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("equals")), 0, recordConstructorFuncEquals, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirect(vm, vm.propertyNames->prototype, recordPrototype, DontEnum | DontDelete | ReadOnly);
+    this->putDirect(vm, vm.propertyNames->length, jsNumber(1), ReadOnly | DontEnum | DontDelete);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("equals")), 0, recordConstructorFuncEquals, NoIntrinsic, DontDelete | ReadOnly);
 
     this->_instancesStructure.set(vm, this, RecordInstance::createStructure(globalObject, recordPrototype));
 }
@@ -207,6 +207,11 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecStat
     return JSValue::encode(instance);
 }
 
+ConstructType RecordConstructor::getConstructData(JSCell* cell, ConstructData& constructData) {
+    constructData.native.function = &constructRecordInstance;
+    return ConstructType::Host;
+}
+
 EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* execState) {
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
@@ -228,6 +233,11 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* 
 
     RecordInstance* instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
     return JSValue::encode(instance);
+}
+
+CallType RecordConstructor::getCallData(JSCell* cell, CallData& callData) {
+    callData.native.function = &createRecordInstance;
+    return CallType::Host;
 }
 
 void RecordConstructor::visitChildren(JSCell* cell, SlotVisitor& visitor) {

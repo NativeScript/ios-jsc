@@ -32,7 +32,7 @@ public:
 
 protected:
     FFICall(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure, &call, nullptr) {
+        : Base(vm, structure) {
     }
 
     ~FFICall();
@@ -100,6 +100,8 @@ protected:
     void initializeFFI(JSC::VM&, const InvocationHooks&, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
+
+    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
     static JSC::EncodedJSValue JSC_HOST_CALL call(JSC::ExecState* execState);
 

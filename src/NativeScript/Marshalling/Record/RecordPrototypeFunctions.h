@@ -25,7 +25,7 @@ public:
     DECLARE_INFO;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
-        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
     RecordField* recordField() const {
@@ -34,7 +34,7 @@ public:
 
 private:
     RecordProtoFieldGetter(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure, recordProtoFuncFieldGetter, nullptr) {
+        : Base(vm, structure) {
     }
 
     static void destroy(JSC::JSCell* cell) {
@@ -45,9 +45,9 @@ private:
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
-    JSC::WriteBarrier<RecordField> _recordField;
+    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldGetter(JSC::ExecState* execState);
+    JSC::WriteBarrier<RecordField> _recordField;
 };
 
 class RecordProtoFieldSetter : public JSC::InternalFunction {
@@ -63,7 +63,7 @@ public:
     DECLARE_INFO;
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
-        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
+        return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
     RecordField* recordField() const {
@@ -72,7 +72,7 @@ public:
 
 private:
     RecordProtoFieldSetter(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure, recordProtoFuncFieldSetter, nullptr) {
+        : Base(vm, structure) {
     }
 
     static void destroy(JSC::JSCell* cell) {
@@ -83,9 +83,9 @@ private:
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
-    JSC::WriteBarrier<RecordField> _recordField;
+    static JSC::CallType getCallData(JSC::JSCell*, JSC::CallData&);
 
-    static JSC::EncodedJSValue JSC_HOST_CALL recordProtoFuncFieldSetter(JSC::ExecState* execState);
+    JSC::WriteBarrier<RecordField> _recordField;
 };
 } // namespace NativeScript
 

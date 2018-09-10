@@ -44,7 +44,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         ObjCMethodCall* call = ObjCMethodCall::create(execState->vm(), globalObject, globalObject->objCMethodCallStructure(), method);
         object->putDirectWithoutTransition(execState->vm(), propertyName, call);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), call);
+        propertySlot.setValue(object, None, call);
         return true;
     }
 

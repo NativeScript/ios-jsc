@@ -22,7 +22,6 @@
 #import <UIKit/UIApplication.h>
 #endif
 
-#include "JSClientData.h"
 #include "JSErrors.h"
 #include "ManualInstrumentation.h"
 #include "Metadata/Metadata.h"
@@ -36,7 +35,7 @@ using namespace NativeScript;
 
 JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer, JSValue initiator = jsUndefined()) {
     JSLockHolder lock(exec);
-    RELEASE_ASSERT(exec->vm().atomicStringTable() == Thread::current().atomicStringTable());
+    RELEASE_ASSERT(exec->vm().atomicStringTable() == wtfThreadData().atomicStringTable());
     RELEASE_ASSERT(!exec->vm().isCollectorBusyOnCurrentThread());
 
     JSGlobalObject* globalObject = exec->vmEntryGlobalObject();
@@ -60,9 +59,9 @@ static NSPointerArray* _runtimes;
 
 + (TNSRuntime*)current {
     WTF::LockHolder lock(_runtimesLock);
-    Thread* currentThread = &WTF::Thread::current();
+    ThreadIdentifier currentThreadId = WTF::currentThread();
     for (TNSRuntime* runtime in _runtimes) {
-        if (runtime->thread == currentThread)
+        if (runtime.threadId == currentThreadId)
             return runtime;
     }
     return nil;
@@ -99,13 +98,11 @@ static NSPointerArray* _runtimes;
     TNSPERF();
     if (self = [super init]) {
         self->_vm = VM::create(SmallHeap);
-        self->thread = &WTF::Thread::current();
+        self->_threadId = WTF::currentThread();
         self->_applicationPath = [[applicationPath stringByStandardizingPath] retain];
         self->_objectMap = std::make_unique<JSC::WeakGCMap<id, JSC::JSObject>>(*self->_vm);
 
-        JSVMClientData::initNormalWorld(self->_vm.get());
-
-        self->thread->m_apiData = static_cast<void*>(self);
+        WTF::wtfThreadData().m_apiData = static_cast<void*>(self);
 
 #if PLATFORM(IOS)
         [[NSNotificationCenter defaultCenter] addObserver:self
