@@ -23,7 +23,7 @@
     "**/*"
   ],
   "scripts": {
-    "postinstall": "OSVERSION=\"$(sw_vers -productVersion | grep -o \"[0-9][0-9].[0-9][0-9]\")\"; OSVERSION=${OSVERSION//.}; if [ $OSVERSION -ge 1013 ]; then UNZIP_FILE=\"NativeScript Inspector HighSierra\"; fi; unzip -o -q \"$UNZIP_FILE\" -d .; rm *.zip"
+    "postinstall": "OSVERSION=\"$(sw_vers -productVersion | grep -o \"[0-9][0-9].[0-9][0-9]\")\"; OSVERSION=${OSVERSION//.}; if [ $OSVERSION -ge 1013 ]; then UNZIP_FILE=\"NativeScript Inspector HighSierra\"; fi; unzip -o -q \"$UNZIP_FILE\" -d . && rm *.zip"
   },
   "license": "Apache-2.0"
 }
