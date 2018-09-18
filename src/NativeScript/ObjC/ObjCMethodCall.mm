@@ -34,6 +34,7 @@ void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const Me
 
     Base::initializeFFI(vm, { &preInvocation, &postInvocation }, returnTypeCell, parameterTypesCells, 2);
     this->_retainsReturnedCocoaObjects = metadata->ownsReturnedCocoaObject();
+    this->_isOptional = metadata->isOptional();
     this->_isInitializer = metadata->isInitializer();
     this->_hasErrorOutParameter = metadata->hasErrorOutParameter();
 
@@ -130,7 +131,12 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
         bool isInstance = !class_isMetaClass(object_getClass(target));
         NSLog(@"> %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(call->_selector));
 #endif
-        invocation.setArgument(0, target);
+        if (call->_isOptional && ![target respondsToSelector:call->_selector]) {
+            // Unimplemented optional method: Silently perform a dummy call to nil object
+            invocation.setArgument(0, nil);
+        } else {
+            invocation.setArgument(0, target);
+        }
         invocation.setArgument(1, call->_selector);
         invocation.function = call->_msgSend;
     }

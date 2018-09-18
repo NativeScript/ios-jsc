@@ -25,13 +25,15 @@ enum MetaFlags {
     FunctionReturnsUnmanaged = 3,
     FunctionIsVariadic = 5,
     FunctionOwnsReturnedCocoaObject = 4,
+    MemberIsOptional = 0, // Mustn't equal any Method or Property flag since it can be applicable to both
     MethodIsInitializer = 1,
     MethodIsVariadic = 2,
     MethodIsNullTerminatedVariadic = 3,
     MethodOwnsReturnedCocoaObject = 4,
     MethodHasErrorOutParameter = 5,
     PropertyHasGetter = 2,
-    PropertyHasSetter = 3
+    PropertyHasSetter = 3,
+
 };
 
 /// This enum describes the possible ObjectiveC entity types.
@@ -581,6 +583,9 @@ public:
 };
 
 struct MemberMeta : Meta {
+    bool isOptional() const {
+        return this->flag(MetaFlags::MemberIsOptional);
+    }
 };
 
 struct MethodMeta : MemberMeta {
