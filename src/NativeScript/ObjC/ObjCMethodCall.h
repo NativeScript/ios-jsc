@@ -66,6 +66,8 @@ private:
 
     bool _hasErrorOutParameter;
 
+    bool _isOptional;
+
     bool _isInitializer;
 
     SEL _selector;
