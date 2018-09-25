@@ -311,6 +311,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DA4701457EEE40CC2EE59163 /* Pods-TKLiveSync.debug.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULE_DEBUGGING = NO;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -338,6 +339,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 27E6A05AEDCAAF1D55FCA431 /* Pods-TKLiveSync.release.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULE_DEBUGGING = NO;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
