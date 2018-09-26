@@ -103,30 +103,30 @@ describe(module.id, function () {
         expect(ref[1][1]).toBe(3);
     });
 
-	it("ReferenceType keeps strong reference to assigned values", function () {
+    it("ReferenceType keeps strong reference to assigned values", function () {
         var ptr = interop.alloc(2 * interop.sizeof(interop.types.id));
         var ref = new interop.Reference(new interop.types.ReferenceType(interop.types.int32), ptr);
         ref[0] = interop.alloc(2 * interop.sizeof(interop.types.int32));
-		ref[1] = interop.alloc(2 * interop.sizeof(interop.types.int32));
+        ref[1] = interop.alloc(2 * interop.sizeof(interop.types.int32));
 
-		// Induce GCs in order to check whether `ref` will actually keep alive
-		// the Pointer instances returned by the calls to `interop.alloc`
-       __collect();
+        // Induce GCs in order to check whether `ref` will actually keep alive
+        // the Pointer instances returned by the calls to `interop.alloc`
+        __collect();
         ref[0][0] = 0;
-       __collect();
+        __collect();
         ref[0][1] = 1;
-       __collect();
+        __collect();
         ref[1][0] = 2;
-       __collect();
-		ref[1][1] = 3;
+        __collect();
+        ref[1][1] = 3;
 
-       __collect();
+        __collect();
         expect(ref[0][0]).toBe(0);
-       __collect();
+        __collect();
         expect(ref[0][1]).toBe(1);
-       __collect();
+        __collect();
         expect(ref[1][0]).toBe(2);
-       __collect();
+        __collect();
         expect(ref[1][1]).toBe(3);
     });
 

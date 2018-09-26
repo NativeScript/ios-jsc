@@ -205,83 +205,263 @@ describe(module.id, function () {
        expect(struct.x4).toBe(123456);
     });
 
+    it("getStructWithFloat2", function(){
+        var struct = getStructWithFloat2();
+        expect(struct.f[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.f[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.i).toBe(5);
+    });
+
+     it("getStructWith2Floats", function(){
+        var struct = getStructWith2Floats();
+        expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
+     });
+
+     it("getStructWith2Doubles", function(){
+        var struct = getStructWith2Doubles();
+        expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
+      });
+
+     it("getStructWith3Floats", function(){
+        var struct = getStructWith3Floats();
+        expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.f3.toFixed(4)).toBe(3.4567.toFixed(4));
+      });
+
+     it("getStructWith3Doubles", function(){
+        var struct = getStructWith3Doubles();
+        expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.d3.toFixed(4)).toBe(3.4567.toFixed(4));
+      });
+
+     it("getStructWith4Floats", function(){
+        var struct = getStructWith4Floats();
+        expect(struct.f1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.f2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.f3.toFixed(4)).toBe(3.4567.toFixed(4));
+        expect(struct.f4.toFixed(4)).toBe(4.5678.toFixed(4));
+     });
+
+     it("getStructWith4Doubles", function(){
+        var struct = getStructWith4Doubles();
+        expect(struct.d1.toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.d2.toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.d3.toFixed(4)).toBe(3.4567.toFixed(4));
+        expect(struct.d4.toFixed(4)).toBe(4.5678.toFixed(4));
+     });
+
+    it("structWithFloatAndDouble", function(){
+        var struct = getStructWithFloatAndDouble();
+        expect(struct.fl.toFixed(2)).toBe(3.14.toFixed(2));
+        expect(struct.dbl.toFixed(3)).toBe(1.414.toFixed(3));
+    });
+
+    it("structWithVectorAndDouble", function(){
+        var struct = getStructWithVectorAndDouble();
+        expect(struct.fl[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(struct.fl[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(struct.fl[2].toFixed(4)).toBe(3.4567.toFixed(4));
+        expect(struct.fl[3].toFixed(4)).toBe(4.5678.toFixed(4));
+        expect(struct.dbl).toBe(1.67);
+    });
+
+    it("simd_float2", function(){
+        var f = getFloat2();
+        expect(f[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(f[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        var fi = incrementFloat2(f);
+        expect(fi[0].toFixed(4)).toBe(2.2345.toFixed(4));
+        expect(fi[1].toFixed(4)).toBe(3.3456.toFixed(4));
+
+    });
+
+    it("simd_float3", function(){
+        var f = getFloat3();
+        expect(f[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(f[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(f[2].toFixed(4)).toBe(3.4567.toFixed(4));
+        var fi = incrementFloat3(f);
+        expect(fi[0].toFixed(4)).toBe(2.2345.toFixed(4));
+        expect(fi[1].toFixed(4)).toBe(3.3456.toFixed(4));
+        expect(fi[2].toFixed(4)).toBe(4.4567.toFixed(4));
+    });
+
+    it("simd_float4", function(){
+        var f = getFloat4();
+        expect(f[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(f[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(f[2].toFixed(4)).toBe(3.4567.toFixed(4));
+        expect(f[3].toFixed(4)).toBe(4.5678.toFixed(4));
+        var fi = incrementFloat4(f);
+        expect(fi[0].toFixed(4)).toBe(2.2345.toFixed(4));
+        expect(fi[1].toFixed(4)).toBe(3.3456.toFixed(4));
+        expect(fi[2].toFixed(4)).toBe(4.4567.toFixed(4));
+        expect(fi[3].toFixed(4)).toBe(5.5678.toFixed(4));
+    });
+
+    it("simd_double2", function(){
+        var d = getDouble2();
+        expect(d[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(d[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        var di = incrementDouble2(d);
+        expect(di[0].toFixed(4)).toBe(2.2345.toFixed(4));
+        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
+    });
+
+    it("simd_double3", function(){
+        var d = getDouble3();
+        expect(d[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(d[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(d[2].toFixed(4)).toBe(3.4567.toFixed(4));
+//        var di = incrementDouble3(d);
+//        expect(di[0].toFixed(4)).toBe(2.2345.toFixed(4));
+//        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
+//        expect(di[2].toFixed(4)).toBe(4.4567.toFixed(4));
+    });
+
+    it("simd_double4", function(){
+        var d = getDouble4();
+        expect(d[0].toFixed(4)).toBe(1.2345.toFixed(4));
+        expect(d[1].toFixed(4)).toBe(2.3456.toFixed(4));
+        expect(d[2].toFixed(4)).toBe(3.4567.toFixed(4));
+        expect(d[3].toFixed(4)).toBe(4.5678.toFixed(4));
+//        var di = incrementDouble4(d);
+//        expect(di[0].toFixed(4)).toBe(2.2345.toFixed(4));
+//        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
+//        expect(di[2].toFixed(4)).toBe(4.4567.toFixed(4));
+//        expect(di[3].toFixed(4)).toBe(5.5678.toFixed(4));
+
+    });
+
     it("simd_float4x4Matrix", function(){
-       var simdMatrix = getMatrix4x4();
+       var simdMatrix = getMatrixFloat4x4();
        for (var i = 0; i < 16; i++) {
          expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float4x3Matrix", function(){
-       var simdMatrix = getMatrix4x3();
-       for (var i = 0; i < 4; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
-         expect(simdMatrix.columns[i][2].toFixed(4)).toBe((3.4567).toFixed(4));
+       var simdMatrix = getMatrixFloat4x3();
+       for (var i = 0; i < 12; i++) {
+         expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float4x2Matrix", function(){
-       var simdMatrix = getMatrix4x2();
-       for (var i = 0; i < 4; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
+       var simdMatrix = getMatrixFloat4x2();
+       for (var i = 0; i < 8; i++) {
+         expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float3x4Matrix", function(){
-       var simdMatrix = getMatrix3x4();
-       for (var i = 0; i < 3; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
-         expect(simdMatrix.columns[i][2].toFixed(4)).toBe((3.4567).toFixed(4));
-         expect(simdMatrix.columns[i][3].toFixed(4)).toBe((4.5678).toFixed(4));
+       var simdMatrix = getMatrixFloat3x4();
+       for (var i = 0; i < 12; i++) {
+         expect(simdMatrix.columns[i%3][Math.floor(i/3)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float3x3Matrix", function(){
-       var simdMatrix = getMatrix3x3();
-       for (var i = 0; i < 3; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
-         expect(simdMatrix.columns[i][2].toFixed(4)).toBe((3.4567).toFixed(4));
+       var simdMatrix = getMatrixFloat3x3();
+       for (var i = 0; i < 9; i++) {
+         expect(simdMatrix.columns[i%3][Math.floor(i/3)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float3x2Matrix", function(){
-       var simdMatrix = getMatrix3x2();
-       for (var i = 0; i < 3; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
+       var simdMatrix = getMatrixFloat3x2();
+       for (var i = 0; i < 6; i++) {
+         expect(simdMatrix.columns[i%3][Math.floor(i/3)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float2x4Matrix", function(){
-       var simdMatrix = getMatrix2x4();
-       for (var i = 0; i < 2; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
-         expect(simdMatrix.columns[i][2].toFixed(4)).toBe((3.4567).toFixed(4));
-         expect(simdMatrix.columns[i][3].toFixed(4)).toBe((4.5678).toFixed(4));
+       var simdMatrix = getMatrixFloat2x4();
+       for (var i = 0; i < 8; i++) {
+         expect(simdMatrix.columns[i%2][Math.floor(i/2)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float2x3Matrix", function(){
-       var simdMatrix = getMatrix2x3();
-       for (var i = 0; i < 2; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
-         expect(simdMatrix.columns[i][2].toFixed(4)).toBe((3.4567).toFixed(4));
+       var simdMatrix = getMatrixFloat2x3();
+       for (var i = 0; i < 6; i++) {
+         expect(simdMatrix.columns[i%2][Math.floor(i/2)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
 
     it("simd_float2x2Matrix", function(){
-       var simdMatrix = getMatrix3x2();
-       for (var i = 0; i < 2; i++) {
-         expect(simdMatrix.columns[i][0].toFixed(4)).toBe((1.2345).toFixed(4));
-         expect(simdMatrix.columns[i][1].toFixed(4)).toBe((2.3456).toFixed(4));
+       var simdMatrix = getMatrixFloat2x2();
+       for (var i = 0; i < 4; i++) {
+         expect(simdMatrix.columns[i%2][Math.floor(i/2)].toFixed(4)).toBe((i*3.1415).toFixed(4));
        }
     });
+
+    it("simd_double4x4Matrix", function(){
+        var simdMatrix = getMatrixDouble4x4();
+        for (var i = 0; i < 16; i++) {
+          expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double4x3Matrix", function(){
+        var simdMatrix = getMatrixDouble4x3();
+        for (var i = 0; i < 12; i++) {
+          expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double4x2Matrix", function(){
+        var simdMatrix = getMatrixDouble4x2();
+        for (var i = 0; i < 8; i++) {
+          expect(simdMatrix.columns[i%4][Math.floor(i/4)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double3x4Matrix", function(){
+        var simdMatrix = getMatrixDouble3x4();
+        for (var i = 0; i < 12; i++) {
+          expect(simdMatrix.columns[i%3][Math.floor(i/3)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double3x3Matrix", function(){
+        var simdMatrix = getMatrixDouble3x3();
+        for (var i = 0; i < 9; i++) {
+          expect(simdMatrix.columns[i%3][Math.floor(i/3)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double3x2Matrix", function(){
+        var simdMatrix = getMatrixDouble3x2();
+        for (var i = 0; i < 6; i++) {
+          expect(simdMatrix.columns[i%3][Math.floor(i/3)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double2x4Matrix", function(){
+        var simdMatrix = getMatrixDouble2x4();
+        for (var i = 0; i < 8; i++) {
+          expect(simdMatrix.columns[i%2][Math.floor(i/2)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double2x3Matrix", function(){
+        var simdMatrix = getMatrixDouble2x3();
+        for (var i = 0; i < 6; i++) {
+          expect(simdMatrix.columns[i%2][Math.floor(i/2)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
+
+     it("simd_double2x2Matrix", function(){
+        var simdMatrix = getMatrixDouble2x2();
+        for (var i = 0; i < 4; i++) {
+          expect(simdMatrix.columns[i%2][Math.floor(i/2)].toFixed(4)).toBe((i*3.1415).toFixed(4));
+        }
+     });
 
     // TODO
     // it("ComplexStruct", function() {

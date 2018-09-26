@@ -326,8 +326,8 @@ IndexedRefTypeInstance* TypeFactory::getIndexedRefType(GlobalObject* globalObjec
     return result;
 }
 
-ExtVectorTypeInstance* TypeFactory::getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
-    ExtVectorTypeInstance* result = ExtVectorTypeInstance::create(globalObject->vm(), this->_extVectorTypeStructure.get(), innerType, typeSize);
+ExtVectorTypeInstance* TypeFactory::getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize, bool isStructMember) {
+    ExtVectorTypeInstance* result = ExtVectorTypeInstance::create(globalObject->vm(), this->_extVectorTypeStructure.get(), innerType, typeSize, isStructMember);
     return result;
 }
 
@@ -473,7 +473,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.extVector.getInnerType();
         size_t arraySize = typeEncoding->details.extVector.size;
         JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
-        result = this->getExtVectorType(globalObject, innerType, arraySize);
+        result = this->getExtVectorType(globalObject, innerType, arraySize, isStructMember);
         break;
     }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {

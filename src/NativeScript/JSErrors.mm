@@ -139,7 +139,7 @@ std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
     }
 
     NSLog(@"%s", jsCallstack.str().c_str());
-    
+
     return jsCallstack.str();
 }
 } // namespace NativeScript
