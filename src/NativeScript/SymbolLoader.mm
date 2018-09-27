@@ -18,6 +18,7 @@ public:
     virtual void* loadFunctionSymbol(const char* symbolName) = 0;
     virtual void* loadDataSymbol(const char* symbolName) = 0;
     virtual bool load() = 0;
+    virtual ~SymbolResolver() {}
 };
 
 class CFBundleSymbolResolver : public SymbolResolver {

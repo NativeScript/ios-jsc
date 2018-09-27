@@ -419,7 +419,7 @@ describe(module.id, function () {
 
         expect(actual).toEqual(expected);
     });
-    
+
     it("should be able to call string.normalize with simple value", function () {
         var str = 'string value';
         expect(str.normalize()).toBe(str);
@@ -592,6 +592,11 @@ describe(module.id, function () {
                         if (klass.respondsToSelector(y)) {
                             // console.debug(name, y);
 
+                            // supportedVideoFormats is a property and it's getter is being called the value is read below.
+                            // We skip it because it will throw "Supported video formats should be called on individual configuration class."
+                            if (y == "supportedVideoFormats") {
+                                return;
+                            }
                             var method = klass[y];
                             expect(method).toBeDefined();
 
