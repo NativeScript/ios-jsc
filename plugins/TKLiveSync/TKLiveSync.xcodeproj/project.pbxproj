@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		39B710ED215E11050086A3A0 /* libGCDWebServer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39B710EC215E11050086A3A0 /* libGCDWebServer.a */; };
 		71699D914198EFE42C45AB83 /* libPods-TKLiveSync.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39838D144633636813BC3093 /* libPods-TKLiveSync.a */; };
 		C93EC6F71E9FEF2C009644C0 /* libzip_iOS in Frameworks */ = {isa = PBXBuildFile; fileRef = C93EC6F61E9FEF2C009644C0 /* libzip_iOS */; };
 		CD0F75AB1D4B7DB20095538D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD0F75A91D4B7DB20095538D /* unzip.cpp */; };
@@ -18,6 +19,7 @@
 /* Begin PBXFileReference section */
 		27E6A05AEDCAAF1D55FCA431 /* Pods-TKLiveSync.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TKLiveSync.release.xcconfig"; path = "Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync.release.xcconfig"; sourceTree = "<group>"; };
 		39838D144633636813BC3093 /* libPods-TKLiveSync.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TKLiveSync.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		39B710EC215E11050086A3A0 /* libGCDWebServer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGCDWebServer.a; path = "GCDWebServer/libGCDWebServer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C93EC6F61E9FEF2C009644C0 /* libzip_iOS */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzip_iOS; path = libzip_iOS.framework/libzip_iOS; sourceTree = "<group>"; };
 		CD0F75A91D4B7DB20095538D /* unzip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = unzip.cpp; sourceTree = "<group>"; };
 		CD0F75AA1D4B7DB20095538D /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unzip.h; sourceTree = "<group>"; };
@@ -36,6 +38,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C93EC6F71E9FEF2C009644C0 /* libzip_iOS in Frameworks */,
+				39B710ED215E11050086A3A0 /* libGCDWebServer.a in Frameworks */,
 				71699D914198EFE42C45AB83 /* libPods-TKLiveSync.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,6 +88,7 @@
 		CD5C757F1D489DC200BD4EFA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				39B710EC215E11050086A3A0 /* libGCDWebServer.a */,
 				C93EC6F61E9FEF2C009644C0 /* libzip_iOS */,
 				CD5C75801D489DF000BD4EFA /* libz.tbd */,
 				CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */,
