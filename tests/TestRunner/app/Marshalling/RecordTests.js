@@ -336,6 +336,13 @@ describe(module.id, function () {
 //        expect(di[3].toFixed(4)).toBe(5.5678.toFixed(4));
 
     });
+         
+//    it("SCNVector3", function(){
+//       var v = _SCNVector3ToFloat3({x: 1.23, y: 2.3456, z:3.4567});
+//       expect(v[0].toFixed(4)).toBe((1.2345).toFixed(4));
+//       expect(v[1].toFixed(4)).toBe((2.3456).toFixed(4));
+//       expect(v[2].toFixed(4)).toBe((3.4567).toFixed(4));
+//    });
 
     it("simd_float4x4Matrix", function(){
        var simdMatrix = getMatrixFloat4x4();

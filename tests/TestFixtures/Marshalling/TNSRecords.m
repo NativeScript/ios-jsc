@@ -348,3 +348,7 @@ StructWithVectorAndDouble getStructWithVectorAndDouble() {
     str.dbl = 1.67;
     return str;
 }
+
+vector_float3 _SCNVector3ToFloat3(SCNVector3 v) {
+    return SCNVector3ToFloat3(v);
+}

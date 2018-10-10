@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Jason Zhekov. All rights reserved.
 //
 
+#import <SceneKit/SceneKit.h>
 #import <simd/simd.h>
 
 typedef struct TNSSimpleStruct {
@@ -181,3 +182,4 @@ TNSStructWith2Floats getStructWith2Floats();
 TNSStructWith4Doubles getStructWith4Doubles();
 TNSStructWith3Doubles getStructWith3Doubles();
 TNSStructWith2Doubles getStructWith2Doubles();
+simd_float3 _SCNVector3ToFloat3(SCNVector3 v);
