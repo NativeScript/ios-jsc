@@ -19,7 +19,7 @@
 /* Begin PBXFileReference section */
 		27E6A05AEDCAAF1D55FCA431 /* Pods-TKLiveSync.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TKLiveSync.release.xcconfig"; path = "Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync.release.xcconfig"; sourceTree = "<group>"; };
 		39838D144633636813BC3093 /* libPods-TKLiveSync.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TKLiveSync.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		39B710EC215E11050086A3A0 /* libGCDWebServer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGCDWebServer.a; path = "GCDWebServer/libGCDWebServer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		39B710EC215E11050086A3A0 /* libGCDWebServer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGCDWebServer.a; path = libGCDWebServer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		C93EC6F61E9FEF2C009644C0 /* libzip_iOS */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzip_iOS; path = libzip_iOS.framework/libzip_iOS; sourceTree = "<group>"; };
 		CD0F75A91D4B7DB20095538D /* unzip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = unzip.cpp; sourceTree = "<group>"; };
 		CD0F75AA1D4B7DB20095538D /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unzip.h; sourceTree = "<group>"; };
@@ -121,7 +121,6 @@
 				CD5643071D181F240083EF6A /* Frameworks */,
 				CD5643081D181F240083EF6A /* Headers */,
 				CD5643091D181F240083EF6A /* Resources */,
-				30FBDF3619EC99324CE38858 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -174,21 +173,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		30FBDF3619EC99324CE38858 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		F96E5658F9A684E24450C7FA /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
