@@ -1,10 +1,11 @@
 #include "ClearChangedCellsFunctor.h"
 #include <JavaScriptCore/CodeBlock.h>
 #include <JavaScriptCore/ExecutableBase.h>
-#include <JavaScriptCore/FunctionCodeBlock.h>
 #include <JavaScriptCore/HeapInlines.h>
-#include <JavaScriptCore/JSModuleEnvironment.h>
 #include <JavaScriptCore/JSModuleRecord.h>
+#include <JavaScriptCore/bytecode/FunctionCodeBlock.h>
+#include <JavaScriptCore/runtime/JSModuleEnvironment.h>
+#include <JavaScriptCore/runtime/VM.h>
 
 namespace NativeScript {
 
@@ -54,8 +55,9 @@ void ClearChangedCellsFunctor::visit(JSC::HeapCell* heapCell) const {
                 functionCodeBlock->unlinkIncomingCalls();
             }
             executable->clearNumParametersForCall();
-            executable->clearCode();
-            executable->unlinkedExecutable()->clearCode();
+            auto& subspace = JSC::VM::ScriptExecutableSpaceAndSet::clearableCodeSetFor(*executable->subspace());
+            executable->clearCode(subspace);
+            executable->unlinkedExecutable()->clearCode(m_vm);
         }
     }
 }

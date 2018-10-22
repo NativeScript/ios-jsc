@@ -10,7 +10,7 @@
 
 namespace Inspector {
 InspectorPageAgent::InspectorPageAgent(JSAgentContext& context)
-    : Inspector::InspectorAgentBase(WTF::ASCIILiteral("Page"))
+    : Inspector::InspectorAgentBase("Page"_s)
     , m_frameIdentifier("NativeScriptMainFrameIdentifier")
     , m_frameUrl("http://main.xml")
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
@@ -176,7 +176,7 @@ void InspectorPageAgent::getResourceContent(ErrorString& errorString, const Stri
     WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
     auto iterator = resources.find(in_url);
     if (iterator == resources.end()) {
-        errorString = WTF::ASCIILiteral("No such item");
+        errorString = "No such item"_s;
 
         return;
     }

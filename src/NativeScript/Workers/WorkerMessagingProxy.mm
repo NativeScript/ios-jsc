@@ -239,7 +239,7 @@ void WorkerMessagingProxy::workerClosed() {
         JSC::ExecState* execState = _workerData->globalObject()->globalExec();
 
         JSC::CallData callData;
-        JSC::CallType callType = JSC::getCallData(onClose.asCell(), callData);
+        JSC::CallType callType = JSC::getCallData(execState->vm(), onClose.asCell(), callData);
         if (callType != JSC::CallType::None) {
             MarkedArgumentBuffer args;
             JSC::call(execState, onClose.asCell(), callType, callData, jsUndefined(), args);

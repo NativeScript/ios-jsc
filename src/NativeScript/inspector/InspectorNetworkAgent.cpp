@@ -3,7 +3,7 @@
 
 namespace Inspector {
 InspectorNetworkAgent::InspectorNetworkAgent(JSAgentContext& context)
-    : Inspector::InspectorAgentBase(ASCIILiteral("Network"))
+    : Inspector::InspectorAgentBase("Network"_s)
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
     this->m_frontendDispatcher = std::make_unique<NetworkFrontendDispatcher>(context.frontendRouter);
     this->m_backendDispatcher = NetworkBackendDispatcher::create(context.backendDispatcher, this);

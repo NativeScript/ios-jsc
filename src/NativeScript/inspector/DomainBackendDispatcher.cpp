@@ -39,7 +39,7 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<JS
     MarkedArgumentBuffer dispatchArguments;
 
     RefPtr<JSON::Object> paramsContainer;
-    message->getObject(ASCIILiteral("params"), paramsContainer);
+    message->getObject("params"_s, paramsContainer);
     if (paramsContainer) {
         dispatchArguments.append(JSONParse(globalExec, paramsContainer->toJSONString()));
     }
@@ -76,12 +76,12 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<JS
     if (!resultMessage.isEmpty()) {
         RefPtr<JSON::Value> parsedMessage;
         if (!JSON::Value::parseJSON(resultMessage, parsedMessage)) {
-            m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::ParseError, ASCIILiteral("Message must be in JSON format"));
+            m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::ParseError, "Message must be in JSON format"_s);
             return;
         }
 
         if (!parsedMessage->asObject(messageObject)) {
-            m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::InvalidRequest, ASCIILiteral("Message must be a JSONified object"));
+            m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::InvalidRequest, "Message must be a JSONified object"_s);
             return;
         }
     }

@@ -30,13 +30,13 @@
 #include <JavaScriptCore/InspectorAgentRegistry.h>
 #include <JavaScriptCore/InspectorEnvironment.h>
 #include <JavaScriptCore/InspectorFrontendRouter.h>
-#include <JavaScriptCore/JSGlobalObjectScriptDebugServer.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectScriptDebugServer.h>
 #include <wtf/Forward.h>
 #include <wtf/Noncopyable.h>
 #include <wtf/text/WTFString.h>
 
 #if ENABLE(INSPECTOR_ALTERNATE_DISPATCHERS)
-#include <JavaScriptCore/AugmentableInspectorController.h>
+#include <JavaScriptCore/inspector/augmentable/AugmentableInspectorController.h>
 #endif
 
 namespace Inspector {

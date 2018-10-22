@@ -205,7 +205,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
     if (!hasHandle) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "Unknown type"_s)));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -221,7 +221,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
     if (size == 0) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Unknown type"))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "Unknown type"_s)));
     }
 
     return JSValue::encode(jsNumber(size));
@@ -241,7 +241,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncBufferFromData(ExecState* execSta
         return JSValue::encode(buffer);
     }
 
-    return throwVMTypeError(execState, scope, WTF::ASCIILiteral("Argument must be an NSData instance."));
+    return throwVMTypeError(execState, scope, "Argument must be an NSData instance."_s);
 }
 
 void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
@@ -272,15 +272,15 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
     this->putDirect(vm, Identifier::fromString(&vm, "NSErrorWrapper"), this->_nsErrorWrapperConstructor.get());
 
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, &interopFuncAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("free")), 0, &interopFuncFree, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("adopt")), 0, &interopFuncAdopt, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("handleof")), 0, &interopFuncHandleof, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("sizeof")), 0, &interopFuncSizeof, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("bufferFromData")), 1, &interopFuncBufferFromData, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "alloc"_s), 0, &interopFuncAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "free"_s), 0, &interopFuncFree, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "adopt"_s), 0, &interopFuncAdopt, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "handleof"_s), 0, &interopFuncHandleof, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "sizeof"_s), 0, &interopFuncSizeof, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "bufferFromData"_s), 1, &interopFuncBufferFromData, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
 
     JSObject* types = constructEmptyObject(globalObject->globalExec());
-    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("types")), types, static_cast<unsigned>(PropertyAttribute::None));
+    this->putDirect(vm, Identifier::fromString(&vm, "types"_s), types, static_cast<unsigned>(PropertyAttribute::None));
 
     JSObject* voidType = globalObject->typeFactory()->voidType();
     types->putDirect(vm, Identifier::fromString(&vm, voidType->methodTable()->className(voidType)), voidType, static_cast<unsigned>(PropertyAttribute::None));
@@ -312,7 +312,7 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     types->putDirect(vm, Identifier::fromString(&vm, doubleType->methodTable()->className(doubleType)), doubleType, static_cast<unsigned>(PropertyAttribute::None));
 
     JSObject* objCIdType = globalObject->typeFactory()->NSObjectConstructor(globalObject);
-    types->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("id")), objCIdType, static_cast<unsigned>(PropertyAttribute::None));
+    types->putDirect(vm, Identifier::fromString(&vm, "id"_s), objCIdType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* objCProtocolType = globalObject->typeFactory()->objCProtocolType();
     types->putDirect(vm, Identifier::fromString(&vm, objCProtocolType->methodTable()->className(objCProtocolType)), objCProtocolType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* objCClassType = globalObject->typeFactory()->objCClassType();

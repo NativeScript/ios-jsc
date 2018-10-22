@@ -63,7 +63,7 @@ static Ref<Inspector::Protocol::Console::CallFrame> buildInspectorObject(const S
 }
 
 InspectorLogAgent::InspectorLogAgent(Inspector::JSAgentContext& context)
-    : InspectorAgentBase(ASCIILiteral("Log"))
+    : InspectorAgentBase("Log"_s)
     , m_injectedScriptManager(context.injectedScriptManager)
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
 

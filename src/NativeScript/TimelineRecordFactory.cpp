@@ -6,12 +6,12 @@ namespace Inspector {
 
 Ref<JSON::Object> TimelineRecordFactory::createGenericRecord(JSC::ExecState* state, double startTime, int maxCallStackDepth) {
     Ref<JSON::Object> record = JSON::Object::create();
-    record->setDouble(ASCIILiteral("startTime"), startTime);
+    record->setDouble("startTime"_s, startTime);
 
     if (maxCallStackDepth) {
         RefPtr<ScriptCallStack> stackTrace = createScriptCallStack(state, maxCallStackDepth);
         if (stackTrace && stackTrace->size())
-            record->setValue(ASCIILiteral("stackTrace"), stackTrace->buildInspectorArray());
+            record->setValue("stackTrace"_s, stackTrace->buildInspectorArray());
     }
     return record;
 }

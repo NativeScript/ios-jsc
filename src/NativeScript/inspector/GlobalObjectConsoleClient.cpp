@@ -171,7 +171,7 @@ void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& titl
 
 void GlobalObjectConsoleClient::timeStamp(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) {
     // FIXME: JSContext inspection needs a timeline.
-    warnUnimplemented(ASCIILiteral("console.timeStamp"));
+    warnUnimplemented("console.timeStamp"_s);
 }
 
 void GlobalObjectConsoleClient::warnUnimplemented(const String& method) {

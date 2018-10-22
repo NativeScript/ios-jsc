@@ -15,7 +15,7 @@
 #include "ObjCSuperObject.h"
 #include "ObjCTypes.h"
 #include "ObjCWrapperObject.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectInspectorController.h>
 
 namespace NativeScript {
 using namespace JSC;
@@ -84,7 +84,7 @@ static void objCProtocol_write(ExecState* execState, const JSValue& value, void*
     } else if (value.isUndefinedOrNull()) {
         *static_cast<Protocol**>(buffer) = nullptr;
     } else {
-        JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a protocol."));
+        JSValue exception = createError(execState, "Value is not a protocol."_s);
         auto scope = DECLARE_THROW_SCOPE(vm);
         scope.throwException(execState, exception);
         return;
@@ -121,7 +121,7 @@ static void objCClass_write(ExecState* execState, const JSValue& value, void* bu
     } else if (value.isUndefinedOrNull()) {
         *static_cast<Class*>(buffer) = nullptr;
     } else {
-        JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a class."));
+        JSValue exception = createError(execState, "Value is not a class."_s);
         auto scope = DECLARE_THROW_SCOPE(vm);
         scope.throwException(execState, exception);
         return;
@@ -156,7 +156,7 @@ static void objCSelector_write(ExecState* execState, const JSValue& value, void*
     } else {
         VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
-        JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a selector."));
+        JSValue exception = createError(execState, "Value is not a selector."_s);
         scope.throwException(execState, exception);
         return;
     }

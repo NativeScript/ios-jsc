@@ -29,7 +29,7 @@ void JSWorkerInstance::onmessage(JSC::ExecState* exec, JSC::JSValue message) {
     JSValue onMessageCallback = this->get(exec, _onmessageIdentifier);
 
     CallData callData;
-    CallType callType = JSC::getCallData(onMessageCallback, callData);
+    CallType callType = JSC::getCallData(exec->vm(), onMessageCallback, callData);
     if (callType == JSC::CallType::None) {
         return;
     }
@@ -49,7 +49,7 @@ void JSWorkerInstance::onerror(ExecState* execState, JSObject* error) {
     JSValue onErrorCallback = this->get(execState, _onerrorIdentifier);
 
     CallData callData;
-    CallType callType = JSC::getCallData(onErrorCallback, callData);
+    CallType callType = JSC::getCallData(execState->vm(), nErrorCallback, callData);
     if (callType == JSC::CallType::None) {
         return;
     }

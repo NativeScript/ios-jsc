@@ -21,7 +21,7 @@ void FFISimpleType::finishCreation(VM& vm, const WTF::String& name, const FFITyp
     this->_ffiTypeMethodTable = ffiTypeMethodTable;
 }
 
-WTF::String FFISimpleType::className(const JSObject* object) {
+WTF::String FFISimpleType::className(const JSObject* object, JSC::VM&) {
     const FFISimpleType* simpleType = jsCast<const FFISimpleType*>(object);
     return simpleType->_name;
 }

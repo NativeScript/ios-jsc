@@ -46,7 +46,7 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
     if (!hasHandle) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a function reference."));
+        JSValue exception = createError(execState, "Value is not a function reference."_s);
         scope.throwException(execState, exception);
         return;
     }

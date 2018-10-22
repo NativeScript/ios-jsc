@@ -20,9 +20,9 @@
 #include "inspector/GlobalObjectConsoleClient.h"
 #include "inspector/GlobalObjectInspectorController.h"
 #include <JavaScriptCore/APICast.h>
-#include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
+#include <JavaScriptCore/interpreter/Interpreter.h>
 
 static TNSUncaughtErrorHandler uncaughtErrorHandler;
 void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler) {

@@ -248,7 +248,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
 
         if (initializer && initializer.isCell()) {
             CallData callData;
-            CallType callType = JSC::getCallData(initializer, callData);
+            CallType callType = JSC::getCallData(execState->vm(), initializer, callData);
             ASSERT(callType != CallType::None);
 
             if (initializerArguments.size() == 1 && initializerArguments.at(0).isUndefined()) {
@@ -286,7 +286,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (candidateInitializers.size() == 0) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("No initializer found that matches constructor invocation."))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "No initializer found that matches constructor invocation."_s)));
     } else if (candidateInitializers.size() > 1) {
         WTF::StringBuilder errorMessage;
         errorMessage.append("More than one initializer found that matches constructor invocation:");

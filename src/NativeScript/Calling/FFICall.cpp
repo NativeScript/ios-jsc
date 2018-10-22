@@ -8,10 +8,10 @@
 
 #include "FFICall.h"
 #include "FFICache.h"
-#include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/interpreter/FrameTracers.h>
+#include <JavaScriptCore/interpreter/Interpreter.h>
 #include <dispatch/dispatch.h>
 #include <malloc/malloc.h>
 
@@ -196,14 +196,14 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
       if (Exception* exception = scope.exception()) {
           scope.clearException();
           CallData rejectCallData;
-          CallType rejectCallType = JSC::getCallData(deferred->reject(), rejectCallData);
+          CallType rejectCallType = JSC::getCallData(vm, deferred->reject(), rejectCallData);
 
           MarkedArgumentBuffer rejectArguments;
           rejectArguments.append(exception->value());
           JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->reject(), rejectCallType, rejectCallData, jsUndefined(), rejectArguments);
       } else {
           CallData resolveCallData;
-          CallType resolveCallType = JSC::getCallData(deferred->resolve(), resolveCallData);
+          CallType resolveCallType = JSC::getCallData(vm, deferred->resolve(), resolveCallData);
 
           MarkedArgumentBuffer resolveArguments;
           resolveArguments.append(result);

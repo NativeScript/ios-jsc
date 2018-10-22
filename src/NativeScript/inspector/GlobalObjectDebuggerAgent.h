@@ -26,7 +26,7 @@
 #ifndef GlobalObjectDebuggerAgent_h
 #define GlobalObjectDebuggerAgent_h
 
-#include <JavaScriptCore/JSGlobalObjectScriptDebugServer.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectScriptDebugServer.h>
 #include <JavaScriptCore/inspector/agents/InspectorDebuggerAgent.h>
 
 namespace Inspector {

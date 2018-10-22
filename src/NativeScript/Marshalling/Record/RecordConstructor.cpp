@@ -12,7 +12,7 @@
 #include "RecordField.h"
 #include "RecordInstance.h"
 #include "RecordPrototype.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectInspectorController.h>
 #include <sstream>
 
 namespace NativeScript {
@@ -77,7 +77,7 @@ static EncodedJSValue JSC_HOST_CALL recordConstructorFuncEquals(ExecState* execS
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() != 2) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Two arguments required."))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "Two arguments required."_s)));
     }
 
     RecordConstructor* recordConstructor = jsCast<RecordConstructor*>(execState->thisValue());
@@ -178,7 +178,7 @@ void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, Rec
 
     this->putDirect(vm, vm.propertyNames->prototype, recordPrototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
     this->putDirect(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("equals")), 0, recordConstructorFuncEquals, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "equals"_s), 0, recordConstructorFuncEquals, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
     this->_instancesStructure.set(vm, this, RecordInstance::createStructure(globalObject, recordPrototype));
 }
@@ -212,7 +212,7 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() != 1) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("One argument required."))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "One argument required."_s)));
     }
 
     const JSValue value = execState->argument(0);

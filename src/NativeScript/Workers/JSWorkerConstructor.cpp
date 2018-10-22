@@ -54,7 +54,7 @@ EncodedJSValue JSC_HOST_CALL JSWorkerConstructor::callJSWorker(ExecState* exec) 
 const ClassInfo JSWorkerConstructor::s_info = { "WorkerConstructor", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWorkerConstructor) };
 
 void JSWorkerConstructor::finishCreation(VM& vm, JSWorkerPrototype* prototype) {
-    Base::finishCreation(vm, WTF::ASCIILiteral("Worker"));
+    Base::finishCreation(vm, "Worker"_s);
 
     this->putDirect(vm, vm.propertyNames->prototype, prototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
     this->putDirect(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum);

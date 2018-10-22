@@ -35,7 +35,7 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    static WTF::String className(const JSObject* object);
+    static WTF::String className(const JSObject* object, JSC::VM&);
 
     void materializeProperties(JSC::VM& vm, GlobalObject* globalObject);
 

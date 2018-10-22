@@ -119,7 +119,7 @@ static bool isValidType(ExecState* execState, JSValue& value) {
     auto scope = DECLARE_THROW_SCOPE(vm);
     const FFITypeMethodTable* table;
     if (!tryGetFFITypeMethodTable(vm, value, &table)) {
-        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Invalid type")));
+        scope.throwException(execState, createError(execState, "Invalid type"_s));
         return false;
     }
     return true;
@@ -209,7 +209,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     if (!baseConstructor.inherits(vm, ObjCConstructorNative::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Extends is supported only for native classes.")));
+        scope.throwException(execState, createError(execState, "Extends is supported only for native classes."_s));
         return;
     }
 
@@ -273,7 +273,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (!protocolsArray.inherits(vm, JSArray::info())) {
-        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The protocols property must be an array")));
+        scope.throwException(execState, createError(execState, "The protocols property must be an array"_s));
         return;
     }
 

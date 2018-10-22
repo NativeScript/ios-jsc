@@ -21,7 +21,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
     auto scope = DECLARE_THROW_SCOPE(exec->vm());
 
     if (exec->argumentCount() < 1)
-        return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("postMessage function expects at least one argument.")));
+        return throwVMError(exec, scope, createError(exec, "postMessage function expects at least one argument."_s));
 
     JSValue message = exec->argument(0);
     JSArray* transferList = nullptr;
@@ -29,7 +29,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerGlobalObjectPostMessage(ExecState* e
     if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
         JSValue arg2 = exec->argument(1);
         if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(exec->vm(), arg2.asCell()))) {
-            return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
+            return throwVMError(exec, scope, createError(exec, "The second parameter of postMessage must be array, null or undefined."_s));
         }
     }
 
@@ -64,7 +64,7 @@ void JSWorkerGlobalObject::onmessage(ExecState* exec, JSValue message) {
     JSValue onMessageCallback = this->get(exec, _onmessageIdentifier);
 
     CallData callData;
-    CallType callType = JSC::getCallData(onMessageCallback, callData);
+    CallType callType = JSC::getCallData(execState->vm(), onMessageCallback, callData);
     if (callType == JSC::CallType::None) {
         return;
     }

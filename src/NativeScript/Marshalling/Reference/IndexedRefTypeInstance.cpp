@@ -56,7 +56,7 @@ void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, v
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a reference."));
+        JSValue exception = createError(execState, "Value is not a reference."_s);
         scope.throwException(execState, exception);
         return;
     }

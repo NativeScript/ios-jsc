@@ -32,7 +32,7 @@ public:
         return this->_ffiTypeMethodTable;
     }
 
-    static WTF::String className(const JSC::JSObject*);
+    static WTF::String className(const JSC::JSObject*, JSC::VM&);
 
 private:
     FFISimpleType(JSC::VM& vm, JSC::Structure* structure)

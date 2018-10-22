@@ -30,7 +30,7 @@ EncodedJSValue JSC_HOST_CALL FastEnumerationIteratorPrototypeFuncNext(ExecState*
 
     auto iterator = jsDynamicCast<ObjCFastEnumerationIterator*>(vm, execState->thisValue());
     if (!iterator)
-        return JSValue::encode(throwTypeError(execState, scope, ASCIILiteral("Cannot call NSFastEnumerationIterator.next() on a non-NSFastEnumerationIterator object")));
+        return JSValue::encode(throwTypeError(execState, scope, "Cannot call NSFastEnumerationIterator.next() on a non-NSFastEnumerationIterator object"_s));
 
     JSValue result;
     if (iterator->next(execState, result)) {
