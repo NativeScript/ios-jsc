@@ -90,7 +90,7 @@ EncodedJSValue JSC_HOST_CALL sendEvent(ExecState* execState) {
 EncodedJSValue JSC_HOST_CALL inspectorTimestamp(ExecState* execState) {
     NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
 
-    JSValue elapsedTime = jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime());
+    JSValue elapsedTime = jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime().value());
 
     return JSValue::encode(elapsedTime);
 }

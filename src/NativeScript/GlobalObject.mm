@@ -92,7 +92,10 @@ const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, nu
 
 const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderImportModule, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderCreateImportMetaProperties, &moduleLoaderEvaluate, nullptr /*promiseRejectionTracker*/, &defaultLanguage };
+const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript,
+                                                                        &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderImportModule,
+                                                                        &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderCreateImportMetaProperties, &moduleLoaderEvaluate,
+                                                                        nullptr /*promiseRejectionTracker*/, &defaultLanguage, nullptr /*compileStreaming*/, nullptr /*instantiateStreaming*/ };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
     : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable) {
@@ -218,7 +221,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     NSObjectPrototype->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, descriptionFunctionArgs), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     MarkedArgumentBuffer staticDescriptionFunctionArgs;
-    staticDescriptionFunctionArgs.append(jsString(globalExec, "return Function.prototype.toString.call(this);"_s)));
+    staticDescriptionFunctionArgs.append(jsString(globalExec, "return Function.prototype.toString.call(this);"_s));
     NSObjectConstructor->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, staticDescriptionFunctionArgs), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     NSObjectConstructor->setPrototypeDirect(vm, NSObjectPrototype);

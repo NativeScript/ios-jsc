@@ -64,7 +64,7 @@ void JSWorkerGlobalObject::onmessage(ExecState* exec, JSValue message) {
     JSValue onMessageCallback = this->get(exec, _onmessageIdentifier);
 
     CallData callData;
-    CallType callType = JSC::getCallData(execState->vm(), onMessageCallback, callData);
+    CallType callType = JSC::getCallData(exec->vm(), onMessageCallback, callData);
     if (callType == JSC::CallType::None) {
         return;
     }

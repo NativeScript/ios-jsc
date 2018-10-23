@@ -25,7 +25,7 @@ void ObjCProtocolWrapper::finishCreation(VM& vm, ObjCPrototype* prototype, const
     this->_protocol = aProtocol;
 }
 
-WTF::String ObjCProtocolWrapper::className(const JSObject* object) {
+WTF::String ObjCProtocolWrapper::className(const JSObject* object, VM&) {
     ObjCProtocolWrapper* protocolWrapper = (ObjCProtocolWrapper*)object;
     const char* protocolName = protocolWrapper->metadata()->name();
     return protocolName;

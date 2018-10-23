@@ -20,7 +20,7 @@ DomainBackendDispatcher::DomainBackendDispatcher(WTF::String domain, JSCell* con
     : SupplementalBackendDispatcher(context.backendDispatcher)
     , m_globalObject(context.inspectedGlobalObject) {
     ConstructData constructData;
-    ConstructType constructType = getConstructData(constructorFunction, constructData);
+    ConstructType constructType = JSC::getConstructData(m_globalObject.vm(), constructorFunction, constructData);
     MarkedArgumentBuffer constructArgs;
 
     JSObject* domainDispatcher = construct(m_globalObject.globalExec(), constructorFunction, constructType, constructData, constructArgs);
@@ -57,7 +57,7 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<JS
     }
 
     CallData dispatchCallData;
-    CallType dispatchCallType = getCallData(functionValue, dispatchCallData);
+    CallType dispatchCallType = getCallData(globalExec->vm(), functionValue, dispatchCallData);
     WTF::NakedPtr<Exception> exception;
     JSValue dispatchResult;
 

@@ -256,7 +256,7 @@ void InspectorTimelineAgent::didCompleteRecordEntry(const TimelineRecordEntry& e
 }
 
 double InspectorTimelineAgent::timestamp() {
-    return m_globalObject.inspectorController().executionStopwatch()->elapsedTime();
+    return m_globalObject.inspectorController().executionStopwatch()->elapsedTime().value();
 }
 
 InspectorTimelineAgent::TimelineRecordEntry InspectorTimelineAgent::createRecordEntry(RefPtr<JSON::Object>&& data, TimelineRecordType type, bool captureCallStack) {

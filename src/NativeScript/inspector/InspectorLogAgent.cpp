@@ -135,7 +135,7 @@ void InspectorLogAgent::addMessageToFrontend(ConsoleMessage* consoleMessage) {
                                                           .setSource(messageSourceValue(consoleMessage->source()))
                                                           .setLevel(messageLevelValue(consoleMessage->level()))
                                                           .setText(consoleMessage->message())
-                                                          .setTimestamp(m_globalObject.inspectorController().executionStopwatch()->elapsedTime())
+                                                          .setTimestamp(m_globalObject.inspectorController().executionStopwatch()->elapsedTime().value())
                                                           .release();
 
     jsonObj->setLineNumber(static_cast<int>(consoleMessage->line()) - 1);

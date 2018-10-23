@@ -49,7 +49,7 @@ static WTF::String smartStringifyObject(ExecState* exec, JSC::JSValue value) {
 }
 
 static WTF::String getStringRepresentationOfObject(JSC::ExecState* exec, JSC::JSValue value) {
-    if (value.isFunction()) {
+    if (value.isFunction(exec->vm())) {
         return "()";
     } else if (value.inherits(exec->vm(), JSC::JSArray::info())) {
         JSC::JSArray* arrayValue = jsCast<JSC::JSArray*>(value);
@@ -217,11 +217,11 @@ WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType ty
 
     if (type == JSC::MessageType::Dir) {
         // don't enumerate args as console.dir supports only one argument
-        JSC::JSValue argumentValue = arguments->argumentAt(0).jsValue();
+        JSC::JSValue argumentValue = arguments->argumentAt(0);
         builder.append(this->getDirMessage(exec, argumentValue));
     } else {
         for (size_t i = 0; i < arguments->argumentCount(); ++i) {
-            String argAsString = arguments->argumentAt(i).toString(arguments->globalState());
+            String argAsString = arguments->argumentAt(i).toWTFString(arguments->globalState());
             if (i > 0) {
                 builder.append(' ');
             }

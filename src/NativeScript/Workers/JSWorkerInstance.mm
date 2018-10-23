@@ -49,7 +49,7 @@ void JSWorkerInstance::onerror(ExecState* execState, JSObject* error) {
     JSValue onErrorCallback = this->get(execState, _onerrorIdentifier);
 
     CallData callData;
-    CallType callType = JSC::getCallData(execState->vm(), nErrorCallback, callData);
+    CallType callType = JSC::getCallData(execState->vm(), onErrorCallback, callData);
     if (callType == JSC::CallType::None) {
         return;
     }

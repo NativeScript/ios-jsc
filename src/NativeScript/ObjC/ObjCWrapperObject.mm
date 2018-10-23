@@ -25,7 +25,7 @@ void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* g
     this->_objectMap->set(wrappedObject, this);
 }
 
-WTF::String ObjCWrapperObject::className(const JSObject* object) {
+WTF::String ObjCWrapperObject::className(const JSObject* object, VM&) {
     Class klass = [jsCast<const ObjCWrapperObject*>(object)->_wrappedObject.get() class];
     return class_getName(klass);
 }

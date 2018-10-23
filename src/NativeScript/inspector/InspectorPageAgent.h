@@ -31,6 +31,7 @@ public:
     virtual void searchInResource(ErrorString&, const String& frameId, const String& url, const String& query, const bool* const optionalCaseSensitive, const bool* const optionalIsRegex, const String* const optionalRequestId, RefPtr<JSON::ArrayOf<Inspector::Protocol::GenericTypes::SearchMatch>>&) override;
     virtual void searchInResources(ErrorString&, const String&, const bool* const caseSensitive, const bool* const isRegex, RefPtr<JSON::ArrayOf<Inspector::Protocol::Page::SearchResult>>&) override;
     virtual void setShowPaintRects(ErrorString&, bool in_result) override;
+    virtual void setShowRulers(ErrorString&, bool in_result) override;
 
     virtual void setEmulatedMedia(ErrorString&, const String& in_media) override;
     virtual void getCompositingBordersVisible(ErrorString&, bool* out_result) override;

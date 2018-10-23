@@ -35,7 +35,7 @@ void IndexedRefInstance::createBackingStorage(VM& vm, GlobalObject* globalObject
     this->_pointer->setAdopted(true);
 
     PropertySlot propertySlot(this, PropertySlot::InternalMethodType::GetOwnProperty);
-    if (this->methodTable()->getOwnPropertySlot(this, execState, execState->vm().propertyNames->value, propertySlot)) {
+    if (this->methodTable(vm)->getOwnPropertySlot(this, execState, execState->vm().propertyNames->value, propertySlot)) {
         this->_ffiTypeMethodTable.write(execState, propertySlot.getValue(execState, execState->vm().propertyNames->value), this->data(), this->_innerTypeCell.get());
 
         Base::deleteProperty(this, execState, vm.propertyNames->value);

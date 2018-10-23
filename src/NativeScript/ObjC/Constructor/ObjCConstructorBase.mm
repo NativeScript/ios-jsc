@@ -139,7 +139,7 @@ void ObjCConstructorBase::finishCreation(VM& vm, JSGlobalObject* globalObject, J
     }
 }
 
-WTF::String ObjCConstructorBase::className(const JSObject* object) {
+WTF::String ObjCConstructorBase::className(const JSObject* object, VM&) {
     return [NSStringFromClass(((ObjCConstructorBase*)object)->_klass) stringByAppendingString:@"Constructor"];
 }
 
@@ -299,7 +299,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
         ObjCConstructorCall* initializer = candidateInitializers[0];
 
         CallData callData;
-        CallType callType = initializer->methodTable()->getCallData(initializer, callData);
+        CallType callType = initializer->methodTable(vm)->getCallData(initializer, callData);
         return JSValue::encode(call(execState, initializer, callType, callData, constructor, execState));
     }
 }

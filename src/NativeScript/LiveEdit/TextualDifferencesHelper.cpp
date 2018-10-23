@@ -263,7 +263,7 @@ public:
     }
 
     int length() {
-        return ends_array_->size() + 1;
+        return ends_array_.size() + 1;
     }
     // Returns start for any line including start of the imaginary line after
     // the last line.
@@ -275,7 +275,7 @@ public:
         }
     }
     int GetLineEnd(int index) {
-        if ((size_t)index == ends_array_->size()) {
+        if ((size_t)index == ends_array_.size()) {
             // End of the last line is always an end of the whole string.
             // If the string ends with a new line character, the last line is an
             // empty string after this character.
@@ -286,11 +286,11 @@ public:
     }
 
 private:
-    std::unique_ptr<Vector<size_t>> ends_array_;
+    Vector<size_t> ends_array_;
     int string_len_;
 
     int GetPosAfterNewLine(int index) {
-        return ends_array_->at(index) + 1;
+        return ends_array_.at(index) + 1;
     }
 };
 

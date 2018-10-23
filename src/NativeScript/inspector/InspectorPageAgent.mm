@@ -34,7 +34,7 @@ void InspectorPageAgent::disable(ErrorString&) {
 void InspectorPageAgent::reload(ErrorString&, const bool* const optionalReloadFromOrigin, const bool* const optionalRevalidateAllResources) {
     JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&m_globalObject.vm(), "__onLiveSync"));
     JSC::CallData callData;
-    JSC::CallType callType = getCallData(liveSyncCallback, callData);
+    JSC::CallType callType = getCallData(m_globalObject.vm(), liveSyncCallback, callData);
     if (callType == JSC::CallType::None) {
         JSC::JSValue error = JSC::createError(m_globalObject.globalExec(), "global.__onLiveSync is not a function.");
         m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), JSC::Exception::create(m_globalObject.globalExec()->vm(), error));
@@ -139,6 +139,10 @@ void InspectorPageAgent::searchInResources(ErrorString&, const String& in_text, 
 }
 
 void InspectorPageAgent::setShowPaintRects(ErrorString&, bool in_result) {
+    ASSERT_NOT_REACHED();
+}
+
+void InspectorPageAgent::setShowRulers(ErrorString&, bool in_result) {
     ASSERT_NOT_REACHED();
 }
 

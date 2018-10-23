@@ -33,11 +33,11 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
         auto scope = DECLARE_CATCH_SCOPE(vm);
 
-        JSValue iteratorFunction = wrapper->get(execState, execState->vm().propertyNames->iteratorSymbol);
+        JSValue iteratorFunction = wrapper->get(execState, vm.propertyNames->iteratorSymbol);
         reportErrorIfAny(execState, scope);
 
         CallData iteratorFunctionCallData;
-        CallType iteratorFunctionCallType = getCallData(iteratorFunction, iteratorFunctionCallData);
+        CallType iteratorFunctionCallType = getCallData(vm, iteratorFunction, iteratorFunctionCallData);
         if (iteratorFunctionCallType == CallType::None) {
             reportFatalErrorBeforeShutdown(execState, Exception::create(execState->vm(), createTypeError(execState)));
         }
