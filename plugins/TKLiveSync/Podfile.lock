@@ -6,9 +6,13 @@ PODS:
 DEPENDENCIES:
   - GCDWebServer (~> 3.4)
 
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - GCDWebServer
+
 SPEC CHECKSUMS:
   GCDWebServer: 8d67ee9f634b4bb91eb4b8aee440318a5fc6debd
 
 PODFILE CHECKSUM: f5ca86f956288d6d48fd6aa384d742ee2b5999b3
 
-COCOAPODS: 1.4.0
+COCOAPODS: 1.5.3

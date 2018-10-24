@@ -7,6 +7,26 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.0.0
+=====
+
+## Breaking Changes
+* [Drop iOS Inspector support for macOS Sierra](https://github.com/NativeScript/ios-runtime/issues/988)
+
+## What's New
+* [Update WebKit to iOS 11.4](https://github.com/NativeScript/ios-runtime/pull/936)
+* [Typings generation improvements](https://github.com/NativeScript/ios-runtime/pull/986). Related to [Typings for NSArray and NSDictionary](https://github.com/NativeScript/NativeScript/issues/6001)
+
+## Bug Fixes
+* **marshalling** [Keep strong references to assigned values in ReferenceInstance](https://github.com/NativeScript/ios-runtime/commit/0e9c74b)
+* **marshalling** [Native app embedding {N} crashes when opening a modal](https://github.com/NativeScript/NativeScript/issues/6019)
+* **project-template** [Set IPHONEOS_DEPLOYMENT_TARGET to 9.0](https://github.com/NativeScript/ios-runtime/pull/994/commits/1b3722280eee3aba605d08cdfa6239e2f6c5b68d)
+* **LiveSync** [Set IPHONEOS_DEPLOYMENT_TARGET to 9.0](https://github.com/NativeScript/ios-runtime/pull/994/commits/5c25b8597abd758f563158bacb627ceedd368ca4)
+* **LiveSync** [Disable modules debugging linker option for LiveSync library to resolve build warnings in {N} apps](https://github.com/NativeScript/ios-runtime/pull/994/commits/a342fb69ed101161c9a7d67a0c8e495211845fcc)
+* **libffi** [Correctly pass/return standalone vectors in native function calls](https://github.com/NativeScript/ios-runtime/pull/960)
+* **marshalling** [Reading collisionBoundingPath on UIView results in Objective C exception](https://github.com/NativeScript/ios-runtime/issues/978)
+
+
 4.2.0
 =====
 ## What's New
