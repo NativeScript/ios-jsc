@@ -9,6 +9,8 @@
 #ifndef __NativeScript__RecordPrototypeFunctions__
 #define __NativeScript__RecordPrototypeFunctions__
 
+#include "JavaScriptCore/IsoSubspace.h"
+
 namespace NativeScript {
 class RecordField;
 
@@ -23,6 +25,11 @@ public:
     }
 
     DECLARE_INFO;
+
+    template <typename CellType>
+    static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
+        return &vm.tnsRecordProtoFieldGetterSpace;
+    }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
@@ -61,6 +68,11 @@ public:
     }
 
     DECLARE_INFO;
+
+    template <typename CellType>
+    static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
+        return &vm.tnsRecordProtoFieldSetterSpace;
+    }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
