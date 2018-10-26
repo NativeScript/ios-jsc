@@ -4,6 +4,7 @@
 #include <JavaScriptCore/HeapInlines.h>
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/bytecode/FunctionCodeBlock.h>
+#include <JavaScriptCore/heap/IsoCellSetInlines.h>
 #include <JavaScriptCore/runtime/JSModuleEnvironment.h>
 #include <JavaScriptCore/runtime/VM.h>
 
