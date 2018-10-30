@@ -6,9 +6,6 @@ function build {
     local ARCH=$1
     local BINARY_DIR="build_$PLATFORM_NAME-$ARCH-$CONFIGURATION"
 
-    if [ -f "$BINARY_DIR/.libs/libffi.a" ]; then
-        return 0
-    fi
 
     local TRIPLE
     if [ "$ARCH" == "i386" ]; then
@@ -24,7 +21,9 @@ function build {
         exit 1
     fi
 
-    autoreconf -i
+    if [ ! -e ./configure ]; then 
+        autoreconf -i
+    fi
 
     mkdir -p "$BINARY_DIR" && pushd "$_"
 
@@ -40,7 +39,10 @@ function build {
             CFLAGS="$CFLAGS -g"
         fi
 
-        ./../configure --disable-shared --host="$TRIPLE"
+        if [ ! -e Makefile ]; then
+            ./../configure --disable-shared --host="$TRIPLE"
+        fi
+
         make
     )
 
