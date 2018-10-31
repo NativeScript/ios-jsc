@@ -156,3 +156,8 @@ _incrementFloat2
 _incrementFloat3
 _incrementFloat4
 __SCNVector3ToFloat3
+__SCNVector4ToFloat4
+__SCNMatrix4ToMat4
+__SCNVector3FromFloat3
+__SCNVector4FromFloat4
+__SCNMatrix4FromMat4

@@ -317,10 +317,10 @@ describe(module.id, function () {
         expect(d[0].toFixed(4)).toBe(1.2345.toFixed(4));
         expect(d[1].toFixed(4)).toBe(2.3456.toFixed(4));
         expect(d[2].toFixed(4)).toBe(3.4567.toFixed(4));
-//        var di = incrementDouble3(d);
-//        expect(di[0].toFixed(4)).toBe(2.2345.toFixed(4));
-//        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
-//        expect(di[2].toFixed(4)).toBe(4.4567.toFixed(4));
+        var di = incrementDouble3(d);
+        expect(di[0].toFixed(4)).toBe(2.2345.toFixed(4));
+        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
+        expect(di[2].toFixed(4)).toBe(4.4567.toFixed(4));
     });
 
     it("simd_double4", function(){
@@ -329,20 +329,43 @@ describe(module.id, function () {
         expect(d[1].toFixed(4)).toBe(2.3456.toFixed(4));
         expect(d[2].toFixed(4)).toBe(3.4567.toFixed(4));
         expect(d[3].toFixed(4)).toBe(4.5678.toFixed(4));
-//        var di = incrementDouble4(d);
-//        expect(di[0].toFixed(4)).toBe(2.2345.toFixed(4));
-//        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
-//        expect(di[2].toFixed(4)).toBe(4.4567.toFixed(4));
-//        expect(di[3].toFixed(4)).toBe(5.5678.toFixed(4));
+        var di = incrementDouble4(d);
+        expect(di[0].toFixed(4)).toBe(2.2345.toFixed(4));
+        expect(di[1].toFixed(4)).toBe(3.3456.toFixed(4));
+        expect(di[2].toFixed(4)).toBe(4.4567.toFixed(4));
+        expect(di[3].toFixed(4)).toBe(5.5678.toFixed(4));
 
     });
-         
-//    it("SCNVector3", function(){
-//       var v = _SCNVector3ToFloat3({x: 1.23, y: 2.3456, z:3.4567});
-//       expect(v[0].toFixed(4)).toBe((1.2345).toFixed(4));
-//       expect(v[1].toFixed(4)).toBe((2.3456).toFixed(4));
-//       expect(v[2].toFixed(4)).toBe((3.4567).toFixed(4));
-//    });
+
+    it("SCNVector3ToFloat3", function() {
+        var v = _SCNVector3ToFloat3({x: 1.23, y: 2.3456, z:3.4567});
+        expect(v[0].toFixed(4)).toBe((1.23).toFixed(4));
+        expect(v[1].toFixed(4)).toBe((2.3456).toFixed(4));
+        expect(v[2].toFixed(4)).toBe((3.4567).toFixed(4));
+    });
+
+    it("SCNVector4ToFloat4", function() {
+        var v = _SCNVector4ToFloat4({x: 1.23, y: 2.3456, z:3.4567, w: 4.5678});
+        expect(v[0].toFixed(4)).toBe((1.23).toFixed(4));
+        expect(v[1].toFixed(4)).toBe((2.3456).toFixed(4));
+        expect(v[2].toFixed(4)).toBe((3.4567).toFixed(4));
+        expect(v[3].toFixed(4)).toBe((4.5678).toFixed(4));
+    });
+
+    it("SCNVector3FromFloat3", function() {
+        var v = _SCNVector3FromFloat3(getFloat3());
+        expect(v.x.toFixed(4)).toBe((1.2345).toFixed(4));
+        expect(v.y.toFixed(4)).toBe((2.3456).toFixed(4));
+        expect(v.z.toFixed(4)).toBe((3.4567).toFixed(4));
+    });
+
+    it("SCNVector4FromFloat4", function() {
+        var v = _SCNVector4FromFloat4(getFloat4());
+        expect(v.x.toFixed(4)).toBe((1.2345).toFixed(4));
+        expect(v.y.toFixed(4)).toBe((2.3456).toFixed(4));
+        expect(v.z.toFixed(4)).toBe((3.4567).toFixed(4));
+        expect(v.w.toFixed(4)).toBe((4.5678).toFixed(4));
+    });
 
     it("simd_float4x4Matrix", function(){
        var simdMatrix = getMatrixFloat4x4();
@@ -469,6 +492,34 @@ describe(module.id, function () {
           expect(simdMatrix.columns[i%2][Math.floor(i/2)].toFixed(4)).toBe((i*3.1415).toFixed(4));
         }
      });
+
+     it("SCNMatrix4FromMat4", function() {
+        const m1 = getMatrixFloat4x4();
+        const m2 = _SCNMatrix4FromMat4(m1);
+
+        for (let col = 0; col < 4; col++) {
+            for (let row = 0; row < 4; row++) {
+                expect(m2[`m${col+1}${row+1}`].toFixed(4)).toBe((m1.columns[col][row]).toFixed(4));
+            }
+        }
+    });
+
+    it("SCNMatrix4ToMat4", function() {
+        const m1 = {};
+        for (let col = 0; col < 4; col++) {
+            for (let row = 0; row < 4; row++) {
+                m1[`m${col+1}${row+1}`] = 3.1415*(row*4 + col);
+            }
+        }
+
+        const m2 = _SCNMatrix4ToMat4(m1);
+
+        for (let col = 0; col < 4; col++) {
+            for (let row = 0; row < 4; row++) {
+                expect((m2.columns[col][row]).toFixed(4)).toBe(m1[`m${col+1}${row+1}`].toFixed(4));
+            }
+        }
+    });
 
     // TODO
     // it("ComplexStruct", function() {
