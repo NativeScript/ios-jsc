@@ -10,6 +10,7 @@
 #define __NativeScript__FFICache__
 
 #include "FFIType.h"
+#include <chrono>
 #include <vector>
 
 namespace NativeScript {
@@ -30,10 +31,23 @@ class FFICache {
 
 public:
     typedef std::unordered_map<std::vector<const ffi_type*>, std::shared_ptr<ffi_cif>, SignatureHash> FFIMap;
-    FFIMap cifCache;
 
     static FFICache* global();
+
+    FFIMap& cifCache() {
+        return this->_cifCache;
+    }
+
+    WTF::Lock& cacheLock() {
+        return this->_cacheLock;
+    }
+
+    void cleanup();
+
+private:
     WTF::Lock _cacheLock;
+    FFIMap _cifCache;
+    std::chrono::steady_clock::time_point _lastCleanup = std::chrono::steady_clock::now();
 };
 
 } // namespace NativeScript

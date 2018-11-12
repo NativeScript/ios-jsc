@@ -8,6 +8,7 @@
 
 #include "GlobalObject.h"
 #include "AllocatedPlaceholder.h"
+#include "FFICache.h"
 #include "FFICallPrototype.h"
 #include "FFIFunctionCall.h"
 #include "FFIFunctionCallback.h"
@@ -121,6 +122,8 @@ static void microtaskRunLoopSourcePerformWork(void* context) {
 }
 
 static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void* info) {
+    FFICache::global()->cleanup();
+
     GlobalObject* self = static_cast<GlobalObject*>(info);
     JSC::JSLockHolder lock(self->vm());
     VMEntryScope* currentEntryScope = self->vm().entryScope;

@@ -75,27 +75,27 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
 
 std::shared_ptr<ffi_cif> FFICall::getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes) {
 
-    WTF::LockHolder lock(FFICache::global()->_cacheLock);
-    FFICache::FFIMap::const_iterator it = FFICache::global()->cifCache.find(this->signatureVector);
+    WTF::LockHolder lock(FFICache::global()->cacheLock());
+    FFICache::FFIMap::const_iterator it = FFICache::global()->cifCache().find(this->signatureVector);
 
-    if (it == FFICache::global()->cifCache.end()) {
+    if (it == FFICache::global()->cifCache().end()) {
         std::shared_ptr<ffi_cif> shared(new ffi_cif, deleteCif);
         ffi_prep_cif(shared.get(), FFI_DEFAULT_ABI, nargs, rtype, atypes);
-        FFICache::global()->cifCache[this->signatureVector] = shared;
+        FFICache::global()->cifCache()[this->signatureVector] = shared;
     }
 
-    return FFICache::global()->cifCache[this->signatureVector];
+    return FFICache::global()->cifCache()[this->signatureVector];
 }
 
 FFICall::~FFICall() {
-    WTF::LockHolder lock(FFICache::global()->_cacheLock);
-    if (this->_cif.use_count() == 2) {
-        FFICache::FFIMap::const_iterator it;
-        it = FFICache::global()->cifCache.find(this->signatureVector);
-        if (it != FFICache::global()->cifCache.end()) {
-            FFICache::global()->cifCache.erase(it);
-        }
-    }
+    //    WTF::LockHolder lock(FFICache::global()->_cacheLock);
+    //    if (this->_cif.use_count() == 2) {
+    //        FFICache::FFIMap::const_iterator it;
+    //        it = FFICache::global()->cifCache.find(this->signatureVector);
+    //        if (it != FFICache::global()->cifCache.end()) {
+    //            FFICache::global()->cifCache.erase(it);
+    //        }
+    //    }
 }
 
 void FFICall::visitChildren(JSCell* cell, SlotVisitor& visitor) {
