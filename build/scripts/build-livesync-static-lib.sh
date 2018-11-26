@@ -33,6 +33,7 @@ xcodebuild \
     -quiet
 
 checkpoint "Packaging TKLiveSync.framework"
+rm -rf "$WORKSPACE/dist/TKLiveSync"
 mkdir -p "$WORKSPACE/dist/TKLiveSync/"
 cp -r "build/Release-iphoneos/TKLiveSync.framework/Headers" "$WORKSPACE/dist/TKLiveSync"
 mv "$WORKSPACE/dist/TKLiveSync/Headers" "$WORKSPACE/dist/TKLiveSync/include"
