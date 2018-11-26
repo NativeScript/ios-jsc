@@ -187,9 +187,9 @@ static bool IsValidReadableMemory(const void* inPtr) {
     }
 
     // Read the memory
-    vm_offset_t readMem = 0;
-    mach_msg_type_number_t size = 0;
-    error = vm_read(mach_task_self(), (vm_address_t)inPtr, sizeof(uintptr_t), &readMem, &size);
+    char buf[sizeof(uintptr_t)];
+    vm_size_t size = 0;
+    error = vm_read_overwrite(mach_task_self(), (vm_address_t)inPtr, sizeof(uintptr_t), (vm_address_t)buf, &size);
     if (error != KERN_SUCCESS) {
         // vm_read returned an error
         return false;
