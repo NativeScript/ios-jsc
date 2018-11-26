@@ -33,6 +33,9 @@ set(WEBKIT_CMAKE_ARGS
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DCMAKE_CXX_STANDARD=14
     -DCMAKE_CXX_STANDARD_REQUIRED=ON
+    # Override RelWithDebInfo configuration's defaults to the ones from NativeScript
+    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${CMAKE_CXX_FLAGS_RELWITHDEBINFO}
+
 )
 
 include(ExternalProject)
