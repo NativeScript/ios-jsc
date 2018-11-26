@@ -21,9 +21,18 @@ checkpoint "Packaging NativeScript.framework"
 mkdir -p "$DIST_DIR" && pushd "$_"
 cp -r "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework" "."
 rm "NativeScript.framework/NativeScript"
+
+# Strip debug information, dSYM package must be used for debugging and symbolicating
+strip -S -x "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphonesimulator/NativeScript.framework/NativeScript" \
+    "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework/NativeScript"
+echo "CodeSign $WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphonesimulator/NativeScript.framework/NativeScript"
+
+/usr/bin/codesign --force --sign - --timestamp=none "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphonesimulator/NativeScript.framework/NativeScript"
+
 lipo -create -output "NativeScript.framework/NativeScript" \
     "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphonesimulator/NativeScript.framework/NativeScript" \
     "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework/NativeScript"
+
 
 cp -r "$WORKSPACE/cmake-build/src/NativeScript/RelWithDebInfo-iphoneos/NativeScript.framework.dSYM" "."
 rm "NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript"
