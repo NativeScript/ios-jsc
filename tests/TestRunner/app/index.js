@@ -32,6 +32,8 @@ import "./Marshalling/Primitives/Derived";
 import "./Marshalling/ObjCTypesTests";
 import "./Marshalling/ConstantsTests";
 import "./Marshalling/RecordTests";
+import "./Marshalling/VectorTests";
+import "./Marshalling/MatrixTests";
 import "./Marshalling/NSStringTests";
 import "./Marshalling/TypesTests";
 import "./Marshalling/PointerTests";
