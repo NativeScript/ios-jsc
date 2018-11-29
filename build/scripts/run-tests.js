@@ -93,7 +93,7 @@ testrun.stdout.on('data', function(chunks) {
  
     chunks = leftover + chunks;
     chunks = chunks.replace(/\(lldb\)\s/g, '');
-    var lines = chunks.split('\n');
+    var lines = chunks.split(/\r?\n/);
     for(var i = 0; i < lines.length - 1; i++) {
         var line = lines[i];
 
@@ -106,7 +106,8 @@ testrun.stdout.on('data', function(chunks) {
         // if line.indexOf('App Start') reset the timeout function
         var index = line.indexOf(term);
         if (index <= 0) {
-            process.stdout.write(line + '\n');
+            if (line)
+                process.stdout.write(line + '\n');
         } else {
             if (line.indexOf("CONSOLE LOG") !== 0) {
                 // Each line is logged by the debugger twice (to console and to logs)
