@@ -348,3 +348,28 @@ StructWithVectorAndDouble getStructWithVectorAndDouble() {
     str.dbl = 1.67;
     return str;
 }
+
+simd_float3 _SCNVector3ToFloat3(SCNVector3 v) {
+    return SCNVector3ToFloat3(v);
+}
+
+simd_float4 _SCNVector4ToFloat4(SCNVector4 v) {
+    return SCNVector4ToFloat4(v);
+}
+
+simd_float4x4 _SCNMatrix4ToMat4(SCNMatrix4 m) {
+    return SCNMatrix4ToMat4(m);
+}
+
+SCNVector3 _SCNVector3FromFloat3(simd_float3 v) {
+    return SCNVector3FromFloat3(v);
+}
+
+SCNVector4 _SCNVector4FromFloat4(simd_float4 v) {
+    return SCNVector4FromFloat4(v);
+}
+
+SCNMatrix4 _SCNMatrix4FromMat4(simd_float4x4 m) {
+    return SCNMatrix4FromMat4(m);
+}
+
