@@ -320,17 +320,6 @@ describe(module.id, function () {
             'instance derivedCategoryProperty called'
         );
     });
-         
-    it("MethodOverrides: prototype with wrong parameters count", function () {
-            
-        var f = function() {
-            TNSBaseInterface.prototype.baseMethod = function(x, y) {
-                console.log(x);
-            }
-        }
-       
-        expect(f).toThrowError('Wrong argument count for native function with name "baseMethod".');
-    });
 
     it("MethodOverrides: prototype", function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({

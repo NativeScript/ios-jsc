@@ -1095,6 +1095,8 @@ describe(module.id, function () {
             this.z = z;
           }
         }).alloc().init();
+        
+        i.baseMethod(1,2,3)
 
         expect(i.x).toBeDefined();
         expect(i.y).toBeDefined();
