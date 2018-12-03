@@ -25,7 +25,7 @@ cp -r "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScr
 rm "NativeScript.framework/NativeScript"
 
 # Strip debug information, dSYM package must be used for debugging and symbolicating
-strip -S -x "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework/NativeScript" \
+strip -S "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework/NativeScript" \
     "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework/NativeScript"
 echo "CodeSign $WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework/NativeScript"
 
