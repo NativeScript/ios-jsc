@@ -41,7 +41,7 @@ lipo -create -output "NativeScript.framework.dSYM/Contents/Resources/DWARF/Nativ
     "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript" \
     "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript"
 
-tar -zcf NativeScript.framework.dSYM.tgz NativeScript.framework.dSYM
+zip -qr NativeScript.framework.dSYM.zip NativeScript.framework.dSYM
 rm -rf NativeScript.framework.dSYM
 
 popd
