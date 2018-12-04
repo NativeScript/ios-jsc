@@ -3,9 +3,9 @@
 set -e
 set -o pipefail
 
-CONFIGURATION="Release"
-
 source "$(dirname "$0")/common.sh"
+
+CONFIGURATION=$NATIVESCRIPT_XCODE_CONFIGURATION
 
 checkpoint "Building TestRunner application"
 
@@ -25,12 +25,14 @@ xcodebuild \
 -scheme "TestRunner" \
 ARCHS="armv7 arm64" \
 ONLY_ACTIVE_ARCH="NO" \
+-quiet \
 
 xcodebuild archive \
 -archivePath "$WORKSPACE/cmake-build/tests/TestRunner/$CONFIGURATION-iphoneos/TestRunner.xcarchive" \
 -configuration "$CONFIGURATION" \
 -sdk "iphoneos" \
--scheme "TestRunner"
+-scheme "TestRunner" \
+-quiet \
 
 popd
 
@@ -39,7 +41,8 @@ xcodebuild \
 -exportArchive \
 -archivePath "$WORKSPACE/cmake-build/tests/TestRunner/$CONFIGURATION-iphoneos/TestRunner.xcarchive" \
 -exportPath "$WORKSPACE/cmake-build/tests/TestRunner/$CONFIGURATION-iphoneos" \
--exportOptionsPlist "$WORKSPACE/cmake/ExportOptions.plist"
+-exportOptionsPlist "$WORKSPACE/cmake/ExportOptions.plist" \
+-quiet \
 
 cp "$WORKSPACE/cmake-build/tests/TestRunner/$CONFIGURATION-iphoneos/TestRunner.ipa" "$DIST_DIR"
 

@@ -12,6 +12,7 @@ function checkpoint {
 
 WORKSPACE=$(pwd)
 DIST_DIR="$WORKSPACE/dist"
+NATIVESCRIPT_XCODE_CONFIGURATION="RelWithDebInfo"
 
 if [ ! -d "$WORKSPACE/build/scripts" ]; then
     echo "This script must be run from the root of the repository."
