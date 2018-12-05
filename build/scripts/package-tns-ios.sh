@@ -10,6 +10,8 @@ PACKAGE_DIR="$DIST_DIR/package"
 FRAMEWORK_DIR="$PACKAGE_DIR/framework"
 INTERNAL_DIR="$FRAMEWORK_DIR/internal"
 
+# Start with a clean package directory
+rm -rf $PACKAGE_DIR
 mkdir -p "$INTERNAL_DIR"
 
 "$WORKSPACE/build/scripts/build-livesync-static-lib.sh"

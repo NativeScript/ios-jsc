@@ -272,7 +272,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = "armv7 arm64";
 			};
 			name = Debug;
 		};
@@ -307,7 +306,6 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = "armv7 arm64";
 			};
 			name = Release;
 		};
@@ -326,7 +324,6 @@
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = __PROJECT_NAME__;
-				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -342,7 +339,6 @@
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = __PROJECT_NAME__;
-				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
