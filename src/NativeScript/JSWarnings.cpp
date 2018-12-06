@@ -7,9 +7,9 @@
 //
 
 #include <JavaScriptCore/ConsoleClient.h>
-#include <JavaScriptCore/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptValue.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 
 namespace NativeScript {
 using namespace JSC;
@@ -21,8 +21,9 @@ void warn(ExecState* execState, const WTF::String& message) {
         Inspector::JSGlobalObjectConsoleClient::setLogToSystemConsole(false);
         restoreLogToSystemConsole = true;
     } else {
-        WTF::Vector<Deprecated::ScriptValue> arguments{ Deprecated::ScriptValue(execState->vm(), jsString(execState, message)) };
-        execState->lexicalGlobalObject()->consoleClient()->logWithLevel(execState, Inspector::ScriptArguments::create(execState, arguments), MessageLevel::Warning);
+        WTF::Vector<JSC::Strong<JSC::Unknown>> arguments{ JSC::Strong<JSC::Unknown>(execState->vm(), jsString(execState, message)) };
+        auto scriptArgs = Inspector::ScriptArguments::create(*execState, WTFMove(arguments));
+        execState->lexicalGlobalObject()->consoleClient()->logWithLevel(execState, WTFMove(scriptArgs), MessageLevel::Warning);
     }
 
     if (restoreLogToSystemConsole) {

@@ -48,10 +48,10 @@
 #include <JavaScriptCore/InspectorHeapAgent.h>
 #include <JavaScriptCore/InspectorScriptProfilerAgent.h>
 #include <JavaScriptCore/JSGlobalObject.h>
-#include <JavaScriptCore/JSGlobalObjectRuntimeAgent.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
+#include <JavaScriptCore/inspector/agents/JSGlobalObjectRuntimeAgent.h>
 #include <wtf/Stopwatch.h>
 
 #include <cxxabi.h>
@@ -90,7 +90,7 @@ EncodedJSValue JSC_HOST_CALL sendEvent(ExecState* execState) {
 EncodedJSValue JSC_HOST_CALL inspectorTimestamp(ExecState* execState) {
     NativeScript::GlobalObject* globalObject = jsCast<NativeScript::GlobalObject*>(execState->lexicalGlobalObject());
 
-    JSValue elapsedTime = jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime());
+    JSValue elapsedTime = jsNumber(globalObject->inspectorController().executionStopwatch()->elapsedTime().value());
 
     return JSValue::encode(elapsedTime);
 }
@@ -106,9 +106,9 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     , m_jsAgentContext(m_agentContext, m_globalObject)
 
 {
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__registerDomainDispatcher")), 2, &registerDispatcher, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorTimestamp")), 0, &inspectorTimestamp, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
-    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), WTF::ASCIILiteral("__inspectorSendEvent")), 1, &sendEvent, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), "__registerDomainDispatcher"_s), 2, &registerDispatcher, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), "__inspectorTimestamp"_s), 0, &inspectorTimestamp, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    globalObject.putDirectNativeFunction(globalObject.vm(), &globalObject, Identifier::fromString(&globalObject.vm(), "__inspectorSendEvent"_s), 1, &sendEvent, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);
@@ -229,9 +229,9 @@ void GlobalObjectInspectorController::appendAPIBacktrace(ScriptCallStack* callSt
         if (mangledName)
             cxaDemangled = abi::__cxa_demangle(mangledName, nullptr, nullptr, nullptr);
         if (mangledName || cxaDemangled)
-            callStack->append(ScriptCallFrame(cxaDemangled ? cxaDemangled : mangledName, ASCIILiteral("[native code]"), noSourceID, 0, 0));
+            callStack->append(ScriptCallFrame(cxaDemangled ? cxaDemangled : mangledName, "[native code]"_s, noSourceID, 0, 0));
         else
-            callStack->append(ScriptCallFrame(ASCIILiteral("?"), ASCIILiteral("[native code]"), noSourceID, 0, 0));
+            callStack->append(ScriptCallFrame("?"_s, "[native code]"_s, noSourceID, 0, 0));
         free(cxaDemangled);
     }
 #else

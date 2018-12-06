@@ -102,7 +102,7 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
     if (!(execState->thisValue().inherits(vm, ObjCConstructorBase::info()) || execState->thisValue().inherits(vm, ObjCWrapperObject::info()) || execState->thisValue().inherits(vm, AllocatedPlaceholder::info()) || execState->thisValue().inherits(vm, ObjCSuperObject::info()))) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("This value is not a native object.")));
+        throwVMError(execState, scope, createError(execState, "This value is not a native object."_s));
         return;
     }
 

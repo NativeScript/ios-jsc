@@ -56,7 +56,7 @@ inline void FFICallback<DerivedCallback>::callFunction(const JSC::JSValue& thisV
 
     JSC::CallData callData;
     JSC::CallType callType;
-    if ((callType = this->_function.get()->methodTable()->getCallData(this->_function.get(), callData)) == JSC::CallType::None) {
+    if ((callType = this->_function.get()->methodTable(vm)->getCallData(this->_function.get(), callData)) == JSC::CallType::None) {
         scope.throwException(execState, createNotAFunctionError(execState, this->_function.get()));
         return;
     }

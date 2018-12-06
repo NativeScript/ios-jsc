@@ -14,12 +14,12 @@ static WTF::String mimeTypeByExtension(WTF::String extension) {
 #if PLATFORM(IOS)
     // UTI for iOS doesn't recognize css extensions and returns a dynamic UTI without a Mime Type
     if (WTF::equal(extension, "css")) {
-        return WTF::ASCIILiteral("text/css");
+        return "text/css"_s;
     }
 #endif
 
     if (WTF::equal(extension, "ts")) {
-        return WTF::ASCIILiteral("text/typescript");
+        return "text/typescript"_s;
     }
 
     RetainPtr<CFStringRef> cfExtension = extension.createCFString();
@@ -27,7 +27,7 @@ static WTF::String mimeTypeByExtension(WTF::String extension) {
     CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, cfExtension.get(), NULL);
     CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass(UTI, kUTTagClassMIMEType);
 
-    WTF::String mimeType = WTF::ASCIILiteral("text/plain");
+    WTF::String mimeType = "text/plain"_s;
     if (MIMEType != nullptr) {
         mimeType = WTF::String(MIMEType);
         CFRelease(MIMEType);

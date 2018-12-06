@@ -27,7 +27,7 @@ const unsigned ObjCPrototype::StructureFlags = OverridesGetOwnPropertySlot | Bas
 
 const ClassInfo ObjCPrototype::s_info = { "ObjCPrototype", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCPrototype) };
 
-WTF::String ObjCPrototype::className(const JSObject* object) {
+WTF::String ObjCPrototype::className(const JSObject* object, VM&) {
     const char* className = jsCast<const ObjCPrototype*>(object)->_metadata->name();
     return WTF::String::format("%sPrototype", className);
 }

@@ -112,7 +112,7 @@ WTF::String CachedResource::content(ErrorString& out_error) {
         if (out_base64Encoded) {
             NSData* data = [[NSFileManager defaultManager] contentsAtPath:[cachedResourceUrl path]];
             if (data == nil) {
-                out_error = WTF::ASCIILiteral("An error occurred");
+                out_error = "An error occurred"_s;
 
                 return WTF::emptyString();
             } else {

@@ -20,12 +20,12 @@ void NSErrorWrapperConstructor::destroy(JSCell* cell) {
 }
 
 void NSErrorWrapperConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject) {
-    Base::finishCreation(vm, WTF::ASCIILiteral("NSError"));
+    Base::finishCreation(vm, "NSError"_s);
 
     ErrorPrototype* prototype = ErrorPrototype::create(vm, globalObject, ErrorPrototype::createStructure(vm, globalObject, globalObject->errorPrototype()));
     prototype->putDirect(vm, vm.propertyNames->constructor, this);
     this->putDirect(vm, vm.propertyNames->prototype, prototype);
-    prototype->putDirect(vm, vm.propertyNames->name, jsString(&vm, WTF::ASCIILiteral("NSErrorWrapper")));
+    prototype->putDirect(vm, vm.propertyNames->name, jsString(&vm, "NSErrorWrapper"_s));
 
     this->_errorStructure.set(vm, this, ErrorInstance::createStructure(vm, globalObject, prototype));
 }

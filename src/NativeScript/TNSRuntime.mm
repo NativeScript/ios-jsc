@@ -11,11 +11,11 @@
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/InitializeThreading.h>
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/StrongInlines.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectInspectorController.h>
 #include <iostream>
 
 #if PLATFORM(IOS)

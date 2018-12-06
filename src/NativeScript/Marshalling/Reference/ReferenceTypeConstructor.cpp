@@ -30,13 +30,13 @@ EncodedJSValue JSC_HOST_CALL ReferenceTypeConstructor::constructReferenceType(Ex
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() != 1) {
-        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("ReferenceType constructor expects one argument.")));
+        return throwVMError(execState, scope, createError(execState, "ReferenceType constructor expects one argument."_s));
     }
 
     JSValue type = execState->uncheckedArgument(0);
     const FFITypeMethodTable* methodTable;
     if (!tryGetFFITypeMethodTable(vm, type, &methodTable)) {
-        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
+        return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter."_s));
     }
 
     return JSValue::encode(globalObject->typeFactory()->getReferenceType(globalObject, type.asCell()));

@@ -20,19 +20,19 @@
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSInternalPromiseDeferred.h>
-#include <JavaScriptCore/JSModuleEnvironment.h>
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSModuleRecord.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/JSSourceCode.h>
 #include <JavaScriptCore/JSString.h>
-#include <JavaScriptCore/LiteralParser.h>
-#include <JavaScriptCore/ModuleAnalyzer.h>
-#include <JavaScriptCore/ModuleLoaderPrototype.h>
-#include <JavaScriptCore/Nodes.h>
+#include <JavaScriptCore/parser/ModuleAnalyzer.h>
+#include <JavaScriptCore/runtime/JSModuleEnvironment.h>
+#include <JavaScriptCore/runtime/LiteralParser.h>
+//#include <JavaScriptCore/ModuleLoaderPrototype.h>
 #include <JavaScriptCore/ObjectConstructor.h>
-#include <JavaScriptCore/Parser.h>
 #include <JavaScriptCore/ParserError.h>
+#include <JavaScriptCore/parser/Nodes.h>
+#include <JavaScriptCore/parser/Parser.h>
 #include <JavaScriptCore/tools/CodeProfiling.h>
 #include <sys/stat.h>
 
@@ -94,10 +94,10 @@ static String resolvePath(const DirectoryName& directoryName, const ModuleName& 
         directoryPieces.clear();
 
     for (const auto& query : moduleName.queries) {
-        if (query == String(ASCIILiteral(".."))) {
+        if (query == String(".."_s)) {
             if (!directoryPieces.isEmpty())
                 directoryPieces.removeLast();
-        } else if (!query.isEmpty() && query != String(ASCIILiteral(".")))
+        } else if (!query.isEmpty() && query != String("."_s))
             directoryPieces.append(query);
     }
 
@@ -363,7 +363,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
     auto scope = DECLARE_THROW_SCOPE(vm);
     JSValue moduleName = execState->argument(0);
     if (!moduleName.isString()) {
-        return JSValue::encode(throwTypeError(execState, scope, WTF::ASCIILiteral("Expected module identifier to be a string.")));
+        return JSValue::encode(throwTypeError(execState, scope, "Expected module identifier to be a string."_s));
     }
 
     JSValue callee = execState->callee().asCell();
@@ -383,7 +383,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                       JSValue moduleLoader = execState->lexicalGlobalObject()->moduleLoader();
                       JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->vm().propertyNames->builtinNames().loadAndEvaluateModulePublicName()));
                       CallData callData;
-                      CallType callType = JSC::getCallData(function, callData);
+                      CallType callType = JSC::getCallData(execState->vm(), function, callData);
                       JSInternalPromise* promise = jsCast<JSInternalPromise*>(JSC::call(execState, function, callType, callData, moduleLoader, execState));
 
                       // IMPORTANT! Convert `moduleKey` to `WTF::String` and keep it for use in the chained lambda function.
@@ -396,7 +396,7 @@ EncodedJSValue JSC_HOST_CALL GlobalObject::commonJSRequire(ExecState* execState)
                                                   JSObject* function = jsCast<JSObject*>(moduleLoader.get(execState, execState->vm().propertyNames->builtinNames().ensureRegisteredPublicName()));
 
                                                   CallData callData;
-                                                  CallType callType = JSC::getCallData(function, callData);
+                                                  CallType callType = JSC::getCallData(execState->vm(), function, callData);
 
                                                   MarkedArgumentBuffer args;
                                                   args.append(JSValue(jsString(execState, moduleKey)));
@@ -471,7 +471,7 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
         JSObject* exports = constructEmptyObject(execState);
         module->putDirect(vm, exportsIdentifier, exports);
 
-        JSFunction* require = JSFunction::create(vm, globalObject, 1, WTF::ASCIILiteral("require"), commonJSRequire);
+        JSFunction* require = JSFunction::create(vm, globalObject, 1, "require"_s, commonJSRequire);
         require->putDirect(vm, vm.propertyNames->sourceURL, keyValue, PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete | PropertyAttribute::DontEnum);
         module->putDirect(vm, Identifier::fromString(&vm, "require"), require);
 
@@ -483,7 +483,7 @@ JSValue GlobalObject::moduleLoaderEvaluate(JSGlobalObject* globalObject, ExecSta
         args.append(jsString(&vm, moduleUrl.path));
 
         CallData callData;
-        CallType callType = JSC::getCallData(moduleFunction, callData);
+        CallType callType = JSC::getCallData(vm, moduleFunction, callData);
 
         WTF::NakedPtr<Exception> exception;
         JSValue result = JSC::call(execState, moduleFunction.asCell(), callType, callData, execState->globalThisValue(), args, exception);
@@ -513,7 +513,7 @@ JSInternalPromise* GlobalObject::moduleLoaderImportModule(JSGlobalObject* global
     };
 
     if (sourceOrigin.isNull())
-        return rejectPromise(createError(exec, ASCIILiteral("Could not resolve the module specifier.")));
+        return rejectPromise(createError(exec, "Could not resolve the module specifier."_s));
 
     auto referrer = sourceOrigin.string();
     auto moduleName = moduleNameValue->value(exec);

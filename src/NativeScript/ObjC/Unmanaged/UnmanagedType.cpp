@@ -40,7 +40,7 @@ void UnmanagedType::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 void UnmanagedType::write(ExecState* execState, const JSValue&, void*, JSCell* self) {
     VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
-    throwVMTypeError(execState, scope, WTF::ASCIILiteral("Unmanaged type could not be consumed from native. Try calling takeRetained/takeUnretained before."));
+    throwVMTypeError(execState, scope, "Unmanaged type could not be consumed from native. Try calling takeRetained/takeUnretained before."_s);
 }
 
 bool UnmanagedType::canConvert(ExecState*, const JSValue&, JSCell* self) {

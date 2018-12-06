@@ -69,7 +69,7 @@ EncodedJSValue JSC_HOST_CALL ReferenceConstructor::constructReference(ExecState*
     } else if (execState->argumentCount() == 2) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter.")));
+        return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter."_s));
     } else {
         result = ReferenceInstance::create(vm, globalObject->interop()->referenceInstanceStructure(), maybeType);
     }

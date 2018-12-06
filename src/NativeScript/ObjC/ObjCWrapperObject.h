@@ -37,7 +37,7 @@ public:
         this->_wrappedObject = wrappedObject;
     }
 
-    static WTF::String className(const JSObject* object);
+    static WTF::String className(const JSObject* object, JSC::VM&);
 
     ~ObjCWrapperObject();
 

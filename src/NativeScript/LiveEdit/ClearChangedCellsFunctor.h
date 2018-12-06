@@ -1,6 +1,6 @@
 #pragma once
 #include "TextualDifferencesHelper.h"
-#include <JavaScriptCore/Nodes.h>
+#include <JavaScriptCore/parser/Nodes.h>
 
 namespace NativeScript {
 class ClearChangedCellsFunctor : public JSC::MarkedBlock::VoidFunctor {

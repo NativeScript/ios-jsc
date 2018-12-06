@@ -8,7 +8,7 @@
 
 #include "FFICallPrototype.h"
 #include "FFICall.h"
-#include <JavaScriptCore/Interpreter.h>
+#include <JavaScriptCore/interpreter/Interpreter.h>
 
 namespace NativeScript {
 using namespace JSC;

@@ -3,7 +3,7 @@
 
 namespace Inspector {
 InspectorNetworkAgent::InspectorNetworkAgent(JSAgentContext& context)
-    : Inspector::InspectorAgentBase(ASCIILiteral("Network"))
+    : Inspector::InspectorAgentBase("Network"_s)
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
     this->m_frontendDispatcher = std::make_unique<NetworkFrontendDispatcher>(context.frontendRouter);
     this->m_backendDispatcher = NetworkBackendDispatcher::create(context.backendDispatcher, this);
@@ -33,7 +33,7 @@ void InspectorNetworkAgent::setResourceCachingDisabled(ErrorString&, bool in_dis
 void InspectorNetworkAgent::resolveWebSocket(ErrorString&, const String& in_requestId, const String* const opt_in_objectGroup, RefPtr<Inspector::Protocol::Runtime::RemoteObject>& out_object) {
 }
 
-void InspectorNetworkAgent::loadResource(ErrorString& errorString, const String& frameId, const String& urlString, Ref<LoadResourceCallback>&& callback) {
+void InspectorNetworkAgent::loadResource(const String& frameId, const String& urlString, Ref<LoadResourceCallback>&& callback) {
     WTF::HashMap<WTF::String, Inspector::CachedResource>& cachedResources = Inspector::cachedResources(this->m_globalObject);
     auto iterator = cachedResources.find(urlString);
     if (iterator != cachedResources.end()) {

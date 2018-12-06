@@ -23,7 +23,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec
         return throwVMError(exec, scope, createTypeError(exec, makeString("Can only call Worker.postMessage, on instances of Worker")));
 
     if (exec->argumentCount() < 1)
-        return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("postMessage function expects at least one argument.")));
+        return throwVMError(exec, scope, createError(exec, "postMessage function expects at least one argument."_s));
 
     JSValue message = exec->argument(0);
     JSArray* transferList = nullptr;
@@ -31,7 +31,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncPostMessage(ExecState* exec
     if (exec->argumentCount() >= 2 && !exec->argument(1).isUndefinedOrNull()) {
         JSValue arg2 = exec->argument(1);
         if (!arg2.isCell() || !(transferList = jsDynamicCast<JSArray*>(exec->vm(), arg2.asCell()))) {
-            return throwVMError(exec, scope, createError(exec, WTF::ASCIILiteral("The second parameter of postMessage must be array, null or undefined.")));
+            return throwVMError(exec, scope, createError(exec, "The second parameter of postMessage must be array, null or undefined."_s));
         }
     }
 
@@ -52,7 +52,7 @@ static EncodedJSValue JSC_HOST_CALL jsWorkerProtoFuncTerminate(ExecState* state)
 void JSWorkerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("postMessage")), 2, jsWorkerProtoFuncPostMessage, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
-    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, WTF::ASCIILiteral("terminate")), 0, jsWorkerProtoFuncTerminate, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "postMessage"_s), 2, jsWorkerProtoFuncPostMessage, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "terminate"_s), 0, jsWorkerProtoFuncTerminate, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 } // namespace NativeScript

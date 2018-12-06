@@ -63,7 +63,7 @@ void PointerConstructor::write(ExecState* execState, const JSValue& value, void*
     if (!hasHandle) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a pointer."));
+        JSValue exception = createError(execState, "Value is not a pointer."_s);
         scope.throwException(execState, exception);
         return;
     }

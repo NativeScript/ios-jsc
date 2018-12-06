@@ -10,6 +10,7 @@
 #define __NativeScript__ObjCBlockCall__
 
 #include "FFICall.h"
+#include "JavaScriptCore/IsoSubspace.h"
 
 namespace Metadata {
 struct MethodMeta;
@@ -29,6 +30,11 @@ public:
     }
 
     DECLARE_INFO;
+
+    template <typename CellType>
+    static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
+        return &vm.tnsObjCBlockCallSpace;
+    }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());

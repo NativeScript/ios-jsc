@@ -113,7 +113,7 @@ using namespace NativeScript;
     }
 
     PropertyNameArray properties(&self->_execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
-    object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
+    object->methodTable(*self->_vm)->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return properties.size();
 }
 
@@ -146,7 +146,7 @@ using namespace NativeScript;
     }
 
     PropertyNameArray properties(&self->_execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
-    object->methodTable()->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
+    object->methodTable(*self->_vm)->getOwnPropertyNames(object, self->_execState, properties, EnumerationMode());
     return [[[TNSDictionaryAdapterObjectKeysEnumerator alloc] initWithProperties:properties.releaseData()] autorelease];
 }
 

@@ -28,21 +28,21 @@ EncodedJSValue JSC_HOST_CALL ObjCBlockTypeConstructor::constructObjCBlockTypeCon
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() < 1) {
-        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("ObjCBlockTypeConstructor constructor expects at least one argument.")));
+        return throwVMError(execState, scope, createError(execState, "ObjCBlockTypeConstructor constructor expects at least one argument."_s));
     }
 
     JSValue returnType = execState->uncheckedArgument(0);
 
     const FFITypeMethodTable* methodTable;
     if (!tryGetFFITypeMethodTable(vm, returnType, &methodTable)) {
-        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as return type of block type.")));
+        return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as return type of block type."_s));
     }
 
     WTF::Vector<JSCell*> parametersTypes;
     for (size_t i = 1; i < execState->argumentCount(); i++) {
         JSValue currentParameter = execState->uncheckedArgument(i);
         if (!tryGetFFITypeMethodTable(vm, currentParameter, &methodTable)) {
-            return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Not a valid type object is passed as parameter of block type.")));
+            return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter of block type."_s));
         }
         parametersTypes.append(currentParameter.asCell());
     }

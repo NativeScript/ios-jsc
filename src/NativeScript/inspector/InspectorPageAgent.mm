@@ -10,7 +10,7 @@
 
 namespace Inspector {
 InspectorPageAgent::InspectorPageAgent(JSAgentContext& context)
-    : Inspector::InspectorAgentBase(WTF::ASCIILiteral("Page"))
+    : Inspector::InspectorAgentBase("Page"_s)
     , m_frameIdentifier("NativeScriptMainFrameIdentifier")
     , m_frameUrl("http://main.xml")
     , m_globalObject(*JSC::jsCast<NativeScript::GlobalObject*>(&context.inspectedGlobalObject)) {
@@ -34,7 +34,7 @@ void InspectorPageAgent::disable(ErrorString&) {
 void InspectorPageAgent::reload(ErrorString&, const bool* const optionalReloadFromOrigin, const bool* const optionalRevalidateAllResources) {
     JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&m_globalObject.vm(), "__onLiveSync"));
     JSC::CallData callData;
-    JSC::CallType callType = getCallData(liveSyncCallback, callData);
+    JSC::CallType callType = getCallData(m_globalObject.vm(), liveSyncCallback, callData);
     if (callType == JSC::CallType::None) {
         JSC::JSValue error = JSC::createError(m_globalObject.globalExec(), "global.__onLiveSync is not a function.");
         m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), JSC::Exception::create(m_globalObject.globalExec()->vm(), error));
@@ -142,8 +142,11 @@ void InspectorPageAgent::setShowPaintRects(ErrorString&, bool in_result) {
     ASSERT_NOT_REACHED();
 }
 
-void InspectorPageAgent::setEmulatedMedia(ErrorString&, const String& in_media) {
+void InspectorPageAgent::setShowRulers(ErrorString&, bool in_result) {
     ASSERT_NOT_REACHED();
+}
+
+void InspectorPageAgent::setEmulatedMedia(ErrorString&, const String& in_media) {
 }
 
 void InspectorPageAgent::getCompositingBordersVisible(ErrorString&, bool* out_result) {
@@ -176,7 +179,7 @@ void InspectorPageAgent::getResourceContent(ErrorString& errorString, const Stri
     WTF::HashMap<WTF::String, Inspector::CachedResource>& resources = Inspector::cachedResources(this->m_globalObject);
     auto iterator = resources.find(in_url);
     if (iterator == resources.end()) {
-        errorString = WTF::ASCIILiteral("No such item");
+        errorString = "No such item"_s;
 
         return;
     }

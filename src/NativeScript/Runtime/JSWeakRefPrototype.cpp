@@ -29,7 +29,7 @@ static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncGet(ExecState* execState) {
     JSWeakRefInstance* self = jsDynamicCast<JSWeakRefInstance*>(vm, execState->thisValue());
     if (!self) {
         auto scope = DECLARE_THROW_SCOPE(vm);
-        return JSValue::encode(scope.throwException(execState, createTypeError(execState, WTF::ASCIILiteral("'this' is not weak reference"))));
+        return JSValue::encode(scope.throwException(execState, createTypeError(execState, "'this' is not weak reference"_s)));
     }
 
     JSCell* cell = self->cell();
@@ -41,7 +41,7 @@ static EncodedJSValue JSC_HOST_CALL weakRefProtoFuncClear(ExecState* execState) 
     JSWeakRefInstance* self = jsDynamicCast<JSWeakRefInstance*>(vm, execState->thisValue());
     if (!self) {
         auto scope = DECLARE_THROW_SCOPE(vm);
-        return JSValue::encode(scope.throwException(execState, createTypeError(execState, WTF::ASCIILiteral("'this' is not weak reference"))));
+        return JSValue::encode(scope.throwException(execState, createTypeError(execState, "'this' is not weak reference"_s)));
     }
 
     self->clear();

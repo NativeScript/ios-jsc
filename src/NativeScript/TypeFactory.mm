@@ -123,7 +123,7 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     fieldsTypes = parseTypes(globalObject, encodingsPtr, structInfo->fieldsEncodings()->count, true);
 
     for (Array<Metadata::String>::iterator it = structInfo->fieldNames().begin(); it != structInfo->fieldNames().end(); it++) {
-        fieldsNames.append(WTF::ASCIILiteral((*it).valuePtr()));
+        fieldsNames.append((*it).valuePtr());
     }
 
     WTF::Vector<RecordField*> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
@@ -158,7 +158,7 @@ RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* glob
 
     for (int i = 0; i < details.fieldsCount; ++i) {
         const Metadata::String* currentName = details.getFieldNames() + i;
-        fieldsNames.append(WTF::ASCIILiteral(currentName->valuePtr()));
+        fieldsNames.append(currentName->valuePtr());
     }
 
     const TypeEncoding* encodingsPtr = details.getFieldsEncodings();
@@ -315,7 +315,7 @@ ObjCConstructorNative* TypeFactory::NSObjectConstructor(GlobalObject* globalObje
         return this->_nsObjectConstructor.get();
     }
 
-    ObjCConstructorNative* constructor = getObjCNativeConstructor(globalObject, WTF::ASCIILiteral("NSObject"));
+    ObjCConstructorNative* constructor = getObjCNativeConstructor(globalObject, "NSObject"_s);
     this->_nsObjectConstructor.set(globalObject->vm(), this, constructor);
     return constructor;
 }
@@ -527,27 +527,27 @@ void TypeFactory::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->_pointerConstructor.set(vm, this, PointerConstructor::create(vm, PointerConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), pointerPrototype));
     pointerPrototype->putDirect(vm, vm.propertyNames->constructor, this->_pointerConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
-    this->_noopType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("noop"), noopTypeMethodTable));
-    this->_voidType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("void"), voidTypeMethodTable));
-    this->_boolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("bool"), boolTypeMethodTable));
-    this->_utf8CStringType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("UTF8CString"), utf8CStringTypeMethodTable));
-    this->_unicharType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("unichar"), unicharTypeMethodTable));
+    this->_noopType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "noop"_s, noopTypeMethodTable));
+    this->_voidType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "void"_s, voidTypeMethodTable));
+    this->_boolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "bool"_s, boolTypeMethodTable));
+    this->_utf8CStringType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "UTF8CString"_s, utf8CStringTypeMethodTable));
+    this->_unicharType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "unichar"_s, unicharTypeMethodTable));
 
-    this->_int8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("int8"), int8TypeMethodTable));
-    this->_uint8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("uint8"), uint8TypeMethodTable));
-    this->_int16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("int16"), int16TypeMethodTable));
-    this->_uint16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("uint16"), uint16TypeMethodTable));
-    this->_int32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("int32"), int32TypeMethodTable));
-    this->_uint32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("uint32"), uint32TypeMethodTable));
-    this->_int64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("int64"), int64TypeMethodTable));
-    this->_uint64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("uint64"), uint64TypeMethodTable));
-    this->_floatType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("float"), floatTypeMethodTable));
-    this->_doubleType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("double"), doubleTypeMethodTable));
+    this->_int8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int8"_s, int8TypeMethodTable));
+    this->_uint8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint8"_s, uint8TypeMethodTable));
+    this->_int16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int16"_s, int16TypeMethodTable));
+    this->_uint16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint16"_s, uint16TypeMethodTable));
+    this->_int32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int32"_s, int32TypeMethodTable));
+    this->_uint32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint32"_s, uint32TypeMethodTable));
+    this->_int64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int64"_s, int64TypeMethodTable));
+    this->_uint64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint64"_s, uint64TypeMethodTable));
+    this->_floatType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "float"_s, floatTypeMethodTable));
+    this->_doubleType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "double"_s, doubleTypeMethodTable));
 
-    this->_objCInstancetypeType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("instancetype"), objCInstancetypeTypeMethodTable));
-    this->_objCProtocolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("protocol"), objCProtocolTypeMethodTable));
-    this->_objCClassType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("class"), objCClassTypeMethodTable));
-    this->_objCSelectorType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), WTF::ASCIILiteral("selector"), objCSelectorTypeMethodTable));
+    this->_objCInstancetypeType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "instancetype"_s, objCInstancetypeTypeMethodTable));
+    this->_objCProtocolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "protocol"_s, objCProtocolTypeMethodTable));
+    this->_objCClassType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "class"_s, objCClassTypeMethodTable));
+    this->_objCSelectorType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "selector"_s, objCSelectorTypeMethodTable));
 }
 
 void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {

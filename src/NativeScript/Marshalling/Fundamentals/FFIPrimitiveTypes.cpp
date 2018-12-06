@@ -13,7 +13,7 @@
 #include "ReferenceInstance.h"
 #include "ReleasePool.h"
 #include "TypeFactory.h"
-#include <JavaScriptCore/JSGlobalObjectInspectorController.h>
+#include <JavaScriptCore/inspector/JSGlobalObjectInspectorController.h>
 
 namespace NativeScript {
 using namespace JSC;
@@ -23,14 +23,14 @@ static JSValue noopType_read(ExecState* execState, const void* buffer, JSCell* s
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    JSValue exception = createError(execState, WTF::ASCIILiteral("Can not read from noop type."));
+    JSValue exception = createError(execState, "Can not read from noop type."_s);
     return scope.throwException(execState, exception);
 }
 static void noopType_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    JSValue exception = createError(execState, WTF::ASCIILiteral("Can not write to noop type."));
+    JSValue exception = createError(execState, "Can not write to noop type."_s);
     scope.throwException(execState, exception);
 }
 static bool noopType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
@@ -95,7 +95,7 @@ static void unicharType_write(ExecState* execState, const JSValue& value, void* 
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSValue exception = createError(execState, WTF::ASCIILiteral("Only one character string can be converted to unichar."));
+        JSValue exception = createError(execState, "Only one character string can be converted to unichar."_s);
         scope.throwException(execState, exception);
         return;
     }
@@ -153,7 +153,7 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    JSValue exception = createError(execState, WTF::ASCIILiteral("Value is not a string."));
+    JSValue exception = createError(execState, "Value is not a string."_s);
     scope.throwException(execState, exception);
     return;
 }

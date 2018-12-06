@@ -23,12 +23,12 @@ void FunctionReferenceConstructor::finishCreation(VM& vm, JSValue prototype) {
 
 EncodedJSValue JSC_HOST_CALL FunctionReferenceConstructor::constructFunctionReferenceInstance(ExecState* execState) {
     CallData callData;
+    JSC::VM& vm = execState->vm();
 
-    if (!(execState->argumentCount() == 1 && JSC::getCallData(execState->uncheckedArgument(0), callData) != CallType::None)) {
-        JSC::VM& vm = execState->vm();
+    if (!(execState->argumentCount() == 1 && JSC::getCallData(vm, execState->uncheckedArgument(0), callData) != CallType::None)) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Function required."))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "Function required."_s)));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());

@@ -46,10 +46,10 @@
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/FunctionPrototype.h>
-#include <JavaScriptCore/JSGlobalObjectFunctions.h>
 #include <JavaScriptCore/Microtask.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
+#include <JavaScriptCore/runtime/JSGlobalObjectFunctions.h>
 #include <JavaScriptCore/runtime/VMEntryScope.h>
 #include <chrono>
 #include <string>
@@ -92,7 +92,10 @@ const ClassInfo GlobalObject::s_info = { "NativeScriptGlobal", &Base::s_info, nu
 
 const unsigned GlobalObject::StructureFlags = OverridesGetOwnPropertySlot | Base::StructureFlags;
 
-const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript, &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderImportModule, &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderCreateImportMetaProperties, &moduleLoaderEvaluate, nullptr /*promiseRejectionTracker*/, &defaultLanguage };
+const GlobalObjectMethodTable GlobalObject::globalObjectMethodTable = { &supportsRichSourceInfo, &shouldInterruptScript,
+                                                                        &javaScriptRuntimeFlags, &queueTaskToEventLoop, &shouldInterruptScriptBeforeTimeout, &moduleLoaderImportModule,
+                                                                        &moduleLoaderResolve, &moduleLoaderFetch, &moduleLoaderCreateImportMetaProperties, &moduleLoaderEvaluate,
+                                                                        nullptr /*promiseRejectionTracker*/, &defaultLanguage, nullptr /*compileStreaming*/, nullptr /*instantiateStreaming*/ };
 
 GlobalObject::GlobalObject(VM& vm, Structure* structure)
     : JSGlobalObject(vm, structure, &GlobalObject::globalObjectMethodTable) {
@@ -176,13 +179,13 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_weakRefPrototypeStructure.set(vm, this, JSWeakRefPrototype::createStructure(vm, this, Base::objectPrototype()));
     JSWeakRefPrototype* weakRefPrototype = JSWeakRefPrototype::create(vm, this, this->weakRefPrototypeStructure());
     this->_weakRefInstanceStructure.set(vm, this, JSWeakRefInstance::createStructure(vm, this, weakRefPrototype));
-    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("WeakRef")), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
+    this->putDirect(vm, Identifier::fromString(&vm, "WeakRef"_s), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
 
     this->_workerConstructorStructure.set(vm, this, JSWorkerConstructor::createStructure(vm, this, Base::functionPrototype()));
     this->_workerPrototypeStructure.set(vm, this, JSWorkerPrototype::createStructure(vm, this, Base::objectPrototype()));
     JSWorkerPrototype* workerPrototype = JSWorkerPrototype::create(vm, this, this->workerPrototypeStructure());
     this->_workerInstanceStructure.set(vm, this, JSWorkerInstance::createStructure(vm, this, workerPrototype));
-    this->putDirect(vm, Identifier::fromString(&vm, WTF::ASCIILiteral("Worker")), JSWorkerConstructor::create(vm, this->workerConstructorStructure(), workerPrototype));
+    this->putDirect(vm, Identifier::fromString(&vm, "Worker"_s), JSWorkerConstructor::create(vm, this->workerConstructorStructure(), workerPrototype));
 
     auto fastEnumerationIteratorPrototype = ObjCFastEnumerationIteratorPrototype::create(vm, this, ObjCFastEnumerationIteratorPrototype::createStructure(vm, this, this->objectPrototype()));
     this->_fastEnumerationIteratorStructure.set(vm, this, ObjCFastEnumerationIterator::createStructure(vm, this, fastEnumerationIteratorPrototype));
@@ -201,7 +204,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_smartStringifyFunction.set(vm, this, jsCast<JSFunction*>(evaluate(this->globalExec(), makeSource(WTF::String(smartStringify_js, smartStringify_js_len), SourceOrigin()), JSValue())));
 
 #ifdef DEBUG
-    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), WTF::ASCIILiteral("__extends.ts"));
+    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), "__extends.ts"_s);
 #else
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin());
 #endif
@@ -209,16 +212,16 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__extends"), 2, ObjCTypeScriptExtendFunction, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly));
 
     ObjCConstructorNative* NSObjectConstructor = this->typeFactory()->NSObjectConstructor(this);
-    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("extend")), 2, ObjCExtendFunction, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
-    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, WTF::ASCIILiteral("alloc")), 0, NSObjectAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontDelete));
+    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "extend"_s), 2, ObjCExtendFunction, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "alloc"_s), 0, NSObjectAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontDelete));
 
     MarkedArgumentBuffer descriptionFunctionArgs;
-    descriptionFunctionArgs.append(jsString(globalExec, WTF::ASCIILiteral("return this.description;")));
+    descriptionFunctionArgs.append(jsString(globalExec, "return this.description;"_s));
     ObjCPrototype* NSObjectPrototype = jsCast<ObjCPrototype*>(NSObjectConstructor->get(globalExec, vm.propertyNames->prototype));
     NSObjectPrototype->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, descriptionFunctionArgs), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     MarkedArgumentBuffer staticDescriptionFunctionArgs;
-    staticDescriptionFunctionArgs.append(jsString(globalExec, WTF::ASCIILiteral("return Function.prototype.toString.call(this);")));
+    staticDescriptionFunctionArgs.append(jsString(globalExec, "return Function.prototype.toString.call(this);"_s));
     NSObjectConstructor->putDirect(vm, vm.propertyNames->toString, constructFunction(globalExec, this, staticDescriptionFunctionArgs), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     NSObjectConstructor->setPrototypeDirect(vm, NSObjectPrototype);
@@ -470,10 +473,10 @@ bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* 
     JSValue callback = this->get(execState, _jsUncaughtErrorCallbackIdentifier);
 
     CallData callData;
-    CallType callType = JSC::getCallData(callback, callData);
+    CallType callType = JSC::getCallData(execState->vm(), callback, callData);
     if (callType == JSC::CallType::None) {
         callback = execState->lexicalGlobalObject()->get(execState, _jsUncaughtErrorCallbackIdentifierFallback);
-        callType = JSC::getCallData(callback, callData);
+        callType = JSC::getCallData(execState->vm(), callback, callData);
         if (callType == JSC::CallType::None) {
             return false;
         }

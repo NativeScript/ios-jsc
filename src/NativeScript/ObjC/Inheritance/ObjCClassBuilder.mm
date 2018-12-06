@@ -119,7 +119,7 @@ static bool isValidType(ExecState* execState, JSValue& value) {
     auto scope = DECLARE_THROW_SCOPE(vm);
     const FFITypeMethodTable* table;
     if (!tryGetFFITypeMethodTable(vm, value, &table)) {
-        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Invalid type")));
+        scope.throwException(execState, createError(execState, "Invalid type"_s));
         return false;
     }
     return true;
@@ -148,7 +148,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     CallData callData;
-    if (method->methodTable()->getCallData(method, callData) == CallType::None) {
+    if (method->methodTable(vm)->getCallData(method, callData) == CallType::None) {
         WTF::String message = WTF::String::format("Method %s is not a function.", sel_getName(methodName));
         scope.throwException(execState, createError(execState, message));
         return;
@@ -209,7 +209,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     if (!baseConstructor.inherits(vm, ObjCConstructorNative::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("Extends is supported only for native classes.")));
+        scope.throwException(execState, createError(execState, "Extends is supported only for native classes."_s));
         return;
     }
 
@@ -273,7 +273,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (!protocolsArray.inherits(vm, JSArray::info())) {
-        scope.throwException(execState, createError(execState, WTF::ASCIILiteral("The protocols property must be an array")));
+        scope.throwException(execState, createError(execState, "The protocols property must be an array"_s));
         return;
     }
 
@@ -387,15 +387,15 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
 void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instanceMethods, JSValue exposedMethods) {
     PropertyNameArray prototypeKeys(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
-    instanceMethods->methodTable()->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, EnumerationMode());
+    JSC::VM& vm = execState->vm();
+    instanceMethods->methodTable(vm)->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, EnumerationMode());
 
     for (Identifier key : prototypeKeys) {
         PropertySlot propertySlot(instanceMethods, PropertySlot::InternalMethodType::GetOwnProperty);
 
-        JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        if (!instanceMethods->methodTable()->getOwnPropertySlot(instanceMethods, execState, key, propertySlot)) {
+        if (!instanceMethods->methodTable(vm)->getOwnPropertySlot(instanceMethods, execState, key, propertySlot)) {
             continue;
         }
 
@@ -431,7 +431,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
     if (exposedMethods.isObject()) {
         PropertyNameArray exposedMethodsKeys(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
         JSObject* exposedMethodsObject = exposedMethods.toObject(execState);
-        exposedMethodsObject->methodTable()->getOwnPropertyNames(exposedMethodsObject, execState, exposedMethodsKeys, EnumerationMode());
+        exposedMethodsObject->methodTable(vm)->getOwnPropertyNames(exposedMethodsObject, execState, exposedMethodsKeys, EnumerationMode());
 
         for (Identifier key : exposedMethodsKeys) {
             if (!instanceMethods->hasOwnProperty(execState, key)) {
@@ -486,16 +486,16 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
 }
 
 void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMethods) {
-    PropertyNameArray keys(&execState->vm(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
-    staticMethods->methodTable()->getOwnPropertyNames(staticMethods, execState, keys, EnumerationMode());
-
     JSC::VM& vm = execState->vm();
+    PropertyNameArray keys(&vm, PropertyNameMode::Strings, PrivateSymbolMode::Include);
+    staticMethods->methodTable(vm)->getOwnPropertyNames(staticMethods, execState, keys, EnumerationMode());
+
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     for (Identifier key : keys) {
         PropertySlot propertySlot(staticMethods, PropertySlot::InternalMethodType::GetOwnProperty);
 
-        if (!staticMethods->methodTable()->getOwnPropertySlot(staticMethods, execState, key, propertySlot)) {
+        if (!staticMethods->methodTable(vm)->getOwnPropertySlot(staticMethods, execState, key, propertySlot)) {
             continue;
         }
 

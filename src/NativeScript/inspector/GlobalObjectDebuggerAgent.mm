@@ -28,20 +28,20 @@
 #include "LiveEdit/ClearChangedCellsFunctor.h"
 #include "LiveEdit/EditableSourceProvider.h"
 #include <JavaScriptCore/ConsoleMessage.h>
-#include <JavaScriptCore/HeapIterationScope.h>
 #include <JavaScriptCore/InjectedScriptManager.h>
 #include <JavaScriptCore/JSGlobalObject.h>
 #include <JavaScriptCore/JSMapIterator.h>
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSModuleRecord.h>
-#include <JavaScriptCore/ModuleAnalyzer.h>
-#include <JavaScriptCore/Parser.h>
 #include <JavaScriptCore/ScriptArguments.h>
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <JavaScriptCore/config.h>
+#include <JavaScriptCore/heap/HeapIterationScope.h>
 #include <JavaScriptCore/heap/MarkedSpaceInlines.h>
 #include <JavaScriptCore/inspector/agents/InspectorConsoleAgent.h>
+#include <JavaScriptCore/parser/ModuleAnalyzer.h>
+#include <JavaScriptCore/parser/Parser.h>
 #include <cstdlib>
 #include <wtf/text/StringBuilder.h>
 

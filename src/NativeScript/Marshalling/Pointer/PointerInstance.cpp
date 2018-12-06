@@ -17,12 +17,12 @@ EncodedJSValue JSC_HOST_CALL readFromPointer(ExecState* execState) {
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() < 1) {
-        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("At least one argument is expected.")));
+        return throwVMError(execState, scope, createError(execState, "At least one argument is expected."_s));
     }
 
     JSValue arg = execState->uncheckedArgument(0);
     if (!arg.isCell()) {
-        return throwVMError(execState, scope, createError(execState, WTF::ASCIILiteral("Invalid first argument. Pointer expected.")));
+        return throwVMError(execState, scope, createError(execState, "Invalid first argument. Pointer expected."_s));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(arg.asCell());

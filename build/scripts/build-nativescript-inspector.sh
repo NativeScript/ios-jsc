@@ -17,11 +17,20 @@ checkpoint "Inspector build started"
 mkdir -p "$WORKSPACE/cmake-build"
 
 checkpoint "Building WebKit"
+
+CCACHE_ARGS=""
+if type -p ccache >/dev/null 2>&1; then
+    test -e ./cmake-build1 || ./cmake-gen.sh
+    CCACHE_ARGS="CXX=$PWD/cmake-build/launch-cxx CC=$PWD/cmake-build/launch-c"
+fi
+
+
 xcodebuild \
     -workspace "$WEBKIT_SOURCE_PATH/WebKit.xcworkspace" \
     -configuration "$CONFIGURATION" \
     -scheme "All Source" \
     -derivedDataPath "$WEBKIT_BUILD_OUTPUT_PATH" \
+    $CCACHE_ARGS \
     VALID_ARCHS="x86_64" ARCHS="x86_64" ONLY_ACTIVE_ARCH="NO" \
     MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
     build \

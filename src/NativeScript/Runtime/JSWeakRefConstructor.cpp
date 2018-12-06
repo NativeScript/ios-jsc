@@ -18,7 +18,7 @@ static EncodedJSValue JSC_HOST_CALL construct(ExecState* execState) {
     if (!argument.isObject()) {
         VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
-        return JSValue::encode(scope.throwException(execState, createTypeError(execState, WTF::ASCIILiteral("Argument must be an object."))));
+        return JSValue::encode(scope.throwException(execState, createTypeError(execState, "Argument must be an object."_s)));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -33,7 +33,7 @@ JSWeakRefConstructor::JSWeakRefConstructor(VM& vm, Structure* structure)
 }
 
 void JSWeakRefConstructor::finishCreation(VM& vm, JSWeakRefPrototype* prototype) {
-    Base::finishCreation(vm, WTF::ASCIILiteral("WeakRef"));
+    Base::finishCreation(vm, "WeakRef"_s);
 
     this->putDirectWithoutTransition(vm, vm.propertyNames->prototype, prototype, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
     this->putDirectWithoutTransition(vm, vm.propertyNames->length, jsNumber(1), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
