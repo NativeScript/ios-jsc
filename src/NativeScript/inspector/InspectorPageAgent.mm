@@ -147,7 +147,6 @@ void InspectorPageAgent::setShowRulers(ErrorString&, bool in_result) {
 }
 
 void InspectorPageAgent::setEmulatedMedia(ErrorString&, const String& in_media) {
-    ASSERT_NOT_REACHED();
 }
 
 void InspectorPageAgent::getCompositingBordersVisible(ErrorString&, bool* out_result) {
