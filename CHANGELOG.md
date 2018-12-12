@@ -7,6 +7,21 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.1.0
+=====
+
+## What's new
+
+* Generate .dSYM package for NativeScript.framework ([#1016](https://github.com/NativeScript/ios-runtime/pull/1016))
+* Update WebKit from iOS 12.0 tag ([#1011](https://github.com/NativeScript/ios-runtime/pull/1011))
+
+## Bug Fixes
+
+* **marshalling:** Memory leak in IsObjcObject ([#1018](https://github.com/NativeScript/ios-runtime/pull/1018))
+* **template:** Remove VALID_ARCHS from project.pbxproj ([#1027](https://github.com/NativeScript/ios-runtime/pull/1027) related to [NativeScript/nativescript-cli#4197](https://github.com/NativeScript/nativescript-cli/issues/4197))
+* **libffi:** Cannot handle double3, double4, SCNVector3 function parameters([#979](https://github.com/NativeScript/ios-runtime/issues/979))
+* **metadata-typings** Accept Pointers and References for `char*` args ([#1022](https://github.com/NativeScript/ios-runtime/pull/1022))
+
 5.0.0
 =====
 
