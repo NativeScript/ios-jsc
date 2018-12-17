@@ -10,6 +10,7 @@
 #define __NativeScript__ObjCBlockCall__
 
 #include "FFICall.h"
+#include "FunctionWrapper.h"
 #include "JavaScriptCore/IsoSubspace.h"
 
 namespace Metadata {
@@ -19,12 +20,12 @@ struct MethodMeta;
 namespace NativeScript {
 class ObjCBlockType;
 
-class ObjCBlockCall : public FFICall {
+class ObjCBlockWrapper : public FunctionWrapper {
 public:
-    typedef FFICall Base;
+    typedef FunctionWrapper Base;
 
-    static ObjCBlockCall* create(JSC::VM& vm, JSC::Structure* structure, id block, ObjCBlockType* blockType) {
-        ObjCBlockCall* cell = new (NotNull, JSC::allocateCell<ObjCBlockCall>(vm.heap)) ObjCBlockCall(vm, structure);
+    static ObjCBlockWrapper* create(JSC::VM& vm, JSC::Structure* structure, id block, ObjCBlockType* blockType) {
+        ObjCBlockWrapper* cell = new (NotNull, JSC::allocateCell<ObjCBlockWrapper>(vm.heap)) ObjCBlockWrapper(vm, structure);
         cell->finishCreation(vm, block, blockType);
         return cell;
     }
@@ -40,27 +41,38 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
     }
 
-    id block() const {
-        return this->_block.get();
-    }
-
 private:
-    ObjCBlockCall(JSC::VM& vm, JSC::Structure* structure)
+    ObjCBlockWrapper(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
 
-    ~ObjCBlockCall();
+    ~ObjCBlockWrapper();
 
     static void destroy(JSC::JSCell* cell) {
-        static_cast<ObjCBlockCall*>(cell)->~ObjCBlockCall();
+        static_cast<ObjCBlockWrapper*>(cell)->~ObjCBlockWrapper();
     }
 
     void finishCreation(JSC::VM&, id block, ObjCBlockType*);
 
     static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
+};
 
+class ObjCBlockCall : public FFICall {
+
+public:
+    ObjCBlockCall(FunctionWrapper* owner)
+        : FFICall(owner) {
+    }
+
+    id block() const {
+        return this->_block.get();
+    }
+
+private:
+    friend class ObjCBlockWrapper;
     WTF::RetainPtr<id> _block;
 };
+
 } // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCBlockCall__) */

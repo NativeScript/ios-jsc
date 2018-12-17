@@ -293,14 +293,15 @@ void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier&
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
     const MethodMeta* methodMeta = nullptr;
 
+    size_t paramsCount = jsDynamicCast<JSObject*>(execState->vm(), method)->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
     do {
-        methodMeta = currentClass->instanceMethod(methodName);
+        methodMeta = currentClass->instanceMethod(methodName, paramsCount);
         currentClass = currentClass->baseMeta();
     } while (!methodMeta && currentClass);
 
     if (!methodMeta && !this->_protocols.empty()) {
         for (const ProtocolMeta* aProtocol : this->_protocols) {
-            if ((methodMeta = aProtocol->instanceMethod(methodName))) {
+            if ((methodMeta = aProtocol->instanceMethod(methodName, paramsCount))) {
                 break;
             }
         }
@@ -459,15 +460,15 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
     WTF::StringImpl* methodName = jsName.impl();
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
     const MethodMeta* methodMeta = nullptr;
-
+    size_t paramsCount = jsDynamicCast<JSObject*>(execState->vm(), method)->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
     do {
-        methodMeta = currentClass->staticMethod(methodName);
+        methodMeta = currentClass->staticMethod(methodName, paramsCount);
         currentClass = currentClass->baseMeta();
     } while (!methodMeta && currentClass);
 
     if (!methodMeta && !this->_protocols.empty()) {
         for (const ProtocolMeta* aProtocol : this->_protocols) {
-            if ((methodMeta = aProtocol->staticMethod(methodName))) {
+            if ((methodMeta = aProtocol->staticMethod(methodName, paramsCount))) {
                 break;
             }
         }

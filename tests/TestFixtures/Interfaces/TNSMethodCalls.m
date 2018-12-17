@@ -124,6 +124,15 @@
 + (void)baseMethod {
     TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
+
++ (void)baseMethod:(NSNumber*)param {
+    TNSLog([NSString stringWithFormat:@"overloaded static %@ called", NSStringFromSelector(_cmd)]);
+}
+
+- (void)methodWithParam:(NSNumber*)p2 {
+    TNSLog([NSString stringWithFormat:@"instance %@ called with 1 param", NSStringFromSelector(_cmd)]);
+}
+
 - (instancetype)initBaseMethod {
     TNSLog([NSString stringWithFormat:@"constructor %@ called", NSStringFromSelector(_cmd)]);
     return self;
@@ -131,6 +140,11 @@
 - (void)baseMethod {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
+
+- (void)baseMethod:(NSNumber*)param {
+    TNSLog([NSString stringWithFormat:@"overloaded instance %@ called", NSStringFromSelector(_cmd)]);
+}
+
 + (void)baseVariadicMethod:(id)x, ... {
     TNSLog([NSString stringWithFormat:@"base instance %@ called", NSStringFromSelector(_cmd)]);
 }
@@ -388,6 +402,10 @@
 - (void)derivedMethod {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
+
+- (void)methodWith:(NSNumber*)p1 param:(NSNumber*)p2 {
+    TNSLog([NSString stringWithFormat:@"instance %@ called with 2 params", NSStringFromSelector(_cmd)]);
+}
 @end
 
 @implementation TNSDerivedInterface (TNSDerivedCategory)
@@ -516,5 +534,9 @@
 }
 - (void)derivedCategoryMethod {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
+
+- (void)baseMethod:(NSNumber*)param {
+    TNSLog([NSString stringWithFormat:@"derived overloaded instance %@ called", NSStringFromSelector(_cmd)]);
 }
 @end

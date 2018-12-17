@@ -19,25 +19,31 @@ struct BlockLiteral {
     void* invoke;
 };
 
-const ClassInfo ObjCBlockCall::s_info = { "ObjCBlockCall", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCBlockCall) };
+const ClassInfo ObjCBlockWrapper::s_info = { "ObjCBlockWrapper", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCBlockWrapper) };
 
-void ObjCBlockCall::finishCreation(VM& vm, id block, ObjCBlockType* blockType) {
+void ObjCBlockWrapper::finishCreation(VM& vm, id block, ObjCBlockType* blockType) {
     Base::finishCreation(vm, WTF::emptyString());
-    this->_block = adoptNS(Block_copy(block));
 
     const WTF::Vector<JSCell*> parameterTypes = blockType->parameterTypes();
+    Base::initializeFunctionWrapper(vm, parameterTypes.size());
+    std::unique_ptr<ObjCBlockCall> call(new ObjCBlockCall(this));
+    call->initializeFFI(vm, { &preInvocation, nullptr }, blockType->returnType(), parameterTypes, 1);
+    call->_block = adoptNS(Block_copy(block));
 
-    Base::initializeFFI(vm, { &preInvocation, nullptr }, blockType->returnType(), parameterTypes, 1);
+    this->_functionsContainer.push_back(std::move(call));
 }
 
-void ObjCBlockCall::preInvocation(FFICall* callee, ExecState*, FFICall::Invocation& invocation) {
-    ObjCBlockCall* call = jsCast<ObjCBlockCall*>(callee);
+void ObjCBlockWrapper::preInvocation(FFICall* callee, ExecState*, FFICall::Invocation& invocation) {
+    ObjCBlockCall* call = static_cast<ObjCBlockCall*>(callee);
 
     invocation.function = reinterpret_cast<BlockLiteral*>(call->block())->invoke;
     invocation.setArgument(0, call->block());
 }
 
-ObjCBlockCall::~ObjCBlockCall() {
-    Heap::heap(this)->releaseSoon(WTFMove(this->_block));
+ObjCBlockWrapper::~ObjCBlockWrapper() {
+    for (auto const& func : this->_functionsContainer) {
+        ObjCBlockCall* call = static_cast<ObjCBlockCall*>(func.get());
+        Heap::heap(this)->releaseSoon(WTFMove(call->_block));
+    }
 }
 }

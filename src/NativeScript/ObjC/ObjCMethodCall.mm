@@ -23,60 +23,75 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-const ClassInfo ObjCMethodCall::s_info = { "ObjCMethodCall", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCMethodCall) };
+const ClassInfo ObjCMethodWrapper::s_info = { "ObjCMethodWrapper", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCMethodWrapper) };
 
-void ObjCMethodCall::finishCreation(VM& vm, GlobalObject* globalObject, const MethodMeta* metadata) {
-    Base::finishCreation(vm, metadata->jsName());
-    const TypeEncoding* encodings = metadata->encodings()->first();
+void ObjCMethodWrapper::finishCreation(VM& vm, GlobalObject* globalObject, std::vector<const MemberMeta*> methods) {
+    ASSERT(methods.size() > 0);
+    Base::finishCreation(vm, methods.front()->jsName());
 
-    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings, false);
-    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1, false);
+    size_t maxParamsCount = 0;
+    for (auto m : methods) {
 
-    Base::initializeFFI(vm, { &preInvocation, &postInvocation }, returnTypeCell, parameterTypesCells, 2);
-    this->_retainsReturnedCocoaObjects = metadata->ownsReturnedCocoaObject();
-    this->_isOptional = metadata->isOptional();
-    this->_isInitializer = metadata->isInitializer();
-    this->_hasErrorOutParameter = metadata->hasErrorOutParameter();
+        const MethodMeta* method = (const MethodMeta*)m;
 
-    if (this->_hasErrorOutParameter) {
-        this->_argumentCountValidator = [](FFICall* call, ExecState* execState) {
-            return execState->argumentCount() == call->parametersCount() || execState->argumentCount() == call->parametersCount() - 1;
-        };
-    }
+        const TypeEncoding* encodings = method->encodings()->first();
 
-    this->_msgSend = reinterpret_cast<void*>(&objc_msgSend);
-    this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper);
+        JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, /*r*/ encodings, false);
+        const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, /*r*/ encodings, method->encodings()->count - 1, false);
+
+        if (parameterTypesCells.size() > maxParamsCount) {
+            maxParamsCount = parameterTypesCells.size();
+        }
+
+        std::unique_ptr<ObjCMethodCall> call(new ObjCMethodCall(this));
+        call->initializeFFI(vm, { &preInvocation, &postInvocation }, returnTypeCell, parameterTypesCells, 2);
+        call->_retainsReturnedCocoaObjects = method->ownsReturnedCocoaObject();
+        call->_isOptional = method->isOptional();
+        call->_isInitializer = method->isInitializer();
+        call->_hasErrorOutParameter = method->hasErrorOutParameter();
+
+        if (call->_hasErrorOutParameter) {
+            call->_argumentCountValidator = [](FFICall* call, ExecState* execState) {
+                return execState->argumentCount() == call->parametersCount() || execState->argumentCount() == call->parametersCount() - 1;
+            };
+        }
+
+        call->_msgSend = reinterpret_cast<void*>(&objc_msgSend);
+        call->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper);
 
 #if defined(__i386__)
-    const unsigned X86_RET_STRUCTPOP = 10;
+        const unsigned X86_RET_STRUCTPOP = 10;
 
-    const ffi_type* returnFFIType = this->_returnType.ffiType;
-    if (returnFFIType->type == FFI_TYPE_FLOAT || returnFFIType->type == FFI_TYPE_DOUBLE || returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
-        this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
-    } else if (this->_cif->flags == X86_RET_STRUCTPOP) {
-        this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
-        this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
-    }
+        const ffi_type* returnFFIType = call->returnType().ffiType;
+        if (returnFFIType->type == FFI_TYPE_FLOAT || returnFFIType->type == FFI_TYPE_DOUBLE || returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
+            call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
+        } else if (call->cif()->flags == X86_RET_STRUCTPOP) {
+            call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
+            call->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
+        }
 #elif defined(__x86_64__)
-    const unsigned UNIX64_FLAG_RET_IN_MEM = (1 << 10);
+        const unsigned UNIX64_FLAG_RET_IN_MEM = (1 << 10);
 
-    const ffi_type* returnFFIType = this->_returnType.ffiType;
-    if (returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
-        this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
-    } else if (returnFFIType->type == FFI_TYPE_STRUCT && (this->_cif->flags & UNIX64_FLAG_RET_IN_MEM)) {
-        this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
-        this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
-    }
+        const ffi_type* returnFFIType = call->returnType().ffiType;
+        if (returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
+            call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
+        } else if (returnFFIType->type == FFI_TYPE_STRUCT && (call->cif()->flags & UNIX64_FLAG_RET_IN_MEM)) {
+            call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
+            call->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
+        }
 #elif defined(__arm__) && !defined(__LP64__)
-    const unsigned ARM_TYPE_STRUCT = 6;
+        const unsigned ARM_TYPE_STRUCT = 6;
 
-    if (this->_cif->flags == ARM_TYPE_STRUCT) {
-        this->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
-        this->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
-    }
+        if (call->cif()->flags == ARM_TYPE_STRUCT) {
+            call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
+            call->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
+        }
 #endif
 
-    this->setSelector(metadata->selector());
+        call->setSelector(method->selector());
+        this->_functionsContainer.push_back(std::move(call));
+    }
+    Base::initializeFunctionWrapper(vm, maxParamsCount);
 }
 
 static bool isJavaScriptDerived(JSC::JSValue value) {
@@ -95,8 +110,8 @@ static bool isJavaScriptDerived(JSC::JSValue value) {
     return false;
 }
 
-void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
-    ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
+void ObjCMethodWrapper::preInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
+    ObjCMethodCall* call = static_cast<ObjCMethodCall*>(callee);
 
     JSC::VM& vm = execState->vm();
     if (!(execState->thisValue().inherits(vm, ObjCConstructorBase::info()) || execState->thisValue().inherits(vm, ObjCWrapperObject::info()) || execState->thisValue().inherits(vm, AllocatedPlaceholder::info()) || execState->thisValue().inherits(vm, ObjCSuperObject::info()))) {
@@ -108,9 +123,9 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
 
     id target = NativeScript::toObject(execState, execState->thisValue());
 
-    if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
+    if (call->_hasErrorOutParameter && call->parameterTypesCells().size() - 1 == execState->argumentCount()) {
         std::vector<NSError*> outError = { nil };
-        invocation.setArgument(call->_argsCount - 1, outError.data());
+        invocation.setArgument(call->argsCount() - 1, outError.data());
         releaseSoon(execState, std::move(outError));
     }
 
@@ -142,8 +157,8 @@ void ObjCMethodCall::preInvocation(FFICall* callee, ExecState* execState, FFICal
     }
 }
 
-void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
-    ObjCMethodCall* call = jsCast<ObjCMethodCall*>(callee);
+void ObjCMethodWrapper::postInvocation(FFICall* callee, ExecState* execState, FFICall::Invocation& invocation) {
+    ObjCMethodCall* call = static_cast<ObjCMethodCall*>(callee);
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
@@ -151,8 +166,8 @@ void ObjCMethodCall::postInvocation(FFICall* callee, ExecState* execState, FFICa
         [invocation.getResult<id>() release];
     }
 
-    if (call->_hasErrorOutParameter && call->_parameterTypesCells.size() - 1 == execState->argumentCount()) {
-        if (NSError* error = *invocation.getArgument<NSError**>(call->_argsCount - 1)) {
+    if (call->_hasErrorOutParameter && call->parameterTypesCells().size() - 1 == execState->argumentCount()) {
+        if (NSError* error = *invocation.getArgument<NSError**>(call->argsCount() - 1)) {
             scope.throwException(execState, interop(execState)->wrapError(execState, error));
         }
     }

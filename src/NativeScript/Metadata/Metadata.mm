@@ -32,6 +32,13 @@ static UInt8 getSystemVersion() {
 
     return iosVersion;
 }
+std::unordered_map<std::string, std::vector<const MemberMeta*>> getMetasByJSNames(std::vector<const MemberMeta*> members) {
+    std::unordered_map<std::string, std::vector<const MemberMeta*>> result;
+    for (auto member : members) {
+        result[member->jsName()].push_back(member);
+    }
+    return result;
+}
 
 static int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated, size_t length) {
     int result = strncmp(nullTerminated, notNullTerminated, length);
@@ -71,7 +78,27 @@ bool Meta::isAvailable() const {
 
 // BaseClassMeta
 const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable) const {
-    const ArrayOfPtrTo<MemberMeta>* members;
+
+    std::vector<const MemberMeta*> members = this->members(identifier, length, type, includeProtocols, onlyIfAvailable);
+    ASSERT(members.size() <= 1);
+    return members.size() == 1 ? members[0] : nullptr;
+}
+const MethodMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberType type, size_t paramsCount, bool includeProtocols, bool onlyIfAvailable) const {
+    const std::vector<const MemberMeta*> metas = this->members(identifier, length, type, includeProtocols, onlyIfAvailable);
+
+    if (metas.size() == 0) {
+        return nullptr;
+    }
+    const MemberMeta* result = Metadata::getProperFunctionFromContainer<const MemberMeta*>(metas, paramsCount, [&](const MemberMeta* const& meta) {
+        return ((MethodMeta*)meta)->encodings()->count - 1;
+    });
+
+    return (MethodMeta*)result;
+}
+
+const std::vector<const MemberMeta*> BaseClassMeta::members(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable) const {
+
+    const ArrayOfPtrTo<MemberMeta>* members = nullptr;
     switch (type) {
     case MemberType::InstanceMethod:
         members = &this->instanceMethods->castTo<PtrTo<MemberMeta>>();
@@ -87,35 +114,40 @@ const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, M
         break;
     }
 
+    std::vector<const MemberMeta*> result;
     int resultIndex = -1;
-    if (members != nullptr) {
-        resultIndex = members->binarySearch([&](const PtrTo<MemberMeta>& member) { return compareIdentifiers(member->jsName(), identifier, length); });
-    }
-
+    resultIndex = members->binarySearchLeftmost([&](const PtrTo<MemberMeta>& member) { return compareIdentifiers(member->jsName(), identifier, length); });
     if (resultIndex >= 0) {
-        const MemberMeta* memberMeta = (*members)[resultIndex].valuePtr();
-        return onlyIfAvailable ? (memberMeta->isAvailable() ? memberMeta : nullptr) : memberMeta;
+        for (const MemberMeta* m = (*members)[resultIndex].valuePtr();
+             resultIndex < members->count && (strncmp(m->jsName(), identifier, length) == 0 && strlen(m->jsName()) == length);
+             m = (*members)[++resultIndex].valuePtr()) {
+            if (m->isAvailable() || !onlyIfAvailable) {
+                result.push_back(m);
+            }
+        }
+        return result;
     }
 
     // search in protcols
     if (includeProtocols) {
         for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-            const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr()));
+            const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr()));
             if (protocolMeta != nullptr) {
-                if (const MemberMeta* method = protocolMeta->member(identifier, length, type, onlyIfAvailable)) {
-                    return method;
+                const std::vector<const MemberMeta*> members = protocolMeta->members(identifier, length, type, onlyIfAvailable);
+                if (members.size() > 0) {
+                    result.insert(result.end(), members.begin(), members.end());
                 }
             }
         }
     }
 
-    return nullptr;
+    return result;
 }
 
 std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const {
     this->instanceProperties(container);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-        const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
+        const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
         if (protocolMeta != nullptr)
             protocolMeta->instancePropertiesWithProtocols(container);
     }
@@ -125,7 +157,7 @@ std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(
 std::vector<const PropertyMeta*> BaseClassMeta::staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const {
     this->staticProperties(container);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-        const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
+        const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
         if (protocolMeta != nullptr)
             protocolMeta->staticPropertiesWithProtocols(container);
     }
@@ -151,7 +183,7 @@ vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>&
 vector<const MethodMeta*> BaseClassMeta::initializersWithProtcols(vector<const MethodMeta*>& container) const {
     this->initializers(container);
     for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); it++) {
-        const ProtocolMeta* protocolMeta = reinterpret_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
+        const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
         if (protocolMeta != nullptr)
             protocolMeta->initializersWithProtcols(container);
     }

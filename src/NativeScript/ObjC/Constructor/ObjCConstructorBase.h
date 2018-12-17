@@ -17,7 +17,7 @@ struct InterfaceMeta;
 }
 
 namespace NativeScript {
-class ObjCConstructorCall;
+class ObjCConstructorWrapper;
 
 class ObjCConstructorBase : public JSC::InternalFunction {
 public:
@@ -41,7 +41,7 @@ public:
 
     static WTF::String className(const JSObject* object, JSC::VM&);
 
-    const WTF::Vector<JSC::WriteBarrier<ObjCConstructorCall>>& initializers(JSC::VM&, GlobalObject*);
+    const WTF::Vector<JSC::WriteBarrier<ObjCConstructorWrapper>>& initializers(JSC::VM&, GlobalObject*);
 
     const Metadata::InterfaceMeta* metadata();
 
@@ -79,7 +79,7 @@ private:
 
     JSC::WriteBarrier<JSC::JSObject> _prototype;
 
-    WTF::Vector<JSC::WriteBarrier<ObjCConstructorCall>> _initializers;
+    WTF::Vector<JSC::WriteBarrier<ObjCConstructorWrapper>> _initializers;
 
     JSC::WriteBarrier<JSC::Structure> _instancesStructure;
 

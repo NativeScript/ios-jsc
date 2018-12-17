@@ -7,7 +7,7 @@
 //
 
 #include "FunctionReferenceTypeInstance.h"
-#include "FFIFunctionCall.h"
+#include "CFunctionWrapper.h"
 #include "FFIFunctionCallback.h"
 #include "FunctionReferenceInstance.h"
 #include "Interop.h"
@@ -21,8 +21,8 @@ const ClassInfo FunctionReferenceTypeInstance::s_info = { "FunctionReferenceType
 JSValue FunctionReferenceTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     FunctionReferenceTypeInstance* functionReferenceType = jsCast<FunctionReferenceTypeInstance*>(self);
-    const void* functionPointer = *static_cast<const id*>(buffer);
-    return FFIFunctionCall::create(execState->vm(), globalObject->ffiFunctionCallStructure(), functionPointer, WTF::emptyString(), functionReferenceType->returnType(), functionReferenceType->parameterTypes(), false);
+    void* functionPointer = *static_cast<id*>(const_cast<void*>(buffer));
+    return CFunctionWrapper::create(execState->vm(), globalObject->ffiFunctionWrapperStructure(), functionPointer, WTF::emptyString(), functionReferenceType->returnType(), functionReferenceType->parameterTypes(), false);
 }
 
 void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {

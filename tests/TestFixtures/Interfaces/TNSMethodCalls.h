@@ -40,8 +40,11 @@
 @property int baseProperty;
 @property(class) int baseProperty;
 + (void)baseMethod;
++ (void)baseMethod:(NSNumber*)param;
 - (instancetype)initBaseMethod;
+- (void)baseMethod:(NSNumber*)param;
 - (void)baseMethod;
+- (void)methodWithParam:(NSNumber*)p1;
 @end
 
 @protocol TNSBaseCategoryProtocol1
@@ -118,6 +121,7 @@
 + (void)derivedMethod;
 - (instancetype)initDerivedMethod;
 - (void)derivedMethod;
+- (void)methodWith:(NSNumber*)p1 param:(NSNumber*)p2;
 @end
 
 @protocol TNSDerivedCategoryProtocol1

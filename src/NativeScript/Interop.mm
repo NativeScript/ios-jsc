@@ -7,7 +7,7 @@
 //
 
 #include "Interop.h"
-#include "FFIFunctionCall.h"
+#include "CFunctionWrapper.h"
 #include "FFISimpleType.h"
 #include "FFIType.h"
 #include "FunctionReferenceConstructor.h"
@@ -57,12 +57,12 @@ void* tryHandleofValue(VM& vm, const JSValue& value, bool* hasHandle) {
     } else if (ObjCProtocolWrapper* protocolWrapper = jsDynamicCast<ObjCProtocolWrapper*>(vm, value)) {
         *hasHandle = true;
         handle = static_cast<void*>(protocolWrapper->protocol());
-    } else if (FFIFunctionCall* functionCall = jsDynamicCast<FFIFunctionCall*>(vm, value)) {
+    } else if (CFunctionWrapper* functionWrapper = jsDynamicCast<CFunctionWrapper*>(vm, value)) {
         *hasHandle = true;
-        handle = const_cast<void*>(functionCall->functionPointer());
-    } else if (ObjCBlockCall* blockCall = jsDynamicCast<ObjCBlockCall*>(vm, value)) {
+        handle = functionWrapper->functionPointer();
+    } else if (ObjCBlockWrapper* blockWrapper = jsDynamicCast<ObjCBlockWrapper*>(vm, value)) {
         *hasHandle = true;
-        handle = static_cast<void*>(blockCall->block());
+        handle = static_cast<void*>(static_cast<ObjCBlockCall*>(blockWrapper->onlyFuncInContainer())->block());
     } else if (RecordInstance* recordInstance = jsDynamicCast<RecordInstance*>(vm, value)) {
         *hasHandle = true;
         handle = recordInstance->data();
@@ -102,7 +102,7 @@ void* tryHandleofValue(VM& vm, const JSValue& value, bool* hasHandle) {
 size_t sizeofValue(VM& vm, const JSC::JSValue& value) {
     size_t size;
 
-    if (value.inherits(vm, ObjCWrapperObject::info()) || value.inherits(vm, ObjCConstructorBase::info()) || value.inherits(vm, ObjCProtocolWrapper::info()) || value.inherits(vm, FFIFunctionCall::info()) || value.inherits(vm, ObjCBlockCall::info()) || value.inherits(vm, ObjCBlockType::info()) || value.inherits(vm, PointerConstructor::info()) || value.inherits(vm, PointerInstance::info()) || value.inherits(vm, ReferenceConstructor::info()) || value.inherits(vm, ReferenceInstance::info()) || value.inherits(vm, FunctionReferenceConstructor::info()) || value.inherits(vm, FunctionReferenceInstance::info())) {
+    if (value.inherits(vm, ObjCWrapperObject::info()) || value.inherits(vm, ObjCConstructorBase::info()) || value.inherits(vm, ObjCProtocolWrapper::info()) || value.inherits(vm, CFunctionWrapper::info()) || value.inherits(vm, ObjCBlockWrapper::info()) || value.inherits(vm, ObjCBlockType::info()) || value.inherits(vm, PointerConstructor::info()) || value.inherits(vm, PointerInstance::info()) || value.inherits(vm, ReferenceConstructor::info()) || value.inherits(vm, ReferenceInstance::info()) || value.inherits(vm, FunctionReferenceConstructor::info()) || value.inherits(vm, FunctionReferenceInstance::info())) {
         size = sizeof(void*);
     } else if (FFISimpleType* simpleType = jsDynamicCast<FFISimpleType*>(vm, value)) {
         const ffi_type* ffiType = simpleType->ffiTypeMethodTable().ffiType;

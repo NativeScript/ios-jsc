@@ -68,7 +68,8 @@ describe(module.id, function () {
             'initBaseProtocolMethod1',
             'initBaseProtocolMethod1Optional',
             'initBaseProtocolMethod2',
-            'initBaseProtocolMethod2Optional'
+            'initBaseProtocolMethod2Optional',
+            'methodWithParam'
         ]);
     });
 
@@ -83,6 +84,7 @@ describe(module.id, function () {
     it("StaticCalls", function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({});
         JSDerivedInterface.baseMethod();
+        JSDerivedInterface.baseMethod(1);
         JSDerivedInterface.baseProtocolMethod2();
         JSDerivedInterface.baseProtocolMethod2Optional();
         JSDerivedInterface.baseProtocolMethod1();
@@ -106,6 +108,7 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe(
             'static baseMethod called' +
+            'overloaded static baseMethod: called' +
             'static baseProtocolMethod2 called' +
             'static baseProtocolMethod2Optional called' +
             'static baseProtocolMethod1 called' +
@@ -132,6 +135,7 @@ describe(module.id, function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({});
         var object = JSDerivedInterface.alloc().init();
         object.baseMethod();
+        object.baseMethod(1);
         object.baseProtocolMethod2();
         object.baseProtocolMethod2Optional();
         object.baseProtocolMethod1();
@@ -151,10 +155,12 @@ describe(module.id, function () {
         object.derivedCategoryProtocolMethod2Optional();
         object.derivedCategoryProtocolMethod1();
         object.derivedCategoryProtocolMethod1Optional();
+        object.methodWithParam(1, 2);
 
         var actual = TNSGetOutput();
         expect(actual).toBe(
             'instance baseMethod called' +
+            'derived overloaded instance baseMethod: called' +
             'instance baseProtocolMethod2 called' +
             'instance baseProtocolMethod2Optional called' +
             'instance baseProtocolMethod1 called' +
@@ -173,7 +179,8 @@ describe(module.id, function () {
             'instance derivedCategoryProtocolMethod2 called' +
             'instance derivedCategoryProtocolMethod2Optional called' +
             'instance derivedCategoryProtocolMethod1 called' +
-            'instance derivedCategoryProtocolMethod1Optional called'
+            'instance derivedCategoryProtocolMethod1Optional called' +
+            'instance methodWith:param: called with 2 params'
         );
     });
 
@@ -312,6 +319,17 @@ describe(module.id, function () {
             'instance setDerivedCategoryProperty: called' +
             'instance derivedCategoryProperty called'
         );
+    });
+         
+    it("MethodOverrides: prototype with wrong parameters count", function () {
+            
+        var f = function() {
+            TNSBaseInterface.prototype.baseMethod = function(x, y) {
+                console.log(x);
+            }
+        }
+       
+        expect(f).toThrowError('Wrong argument count for native function with name "baseMethod".');
     });
 
     it("MethodOverrides: prototype", function () {

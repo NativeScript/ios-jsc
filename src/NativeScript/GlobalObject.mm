@@ -8,8 +8,8 @@
 
 #include "GlobalObject.h"
 #include "AllocatedPlaceholder.h"
+#include "CFunctionWrapper.h"
 #include "FFICallPrototype.h"
-#include "FFIFunctionCall.h"
 #include "FFIFunctionCallback.h"
 #include "Interop.h"
 #include "JSErrors.h"
@@ -163,10 +163,10 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_applicationPath = applicationPath;
 
     this->_ffiCallPrototype.set(vm, this, FFICallPrototype::create(vm, this, FFICallPrototype::createStructure(vm, this, this->functionPrototype())));
-    this->_objCMethodCallStructure.set(vm, this, ObjCMethodCall::createStructure(vm, this, this->ffiCallPrototype()));
-    this->_objCConstructorCallStructure.set(vm, this, ObjCConstructorCall::createStructure(vm, this, this->functionPrototype()));
-    this->_objCBlockCallStructure.set(vm, this, ObjCBlockCall::createStructure(vm, this, this->ffiCallPrototype()));
-    this->_ffiFunctionCallStructure.set(vm, this, FFIFunctionCall::createStructure(vm, this, this->ffiCallPrototype()));
+    this->_objCMethodWrapperStructure.set(vm, this, ObjCMethodWrapper::createStructure(vm, this, this->ffiCallPrototype()));
+    this->_objCConstructorWrapperStructure.set(vm, this, ObjCConstructorWrapper::createStructure(vm, this, this->functionPrototype()));
+    this->_objCBlockWrapperStructure.set(vm, this, ObjCBlockWrapper::createStructure(vm, this, this->ffiCallPrototype()));
+    this->_ffiFunctionWrapperStructure.set(vm, this, CFunctionWrapper::createStructure(vm, this, this->ffiCallPrototype()));
     this->_objCBlockCallbackStructure.set(vm, this, ObjCBlockCallback::createStructure(vm, this, jsNull()));
     this->_objCMethodCallbackStructure.set(vm, this, ObjCMethodCallback::createStructure(vm, this, jsNull()));
     this->_ffiFunctionCallbackStructure.set(vm, this, FFIFunctionCallback::createStructure(vm, this, jsNull()));
@@ -254,10 +254,10 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(globalObject->_typeScriptOriginalExtendsFunction);
     visitor.append(globalObject->_smartStringifyFunction);
     visitor.append(globalObject->_ffiCallPrototype);
-    visitor.append(globalObject->_objCMethodCallStructure);
-    visitor.append(globalObject->_objCConstructorCallStructure);
-    visitor.append(globalObject->_objCBlockCallStructure);
-    visitor.append(globalObject->_ffiFunctionCallStructure);
+    visitor.append(globalObject->_objCMethodWrapperStructure);
+    visitor.append(globalObject->_objCConstructorWrapperStructure);
+    visitor.append(globalObject->_objCBlockWrapperStructure);
+    visitor.append(globalObject->_ffiFunctionWrapperStructure);
     visitor.append(globalObject->_objCBlockCallbackStructure);
     visitor.append(globalObject->_objCMethodCallbackStructure);
     visitor.append(globalObject->_ffiFunctionCallbackStructure);
@@ -346,7 +346,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
                 returnType = UnmanagedType::create(vm, returnType, unmanagedStructure);
             }
 
-            symbolWrapper = FFIFunctionCall::create(vm, globalObject->ffiFunctionCallStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
+            symbolWrapper = CFunctionWrapper::create(vm, globalObject->ffiFunctionWrapperStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
         }
         break;
     }
@@ -510,7 +510,7 @@ bool GlobalObject::isUIApplicationMainAtTopOfCallstack() {
     }
 
     const Meta* meta = getUIApplicationMainMeta();
-    FFIFunctionCall* function_call = jsDynamicCast<FFIFunctionCall*>(this->vm(), this->vm().topCallFrame->callee().asCell());
+    CFunctionWrapper* function_call = jsDynamicCast<CFunctionWrapper*>(this->vm(), this->vm().topCallFrame->callee().asCell());
 
     return function_call && meta && function_call->functionPointer() == SymbolLoader::instance().loadFunctionSymbol(meta->topLevelModule(), meta->name());
 }

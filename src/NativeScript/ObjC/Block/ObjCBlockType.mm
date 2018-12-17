@@ -106,7 +106,7 @@ JSValue ObjCBlockType::read(ExecState* execState, const void* buffer, JSCell* se
         return objCBlockCallback;
     }
 
-    return ObjCBlockCall::create(execState->vm(), globalObject->objCBlockCallStructure(), block, blockType);
+    return ObjCBlockWrapper::create(execState->vm(), globalObject->objCBlockWrapperStructure(), block, blockType);
 }
 
 void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {

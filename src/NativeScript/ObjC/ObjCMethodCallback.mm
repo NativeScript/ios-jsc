@@ -9,6 +9,7 @@
 #include "ObjCMethodCallback.h"
 #include "FFICallbackInlines.h"
 #include "FFISimpleType.h"
+#include "Interop.h"
 #include "Metadata.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCTypes.h"
@@ -29,6 +30,51 @@ ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue 
     ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), value.asCell(), returnType, parameterTypes, TriState(meta->hasErrorOutParameter()));
     gcProtect(methodCallback);
     return methodCallback;
+}
+
+bool overrideNativeMethodWithName(ExecState* execState, PropertyName propertyName, Class klass, JSValue value, std::vector<const MemberMeta*> metas, ObjCMethodWrapper* nativeMethod) {
+
+    if (metas.size() > 0) {
+
+        size_t methodCallbackLength = jsDynamicCast<JSObject*>(execState->vm(), value.asCell())->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
+
+        const MethodMeta* meta = (const MethodMeta*)metas[0]; // get an arbitrary selector as we will override all native methods with the jsName
+
+        if (metas.size() > 1) {
+            WTF::StringBuilder metaNames;
+
+            for (size_t i = 0; i < metas.size(); i++) {
+                if (i > 0) {
+                    metaNames.append(", ");
+                }
+                metaNames.append("\"");
+                metaNames.append(((const MethodMeta*)metas[i])->selectorAsString());
+                metaNames.append("\"");
+            }
+
+            WTF::String message = WTF::String::format("More than one native methods overriden! Assigning to \"%s\" will override native methods with the following selectors: %s.", meta->jsName(), metaNames.toString().characters8());
+            warn(execState, message);
+        }
+
+        ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, value, meta);
+        std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
+        IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
+
+        SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
+        class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
+
+        if (nativeMethod) {
+            for (auto& f : nativeMethod->functionsContainer()) {
+                if (f->parametersCount() == methodCallbackLength) {
+                    ObjCMethodCall* call = static_cast<ObjCMethodCall*>(f.get());
+                    call->setSelector(nativeSelector);
+                    break;
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<JSCell*>& parameterTypes) {

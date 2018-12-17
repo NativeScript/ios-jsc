@@ -157,7 +157,7 @@ bool ObjCConstructorBase::getOwnPropertySlot(JSObject* object, ExecState* execSt
     return false;
 }
 
-const WTF::Vector<WriteBarrier<ObjCConstructorCall>>& ObjCConstructorBase::initializers(VM& vm, GlobalObject* globalObject) {
+const WTF::Vector<WriteBarrier<ObjCConstructorWrapper>>& ObjCConstructorBase::initializers(VM& vm, GlobalObject* globalObject) {
     if (this->_initializers.size() == 0) {
         JSC::DeferGCForAWhile deferGC(vm.heap);
         const Metadata::InterfaceMeta* metadata = this->metadata();
@@ -166,8 +166,8 @@ const WTF::Vector<WriteBarrier<ObjCConstructorCall>>& ObjCConstructorBase::initi
             std::vector<const Metadata::MethodMeta*> initializers = metadata->initializersWithProtcols();
             for (const Metadata::MethodMeta* method : initializers) {
                 if (method->isAvailable()) {
-                    ObjCConstructorCall* constructorCall = ObjCConstructorCall::create(vm, globalObject, globalObject->objCConstructorCallStructure(), this->_klass, method);
-                    this->_initializers.append(WriteBarrier<ObjCConstructorCall>(vm, this, constructorCall));
+                    ObjCConstructorWrapper* constructorWrapper = ObjCConstructorWrapper::create(vm, globalObject, globalObject->objCConstructorWrapperStructure(), this->_klass, method);
+                    this->_initializers.append(WriteBarrier<ObjCConstructorWrapper>(vm, this, constructorWrapper));
                 }
             }
 
@@ -275,9 +275,9 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
         }
     }
 
-    WTF::Vector<ObjCConstructorCall*> candidateInitializers;
+    WTF::Vector<ObjCConstructorWrapper*> candidateInitializers;
 
-    for (WriteBarrier<ObjCConstructorCall> initializer : constructor->initializers(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()))) {
+    for (WriteBarrier<ObjCConstructorWrapper> initializer : constructor->initializers(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()))) {
         if (initializer->canInvoke(execState)) {
             candidateInitializers.append(initializer.get());
         }
@@ -290,13 +290,13 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
     } else if (candidateInitializers.size() > 1) {
         WTF::StringBuilder errorMessage;
         errorMessage.append("More than one initializer found that matches constructor invocation:");
-        for (ObjCConstructorCall* initializer : candidateInitializers) {
+        for (ObjCConstructorWrapper* initializer : candidateInitializers) {
             errorMessage.append(" ");
-            errorMessage.append(sel_getName(initializer->selector()));
+            errorMessage.append(sel_getName(static_cast<ObjCConstructorCall*>(initializer->onlyFuncInContainer())->selector()));
         }
         return JSValue::encode(scope.throwException(execState, createError(execState, errorMessage.toString())));
     } else {
-        ObjCConstructorCall* initializer = candidateInitializers[0];
+        ObjCConstructorWrapper* initializer = candidateInitializers[0];
 
         CallData callData;
         CallType callType = initializer->methodTable(vm)->getCallData(initializer, callData);

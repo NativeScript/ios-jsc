@@ -1,13 +1,14 @@
 //
-//  FFICall.cpp
+//  FunctionWrapper.cpp
 //  NativeScript
 //
-//  Created by Yavor Georgiev on 12.06.14.
 //  Copyright (c) 2014 г. Telerik. All rights reserved.
+//  Created by Teodor Dermendzhiev on 10/15/18.
 //
 
 #include "FFICall.h"
 #include "FFICache.h"
+#include "FunctionWrapper.h"
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/interpreter/FrameTracers.h>
@@ -16,9 +17,6 @@
 #include <malloc/malloc.h>
 
 namespace NativeScript {
-using namespace JSC;
-
-const ClassInfo FFICall::s_info = { "FFICall", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FFICall) };
 
 void deleteCif(ffi_cif* cif) {
     delete[] cif->arg_types;
@@ -30,11 +28,10 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
 
     this->_initialArgumentIndex = initialArgumentIndex;
 
-    this->_returnTypeCell.set(vm, this, returnType);
+    this->_returnTypeCell.set(vm, owner, returnType);
     this->_returnType = getFFITypeMethodTable(vm, returnType);
 
     size_t parametersCount = parameterTypes.size();
-    this->putDirect(vm, vm.propertyNames->length, jsNumber(parametersCount), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 
     const ffi_type** parameterTypesFFITypes = new const ffi_type*[parametersCount + initialArgumentIndex];
 
@@ -47,7 +44,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
 
     for (size_t i = 0; i < parametersCount; i++) {
         JSCell* parameterTypeCell = parameterTypes[i];
-        this->_parameterTypesCells.append(WriteBarrier<JSCell>(vm, this, parameterTypeCell));
+        this->_parameterTypesCells.append(WriteBarrier<JSCell>(vm, owner, parameterTypeCell));
 
         const FFITypeMethodTable& ffiTypeMethodTable = getFFITypeMethodTable(vm, parameterTypeCell);
         this->_parameterTypes.append(ffiTypeMethodTable);
@@ -72,7 +69,6 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
         this->_stackSize += malloc_good_size(std::max(this->_cif->arg_types[i]->size, sizeof(ffi_arg)));
     }
 }
-
 std::shared_ptr<ffi_cif> FFICall::getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes) {
 
     WTF::LockHolder lock(FFICache::global()->_cacheLock);
@@ -87,6 +83,7 @@ std::shared_ptr<ffi_cif> FFICall::getCif(unsigned int nargs, ffi_type* rtype, ff
     return FFICache::global()->cifCache[this->signatureVector];
 }
 
+<<<<<<< HEAD
 FFICall::~FFICall() {
     WTF::LockHolder lock(FFICache::global()->_cacheLock);
     if (this->_cif.use_count() == 2) {
@@ -216,4 +213,6 @@ JSObject* FFICall::async(ExecState* execState, JSValue thisValue, const ArgList&
 
     return deferred->promise();
 }
+=======
+>>>>>>> feat: Add support for method overloading
 } // namespace NativeScript
