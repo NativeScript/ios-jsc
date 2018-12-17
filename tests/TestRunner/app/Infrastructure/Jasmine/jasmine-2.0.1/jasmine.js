@@ -1587,6 +1587,8 @@ getJasmineRequireObj().QueueRunner = function(j$) {
 
     for(iterativeIndex = recursiveIndex; iterativeIndex < length; iterativeIndex++) {
       var fn = fns[iterativeIndex];
+      // Uncomment the following line for easy identification of a failing/crashing test
+      // console.log("*** JASMINE *** RUNNING test function:\n", fn);
       if (fn.length > 0) {
         return attemptAsync(fn);
       } else {

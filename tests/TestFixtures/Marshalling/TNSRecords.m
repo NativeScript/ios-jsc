@@ -268,6 +268,132 @@ matrix_double4x4 getMatrixDouble4x4() {
     return result;
 }
 
+matrix_float2x2 doubleMatrixFloat2x2(matrix_float2x2 m) {
+    for (int i = 0; i < 4; i++) {
+        m.columns[i % 2][i / 2] *= 2;
+    }
+    return m;
+}
+
+matrix_float2x3 doubleMatrixFloat2x3(matrix_float2x3 m) {
+    for (int i = 0; i < 6; i++) {
+        m.columns[i % 2][i / 2] *= 2;
+    }
+    return m;
+}
+
+matrix_float2x4 doubleMatrixFloat2x4(matrix_float2x4 m) {
+    for (int i = 0; i < 8; i++) {
+        m.columns[i % 2][i / 2] *= 2;
+    }
+    return m;
+}
+
+matrix_float3x2 doubleMatrixFloat3x2(matrix_float3x2 m) {
+    for (int i = 0; i < 6; i++) {
+        m.columns[i % 3][i / 3] *= 2;
+    }
+    return m;
+}
+
+matrix_float3x3 doubleMatrixFloat3x3(matrix_float3x3 m) {
+    for (int i = 0; i < 9; i++) {
+        m.columns[i % 3][i / 3] *= 2;
+    }
+    return m;
+}
+
+matrix_float3x4 doubleMatrixFloat3x4(matrix_float3x4 m) {
+    for (int i = 0; i < 12; i++) {
+        m.columns[i % 3][i / 3] *= 2;
+    }
+    return m;
+}
+
+matrix_float4x2 doubleMatrixFloat4x2(matrix_float4x2 m) {
+    for (int i = 0; i < 8; i++) {
+        m.columns[i % 4][i / 4] *= 2;
+    }
+    return m;
+}
+
+matrix_float4x3 doubleMatrixFloat4x3(matrix_float4x3 m) {
+    for (int i = 0; i < 12; i++) {
+        m.columns[i % 4][i / 4] *= 2;
+    }
+    return m;
+}
+
+matrix_float4x4 doubleMatrixFloat4x4(matrix_float4x4 m) {
+    for (int i = 0; i < 16; i++) {
+        m.columns[i % 4][i / 4] *= 2;
+    }
+    return m;
+}
+
+matrix_double2x2 doubleMatrixDouble2x2(matrix_double2x2 m) {
+    for (int i = 0; i < 4; i++) {
+        m.columns[i % 2][i / 2] *= 2;
+    }
+    return m;
+}
+
+matrix_double2x3 doubleMatrixDouble2x3(matrix_double2x3 m) {
+    for (int i = 0; i < 6; i++) {
+        m.columns[i % 2][i / 2] *= 2;
+    }
+    return m;
+}
+
+matrix_double2x4 doubleMatrixDouble2x4(matrix_double2x4 m) {
+    for (int i = 0; i < 8; i++) {
+        m.columns[i % 2][i / 2] *= 2;
+    }
+    return m;
+}
+
+matrix_double3x2 doubleMatrixDouble3x2(matrix_double3x2 m) {
+    for (int i = 0; i < 6; i++) {
+        m.columns[i % 3][i / 3] *= 2;
+    }
+    return m;
+}
+
+matrix_double3x3 doubleMatrixDouble3x3(matrix_double3x3 m) {
+    for (int i = 0; i < 9; i++) {
+        m.columns[i % 3][i / 3] *= 2;
+    }
+    return m;
+}
+
+matrix_double3x4 doubleMatrixDouble3x4(matrix_double3x4 m) {
+    for (int i = 0; i < 12; i++) {
+        m.columns[i % 3][i / 3] *= 2;
+    }
+    return m;
+}
+
+matrix_double4x2 doubleMatrixDouble4x2(matrix_double4x2 m) {
+    for (int i = 0; i < 8; i++) {
+        m.columns[i % 4][i / 4] *= 2;
+    }
+    return m;
+}
+
+matrix_double4x3 doubleMatrixDouble4x3(matrix_double4x3 m) {
+    for (int i = 0; i < 12; i++) {
+        m.columns[i % 4][i / 4] *= 2;
+    }
+    return m;
+}
+
+matrix_double4x4 doubleMatrixDouble4x4(matrix_double4x4 m) {
+    for (int i = 0; i < 16; i++) {
+        m.columns[i % 4][i / 4] *= 2;
+    }
+    return m;
+}
+
 simd_float2 getFloat2() {
     simd_float2 float2 = simd_make_float2(1.2345, 2.3456);
     return float2;
@@ -372,4 +498,3 @@ SCNVector4 _SCNVector4FromFloat4(simd_float4 v) {
 SCNMatrix4 _SCNMatrix4FromMat4(simd_float4x4 m) {
     return SCNMatrix4FromMat4(m);
 }
-
