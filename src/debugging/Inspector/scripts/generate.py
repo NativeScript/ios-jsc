@@ -72,7 +72,7 @@ def ts_name_for_primitive_type(domain, parameter_type):
 # noinspection PyMethodMayBeStatic
 class TypeScriptInterfaceGenerator(Generator):
     def __init__(self, model):
-        Generator.__init__(self, model, "")
+        Generator.__init__(self, model, "ios", "")
 
     def output_filename(self):
         return "InspectorBackendCommands.ts"
@@ -90,10 +90,10 @@ class TypeScriptInterfaceGenerator(Generator):
 
         lines.extend(self.generate_domain_type_declarations(domain))
 
-        if len(domain.commands) > 0:
+        if len(domain.all_commands()) > 0:
             lines.extend(self.generate_domain_commands(domain))
 
-        if len(domain.events) > 0:
+        if len(domain.all_events()) > 0:
             lines.append("export class %sFrontend { " % domain.domain_name)
             lines.extend(self.generate_domain_events(domain))
             lines.append('}')
@@ -103,9 +103,9 @@ class TypeScriptInterfaceGenerator(Generator):
 
     def generate_domain_type_declarations(self, domain):
         lines = []
-        primitive_declarations = filter(lambda decl: isinstance(decl.type, AliasedType), domain.type_declarations)
-        object_declarations = filter(lambda decl: isinstance(decl.type, ObjectType), domain.type_declarations)
-        enum_declarations = filter(lambda decl: isinstance(decl.type, EnumType), domain.type_declarations)
+        primitive_declarations = filter(lambda decl: isinstance(decl.type, AliasedType), domain.all_type_declarations())
+        object_declarations = filter(lambda decl: isinstance(decl.type, ObjectType), domain.all_type_declarations())
+        enum_declarations = filter(lambda decl: isinstance(decl.type, EnumType), domain.all_type_declarations())
 
         for declaration in primitive_declarations:
             if declaration.description:
@@ -144,7 +144,7 @@ class TypeScriptInterfaceGenerator(Generator):
 
         commands_lines.append("export interface %sDomainDispatcher { " % domain.domain_name)
 
-        for command in domain.commands:
+        for command in domain.all_commands():
             returnParams = ", ".join(['%s%s: %s' % (parameter.parameter_name, "?" if parameter.is_optional else '',
                                                     ts_name_for_primitive_type(domain, parameter.type)) for parameter in
                                       command.return_parameters])
@@ -178,7 +178,7 @@ class TypeScriptInterfaceGenerator(Generator):
 
     def generate_domain_events(self, domain):
         lines = []
-        for event in domain.events:
+        for event in domain.all_events():
             parameters = ', '.join(
                 '\"{0}\": {0}'.format(parameter.parameter_name) for parameter in event.event_parameters)
             callParams = ", ".join(
