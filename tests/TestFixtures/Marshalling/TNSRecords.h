@@ -160,6 +160,26 @@ matrix_double3x4 getMatrixDouble3x4();
 matrix_double4x2 getMatrixDouble4x2();
 matrix_double4x3 getMatrixDouble4x3();
 matrix_double4x4 getMatrixDouble4x4();
+
+matrix_float2x2 doubleMatrixFloat2x2(matrix_float2x2);
+matrix_float2x3 doubleMatrixFloat2x3(matrix_float2x3);
+matrix_float2x4 doubleMatrixFloat2x4(matrix_float2x4);
+matrix_float3x2 doubleMatrixFloat3x2(matrix_float3x2);
+matrix_float3x3 doubleMatrixFloat3x3(matrix_float3x3);
+matrix_float3x4 doubleMatrixFloat3x4(matrix_float3x4);
+matrix_float4x2 doubleMatrixFloat4x2(matrix_float4x2);
+matrix_float4x3 doubleMatrixFloat4x3(matrix_float4x3);
+matrix_float4x4 doubleMatrixFloat4x4(matrix_float4x4);
+matrix_double2x2 doubleMatrixDouble2x2(matrix_double2x2);
+matrix_double2x3 doubleMatrixDouble2x3(matrix_double2x3);
+matrix_double2x4 doubleMatrixDouble2x4(matrix_double2x4);
+matrix_double3x2 doubleMatrixDouble3x2(matrix_double3x2);
+matrix_double3x3 doubleMatrixDouble3x3(matrix_double3x3);
+matrix_double3x4 doubleMatrixDouble3x4(matrix_double3x4);
+matrix_double4x2 doubleMatrixDouble4x2(matrix_double4x2);
+matrix_double4x3 doubleMatrixDouble4x3(matrix_double4x3);
+matrix_double4x4 doubleMatrixDouble4x4(matrix_double4x4);
+
 simd_float2 getFloat2();
 simd_float3 getFloat3();
 simd_float4 getFloat4();
