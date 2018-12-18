@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import os
-import subprocess
 import shlex
+import subprocess
 import sys
 
-
 print("Python version: " + sys.version)
+
 
 def env(env_name):
     return os.environ[env_name]
@@ -21,6 +21,7 @@ def env_or_empty(env_name):
     if result is None:
         return ""
     return result
+
 
 def map_and_list(func, iterable):
     result = map(func, iterable)
@@ -53,10 +54,14 @@ elif effective_platofrm_name is "-watchos" or effective_platofrm_name is "-watch
     docset_platform = "watchOS"
 elif effective_platofrm_name is "-appletvos" or effective_platofrm_name is "-appletvsimulator":
     docset_platform = "tvOS"
-docset_path = os.path.join(os.path.expanduser("~"), "Library/Developer/Shared/Documentation/DocSets/com.apple.adc.documentation.{}.docset".format(docset_platform))
+
+docset_path = os.path.join(os.path.expanduser("~"),
+                           "Library/Developer/Shared/Documentation/DocSets/com.apple.adc.documentation.{}.docset"
+                           .format(docset_platform))
 yaml_output_folder = env_or_none("TNS_DEBUG_METADATA_PATH")
 
 
+# noinspection PyShadowingNames
 def generate_metadata(arch):
     # metadata generator arguments
     generator_call = ["./objc-metadata-generator",
