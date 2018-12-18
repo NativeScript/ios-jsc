@@ -23,6 +23,13 @@ public:
         , _retainsReturnedCocoaObjects(retainsReturnedCocoaObjects) {
     }
 
+    DECLARE_INFO;
+
+    template <typename CellType>
+    static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
+        return &vm.tnsCFunctionWrapperSpace;
+    }
+
     void* functionPointer() const {
         return this->_functionPointer;
     }

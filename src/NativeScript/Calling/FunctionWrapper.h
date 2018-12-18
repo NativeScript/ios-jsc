@@ -24,6 +24,11 @@ public:
 
     DECLARE_INFO;
 
+    template <typename CellType>
+    static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
+        return &vm.tnsFunctionWrapperSpace;
+    }
+
     std::vector<std::unique_ptr<FFICall>>& functionsContainer() {
         return this->_functionsContainer;
     }

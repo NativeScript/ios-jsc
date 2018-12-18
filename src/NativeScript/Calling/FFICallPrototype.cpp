@@ -9,7 +9,6 @@
 #include "FFICallPrototype.h"
 #include "FFICall.h"
 #include "FunctionWrapper.h"
-#include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/interpreter/Interpreter.h>
 
 namespace NativeScript {

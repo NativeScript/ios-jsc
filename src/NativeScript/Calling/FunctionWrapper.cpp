@@ -8,10 +8,10 @@
 
 #include "FFICache.h"
 #include "FFICall.h"
-#include <JavaScriptCore/Interpreter.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/interpreter/FrameTracers.h>
+#include <JavaScriptCore/interpreter/Interpreter.h>
 #include <dispatch/dispatch.h>
 #include <malloc/malloc.h>
 
@@ -138,7 +138,7 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
 
       JSValue result;
       {
-          TopCallFrameSetter frameSetter(fakeExecState->vm(), fakeExecState);
+          TopCallFrameSetter frameSetter(vm, fakeExecState);
           result = call->returnType().read(fakeExecState, invocation->_buffer + call->returnOffset(), call->returnTypeCell().get());
 
           call->postCall(fakeExecState, *invocation);
@@ -147,14 +147,14 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
       if (Exception* exception = scope.exception()) {
           scope.clearException();
           CallData rejectCallData;
-          CallType rejectCallType = JSC::getCallData(deferred->reject(), rejectCallData);
+          CallType rejectCallType = JSC::getCallData(fakeExecState->vm(), deferred->reject(), rejectCallData);
 
           MarkedArgumentBuffer rejectArguments;
           rejectArguments.append(exception->value());
           JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->reject(), rejectCallType, rejectCallData, jsUndefined(), rejectArguments);
       } else {
           CallData resolveCallData;
-          CallType resolveCallType = JSC::getCallData(deferred->resolve(), resolveCallData);
+          CallType resolveCallType = JSC::getCallData(fakeExecState->vm(), deferred->resolve(), resolveCallData);
 
           MarkedArgumentBuffer resolveArguments;
           resolveArguments.append(result);

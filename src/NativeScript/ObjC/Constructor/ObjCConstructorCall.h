@@ -32,7 +32,7 @@ public:
 
     template <typename CellType>
     static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
-        return &vm.tnsObjCConstructorCallSpace;
+        return &vm.tnsObjCConstructorWrapperSpace;
     }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
