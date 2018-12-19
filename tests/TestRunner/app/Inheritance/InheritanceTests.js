@@ -58,6 +58,7 @@ describe(module.id, function () {
             'baseProtocolProperty1Optional',
             'baseProtocolProperty2',
             'baseProtocolProperty2Optional',
+            'callBaseMethod',
             'constructor',
             'initBaseCategoryMethod',
             'initBaseCategoryProtocolMethod1',
@@ -182,6 +183,14 @@ describe(module.id, function () {
             'instance derivedCategoryProtocolMethod1Optional called' +
             'instance methodWith:param: called with 2 params'
         );
+    });
+         
+    it("Explicitly called base class method", function () {
+        var object = TNSDerivedInterface.alloc().init();
+        TNSBaseInterface.baseMethod.call(object);
+        
+        var actual = TNSGetOutput();
+        expect(actual).toBe('instance baseMethod called');
     });
 
     it("ConstructorCalls", function () {

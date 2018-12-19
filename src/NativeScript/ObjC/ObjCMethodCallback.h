@@ -10,17 +10,16 @@
 #define __NativeScript__ObjCMethodCallback__
 
 #include "FFICallback.h"
+#include "Metadata.h"
 #include "ObjCMethodCall.h"
 
-namespace Metadata {
-struct MethodMeta;
-}
-
 namespace NativeScript {
+
 class ObjCMethodCallback;
 
-ObjCMethodCallback* createProtectedMethodCallback(JSC::ExecState*, JSC::JSValue, const Metadata::MethodMeta*);
-bool overrideNativeMethodWithName(JSC::ExecState* execState, JSC::PropertyName propertyName, Class klass, JSValue value, std::vector<const Metadata::MemberMeta*> metas, ObjCMethodWrapper* nativeMethod);
+ObjCMethodCallback* createProtectedMethodCallback(JSC::ExecState*, JSC::JSCell*, const Metadata::MethodMeta*);
+
+void overrideObjcMethodWrapperCalls(JSC::ExecState* execState, Class klass, JSC::JSCell* method, ObjCMethodWrapper& wrapper);
 
 class ObjCMethodCallback : public FFICallback<ObjCMethodCallback> {
 public:
@@ -49,6 +48,10 @@ private:
 
     bool _hasErrorOutParameter;
 };
+
+void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyName propertyName, JSCell* method, const Metadata::BaseClassMeta* meta, Metadata::MemberType memberType, Class klass,
+                             std::vector<const Metadata::ProtocolMeta*>* protocols);
+
 } // namespace NativeScript
 
 #endif /* defined(__NativeScript__ObjCMethodCallback__) */

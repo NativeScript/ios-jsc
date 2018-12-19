@@ -45,6 +45,7 @@
 - (void)baseMethod:(NSNumber*)param;
 - (void)baseMethod;
 - (void)methodWithParam:(NSNumber*)p1;
+- (void)callBaseMethod:(BOOL)withArg;
 @end
 
 @protocol TNSBaseCategoryProtocol1
@@ -160,4 +161,5 @@
 + (void)derivedCategoryMethod;
 - (instancetype)initDerivedCategoryMethod;
 - (void)derivedCategoryMethod;
+- (void)baseMethod:(NSNumber*)param;
 @end

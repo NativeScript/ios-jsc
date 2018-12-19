@@ -96,35 +96,71 @@ const MethodMeta* BaseClassMeta::member(const char* identifier, size_t length, M
     return (MethodMeta*)result;
 }
 
-const std::vector<const MemberMeta*> BaseClassMeta::members(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable) const {
+void collectInheritanceChainMembers(const char* identifier, size_t length, MemberType type, bool onlyIfAvailable, const BaseClassMeta* derivedClass, std::function<void(const MemberMeta*)> collectMember) {
 
     const ArrayOfPtrTo<MemberMeta>* members = nullptr;
     switch (type) {
     case MemberType::InstanceMethod:
-        members = &this->instanceMethods->castTo<PtrTo<MemberMeta>>();
+        members = &derivedClass->instanceMethods->castTo<PtrTo<MemberMeta>>();
         break;
     case MemberType::StaticMethod:
-        members = &this->staticMethods->castTo<PtrTo<MemberMeta>>();
+        members = &derivedClass->staticMethods->castTo<PtrTo<MemberMeta>>();
         break;
     case MemberType::InstanceProperty:
-        members = &this->instanceProps->castTo<PtrTo<MemberMeta>>();
+        members = &derivedClass->instanceProps->castTo<PtrTo<MemberMeta>>();
         break;
     case MemberType::StaticProperty:
-        members = &this->staticProps->castTo<PtrTo<MemberMeta>>();
+        members = &derivedClass->staticProps->castTo<PtrTo<MemberMeta>>();
         break;
     }
 
-    std::vector<const MemberMeta*> result;
     int resultIndex = -1;
     resultIndex = members->binarySearchLeftmost([&](const PtrTo<MemberMeta>& member) { return compareIdentifiers(member->jsName(), identifier, length); });
+
     if (resultIndex >= 0) {
         for (const MemberMeta* m = (*members)[resultIndex].valuePtr();
              resultIndex < members->count && (strncmp(m->jsName(), identifier, length) == 0 && strlen(m->jsName()) == length);
              m = (*members)[++resultIndex].valuePtr()) {
             if (m->isAvailable() || !onlyIfAvailable) {
-                result.push_back(m);
+                collectMember(m);
             }
         }
+
+        if (derivedClass->type() == MetaType::Interface) {
+            const BaseClassMeta* superClass = static_cast<const InterfaceMeta*>(derivedClass)->baseMeta();
+            if (superClass) {
+                collectInheritanceChainMembers(identifier, length, type, onlyIfAvailable, superClass, collectMember);
+            }
+        }
+    }
+}
+
+const std::vector<const MemberMeta*> BaseClassMeta::members(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable) const {
+
+    std::vector<const MemberMeta*> result;
+
+    if (type == MemberType::InstanceMethod || type == MemberType::StaticMethod) {
+
+        // We need to return base class members as well. Otherwise,
+        // if an overloaded method is overriden by a derived class
+        // the FunctionWrapper's *functionsContainer* will contain
+        // overriden members metas only.
+        std::map<int, const MemberMeta*> membersMap;
+        collectInheritanceChainMembers(identifier, length, type, onlyIfAvailable, this, [&](const MemberMeta* member) {
+            const MethodMeta* method = static_cast<const MethodMeta*>(member);
+            membersMap.emplace(method->encodings()->count, member);
+        });
+        for (std::map<int, const MemberMeta*>::iterator it = membersMap.begin(); it != membersMap.end(); ++it) {
+            result.push_back(it->second);
+        }
+
+    } else { // member is a property
+        collectInheritanceChainMembers(identifier, length, type, onlyIfAvailable, this, [&](const MemberMeta* member) {
+            result.push_back(member);
+        });
+    }
+
+    if (result.size() > 0) {
         return result;
     }
 

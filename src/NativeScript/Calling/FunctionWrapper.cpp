@@ -147,14 +147,14 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
       if (Exception* exception = scope.exception()) {
           scope.clearException();
           CallData rejectCallData;
-          CallType rejectCallType = JSC::getCallData(fakeExecState->vm(), deferred->reject(), rejectCallData);
+          CallType rejectCallType = JSC::getCallData(vm, deferred->reject(), rejectCallData);
 
           MarkedArgumentBuffer rejectArguments;
           rejectArguments.append(exception->value());
           JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->reject(), rejectCallType, rejectCallData, jsUndefined(), rejectArguments);
       } else {
           CallData resolveCallData;
-          CallType resolveCallType = JSC::getCallData(fakeExecState->vm(), deferred->resolve(), resolveCallData);
+          CallType resolveCallType = JSC::getCallData(vm, deferred->resolve(), resolveCallData);
 
           MarkedArgumentBuffer resolveArguments;
           resolveArguments.append(result);

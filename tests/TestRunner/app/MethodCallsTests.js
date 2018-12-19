@@ -1089,17 +1089,32 @@ describe(module.id, function () {
      it('Override: More than one methods with same jsname', function () {
         
         var i = TNSBaseInterface.extend({
-          baseMethod: function (x, y, z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
+          baseMethod: function (x) {
+            if (typeof x === "undefined") {
+                this.zeroArgs = true;
+            } else {
+                this.x = x;
+            }
           }
         }).alloc().init();
         
-        i.baseMethod(1,2,3)
+        i.callBaseMethod(false);
+        
+        expect(i.zeroArgs).toBe(true);
+        
+        i.callBaseMethod(true);
 
-        expect(i.x).toBeDefined();
-        expect(i.y).toBeDefined();
-        expect(i.z).toBeDefined();
+        expect(i.x).toBe(2);
     });
+         
+     it("Prototype.put", function () {
+        var i = TNSBaseInterface.extend({}).alloc().init();
+        TNSBaseInterface.prototype.baseMethod = function(x) {
+            this.x = x;
+        }
+        i.callBaseMethod(false);
+        expect(i.x).toBe(undefined);
+        i.callBaseMethod(true);
+        expect(i.x).toBe(2);
+     });
 });

@@ -63,20 +63,19 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 }
 
 bool ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
-    ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
+    if (value.isCell()) {
+        auto method = value.asCell();
+        ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
+        Class klass = object_getClass(constructor->klass());
 
-    if (WTF::StringImpl* publicName = propertyName.publicName()) {
-
-        std::vector<const MemberMeta*> metas = constructor->metadata()->getStaticMethods(publicName);
-
-        if (metas.size() > 0) {
-
-            Class klass = object_getClass(constructor->klass());
-
-            if (!overrideNativeMethodWithName(execState, propertyName, klass, value, metas, jsDynamicCast<ObjCMethodWrapper*>(execState->vm(), constructor->get(execState, propertyName)))) {
-                return false;
-            }
-        }
+        overrideObjcMethodCalls(execState,
+                                constructor,
+                                propertyName,
+                                method,
+                                constructor->_metadata,
+                                MemberType::StaticMethod,
+                                klass,
+                                nullptr);
     }
 
     return Base::put(cell, execState, propertyName, value, propertySlot);

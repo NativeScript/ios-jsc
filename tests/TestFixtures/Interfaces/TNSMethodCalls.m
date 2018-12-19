@@ -145,6 +145,14 @@
     TNSLog([NSString stringWithFormat:@"overloaded instance %@ called", NSStringFromSelector(_cmd)]);
 }
 
+- (void)callBaseMethod:(BOOL)withArgs {
+    if (withArgs) {
+        [self baseMethod:[NSNumber numberWithInteger:2]];
+    } else {
+        [self baseMethod];
+    }
+}
+
 + (void)baseVariadicMethod:(id)x, ... {
     TNSLog([NSString stringWithFormat:@"base instance %@ called", NSStringFromSelector(_cmd)]);
 }

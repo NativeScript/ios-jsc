@@ -14,6 +14,7 @@
 #include "ObjCConstructorNative.h"
 #include "ObjCMethodCallback.h"
 #include "ObjCProtocolWrapper.h"
+#include "ObjCPrototype.h"
 #include "ObjCSuperObject.h"
 #include "ObjCTypes.h"
 #include "ObjCWrapperObject.h"
@@ -123,23 +124,6 @@ static bool isValidType(ExecState* execState, JSValue& value) {
         return false;
     }
     return true;
-}
-
-static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, const MethodMeta* meta) {
-    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-
-    std::string compilerEncoding = getCompilerEncoding(globalObject, meta);
-
-    const TypeEncoding* encodings = meta->encodings()->first();
-
-    JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, encodings, false);
-    const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, encodings, meta->encodings()->count - 1, false);
-
-    ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeCell, parameterTypesCells);
-    gcProtect(callback);
-    if (!class_addMethod(klass, meta->selector(), reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.c_str())) {
-        WTFCrash();
-    }
 }
 
 static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, SEL methodName, JSValue& typeEncoding) {
@@ -289,28 +273,15 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
 }
 
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
-    WTF::StringImpl* methodName = jsName.impl();
-    const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    const MethodMeta* methodMeta = nullptr;
-
-    size_t paramsCount = jsDynamicCast<JSObject*>(execState->vm(), method)->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
-    do {
-        methodMeta = currentClass->instanceMethod(methodName, paramsCount);
-        currentClass = currentClass->baseMeta();
-    } while (!methodMeta && currentClass);
-
-    if (!methodMeta && !this->_protocols.empty()) {
-        for (const ProtocolMeta* aProtocol : this->_protocols) {
-            if ((methodMeta = aProtocol->instanceMethod(methodName, paramsCount))) {
-                break;
-            }
-        }
-    }
-
-    if (methodMeta) {
-        Class klass = this->_constructor.get()->klass();
-        addMethodToClass(execState, klass, method, methodMeta);
-    }
+    Class klass = this->_constructor.get()->klass();
+    overrideObjcMethodCalls(execState,
+                            this->_constructor.get(),
+                            jsName,
+                            method,
+                            this->_constructor->metadata(),
+                            MemberType::InstanceMethod,
+                            klass,
+                            &this->_protocols);
 }
 
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {
@@ -457,27 +428,16 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
 }
 
 void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
-    WTF::StringImpl* methodName = jsName.impl();
-    const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    const MethodMeta* methodMeta = nullptr;
-    size_t paramsCount = jsDynamicCast<JSObject*>(execState->vm(), method)->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
-    do {
-        methodMeta = currentClass->staticMethod(methodName, paramsCount);
-        currentClass = currentClass->baseMeta();
-    } while (!methodMeta && currentClass);
 
-    if (!methodMeta && !this->_protocols.empty()) {
-        for (const ProtocolMeta* aProtocol : this->_protocols) {
-            if ((methodMeta = aProtocol->staticMethod(methodName, paramsCount))) {
-                break;
-            }
-        }
-    }
-
-    if (methodMeta) {
-        Class klass = object_getClass(this->_constructor.get()->klass());
-        addMethodToClass(execState, klass, method, methodMeta);
-    }
+    Class klass = this->_constructor.get()->klass();
+    overrideObjcMethodCalls(execState,
+                            this->_constructor.get(),
+                            jsName,
+                            method,
+                            this->_constructor->metadata(),
+                            MemberType::StaticMethod,
+                            klass,
+                            &this->_protocols);
 }
 
 void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {
@@ -525,4 +485,5 @@ ObjCConstructorDerived* ObjCClassBuilder::build(ExecState* execState) {
 
     return this->_constructor.get();
 }
-}
+
+} //namespace NativeScript

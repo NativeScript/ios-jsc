@@ -88,16 +88,18 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
 bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(cell);
 
-    if (WTF::StringImpl* publicName = propertyName.publicName()) {
-        std::vector<const MemberMeta*> metas = prototype->_metadata->getInstanceMethods(publicName);
-        if (metas.size() > 0) {
+    if (value.isCell()) {
+        auto method = value.asCell();
 
-            Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klass();
-
-            if (!overrideNativeMethodWithName(execState, propertyName, klass, value, metas, jsDynamicCast<ObjCMethodWrapper*>(execState->vm(), prototype->get(execState, propertyName)))) {
-                return false;
-            }
-        }
+        Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klass();
+        overrideObjcMethodCalls(execState,
+                                prototype,
+                                propertyName,
+                                method,
+                                prototype->_metadata,
+                                MemberType::InstanceMethod,
+                                klass,
+                                nullptr);
     }
 
     return Base::put(cell, execState, propertyName, value, propertySlot);
@@ -117,7 +119,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
         prototype->getOwnPropertyDescriptor(execState, propertyName, nativeProperty);
 
         if (const MethodMeta* meta = propertyMeta->getter()) {
-            ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.getter(), meta);
+            ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.getter().asCell(), meta);
             std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
             IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
@@ -130,7 +132,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
         }
 
         if (const MethodMeta* meta = propertyMeta->setter()) {
-            ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.setter(), meta);
+            ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.setter().asCell(), meta);
             std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
             IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 

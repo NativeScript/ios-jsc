@@ -20,61 +20,99 @@ namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
 
-ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSValue value, const MethodMeta* meta) {
+ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSCell* method, const MethodMeta* meta) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     const Metadata::TypeEncoding* typeEncodings = meta->encodings()->first();
     JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings, false);
     Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1, false);
 
-    ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), value.asCell(), returnType, parameterTypes, TriState(meta->hasErrorOutParameter()));
+    ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(),
+                                                                    globalObject,
+                                                                    globalObject->objCMethodCallbackStructure(),
+                                                                    method,
+                                                                    returnType,
+                                                                    parameterTypes,
+                                                                    TriState(meta->hasErrorOutParameter()));
     gcProtect(methodCallback);
     return methodCallback;
 }
+void overrideObjcMethodCall(ExecState* execState, Class klass, JSCell* method, ObjCMethodCall* call) {
+    ObjCMethodCallback* callback = createProtectedMethodCallback(execState, method, call->meta);
 
-bool overrideNativeMethodWithName(ExecState* execState, PropertyName propertyName, Class klass, JSValue value, std::vector<const MemberMeta*> metas, ObjCMethodWrapper* nativeMethod) {
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    std::string compilerEncoding = getCompilerEncoding(globalObject, call->meta);
+    IMP nativeImp = class_replaceMethod(klass, call->meta->selector(), reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.c_str());
+    if (nativeImp) {
+        SEL nativeSelector = sel_registerName(WTF::String::format("__%s", call->meta->selectorAsString()).utf8().data());
+        class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
+        call->setSelector(nativeSelector);
+    }
+}
 
-    if (metas.size() > 0) {
+void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyName propertyName, JSCell* method, const Metadata::BaseClassMeta* meta, Metadata::MemberType memberType, Class klass,
+                             std::vector<const Metadata::ProtocolMeta*>* protocols) {
+    ObjCMethodWrapper* wrapper = jsDynamicCast<ObjCMethodWrapper*>(execState->vm(), object->get(execState, propertyName));
+    if (!wrapper) {
+        std::vector<const Metadata::MemberMeta*> methodMetas;
 
-        size_t methodCallbackLength = jsDynamicCast<JSObject*>(execState->vm(), value.asCell())->get(execState, execState->vm().propertyNames->length).toUInt32(execState);
-
-        const MethodMeta* meta = (const MethodMeta*)metas[0]; // get an arbitrary selector as we will override all native methods with the jsName
-
-        if (metas.size() > 1) {
-            WTF::StringBuilder metaNames;
-
-            for (size_t i = 0; i < metas.size(); i++) {
-                if (i > 0) {
-                    metaNames.append(", ");
-                }
-                metaNames.append("\"");
-                metaNames.append(((const MethodMeta*)metas[i])->selectorAsString());
-                metaNames.append("\"");
+        auto currentClass = meta;
+        do {
+            methodMetas = currentClass->members(propertyName.publicName(), memberType);
+            if (currentClass->type() == Metadata::MetaType::Interface) {
+                currentClass = static_cast<const Metadata::InterfaceMeta*>(currentClass)->baseMeta();
+            } else {
+                currentClass = nullptr;
             }
 
-            WTF::String message = WTF::String::format("More than one native methods overriden! Assigning to \"%s\" will override native methods with the following selectors: %s.", meta->jsName(), metaNames.toString().characters8());
-            warn(execState, message);
-        }
+        } while (methodMetas.size() == 0 && currentClass);
 
-        ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, value, meta);
-        std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
-        IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
-
-        SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
-        class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
-
-        if (nativeMethod) {
-            for (auto& f : nativeMethod->functionsContainer()) {
-                if (f->parametersCount() == methodCallbackLength) {
-                    ObjCMethodCall* call = static_cast<ObjCMethodCall*>(f.get());
-                    call->setSelector(nativeSelector);
+        if (methodMetas.size() == 0 && protocols && !protocols->empty()) {
+            for (auto aProtocol : *protocols) {
+                if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType)).size() == 0) {
                     break;
                 }
             }
         }
+
+        if (methodMetas.size() > 0) {
+            wrapper = ObjCMethodWrapper::create(execState, methodMetas);
+        }
     }
 
-    return true;
+    if (wrapper) {
+        overrideObjcMethodWrapperCalls(execState, klass, method, *wrapper);
+    }
+}
+
+void overrideObjcMethodWrapperCalls(ExecState* execState, Class klass, JSCell* method, ObjCMethodWrapper& wrapper) {
+    WTF::StringBuilder metaNames;
+    bool warnForMultipleOverrides = wrapper.functionsContainer().size() > 1;
+    int i = 0;
+    std::string jsName;
+    for (const auto& f : wrapper.functionsContainer()) {
+        auto call = static_cast<ObjCMethodCall*>(f.get());
+
+        overrideObjcMethodCall(execState, klass, method, call);
+
+        if (warnForMultipleOverrides) {
+            if (i++ == 0) {
+                jsName.assign(call->meta->jsName());
+            } else {
+                metaNames.append(", ");
+            }
+            metaNames.append("\"");
+            metaNames.append((call->meta)->selectorAsString());
+            metaNames.append("\"");
+        }
+    }
+
+    if (warnForMultipleOverrides) {
+        WTF::String message = WTF::String::format("More than one native methods overriden! Assigning to \"%s\" will override native methods with the following selectors: %s.",
+                                                  jsName.c_str(),
+                                                  metaNames.characters8());
+        warn(execState, message);
+    }
 }
 
 static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<JSCell*>& parameterTypes) {

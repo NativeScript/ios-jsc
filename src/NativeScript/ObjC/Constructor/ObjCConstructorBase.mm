@@ -97,14 +97,19 @@ const char* ObjCConstructorBase::encode(VM&, JSCell* cell) {
     return "@";
 }
 
+ObjCPrototype* ObjCConstructorBase::getObjCPrototype() const {
+    JSObject* proto = this->_prototype.get();
+    ObjCPrototype* objcPrototype = nullptr;
+    VM& vm = *this->vm();
+    while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(vm, proto))) {
+        proto = jsDynamicCast<JSObject*>(vm, proto->getPrototypeDirect(vm));
+    }
+    return objcPrototype;
+}
+
 const Metadata::InterfaceMeta* ObjCConstructorBase::metadata() {
     if (this->_metadata == nullptr) {
-        JSObject* proto = this->_prototype.get();
-        ObjCPrototype* objcPrototype = nullptr;
-        VM& vm = *this->vm();
-        while (proto && !(objcPrototype = jsDynamicCast<ObjCPrototype*>(vm, proto))) {
-            proto = jsDynamicCast<JSObject*>(vm, proto->getPrototypeDirect(vm));
-        }
+        ObjCPrototype* objcPrototype = this->getObjCPrototype();
         ASSERT(objcPrototype != nullptr);
         const Metadata::BaseClassMeta* metadata = objcPrototype->metadata();
 
