@@ -43,7 +43,7 @@ void ObjCMethodWrapper::finishCreation(VM& vm, GlobalObject* globalObject, std::
             maxParamsCount = parameterTypesCells.size();
         }
 
-        std::unique_ptr<ObjCMethodCall> call(new ObjCMethodCall(this));
+        std::unique_ptr<ObjCMethodCall> call(new ObjCMethodCall(this, method));
         call->initializeFFI(vm, { &preInvocation, &postInvocation }, returnTypeCell, parameterTypesCells, 2);
         call->_retainsReturnedCocoaObjects = method->ownsReturnedCocoaObject();
         call->_isOptional = method->isOptional();

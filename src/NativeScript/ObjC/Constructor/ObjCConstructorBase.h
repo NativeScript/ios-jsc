@@ -18,6 +18,7 @@ struct InterfaceMeta;
 
 namespace NativeScript {
 class ObjCConstructorWrapper;
+class ObjCPrototype;
 
 class ObjCConstructorBase : public JSC::InternalFunction {
 public:
@@ -44,6 +45,8 @@ public:
     const WTF::Vector<JSC::WriteBarrier<ObjCConstructorWrapper>>& initializers(JSC::VM&, GlobalObject*);
 
     const Metadata::InterfaceMeta* metadata();
+
+    ObjCPrototype* getObjCPrototype() const;
 
 protected:
     ObjCConstructorBase(JSC::VM& vm, JSC::Structure* structure)

@@ -20,6 +20,7 @@ namespace NativeScript {
 class ObjCConstructorNative;
 class ObjCConstructorDerived;
 class ObjCProtocolWrapper;
+class ObjCMethodWrapper;
 
 class ObjCClassBuilder {
 private:
