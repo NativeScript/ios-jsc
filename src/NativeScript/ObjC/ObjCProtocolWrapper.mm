@@ -42,13 +42,15 @@ bool ObjCProtocolWrapper::getOwnPropertySlot(JSObject* object, ExecState* execSt
 
     ObjCProtocolWrapper* protocol = jsCast<ObjCProtocolWrapper*>(object);
 
-    if (const MethodMeta* method = protocol->_metadata->staticMethod(propertyName.publicName())) {
-        SymbolLoader::instance().ensureModule(method->topLevelModule());
+    std::vector<const MemberMeta*> metas = protocol->_metadata->getStaticMethods(propertyName.publicName());
+    if (metas.size() > 0) {
+        SymbolLoader::instance().ensureModule(metas[0]->topLevelModule());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-        ObjCMethodCall* call = ObjCMethodCall::create(execState->vm(), globalObject, globalObject->objCMethodCallStructure(), method);
-        object->putDirect(execState->vm(), propertyName, call);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), call);
+
+        ObjCMethodWrapper* wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
+        object->putDirect(execState->vm(), propertyName, wrapper);
+        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper);
         return true;
     }
 

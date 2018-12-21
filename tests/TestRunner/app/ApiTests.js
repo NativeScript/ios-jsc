@@ -338,9 +338,9 @@ describe(module.id, function () {
             };
 
             object.aProperty = 4;
-            expect(object.aProperty).toBe(16);
-            expect(TNSSwizzleKlass.staticMethod(4)).toBe(8);
-            expect(object.instanceMethod(4)).toBe(8);
+            expect(object.aProperty).toBe(16, "property * 4");
+            expect(TNSSwizzleKlass.staticMethod(4)).toBe(8, "static method * 2");
+            expect(object.instanceMethod(4)).toBe(8, "instance method * 2");
 
             TNSTestNativeCallbacks.apiSwizzle(TNSSwizzleKlass.alloc().init());
             expect(TNSGetOutput()).toBe('1266');
@@ -369,6 +369,8 @@ describe(module.id, function () {
             };
 
             object.aProperty = 4;
+            // Multiplier is 3*2 (from previous test)
+            // for methods is 6 and for properties 36 (set*get)
             expect(object.aProperty).toBe(144);
             expect(TNSSwizzleKlass.staticMethod(4)).toBe(24);
             expect(object.instanceMethod(4)).toBe(24);

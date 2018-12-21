@@ -18,6 +18,34 @@ namespace Metadata {
 
 static const int MetaTypeMask = 0b00000111;
 
+template <typename V>
+static const V& getProperFunctionFromContainer(const std::vector<V>& container, int argsCount, std::function<int(const V&)> paramsCounter) {
+    const V* callee = nullptr;
+
+    for (const V& func : container) {
+        auto candidateArgs = paramsCounter(func);
+        auto calleeArgs = 0;
+        if (candidateArgs == argsCount) {
+            callee = &func;
+            break;
+        } else if (!callee) {
+            // no candidates so far, take it whatever it is
+            callee = &func;
+            calleeArgs = candidateArgs;
+        } else if (argsCount < candidateArgs && (calleeArgs < argsCount || candidateArgs < calleeArgs)) {
+            // better candidate - looking for the least number of arguments which is more than the amount actually passed
+            callee = &func;
+            calleeArgs = candidateArgs;
+        } else if (calleeArgs < candidateArgs) {
+            // better candidate - looking for the maximum number of arguments which less than the amount actually passed (if one with more cannot be found)
+            callee = &func;
+            calleeArgs = candidateArgs;
+        }
+    }
+
+    return *callee;
+}
+
 // Bit indices in flags section
 enum MetaFlags {
     HasName = 7,
@@ -181,6 +209,14 @@ struct Array {
             }
         }
         return -(left + 1);
+    }
+
+    int binarySearchLeftmost(std::function<int(const T&)> comparer) const {
+        int mid = binarySearch(comparer);
+        while (mid > 0 && comparer((*this)[mid - 1]) == 0) {
+            mid -= 1;
+        }
+        return mid;
     }
 };
 
@@ -633,6 +669,8 @@ public:
     }
 };
 
+std::unordered_map<std::string, std::vector<const MemberMeta*>> getMetasByJSNames(std::vector<const MemberMeta*> methods);
+
 struct PropertyMeta : MemberMeta {
     PtrTo<MethodMeta> method1;
     PtrTo<MethodMeta> method2;
@@ -666,10 +704,26 @@ struct BaseClassMeta : Meta {
 
     const MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
 
+    const MethodMeta* member(const char* identifier, size_t length, MemberType type, size_t paramsCount, bool includeProtocols = true, bool onlyIfAvailable = true) const;
+
+    const std::vector<const MemberMeta*> members(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
+
     const MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
         const char* identif = reinterpret_cast<const char*>(identifier->characters8());
         size_t length = (size_t)identifier->length();
         return this->member(identif, length, type, includeProtocols);
+    }
+
+    const MethodMeta* member(StringImpl* identifier, MemberType type, size_t paramsCount, bool includeProtocols = true) const {
+        const char* identif = reinterpret_cast<const char*>(identifier->characters8());
+        size_t length = (size_t)identifier->length();
+        return this->member(identif, length, type, paramsCount, includeProtocols);
+    }
+
+    const std::vector<const MemberMeta*> members(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
+        const char* identif = reinterpret_cast<const char*>(identifier->characters8());
+        size_t length = (size_t)identifier->length();
+        return this->members(identif, length, type, includeProtocols);
     }
 
     const MemberMeta* member(const char* identifier, MemberType type, bool includeProtocols = true) const {
@@ -677,21 +731,29 @@ struct BaseClassMeta : Meta {
     }
 
     /// instance methods
-    const MethodMeta* instanceMethod(const char* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols));
+    const MethodMeta* instanceMethod(const char* identifier, size_t paramsCount, bool includeProtocols = true) const {
+        return this->member(identifier, strlen(identifier), MemberType::InstanceMethod, paramsCount, includeProtocols);
     }
 
-    const MethodMeta* instanceMethod(StringImpl* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols));
+    const MethodMeta* instanceMethod(StringImpl* identifier, size_t paramsCount, bool includeProtocols = true) const {
+        return this->member(identifier, MemberType::InstanceMethod, paramsCount, includeProtocols);
+    }
+
+    const std::vector<const MemberMeta*> getInstanceMethods(StringImpl* identifier, bool includeProtocols = true) const {
+        return this->members(identifier, MemberType::InstanceMethod, includeProtocols);
     }
 
     /// static methods
-    const MethodMeta* staticMethod(const char* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::StaticMethod, includeProtocols));
+    const MethodMeta* staticMethod(const char* identifier, size_t paramsCount, bool includeProtocols = true) const {
+        return this->member(identifier, strlen(identifier), MemberType::StaticMethod, paramsCount, includeProtocols);
     }
 
-    const MethodMeta* staticMethod(StringImpl* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const MethodMeta*>(this->member(identifier, MemberType::StaticMethod, includeProtocols));
+    const std::vector<const MemberMeta*> getStaticMethods(StringImpl* identifier, bool includeProtocols = true) const {
+        return this->members(identifier, MemberType::StaticMethod, includeProtocols);
+    }
+
+    const MethodMeta* staticMethod(StringImpl* identifier, size_t paramsCount, bool includeProtocols = true) const {
+        return this->member(identifier, MemberType::StaticMethod, paramsCount, includeProtocols);
     }
 
     /// instance properties

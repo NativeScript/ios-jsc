@@ -58,20 +58,20 @@ public:
         return this->_ffiCallPrototype.get();
     }
 
-    JSC::Structure* objCMethodCallStructure() const {
-        return this->_objCMethodCallStructure.get();
+    JSC::Structure* objCMethodWrapperStructure() const {
+        return this->_objCMethodWrapperStructure.get();
     }
 
-    JSC::Structure* objCConstructorCallStructure() const {
-        return this->_objCConstructorCallStructure.get();
+    JSC::Structure* objCConstructorWrapperStructure() const {
+        return this->_objCConstructorWrapperStructure.get();
     }
 
-    JSC::Structure* objCBlockCallStructure() const {
-        return this->_objCBlockCallStructure.get();
+    JSC::Structure* objCBlockWrapperStructure() const {
+        return this->_objCBlockWrapperStructure.get();
     }
 
-    JSC::Structure* ffiFunctionCallStructure() const {
-        return this->_ffiFunctionCallStructure.get();
+    JSC::Structure* ffiFunctionWrapperStructure() const {
+        return this->_ffiFunctionWrapperStructure.get();
     }
 
     JSC::Structure* objCBlockCallbackStructure() const {
@@ -232,10 +232,10 @@ private:
     WTF::RetainPtr<CFRunLoopObserverRef> _runLoopBeforeWaitingObserver;
 
     JSC::WriteBarrier<FFICallPrototype> _ffiCallPrototype;
-    JSC::WriteBarrier<JSC::Structure> _objCMethodCallStructure;
-    JSC::WriteBarrier<JSC::Structure> _objCConstructorCallStructure;
-    JSC::WriteBarrier<JSC::Structure> _objCBlockCallStructure;
-    JSC::WriteBarrier<JSC::Structure> _ffiFunctionCallStructure;
+    JSC::WriteBarrier<JSC::Structure> _objCMethodWrapperStructure;
+    JSC::WriteBarrier<JSC::Structure> _objCConstructorWrapperStructure;
+    JSC::WriteBarrier<JSC::Structure> _objCBlockWrapperStructure;
+    JSC::WriteBarrier<JSC::Structure> _ffiFunctionWrapperStructure;
 
     JSC::WriteBarrier<JSC::Structure> _objCBlockCallbackStructure;
     JSC::WriteBarrier<JSC::Structure> _objCMethodCallbackStructure;

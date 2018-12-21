@@ -38,13 +38,24 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
-    if (const MethodMeta* method = constructor->metadata()->staticMethod(propertyName.publicName())) {
-        SymbolLoader::instance().ensureModule(method->topLevelModule());
+    std::vector<const MemberMeta*> methods = constructor->_metadata->getStaticMethods(propertyName.publicName());
 
-        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-        ObjCMethodCall* call = ObjCMethodCall::create(execState->vm(), globalObject, globalObject->objCMethodCallStructure(), method);
-        object->putDirectWithoutTransition(execState->vm(), propertyName, call);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), call);
+    if (methods.size() > 0) {
+        std::unordered_map<std::string, std::vector<const MemberMeta*>> metasByJsName = Metadata::getMetasByJSNames(methods);
+
+        for (auto& methodNameAndMetas : metasByJsName) {
+            std::vector<const MemberMeta*>& metas = methodNameAndMetas.second;
+            ASSERT(metas.size() > 0);
+
+            SymbolLoader::instance().ensureModule(metas[0]->topLevelModule());
+
+            GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+            ObjCMethodWrapper* wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
+            object->putDirectWithoutTransition(execState->vm(), propertyName, wrapper);
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper);
+            return true;
+        }
+
         return true;
     }
 
@@ -52,23 +63,19 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 }
 
 bool ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
-    ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
+    if (value.isCell()) {
+        auto method = value.asCell();
+        ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
+        Class klass = object_getClass(constructor->klass());
 
-    if (WTF::StringImpl* publicName = propertyName.publicName()) {
-        if (const MethodMeta* meta = constructor->metadata()->staticMethod(publicName)) {
-            Class klass = object_getClass(constructor->klass());
-
-            std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
-            ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, value, meta);
-            IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
-
-            SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
-            class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
-
-            if (ObjCMethodCall* nativeMethod = jsDynamicCast<ObjCMethodCall*>(execState->vm(), constructor->get(execState, propertyName))) {
-                nativeMethod->setSelector(nativeSelector);
-            }
-        }
+        overrideObjcMethodCalls(execState,
+                                constructor,
+                                propertyName,
+                                method,
+                                constructor->_metadata,
+                                MemberType::StaticMethod,
+                                klass,
+                                nullptr);
     }
 
     return Base::put(cell, execState, propertyName, value, propertySlot);
@@ -116,10 +123,12 @@ void ObjCConstructorNative::materializeProperties(VM& vm, GlobalObject* globalOb
             const MethodMeta* setter = (propertyMeta->setter() != nullptr && propertyMeta->setter()->isAvailable()) ? propertyMeta->setter() : nullptr;
 
             PropertyDescriptor descriptor;
-            descriptor.setGetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), getter));
+            std::vector<const MemberMeta*> getters(1, getter);
+            descriptor.setGetter(ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), getters));
 
             if (setter) {
-                descriptor.setSetter(ObjCMethodCall::create(vm, globalObject, globalObject->objCMethodCallStructure(), setter));
+                std::vector<const MemberMeta*> setters(1, setter);
+                descriptor.setSetter(ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), setters));
             }
 
             Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);

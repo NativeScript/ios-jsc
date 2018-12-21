@@ -6,8 +6,9 @@ set(HEADER_FILES
     Calling/FFICallback.h
     Calling/FFICallbackInlines.h
     Calling/FFICallPrototype.h
-    Calling/FFIFunctionCall.h
+    Calling/CFunctionWrapper.h
     Calling/FFIFunctionCallback.h
+    Calling/FunctionWrapper.h
     GlobalObject.h
     inspector/CachedResource.h
     inspector/DomainBackendDispatcher.h
@@ -115,8 +116,9 @@ set(SOURCE_FILES
     Calling/FFICache.cpp
     Calling/FFICall.cpp
     Calling/FFICallPrototype.cpp
-    Calling/FFIFunctionCall.mm
+    Calling/CFunctionWrapper.mm
     Calling/FFIFunctionCallback.cpp
+    Calling/FunctionWrapper.cpp
     GlobalObject.mm
     GlobalObject.moduleLoader.mm
     inspector/CachedResource.mm

@@ -8,6 +8,7 @@
 
 #include "FFICallPrototype.h"
 #include "FFICall.h"
+#include "FunctionWrapper.h"
 #include <JavaScriptCore/interpreter/Interpreter.h>
 
 namespace NativeScript {
@@ -25,7 +26,7 @@ void FFICallPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
 }
 
 EncodedJSValue JSC_HOST_CALL FFICallPrototypeFuncAsync(ExecState* execState) {
-    auto call = jsCast<FFICall*>(execState->thisValue());
+    auto call = jsCast<FunctionWrapper*>(execState->thisValue());
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 

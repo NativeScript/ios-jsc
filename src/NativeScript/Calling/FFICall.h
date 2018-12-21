@@ -1,13 +1,12 @@
 //
-//  FFICall.h
+//  FFICall.hpp
 //  NativeScript
 //
-//  Created by Yavor Georgiev on 12.06.14.
-//  Copyright (c) 2014 г. Telerik. All rights reserved.
+//  Created by Teodor Dermendzhiev on 10/15/18.
 //
 
-#ifndef __NativeScript__FFICall__
-#define __NativeScript__FFICall__
+#ifndef FFICall_h
+#define FFICall_h
 
 #include "FFIType.h"
 #include "ReleasePool.h"
@@ -15,31 +14,15 @@
 #include <vector>
 
 namespace NativeScript {
-class FFICall : public JSC::InternalFunction {
+
+class FunctionWrapper;
+
+using namespace JSC;
+class FFICall {
 public:
-    typedef JSC::InternalFunction Base;
-
-    DECLARE_INFO;
-
-    size_t parametersCount() const {
-        return this->_parameterTypesCells.size();
-    }
-
-    JSC::JSObject* async(JSC::ExecState*, JSC::JSValue thisValue, const JSC::ArgList&);
-    std::shared_ptr<ffi_cif> getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes);
-
-    std::vector<const ffi_type*> signatureVector;
-
-protected:
-    FFICall(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure, &call, nullptr) {
-    }
-
-    ~FFICall();
-
-    std::shared_ptr<ffi_cif> _cif;
-
     class Invocation {
+        friend class FunctionWrapper;
+
         WTF_MAKE_NONCOPYABLE(Invocation)
         WTF_MAKE_FAST_ALLOCATED;
 
@@ -69,7 +52,7 @@ protected:
             return *static_cast<T*>(resultBuffer());
         }
 
-        FFICall* owner;
+        const FFICall* owner;
 
         ~Invocation() {
             WTF::fastFree(_buffer);
@@ -85,23 +68,66 @@ protected:
             }
         }
 
-        friend class FFICall;
-
         uint8_t* _buffer;
     };
+
     typedef void (*InvocationHook)(FFICall*, JSC::ExecState*, Invocation&);
     struct InvocationHooks {
         InvocationHook pre;
         InvocationHook post;
     };
 
-    friend class FFIInvocation;
+    FFICall(FunctionWrapper* owner)
+        : owner(owner) {
+    }
 
-    void initializeFFI(JSC::VM&, const InvocationHooks&, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
+    bool (*_argumentCountValidator)(FFICall*, JSC::ExecState*) = [](FFICall* call, JSC::ExecState* execState) {
+        return call->parametersCount() == execState->argumentCount();
+    };
 
-    static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
+    const std::shared_ptr<ffi_cif>& cif() const {
+        return this->_cif;
+    }
 
-    static JSC::EncodedJSValue JSC_HOST_CALL call(JSC::ExecState* execState);
+    size_t parametersCount() const {
+        return this->_parameterTypesCells.size();
+    }
+
+    size_t argsCount() const {
+        return this->_argsCount;
+    }
+
+    FFITypeMethodTable returnType() const {
+        return this->_returnType;
+    }
+
+    size_t stackSize() const {
+        return this->_stackSize;
+    }
+
+    size_t returnOffset() const {
+        return this->_returnOffset;
+    }
+
+    size_t argsArrayOffset() const {
+        return this->_argsArrayOffset;
+    }
+
+    JSC::WriteBarrier<JSC::JSCell> returnTypeCell() const {
+        return this->_returnTypeCell;
+    }
+
+    const WTF::Vector<JSC::WriteBarrier<JSC::JSCell>>& parameterTypesCells() const {
+        return this->_parameterTypesCells;
+    }
+
+    const WTF::Vector<FFITypeMethodTable>& parameterTypes() const {
+        return this->_parameterTypes;
+    }
+
+    std::shared_ptr<ffi_cif> getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes);
+
+    std::vector<const ffi_type*> signatureVector;
 
     void preCall(JSC::ExecState* execState, Invocation& invocation) {
         JSC::VM& vm = execState->vm();
@@ -124,19 +150,30 @@ protected:
                 return;
             }
         }
+
+        this->_invocationHooks.pre(this, execState, invocation);
     }
 
-    bool (*_argumentCountValidator)(FFICall*, JSC::ExecState*) = [](FFICall* call, JSC::ExecState* execState) {
-        return call->parametersCount() == execState->argumentCount();
-    };
+    void postCall(JSC::ExecState* execState, Invocation& invocation) {
+        if (FFICall::InvocationHook post = this->_invocationHooks.post) {
+            post(this, execState, invocation);
+        }
+    }
+
+    void initializeFFI(JSC::VM&, const InvocationHooks&, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
+
+protected:
+    std::shared_ptr<ffi_cif> _cif;
+
+    FunctionWrapper* owner;
 
     InvocationHooks _invocationHooks;
 
-    JSC::WriteBarrier<JSC::JSCell> _returnTypeCell;
     FFITypeMethodTable _returnType;
+    JSC::WriteBarrier<JSC::JSCell> _returnTypeCell;
 
-    WTF::Vector<JSC::WriteBarrier<JSC::JSCell>> _parameterTypesCells;
     WTF::Vector<FFITypeMethodTable> _parameterTypes;
+    WTF::Vector<JSC::WriteBarrier<JSC::JSCell>> _parameterTypesCells;
 
     size_t _initialArgumentIndex;
 
@@ -148,4 +185,4 @@ protected:
 };
 } // namespace NativeScript
 
-#endif /* defined(__NativeScript__FFICall__) */
+#endif /* FFICall_hpp */

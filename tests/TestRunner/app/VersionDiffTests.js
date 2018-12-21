@@ -10,14 +10,14 @@ describe(module.id, function() {
 
     function check(value, major, minor) {
         if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(`${major}.${minor}`)) {
-            expect(value).toBeDefined();
+            expect(value).toBeDefined(`must be available after version ${major}.${minor}`);
         } else {
-            expect(value).toBeUndefined();
+            expect(value).toBeUndefined(`must be unavailable before version ${major}.${minor}`);
         }
     }
 
     function forEachVersion(action) {
-        for (var major = 7; major <= 10; major++) {
+        for (var major = 9; major <= 15; major++) {
             for (var minor = 0; minor <= 5; minor++) {
                 action(major, minor);
             }

@@ -21,6 +21,12 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe("static baseMethod called");
     });
+    it('Base_OverloadedStaticBaseMethod', function () {
+        TNSBaseInterface.baseMethod(1);
+            
+        var actual = TNSGetOutput();
+       expect(actual).toBe("overloaded static baseMethod: called");
+    });
     it('Base_StaticBaseCategoryProtocolMethod1', function () {
         TNSBaseInterface.baseCategoryProtocolMethod1();
 
@@ -58,6 +64,12 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe("static baseMethod called");
+    });
+    it('Derived_OverloadedStaticBaseMethod', function () {
+        TNSDerivedInterface.baseMethod(1);
+            
+        var actual = TNSGetOutput();
+       expect(actual).toBe("overloaded static baseMethod: called");
     });
     it('Derived_StaticBaseCategoryProtocolMethod1', function () {
         TNSDerivedInterface.baseCategoryProtocolMethod1();
@@ -137,6 +149,13 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe("instance baseMethod called");
     });
+    it('Base_OverloadedInstanceBaseMethod', function () {
+        var instance = TNSBaseInterface.alloc().init();
+        instance.baseMethod(1);
+       
+        var actual = TNSGetOutput();
+       expect(actual).toBe("overloaded instance baseMethod: called");
+    });
     it('Base_InstanceBaseCategoryProtocolMethod1', function () {
         var instance = TNSBaseInterface.alloc().init();
         instance.baseCategoryProtocolMethod1();
@@ -180,6 +199,13 @@ describe(module.id, function () {
 
         var actual = TNSGetOutput();
         expect(actual).toBe("instance baseMethod called");
+    });
+    it('Derived_OverloadedInstanceBaseMethod', function () {
+        var instance = TNSDerivedInterface.alloc().init();
+        instance.baseMethod(1);
+       
+        var actual = TNSGetOutput();
+        expect(actual).toBe("derived overloaded instance baseMethod: called");
     });
     it('Derived_InstanceBaseCategoryProtocolMethod1', function () {
         var instance = TNSDerivedInterface.alloc().init();
@@ -1059,4 +1085,36 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('static setDerivedCategoryProperty: calledstatic derivedCategoryProperty called');
     });
+         
+     it('Override: More than one methods with same jsname', function () {
+        
+        var i = TNSBaseInterface.extend({
+          baseMethod: function (x) {
+            if (typeof x === "undefined") {
+                this.zeroArgs = true;
+            } else {
+                this.x = x;
+            }
+          }
+        }).alloc().init();
+        
+        i.callBaseMethod(false);
+        
+        expect(i.zeroArgs).toBe(true);
+        
+        i.callBaseMethod(true);
+
+        expect(i.x).toBe(2);
+    });
+         
+     it("Prototype.put", function () {
+        var i = TNSBaseInterface.extend({}).alloc().init();
+        TNSBaseInterface.prototype.baseMethod = function(x) {
+            this.x = x;
+        }
+        i.callBaseMethod(false);
+        expect(i.x).toBe(undefined);
+        i.callBaseMethod(true);
+        expect(i.x).toBe(2);
+     });
 });

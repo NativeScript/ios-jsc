@@ -53,30 +53,18 @@
     const int TNSConstant##V2##Plus = 0
 #endif
 
-generateVersion(7.0, 7_0);
-generateVersion(7.1, 7_1);
-generateVersion(7.2, 7_2);
-generateVersion(7.3, 7_3);
-generateVersion(7.4, 7_4);
-generateVersion(7.5, 7_5);
+#define generateMinors(MAJOR)              \
+    generateVersion(MAJOR##.0, MAJOR##_0); \
+    generateVersion(MAJOR##.1, MAJOR##_1); \
+    generateVersion(MAJOR##.2, MAJOR##_2); \
+    generateVersion(MAJOR##.3, MAJOR##_3); \
+    generateVersion(MAJOR##.4, MAJOR##_4); \
+    generateVersion(MAJOR##.5, MAJOR##_5);
 
-generateVersion(8.0, 8_0);
-generateVersion(8.1, 8_1);
-generateVersion(8.2, 8_2);
-generateVersion(8.3, 8_3);
-generateVersion(8.4, 8_4);
-generateVersion(8.5, 8_5);
-
-generateVersion(9.0, 9_0);
-generateVersion(9.1, 9_1);
-generateVersion(9.2, 9_2);
-generateVersion(9.3, 9_3);
-generateVersion(9.4, 9_4);
-generateVersion(9.5, 9_5);
-
-generateVersion(10.0, 10_0);
-generateVersion(10.1, 10_1);
-generateVersion(10.2, 10_2);
-generateVersion(10.3, 10_3);
-generateVersion(10.4, 10_4);
-generateVersion(10.5, 10_5);
+generateMinors(9);
+generateMinors(10);
+generateMinors(11);
+generateMinors(12);
+generateMinors(13);
+generateMinors(14);
+generateMinors(15);

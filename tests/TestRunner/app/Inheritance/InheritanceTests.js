@@ -58,6 +58,7 @@ describe(module.id, function () {
             'baseProtocolProperty1Optional',
             'baseProtocolProperty2',
             'baseProtocolProperty2Optional',
+            'callBaseMethod',
             'constructor',
             'initBaseCategoryMethod',
             'initBaseCategoryProtocolMethod1',
@@ -68,7 +69,8 @@ describe(module.id, function () {
             'initBaseProtocolMethod1',
             'initBaseProtocolMethod1Optional',
             'initBaseProtocolMethod2',
-            'initBaseProtocolMethod2Optional'
+            'initBaseProtocolMethod2Optional',
+            'methodWithParam'
         ]);
     });
 
@@ -83,6 +85,7 @@ describe(module.id, function () {
     it("StaticCalls", function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({});
         JSDerivedInterface.baseMethod();
+        JSDerivedInterface.baseMethod(1);
         JSDerivedInterface.baseProtocolMethod2();
         JSDerivedInterface.baseProtocolMethod2Optional();
         JSDerivedInterface.baseProtocolMethod1();
@@ -106,6 +109,7 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe(
             'static baseMethod called' +
+            'overloaded static baseMethod: called' +
             'static baseProtocolMethod2 called' +
             'static baseProtocolMethod2Optional called' +
             'static baseProtocolMethod1 called' +
@@ -132,6 +136,7 @@ describe(module.id, function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({});
         var object = JSDerivedInterface.alloc().init();
         object.baseMethod();
+        object.baseMethod(1);
         object.baseProtocolMethod2();
         object.baseProtocolMethod2Optional();
         object.baseProtocolMethod1();
@@ -151,10 +156,12 @@ describe(module.id, function () {
         object.derivedCategoryProtocolMethod2Optional();
         object.derivedCategoryProtocolMethod1();
         object.derivedCategoryProtocolMethod1Optional();
+        object.methodWithParam(1, 2);
 
         var actual = TNSGetOutput();
         expect(actual).toBe(
             'instance baseMethod called' +
+            'derived overloaded instance baseMethod: called' +
             'instance baseProtocolMethod2 called' +
             'instance baseProtocolMethod2Optional called' +
             'instance baseProtocolMethod1 called' +
@@ -173,8 +180,17 @@ describe(module.id, function () {
             'instance derivedCategoryProtocolMethod2 called' +
             'instance derivedCategoryProtocolMethod2Optional called' +
             'instance derivedCategoryProtocolMethod1 called' +
-            'instance derivedCategoryProtocolMethod1Optional called'
+            'instance derivedCategoryProtocolMethod1Optional called' +
+            'instance methodWith:param: called with 2 params'
         );
+    });
+         
+    it("Explicitly called base class method", function () {
+        var object = TNSDerivedInterface.alloc().init();
+        TNSBaseInterface.baseMethod.call(object);
+        
+        var actual = TNSGetOutput();
+        expect(actual).toBe('instance baseMethod called');
     });
 
     it("ConstructorCalls", function () {
@@ -1901,5 +1917,10 @@ describe(module.id, function () {
         var result = TNSTestNativeCallbacks.protocolWithNameConflict(derived);
 
         expect(result).toBe(true);
+    });
+         
+     it("Should not have base class property slot", function() {
+        // baseMethod: is declared in the base class (TNSBaseInterface)
+        expect(TNSDerivedInterface.prototype.hasOwnProperty('baseMethod')).toBe(false);
     });
 });

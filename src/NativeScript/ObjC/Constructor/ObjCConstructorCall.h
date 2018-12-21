@@ -10,6 +10,7 @@
 #define __NativeScript__ObjCConstructorCall__
 
 #include "FFICall.h"
+#include "FunctionWrapper.h"
 #include "JavaScriptCore/IsoSubspace.h"
 
 namespace Metadata {
@@ -17,12 +18,12 @@ struct MethodMeta;
 }
 
 namespace NativeScript {
-class ObjCConstructorCall : public FFICall {
+class ObjCConstructorWrapper : public FunctionWrapper {
 public:
-    typedef FFICall Base;
+    typedef FunctionWrapper Base;
 
-    static ObjCConstructorCall* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, Class klass, const Metadata::MethodMeta* metadata) {
-        ObjCConstructorCall* constructor = new (NotNull, JSC::allocateCell<ObjCConstructorCall>(vm.heap)) ObjCConstructorCall(vm, structure);
+    static ObjCConstructorWrapper* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, Class klass, const Metadata::MethodMeta* metadata) {
+        ObjCConstructorWrapper* constructor = new (NotNull, JSC::allocateCell<ObjCConstructorWrapper>(vm.heap)) ObjCConstructorWrapper(vm, structure);
         constructor->finishCreation(vm, globalObject, klass, metadata);
         return constructor;
     }
@@ -31,11 +32,35 @@ public:
 
     template <typename CellType>
     static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
-        return &vm.tnsObjCConstructorCallSpace;
+        return &vm.tnsObjCConstructorWrapperSpace;
     }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::InternalFunctionType, StructureFlags), info());
+    }
+
+    bool canInvoke(JSC::ExecState* execState) const;
+
+private:
+    ObjCConstructorWrapper(JSC::VM& vm, JSC::Structure* structure)
+        : Base(vm, structure) {
+    }
+
+    void finishCreation(JSC::VM&, GlobalObject*, Class, const Metadata::MethodMeta*);
+
+    static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
+    static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
+
+    static void destroy(JSC::JSCell* cell) {
+        static_cast<ObjCConstructorWrapper*>(cell)->~ObjCConstructorWrapper();
+    }
+};
+
+class ObjCConstructorCall : public FFICall {
+
+public:
+    ObjCConstructorCall(FunctionWrapper* owner)
+        : FFICall(owner) {
     }
 
     SEL selector() {
@@ -47,20 +72,6 @@ public:
     }
 
     bool canInvoke(JSC::ExecState* execState) const;
-
-private:
-    ObjCConstructorCall(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
-    }
-
-    void finishCreation(JSC::VM&, GlobalObject*, Class, const Metadata::MethodMeta*);
-
-    static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
-    static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
-
-    static void destroy(JSC::JSCell* cell) {
-        static_cast<ObjCConstructorCall*>(cell)->~ObjCConstructorCall();
-    }
 
     SEL _selector;
     Class _klass;
