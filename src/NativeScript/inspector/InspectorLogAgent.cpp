@@ -39,17 +39,16 @@ static Inspector::Protocol::Log::LogEntry::Source messageSourceValue(MessageSour
 static Inspector::Protocol::Log::LogEntry::Level messageLevelValue(MessageLevel level) {
     switch (level) {
     case MessageLevel::Log:
-        return Inspector::Protocol::Log::LogEntry::Level::Log;
     case MessageLevel::Info:
-        return Inspector::Protocol::Log::LogEntry::Level::Info;
+        return Inspector::Protocol::Log::LogEntry::Level::Info; // https://codereview.chromium.org/2646033003/
     case MessageLevel::Warning:
         return Inspector::Protocol::Log::LogEntry::Level::Warning;
     case MessageLevel::Error:
         return Inspector::Protocol::Log::LogEntry::Level::Error;
     case MessageLevel::Debug:
-        return Inspector::Protocol::Log::LogEntry::Level::Debug;
+        return Inspector::Protocol::Log::LogEntry::Level::Verbose;
     }
-    return Inspector::Protocol::Log::LogEntry::Level::Log;
+    return Inspector::Protocol::Log::LogEntry::Level::Info;
 }
 
 static Ref<Inspector::Protocol::Console::CallFrame> buildInspectorObject(const ScriptCallFrame& callFrame) {
