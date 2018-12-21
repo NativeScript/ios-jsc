@@ -1918,4 +1918,9 @@ describe(module.id, function () {
 
         expect(result).toBe(true);
     });
+         
+     it("Should not have base class property slot", function() {
+        // baseMethod: is declared in the base class (TNSBaseInterface)
+        expect(TNSDerivedInterface.prototype.hasOwnProperty('baseMethod')).toBe(false);
+    });
 });
