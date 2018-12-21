@@ -1,3 +1,20 @@
+function pointerTo(type, value) {
+    var outerPtr = interop.alloc(interop.sizeof(interop.Pointer));
+    var outerRef = new interop.Reference(type, outerPtr);
+    outerRef.value = value;
+    return outerPtr;
+}
+
+function referenceFromPointerNumber(type, value) {
+    const ptr = new interop.Pointer(value);
+    const ptrToPtr = pointerTo(interop.Pointer, ptr);
+    return new interop.Reference(type, ptrToPtr);
+}
+
+function valueFromPointerNumber(type, value) {
+    return referenceFromPointerNumber(type, value).value;
+}
+
 describe(module.id, function () {
     afterEach(function () {
         TNSClearOutput();
@@ -78,13 +95,6 @@ describe(module.id, function () {
         expect(interop.types.selector.toString()).toBe('[object selector]');
         expect(interop.sizeof(interop.types.selector)).toBe(interop.sizeof(interop.Pointer));
     });
-
-    function pointerTo(type, value) {
-        var outerPtr = interop.alloc(interop.sizeof(interop.Pointer));
-        var outerRef = new interop.Reference(type, outerPtr);
-        outerRef.value = value;
-        return outerPtr;
-    }
 
     it("ReferenceType", function () {
         var ptr = interop.alloc(2 * interop.sizeof(interop.types.id));
@@ -197,5 +207,28 @@ describe(module.id, function () {
         var doublePtr = pointerTo(interop.types.double, number);
         var result = interop.types.double(doublePtr);
         expect(result === number).toBe(true);
+    });
+         
+    it("Initialize pointer from non-int throws", function () {
+       expect(() => new interop.Pointer("")).toThrowError(/must be an integer/);
+    });
+
+    it("Initialize reference from pointer", function () {
+       // Create a native NSDictionary holding the pair "value" -> "key"
+       const key = "key";
+       const value = "value";
+       const d1 = NSDictionary.dictionaryWithObjectForKey(value, key);
+       
+       expect(d1.valueForKey(key)).toBe(value, "Dictionary should return initial value string.");
+       
+       // Take the address of the NSDictionary
+       const addr = interop.handleof(d1).toNumber();
+       // Create a new native wrapper using the address
+       const d2 = valueFromPointerNumber(NSDictionary, addr);
+       // Take the address of the new wrapper
+       const addr2 = interop.handleof(d2).toNumber();
+
+       expect(addr2).toBe(addr, "The new object should have the same address.");
+       expect(d2.valueForKey(key)).toEqual(d1.valueForKey(key), "Returned values should be equal");
     });
 });
