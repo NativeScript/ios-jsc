@@ -448,6 +448,29 @@ describe(module.id, function () {
                 done();
             });
         });
+
+        if (isSimulator) {
+            // Skip on simulator because libffi breaks exception unwinding on iOS Simulator
+            // see https://github.com/libffi/libffi/issues/418
+            console.warn("warning: Skipping async ObjC exceptions tests on Simulator device!");
+        } else {
+            it("should throw Objective-C exceptions to JavaScript", function (done) {
+                const value = 333;
+                const arr = NSArray.arrayWithObject(value);
+                var promise = arr.objectAtIndex.async(arr, [0])
+                .then(res => {
+                    expect(res).toBe(value);
+                    expect(NSThread.currentThread.isMainThread).toBe(true);
+                })
+                .then(() => arr.objectAtIndex.async(arr, [2]))
+                .catch(error => {
+                    expect(NSThread.currentThread.isMainThread).toBe(true);
+                    expect(error.toString()).toMatch("index 2 beyond bounds");
+                    expect(error.stack).toEqual("objectAtIndex@[native code]\n[native code]");
+                    done();
+                });
+             });
+        }
     });
 
     it("should distinguish between undefined and unavailable variables", function () {

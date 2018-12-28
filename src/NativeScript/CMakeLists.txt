@@ -118,7 +118,7 @@ set(SOURCE_FILES
     Calling/FFICallPrototype.cpp
     Calling/CFunctionWrapper.mm
     Calling/FFIFunctionCallback.cpp
-    Calling/FunctionWrapper.cpp
+    Calling/FunctionWrapper.mm
     GlobalObject.mm
     GlobalObject.moduleLoader.mm
     inspector/CachedResource.mm

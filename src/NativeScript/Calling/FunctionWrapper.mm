@@ -8,18 +8,36 @@
 
 #include "FFICache.h"
 #include "FFICall.h"
+#include "ObjCTypes.h"
+#include <JavaScriptCore/JSObjectRef.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
 #include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/interpreter/FrameTracers.h>
 #include <JavaScriptCore/interpreter/Interpreter.h>
+#include <JavaScriptCore/runtime/Error.h>
 #include <dispatch/dispatch.h>
 #include <malloc/malloc.h>
 
 #include "FunctionWrapper.h"
 #include "Metadata.h"
 
+#import "TNSRuntime.h"
+
 namespace NativeScript {
 using namespace JSC;
+
+JSObject* createErrorFromNSException(TNSRuntime* runtime, ExecState* execState, NSException* exception) {
+    JSObject* error = createError(execState, [[exception reason] UTF8String]);
+
+    JSGlobalContextRef context = runtime.globalContext;
+    JSValueRef wrappedException = [runtime convertObject:exception];
+    JSStringRef nativeExceptionPropertyName = JSStringCreateWithUTF8CString("nativeException");
+    JSObjectSetProperty(context, (JSObjectRef)error, nativeExceptionPropertyName,
+                        wrappedException, kJSPropertyAttributeNone, NULL);
+    JSStringRelease(nativeExceptionPropertyName);
+
+    return error;
+}
 
 const ClassInfo FunctionWrapper::s_info = { "FunctionWrapper", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(FunctionWrapper) };
 
@@ -71,16 +89,20 @@ EncodedJSValue JSC_HOST_CALL FunctionWrapper::call(ExecState* execState) {
         return JSValue::encode(scope.exception());
     }
 
-    {
-        JSLock::DropAllLocks locksDropper(execState);
-        ffi_call(callee->cif().get(), FFI_FN(invocation.function), invocation._buffer + callee->returnOffset(), reinterpret_cast<void**>(invocation._buffer + callee->argsArrayOffset()));
+    @try {
+        {
+            JSLock::DropAllLocks locksDropper(execState);
+            ffi_call(callee->cif().get(), FFI_FN(invocation.function), invocation.resultBuffer(), reinterpret_cast<void**>(invocation._buffer + callee->argsArrayOffset()));
+        }
+
+        JSValue result = callee->returnType().read(execState, invocation._buffer + callee->returnOffset(), callee->returnTypeCell().get());
+
+        callee->postCall(execState, invocation);
+
+        return JSValue::encode(result);
+    } @catch (NSException* exception) {
+        return throwVMError(execState, scope, createErrorFromNSException([TNSRuntime current], execState, exception));
     }
-
-    JSValue result = callee->returnType().read(execState, invocation._buffer + callee->returnOffset(), callee->returnTypeCell().get());
-
-    callee->postCall(execState, invocation);
-
-    return JSValue::encode(result);
 }
 
 JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const ArgList& arguments) {
@@ -120,37 +142,51 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
     JSPromiseDeferred* deferred = JSPromiseDeferred::create(execState, execState->lexicalGlobalObject());
     auto* releasePool = new ReleasePoolBase::Item(releasePoolHolder.relinquish());
     __block Strong<FunctionWrapper> callee(execState->vm(), this);
+    __block TNSRuntime* runtime = [TNSRuntime current];
 
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
       JSC::VM& vm = fakeExecState->vm();
       auto scope = DECLARE_CATCH_SCOPE(vm);
 
-      ffi_call(call->cif().get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + call->argsArrayOffset()));
+      NSException* nsexception = nullptr;
+      @try {
+
+          ffi_call(call->cif().get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + call->argsArrayOffset()));
+      } @catch (NSException* ex) {
+          nsexception = ex;
+      }
 
       // Native call is made outside of the VM lock by design.
       // For more information see https://github.com/NativeScript/ios-runtime/issues/215 and it's corresponding PR.
       // This creates a racing condition which might corrupt the internal state of the VM but
       // a fix for it is outside of this PR's scope, so I'm leaving it like it has always been.
-
       JSLockHolder lockHolder(vm);
+
       // we no longer have a valid csaller on the stack, what with being async and all
-      fakeExecState->setCallerFrame(CallFrame::noCaller());
+      fakeExecState->setCallerFrame(fakeExecState->lexicalGlobalObject()->globalExec());
 
       JSValue result;
+      JSValue jsexception = jsNull();
       {
           TopCallFrameSetter frameSetter(vm, fakeExecState);
           result = call->returnType().read(fakeExecState, invocation->_buffer + call->returnOffset(), call->returnTypeCell().get());
 
           call->postCall(fakeExecState, *invocation);
-      }
 
-      if (Exception* exception = scope.exception()) {
+          if (Exception* ex = scope.exception()) {
+              scope.clearException();
+              jsexception = ex->value();
+          } else if (nsexception != nullptr) {
+              jsexception = JSValue(createErrorFromNSException(runtime, fakeExecState, nsexception));
+          }
+      }
+      if (jsexception != jsNull()) {
           scope.clearException();
           CallData rejectCallData;
           CallType rejectCallType = JSC::getCallData(vm, deferred->reject(), rejectCallData);
 
           MarkedArgumentBuffer rejectArguments;
-          rejectArguments.append(exception->value());
+          rejectArguments.append(jsexception);
           JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->reject(), rejectCallType, rejectCallData, jsUndefined(), rejectArguments);
       } else {
           CallData resolveCallData;
