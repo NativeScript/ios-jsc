@@ -38,6 +38,8 @@
 
 + (void)protocolImplementationMethods:(id<TNSBaseProtocol1, NSObject>)object;
 
++ (void)categoryProtocolImplementationMethods:(id<TNSBaseCategoryProtocol1, NSObject>)object;
+
 + (void)protocolImplementationProtocolInheritance:(id<TNSBaseProtocol2, NSObject>)object;
 
 + (void)protocolImplementationOptionalMethods:(id<TNSBaseProtocol2, NSObject>)object;

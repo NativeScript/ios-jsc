@@ -69,7 +69,7 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
 
         if (methodMetas.size() == 0 && protocols && !protocols->empty()) {
             for (auto aProtocol : *protocols) {
-                if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType)).size() == 0) {
+                if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType)).size() > 0) {
                     break;
                 }
             }
