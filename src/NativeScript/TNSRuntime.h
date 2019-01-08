@@ -39,7 +39,9 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 - (JSValueRef)convertObject:(id)object;
 
-- (id)appPackageJson;
+- (NSDictionary*)appPackageJson;
+
+- (void)tryCollectGarbage;
 @end
 
 @interface TNSWorkerRuntime : TNSRuntime
