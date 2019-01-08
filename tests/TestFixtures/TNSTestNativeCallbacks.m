@@ -205,6 +205,12 @@
     [object baseProtocolMethod1];
 }
 
++ (void)categoryProtocolImplementationMethods:(id<TNSBaseCategoryProtocol1, NSObject>)object {
+    NSAssert([object conformsToProtocol:@protocol(TNSBaseCategoryProtocol1)], NSStringFromSelector(_cmd));
+    NSAssert([[object class] conformsToProtocol:@protocol(TNSBaseCategoryProtocol1)], NSStringFromSelector(_cmd));
+    [object baseCategoryProtocolMethod1];
+}
+
 + (void)protocolImplementationProtocolInheritance:(id<TNSBaseProtocol2, NSObject>)object {
     NSAssert([object conformsToProtocol:@protocol(TNSBaseProtocol1)], NSStringFromSelector(_cmd));
     NSAssert([[object class] conformsToProtocol:@protocol(TNSBaseProtocol1)], NSStringFromSelector(_cmd));

@@ -131,4 +131,35 @@ describe(module.id, function () {
             protocols: [TNSBaseProtocol1]
         });
     });
+
+    it('Two protocols', function () {
+        var object = NSObject.extend({
+            baseProtocolMethod1: function () {
+                TNSLog('baseProtocolMethod1 called');
+            },
+            baseCategoryProtocolMethod1: function () {
+                TNSLog('baseCategoryProtocolMethod1 called');
+            }
+        }, {
+            protocols: [TNSBaseProtocol1, TNSBaseCategoryProtocol1]
+        }).alloc().init();
+
+        var actual;
+        var expected =
+            'baseProtocolMethod1 called' +
+            'baseCategoryProtocolMethod1 called';
+
+        object.baseProtocolMethod1();
+        object.baseCategoryProtocolMethod1();
+
+        actual = TNSGetOutput();
+        expect(actual).toBe(expected);
+        TNSClearOutput();
+
+        TNSTestNativeCallbacks.protocolImplementationMethods(object);
+        TNSTestNativeCallbacks.categoryProtocolImplementationMethods(object);
+
+        actual = TNSGetOutput();
+        expect(actual).toBe(expected);
+    });
 });
