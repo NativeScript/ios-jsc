@@ -128,16 +128,16 @@ std::string getCompilerEncoding(JSC::JSGlobalObject* globalObject, const Metadat
     const Metadata::TypeEncodingsList<Metadata::ArrayCount>* encodings = method->encodings();
     GlobalObject* nsGlobalObject = jsCast<GlobalObject*>(globalObject);
     const Metadata::TypeEncoding* currentEncoding = encodings->first();
-    JSCell* returnTypeCell = nsGlobalObject->typeFactory()->parseType(nsGlobalObject, currentEncoding, false);
-    const WTF::Vector<JSCell*> parameterTypesCells = nsGlobalObject->typeFactory()->parseTypes(nsGlobalObject, currentEncoding, encodings->count - 1, false);
+    auto returnTypeCell = nsGlobalObject->typeFactory()->parseType(nsGlobalObject, currentEncoding, false);
+    auto parameterTypesCells = nsGlobalObject->typeFactory()->parseTypes(nsGlobalObject, currentEncoding, encodings->count - 1, false);
 
     std::stringstream compilerEncoding;
 
-    compilerEncoding << getCompilerEncoding(globalObject->vm(), returnTypeCell);
+    compilerEncoding << getCompilerEncoding(globalObject->vm(), returnTypeCell.get());
     compilerEncoding << "@:"; // id self, SEL _cmd
 
-    for (JSCell* cell : parameterTypesCells) {
-        compilerEncoding << getCompilerEncoding(globalObject->vm(), cell);
+    for (auto cell : parameterTypesCells) {
+        compilerEncoding << getCompilerEncoding(globalObject->vm(), cell.get());
     }
 
     return compilerEncoding.str();
@@ -251,25 +251,25 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->_pointerInstanceStructure.set(vm, this, PointerInstance::createStructure(globalObject, pointerConstructor->get(globalObject->globalExec(), vm.propertyNames->prototype)));
     this->putDirect(vm, Identifier::fromString(&vm, pointerConstructor->name()), pointerConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
 
-    ReferencePrototype* referencePrototype = ReferencePrototype::create(vm, globalObject, ReferencePrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
-    this->_referenceInstanceStructure.set(vm, this, ReferenceInstance::createStructure(vm, globalObject, referencePrototype));
+    auto referencePrototype = ReferencePrototype::create(vm, globalObject, ReferencePrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
+    this->_referenceInstanceStructure.set(vm, this, ReferenceInstance::createStructure(vm, globalObject, referencePrototype.get()));
 
-    IndexedRefPrototype* indexedRefPrototype = IndexedRefPrototype::create(vm, globalObject, IndexedRefPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
-    this->_indexedRefInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype));
-    this->_extVectorInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype));
+    auto indexedRefPrototype = IndexedRefPrototype::create(vm, globalObject, IndexedRefPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
+    this->_indexedRefInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype.get()));
+    this->_extVectorInstanceStructure.set(vm, this, IndexedRefInstance::createStructure(vm, globalObject, indexedRefPrototype.get()));
 
-    ReferenceConstructor* referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype);
-    this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    auto referenceConstructor = ReferenceConstructor::create(vm, ReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referencePrototype.get());
+    this->putDirect(vm, Identifier::fromString(&vm, referenceConstructor->name()), referenceConstructor.get(), static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    referencePrototype->putDirect(vm, vm.propertyNames->constructor, referenceConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     JSObject* functionReferencePrototype = jsCast<JSObject*>(constructEmptyObject(globalObject->globalExec(), globalObject->functionPrototype()));
     this->_functionReferenceInstanceStructure.set(vm, this, FunctionReferenceInstance::createStructure(vm, globalObject, functionReferencePrototype));
 
-    FunctionReferenceConstructor* functionReferenceConstructor = FunctionReferenceConstructor::create(vm, FunctionReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferencePrototype);
-    this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name()), functionReferenceConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    auto functionReferenceConstructor = FunctionReferenceConstructor::create(vm, FunctionReferenceConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferencePrototype);
+    this->putDirect(vm, Identifier::fromString(&vm, functionReferenceConstructor->name()), functionReferenceConstructor.get(), static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    functionReferencePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
-    this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())));
+    this->_nsErrorWrapperConstructor.set(vm, this, NSErrorWrapperConstructor::create(vm, NSErrorWrapperConstructor::createStructure(vm, globalObject, globalObject->functionPrototype())).get());
     this->putDirect(vm, Identifier::fromString(&vm, "NSErrorWrapper"), this->_nsErrorWrapperConstructor.get());
 
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(&vm, "alloc"_s), 0, &interopFuncAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
@@ -311,7 +311,7 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     JSObject* doubleType = globalObject->typeFactory()->doubleType();
     types->putDirect(vm, Identifier::fromString(&vm, doubleType->methodTable(vm)->className(doubleType, vm)), doubleType, static_cast<unsigned>(PropertyAttribute::None));
 
-    JSObject* objCIdType = globalObject->typeFactory()->NSObjectConstructor(globalObject);
+    JSObject* objCIdType = globalObject->typeFactory()->NSObjectConstructor(globalObject).get();
     types->putDirect(vm, Identifier::fromString(&vm, "id"_s), objCIdType, static_cast<unsigned>(PropertyAttribute::None));
     JSObject* objCProtocolType = globalObject->typeFactory()->objCProtocolType();
     types->putDirect(vm, Identifier::fromString(&vm, objCProtocolType->methodTable(vm)->className(objCProtocolType, vm)), objCProtocolType, static_cast<unsigned>(PropertyAttribute::None));
@@ -321,19 +321,19 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
     types->putDirect(vm, Identifier::fromString(&vm, objCSelectorType->methodTable(vm)->className(objCSelectorType, vm)), objCSelectorType, static_cast<unsigned>(PropertyAttribute::None));
 
     JSObject* referenceTypePrototype = constructEmptyObject(globalObject->globalExec());
-    ReferenceTypeConstructor* referenceTypeConstructor = ReferenceTypeConstructor::create(vm, ReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referenceTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, referenceTypeConstructor->name()), referenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    referenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, referenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    auto referenceTypeConstructor = ReferenceTypeConstructor::create(vm, ReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), referenceTypePrototype);
+    types->putDirect(vm, Identifier::fromString(&vm, referenceTypeConstructor->name()), referenceTypeConstructor.get(), static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    referenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, referenceTypeConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     JSObject* functionReferenceTypePrototype = constructEmptyObject(globalObject->globalExec());
-    FunctionReferenceTypeConstructor* functionReferenceTypeConstructor = FunctionReferenceTypeConstructor::create(vm, FunctionReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferenceTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, functionReferenceTypeConstructor->name()), functionReferenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    functionReferenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceTypeConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    auto functionReferenceTypeConstructor = FunctionReferenceTypeConstructor::create(vm, FunctionReferenceTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), functionReferenceTypePrototype);
+    types->putDirect(vm, Identifier::fromString(&vm, functionReferenceTypeConstructor->name()), functionReferenceTypeConstructor.get(), static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    functionReferenceTypePrototype->putDirect(vm, vm.propertyNames->constructor, functionReferenceTypeConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     JSObject* objCBlockTypePrototype = constructEmptyObject(globalObject->globalExec());
-    ObjCBlockTypeConstructor* objCBlockTypeConstructor = ObjCBlockTypeConstructor::create(vm, ObjCBlockTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), objCBlockTypePrototype);
-    types->putDirect(vm, Identifier::fromString(&vm, objCBlockTypeConstructor->name()), objCBlockTypeConstructor, static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
-    objCBlockTypePrototype->putDirect(vm, vm.propertyNames->constructor, objCBlockTypeConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    auto objCBlockTypeConstructor = ObjCBlockTypeConstructor::create(vm, ObjCBlockTypeConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), objCBlockTypePrototype);
+    types->putDirect(vm, Identifier::fromString(&vm, objCBlockTypeConstructor->name()), objCBlockTypeConstructor.get(), static_cast<unsigned>(PropertyAttribute::ReadOnly | PropertyAttribute::DontDelete));
+    objCBlockTypePrototype->putDirect(vm, vm.propertyNames->constructor, objCBlockTypeConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 }
 
 JSValue Interop::pointerInstanceForPointer(ExecState* execState, void* value) {
@@ -345,9 +345,9 @@ JSValue Interop::pointerInstanceForPointer(ExecState* execState, void* value) {
         return pointerInstance;
     }
 
-    PointerInstance* pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
-    this->_pointerToInstance.set(value, pointerInstance);
-    return pointerInstance;
+    auto pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
+    this->_pointerToInstance.set(value, pointerInstance.get());
+    return pointerInstance.get();
 }
 
 void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {

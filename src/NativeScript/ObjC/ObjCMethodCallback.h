@@ -25,8 +25,8 @@ class ObjCMethodCallback : public FFICallback<ObjCMethodCallback> {
 public:
     typedef FFICallback Base;
 
-    static ObjCMethodCallback* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function, JSC::JSCell* returnType, WTF::Vector<JSC::JSCell*> parameterTypes, WTF::TriState hasErrorOutParameter = WTF::MixedTriState) {
-        ObjCMethodCallback* cell = new (NotNull, JSC::allocateCell<ObjCMethodCallback>(vm.heap)) ObjCMethodCallback(vm, structure);
+    static JSC::Strong<ObjCMethodCallback> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function, JSC::JSCell* returnType, WTF::Vector<Strong<JSC::JSCell>> parameterTypes, WTF::TriState hasErrorOutParameter = WTF::MixedTriState) {
+        JSC::Strong<ObjCMethodCallback> cell(vm, new (NotNull, JSC::allocateCell<ObjCMethodCallback>(vm.heap)) ObjCMethodCallback(vm, structure));
         cell->finishCreation(vm, globalObject, function, returnType, parameterTypes, hasErrorOutParameter);
         return cell;
     }
@@ -44,7 +44,7 @@ private:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function, JSC::JSCell* returnType, WTF::Vector<JSC::JSCell*> parameterTypes, WTF::TriState hasErrorOutParameter);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function, JSC::JSCell* returnType, WTF::Vector<JSC::Strong<JSC::JSCell>> parameterTypes, WTF::TriState hasErrorOutParameter);
 
     bool _hasErrorOutParameter;
 };

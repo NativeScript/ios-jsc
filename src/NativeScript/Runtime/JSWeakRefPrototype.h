@@ -14,8 +14,8 @@ class JSWeakRefPrototype : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static JSWeakRefPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        JSWeakRefPrototype* prototype = new (NotNull, JSC::allocateCell<JSWeakRefPrototype>(vm.heap)) JSWeakRefPrototype(vm, structure);
+    static JSC::Strong<JSWeakRefPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<JSWeakRefPrototype> prototype(vm, new (NotNull, JSC::allocateCell<JSWeakRefPrototype>(vm.heap)) JSWeakRefPrototype(vm, structure));
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }

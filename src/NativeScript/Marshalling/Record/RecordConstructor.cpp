@@ -43,7 +43,7 @@ static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeC
             }
 
             RecordPrototype* recordPrototype = jsDynamicCast<RecordPrototype*>(vm, recordConstructor->get(execState, vm.propertyNames->prototype));
-            for (RecordField* field : recordPrototype->fields()) {
+            for (const auto& field : recordPrototype->fields()) {
                 Identifier fieldName = Identifier::fromString(execState, field->fieldName());
 
                 auto scope = DECLARE_THROW_SCOPE(vm);
@@ -95,8 +95,8 @@ JSValue RecordConstructor::read(ExecState* execState, const void* buffer, JSCell
     memcpy(data, buffer, size);
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data));
     pointer->setAdopted(true);
-    RecordInstance* record = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), size, pointer);
-    return record;
+    Strong<RecordInstance> record = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), size, pointer);
+    return record.get();
 }
 
 void RecordConstructor::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
@@ -117,8 +117,8 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         if (JSObject* object = jsDynamicCast<JSObject*>(execState->vm(), value)) {
-            const WTF::Vector<RecordField*> fields = jsCast<RecordPrototype*>(constructor->get(execState, execState->vm().propertyNames->prototype))->fields();
-            for (RecordField* field : fields) {
+            auto fields = jsCast<RecordPrototype*>(constructor->get(execState, execState->vm().propertyNames->prototype))->fields();
+            for (const auto& field : fields) {
                 Identifier propertyName = Identifier::fromString(execState, field->fieldName());
                 if (object->hasProperty(execState, propertyName)) {
                     JSValue fieldValue = object->get(execState, propertyName);
@@ -157,7 +157,7 @@ const char* RecordConstructor::encode(VM& vm, JSCell* cell) {
     ss << jsCast<JSString*>(self->getDirect(vm, vm.propertyNames->name))->tryGetValue().utf8().data() << "=";
 
     RecordPrototype* recordPrototype = jsCast<RecordPrototype*>(self->getDirect(vm, vm.propertyNames->prototype));
-    for (RecordField* field : recordPrototype->fields()) {
+    for (const auto& field : recordPrototype->fields()) {
         ss << field->ffiTypeMethodTable().encode(vm, field->fieldType());
     }
 
@@ -192,7 +192,7 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecStat
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data));
     pointer->setAdopted(true);
 
-    RecordInstance* instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
+    auto instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
 
     if (execState->argumentCount() == 1) {
         JSValue value = execState->argument(0);
@@ -204,7 +204,7 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecStat
         }
     }
 
-    return JSValue::encode(instance);
+    return JSValue::encode(instance.get());
 }
 
 EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* execState) {
@@ -226,8 +226,8 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* 
     RecordConstructor* constructor = jsCast<RecordConstructor*>(execState->callee().asCell());
     const ffi_type* ffiType = constructor->_ffiTypeMethodTable.ffiType;
 
-    RecordInstance* instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
-    return JSValue::encode(instance);
+    auto instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
+    return JSValue::encode(instance.get());
 }
 
 void RecordConstructor::visitChildren(JSCell* cell, SlotVisitor& visitor) {

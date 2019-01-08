@@ -21,14 +21,14 @@ public:
 
     DECLARE_INFO;
 
-    static ReferenceInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSValue value = JSC::jsUndefined()) {
-        ReferenceInstance* cell = new (NotNull, JSC::allocateCell<ReferenceInstance>(vm.heap)) ReferenceInstance(vm, structure);
+    static JSC::Strong<ReferenceInstance> create(JSC::VM& vm, JSC::Structure* structure, JSC::JSValue value = JSC::jsUndefined()) {
+        JSC::Strong<ReferenceInstance> cell(vm, new (NotNull, JSC::allocateCell<ReferenceInstance>(vm.heap)) ReferenceInstance(vm, structure));
         cell->finishCreation(vm, value);
         return cell;
     }
 
-    static ReferenceInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* innerType, PointerInstance* pointer) {
-        ReferenceInstance* object = new (NotNull, JSC::allocateCell<ReferenceInstance>(vm.heap)) ReferenceInstance(vm, structure);
+    static JSC::Strong<ReferenceInstance> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* innerType, PointerInstance* pointer) {
+        JSC::Strong<ReferenceInstance> object(vm, new (NotNull, JSC::allocateCell<ReferenceInstance>(vm.heap)) ReferenceInstance(vm, structure));
         object->finishCreation(vm, globalObject, innerType, pointer);
         return object;
     }

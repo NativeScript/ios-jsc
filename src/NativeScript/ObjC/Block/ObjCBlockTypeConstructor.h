@@ -15,8 +15,8 @@ class ObjCBlockTypeConstructor : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static ObjCBlockTypeConstructor* create(JSC::VM& vm, JSC::Structure* structure, JSObject* objCBlockTypePrototype) {
-        ObjCBlockTypeConstructor* constructor = new (NotNull, JSC::allocateCell<ObjCBlockTypeConstructor>(vm.heap)) ObjCBlockTypeConstructor(vm, structure);
+    static JSC::Strong<ObjCBlockTypeConstructor> create(JSC::VM& vm, JSC::Structure* structure, JSObject* objCBlockTypePrototype) {
+        JSC::Strong<ObjCBlockTypeConstructor> constructor(vm, new (NotNull, JSC::allocateCell<ObjCBlockTypeConstructor>(vm.heap)) ObjCBlockTypeConstructor(vm, structure));
         constructor->finishCreation(vm, objCBlockTypePrototype);
         return constructor;
     }

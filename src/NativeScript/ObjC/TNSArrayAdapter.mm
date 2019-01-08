@@ -10,7 +10,6 @@
 #include "Interop.h"
 #include "ObjCTypes.h"
 #include "TNSRuntime+Private.h"
-#include <JavaScriptCore/StrongInlines.h>
 
 using namespace NativeScript;
 using namespace JSC;

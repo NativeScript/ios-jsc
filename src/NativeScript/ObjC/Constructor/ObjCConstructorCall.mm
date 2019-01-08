@@ -23,11 +23,11 @@ void ObjCConstructorWrapper::finishCreation(VM& vm, GlobalObject* globalObject, 
 
     const Metadata::TypeEncoding* encodings = metadata->encodings()->first();
 
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
-    const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1, false);
+    Strong<JSCell> returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
+    const WTF::Vector<Strong<JSCell>> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, metadata->encodings()->count - 1, false);
 
     std::unique_ptr<ObjCConstructorCall> call(new ObjCConstructorCall(this));
-    call->initializeFFI(vm, { &preInvocation, &postInvocation }, returnType, parametersTypes, 2);
+    call->initializeFFI(vm, { &preInvocation, &postInvocation }, returnType.get(), parametersTypes, 2);
     call->_klass = klass;
 
     Base::initializeFunctionWrapper(vm, parametersTypes.size());

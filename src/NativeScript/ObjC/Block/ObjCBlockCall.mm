@@ -24,7 +24,7 @@ const ClassInfo ObjCBlockWrapper::s_info = { "ObjCBlockWrapper", &Base::s_info, 
 void ObjCBlockWrapper::finishCreation(VM& vm, id block, ObjCBlockType* blockType) {
     Base::finishCreation(vm, WTF::emptyString());
 
-    const WTF::Vector<JSCell*> parameterTypes = blockType->parameterTypes();
+    auto parameterTypes = blockType->parameterTypes(vm);
     Base::initializeFunctionWrapper(vm, parameterTypes.size());
     std::unique_ptr<ObjCBlockCall> call(new ObjCBlockCall(this));
     call->initializeFFI(vm, { &preInvocation, nullptr }, blockType->returnType(), parameterTypes, 1);

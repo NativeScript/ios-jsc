@@ -22,9 +22,9 @@ public:
 
     DECLARE_INFO;
 
-    static PointerInstance* create(JSC::ExecState* execState, JSC::Structure* structure, void* value = nullptr) {
+    static JSC::Strong<PointerInstance> create(JSC::ExecState* execState, JSC::Structure* structure, void* value = nullptr) {
         JSC::VM& vm = execState->vm();
-        PointerInstance* object = new (NotNull, JSC::allocateCell<PointerInstance>(vm.heap)) PointerInstance(vm, structure);
+        JSC::Strong<PointerInstance> object(vm, new (NotNull, JSC::allocateCell<PointerInstance>(vm.heap)) PointerInstance(vm, structure));
         object->finishCreation(execState, value);
         return object;
     }

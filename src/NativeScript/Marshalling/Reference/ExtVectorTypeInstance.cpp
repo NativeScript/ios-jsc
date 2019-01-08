@@ -37,7 +37,7 @@ JSValue ExtVectorTypeInstance::read(ExecState* execState, const void* buffer, JS
 
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, const_cast<void*>(data)));
     pointer->setAdopted(true);
-    return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->extVectorInstanceStructure(), referenceType->innerType(), pointer);
+    return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->extVectorInstanceStructure(), referenceType->innerType(), pointer).get();
 }
 
 void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {

@@ -18,8 +18,8 @@ class ObjCBlockCallback : public FFICallback<ObjCBlockCallback> {
 public:
     typedef FFICallback Base;
 
-    static ObjCBlockCallback* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function, ObjCBlockType* blockType) {
-        ObjCBlockCallback* cell = new (NotNull, JSC::allocateCell<ObjCBlockCallback>(vm.heap)) ObjCBlockCallback(vm, structure);
+    static JSC::Strong<ObjCBlockCallback> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function, ObjCBlockType* blockType) {
+        JSC::Strong<ObjCBlockCallback> cell(vm, new (NotNull, JSC::allocateCell<ObjCBlockCallback>(vm.heap)) ObjCBlockCallback(vm, structure));
         cell->finishCreation(vm, globalObject, function, blockType);
         return cell;
     }

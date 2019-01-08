@@ -24,18 +24,18 @@ ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSCell* 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     const Metadata::TypeEncoding* typeEncodings = meta->encodings()->first();
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings, false);
-    Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1, false);
+    auto returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings, false);
+    auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1, false);
 
-    ObjCMethodCallback* methodCallback = ObjCMethodCallback::create(execState->vm(),
-                                                                    globalObject,
-                                                                    globalObject->objCMethodCallbackStructure(),
-                                                                    method,
-                                                                    returnType,
-                                                                    parameterTypes,
-                                                                    TriState(meta->hasErrorOutParameter()));
-    gcProtect(methodCallback);
-    return methodCallback;
+    auto methodCallback = ObjCMethodCallback::create(execState->vm(),
+                                                     globalObject,
+                                                     globalObject->objCMethodCallbackStructure(),
+                                                     method,
+                                                     returnType.get(),
+                                                     parameterTypes,
+                                                     TriState(meta->hasErrorOutParameter()));
+    gcProtect(methodCallback.get());
+    return methodCallback.get();
 }
 void overrideObjcMethodCall(ExecState* execState, Class klass, JSCell* method, ObjCMethodCall* call) {
     ObjCMethodCallback* callback = createProtectedMethodCallback(execState, method, call->meta);
@@ -53,6 +53,7 @@ void overrideObjcMethodCall(ExecState* execState, Class klass, JSCell* method, O
 void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyName propertyName, JSCell* method, const Metadata::BaseClassMeta* meta, Metadata::MemberType memberType, Class klass,
                              std::vector<const Metadata::ProtocolMeta*>* protocols) {
     ObjCMethodWrapper* wrapper = jsDynamicCast<ObjCMethodWrapper*>(execState->vm(), object->get(execState, propertyName));
+    Strong<ObjCMethodWrapper> strongWrapper;
     if (!wrapper) {
         std::vector<const Metadata::MemberMeta*> methodMetas;
 
@@ -76,7 +77,8 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
         }
 
         if (methodMetas.size() > 0) {
-            wrapper = ObjCMethodWrapper::create(execState, methodMetas);
+            strongWrapper = ObjCMethodWrapper::create(execState, methodMetas);
+            wrapper = strongWrapper.get();
         }
     }
 
@@ -115,13 +117,13 @@ void overrideObjcMethodWrapperCalls(ExecState* execState, Class klass, JSCell* m
     }
 }
 
-static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<JSCell*>& parameterTypes) {
+static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<Strong<JSCell>>& parameterTypes) {
     if (!(parameterTypes.size() > 0)) {
         return false;
     }
 
     JSC::VM& vm = execState->vm();
-    if (ReferenceTypeInstance* referenceInstance = jsDynamicCast<ReferenceTypeInstance*>(vm, parameterTypes.last())) {
+    if (ReferenceTypeInstance* referenceInstance = jsDynamicCast<ReferenceTypeInstance*>(vm, parameterTypes.last().get())) {
         if (ObjCConstructorNative* constructor = jsDynamicCast<ObjCConstructorNative*>(vm, referenceInstance->innerType())) {
             if (constructor->klass() == [NSError class]) {
                 return true;
@@ -134,7 +136,7 @@ static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<JSCel
 
 const ClassInfo ObjCMethodCallback::s_info = { "ObjCMethodCallback", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCMethodCallback) };
 
-void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, JSCell* returnType, WTF::Vector<JSCell*> parameterTypes, TriState hasErrorOutParameter) {
+void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, JSCell* returnType, WTF::Vector<Strong<JSCell>> parameterTypes, TriState hasErrorOutParameter) {
     Base::finishCreation(vm, globalObject, function, returnType, parameterTypes, 2);
 
     if (hasErrorOutParameter != TriState::MixedTriState) {

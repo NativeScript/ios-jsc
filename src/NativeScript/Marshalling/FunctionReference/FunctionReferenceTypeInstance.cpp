@@ -22,7 +22,7 @@ JSValue FunctionReferenceTypeInstance::read(ExecState* execState, const void* bu
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     FunctionReferenceTypeInstance* functionReferenceType = jsCast<FunctionReferenceTypeInstance*>(self);
     void* functionPointer = *static_cast<id*>(const_cast<void*>(buffer));
-    return CFunctionWrapper::create(execState->vm(), globalObject->ffiFunctionWrapperStructure(), functionPointer, WTF::emptyString(), functionReferenceType->returnType(), functionReferenceType->parameterTypes(), false);
+    return CFunctionWrapper::create(execState->vm(), globalObject->ffiFunctionWrapperStructure(), functionPointer, WTF::emptyString(), functionReferenceType->returnType(), functionReferenceType->parameterTypes(globalObject->vm()), false).get();
 }
 
 void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
@@ -35,8 +35,8 @@ void FunctionReferenceTypeInstance::write(ExecState* execState, const JSValue& v
         if (!functionReference->functionPointer()) {
             GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
             FunctionReferenceTypeInstance* functionReferenceType = jsCast<FunctionReferenceTypeInstance*>(self);
-            FFIFunctionCallback* functionCallback = FFIFunctionCallback::create(execState->vm(), globalObject, globalObject->ffiFunctionCallbackStructure(), functionReference->function(), functionReferenceType);
-            functionReference->setCallback(execState->vm(), functionCallback);
+            auto functionCallback = FFIFunctionCallback::create(execState->vm(), globalObject, globalObject->ffiFunctionCallbackStructure(), functionReference->function(), functionReferenceType);
+            functionReference->setCallback(execState->vm(), functionCallback.get());
         }
     }
 
@@ -63,7 +63,7 @@ const char* FunctionReferenceTypeInstance::encode(VM&, JSCell* cell) {
     return "^?";
 }
 
-void FunctionReferenceTypeInstance::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes) {
+void FunctionReferenceTypeInstance::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector<Strong<JSCell>>& parameterTypes) {
     Base::finishCreation(vm);
 
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
@@ -74,8 +74,8 @@ void FunctionReferenceTypeInstance::finishCreation(VM& vm, JSCell* returnType, c
 
     this->_returnType.set(vm, this, returnType);
 
-    for (JSCell* parameterType : parameterTypes) {
-        this->_parameterTypes.append(WriteBarrier<JSCell>(vm, this, parameterType));
+    for (auto& parameterType : parameterTypes) {
+        this->_parameterTypes.append(WriteBarrier<JSCell>(vm, this, parameterType.get()));
     }
 }
 

@@ -16,8 +16,8 @@ class FunctionReferenceTypeInstance : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static FunctionReferenceTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes) {
-        FunctionReferenceTypeInstance* cell = new (NotNull, JSC::allocateCell<FunctionReferenceTypeInstance>(vm.heap)) FunctionReferenceTypeInstance(vm, structure);
+    static JSC::Strong<FunctionReferenceTypeInstance> create(JSC::VM& vm, JSC::Structure* structure, JSCell* returnType, const WTF::Vector<JSC::Strong<JSCell>>& parameterTypes) {
+        JSC::Strong<FunctionReferenceTypeInstance> cell(vm, new (NotNull, JSC::allocateCell<FunctionReferenceTypeInstance>(vm.heap)) FunctionReferenceTypeInstance(vm, structure));
         cell->finishCreation(vm, returnType, parameterTypes);
         return cell;
     }
@@ -36,10 +36,10 @@ public:
         return this->_returnType.get();
     }
 
-    const WTF::Vector<JSC::JSCell*> parameterTypes() const {
-        WTF::Vector<JSC::JSCell*> result(this->_parameterTypes.size());
+    const WTF::Vector<JSC::Strong<JSC::JSCell>> parameterTypes(JSC::VM& vm) const {
+        WTF::Vector<JSC::Strong<JSC::JSCell>> result(this->_parameterTypes.size());
         for (size_t i = 0; i < this->_parameterTypes.size(); ++i) {
-            result[i] = this->_parameterTypes[i].get();
+            result[i] = JSC::Strong<JSC::JSCell>(vm, this->_parameterTypes[i].get());
         }
         return result;
     }
@@ -53,7 +53,7 @@ private:
         static_cast<FunctionReferenceTypeInstance*>(cell)->~FunctionReferenceTypeInstance();
     }
 
-    void finishCreation(JSC::VM&, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes);
+    void finishCreation(JSC::VM&, JSCell* returnType, const WTF::Vector<JSC::Strong<JSCell>>& parameterTypes);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 

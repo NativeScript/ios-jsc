@@ -14,8 +14,8 @@ class IndexedRefTypeInstance : public JSDestructibleObject {
 public:
     typedef JSDestructibleObject Base;
 
-    static IndexedRefTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType, size_t size) {
-        IndexedRefTypeInstance* cell = new (NotNull, JSC::allocateCell<IndexedRefTypeInstance>(vm.heap)) IndexedRefTypeInstance(vm, structure, size);
+    static JSC::Strong<IndexedRefTypeInstance> create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType, size_t size) {
+        JSC::Strong<IndexedRefTypeInstance> cell(vm, new (NotNull, JSC::allocateCell<IndexedRefTypeInstance>(vm.heap)) IndexedRefTypeInstance(vm, structure, size));
         cell->finishCreation(vm, innerType);
         return cell;
     }

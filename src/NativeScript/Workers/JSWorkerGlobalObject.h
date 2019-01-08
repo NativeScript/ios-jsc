@@ -10,8 +10,8 @@ class JSWorkerGlobalObject : public GlobalObject {
 public:
     typedef GlobalObject Base;
 
-    static JSWorkerGlobalObject* create(JSC::VM& vm, JSC::Structure* structure, WTF::String applicationPath) {
-        JSWorkerGlobalObject* object = new (NotNull, JSC::allocateCell<JSWorkerGlobalObject>(vm.heap)) JSWorkerGlobalObject(vm, structure);
+    static JSC::Strong<JSWorkerGlobalObject> create(JSC::VM& vm, JSC::Structure* structure, WTF::String applicationPath) {
+        JSC::Strong<JSWorkerGlobalObject> object(vm, new (NotNull, JSC::allocateCell<JSWorkerGlobalObject>(vm.heap)) JSWorkerGlobalObject(vm, structure));
         object->finishCreation(vm, applicationPath);
         return object;
     }

@@ -20,8 +20,8 @@ class RecordConstructor : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static RecordConstructor* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, RecordPrototype* recordPrototype, const WTF::String& name, ffi_type* ffiType, RecordType recordType) {
-        RecordConstructor* cell = new (NotNull, JSC::allocateCell<RecordConstructor>(vm.heap)) RecordConstructor(vm, structure);
+    static JSC::Strong<RecordConstructor> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, RecordPrototype* recordPrototype, const WTF::String& name, ffi_type* ffiType, RecordType recordType) {
+        JSC::Strong<RecordConstructor> cell(vm, new (NotNull, JSC::allocateCell<RecordConstructor>(vm.heap)) RecordConstructor(vm, structure));
         cell->finishCreation(vm, globalObject, recordPrototype, name, ffiType, recordType);
         return cell;
     }

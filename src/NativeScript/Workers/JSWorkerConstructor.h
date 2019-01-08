@@ -20,8 +20,8 @@ public:
 
     DECLARE_INFO;
 
-    static JSWorkerConstructor* create(JSC::VM& vm, JSC::Structure* structure, JSWorkerPrototype* prototype) {
-        JSWorkerConstructor* object = new (NotNull, JSC::allocateCell<JSWorkerConstructor>(vm.heap)) JSWorkerConstructor(vm, structure);
+    static JSC::Strong<JSWorkerConstructor> create(JSC::VM& vm, JSC::Structure* structure, JSWorkerPrototype* prototype) {
+        JSC::Strong<JSWorkerConstructor> object(vm, new (NotNull, JSC::allocateCell<JSWorkerConstructor>(vm.heap)) JSWorkerConstructor(vm, structure));
         object->finishCreation(vm, prototype);
         return object;
     }

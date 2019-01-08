@@ -11,8 +11,8 @@ class UnmanagedType : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static UnmanagedType* create(JSC::VM& vm, JSC::JSCell* returnType, JSC::Structure* structure) {
-        UnmanagedType* constructor = new (NotNull, JSC::allocateCell<UnmanagedType>(vm.heap)) UnmanagedType(vm, structure);
+    static JSC::Strong<UnmanagedType> create(JSC::VM& vm, JSC::JSCell* returnType, JSC::Structure* structure) {
+        JSC::Strong<UnmanagedType> constructor(vm, new (NotNull, JSC::allocateCell<UnmanagedType>(vm.heap)) UnmanagedType(vm, structure));
         constructor->finishCreation(vm, returnType);
         return constructor;
     }

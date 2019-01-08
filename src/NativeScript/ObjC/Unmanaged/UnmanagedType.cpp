@@ -27,7 +27,7 @@ JSValue UnmanagedType::read(ExecState* execState, const void* buffer, JSCell* se
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     UnmanagedType* unmanagedType = jsCast<UnmanagedType*>(self);
 
-    return UnmanagedInstance::create(execState->vm(), globalObject->unmanagedInstanceStructure(), unmanagedType->_returnType.get(), const_cast<void*>(data));
+    return UnmanagedInstance::create(execState->vm(), globalObject->unmanagedInstanceStructure(), unmanagedType->_returnType.get(), const_cast<void*>(data)).get();
 }
 
 void UnmanagedType::visitChildren(JSCell* cell, SlotVisitor& visitor) {

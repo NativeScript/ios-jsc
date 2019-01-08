@@ -11,7 +11,6 @@
 #include "ObjCBlockCallback.h"
 #include "PointerInstance.h"
 #include "ReleasePool.h"
-#include <JavaScriptCore/StrongInlines.h>
 #include <stdlib.h>
 
 namespace NativeScript {
@@ -46,7 +45,7 @@ typedef struct JSBlock {
     static CFTypeRef createBlock(ExecState* execState, JSCell* function, ObjCBlockType* blockType) {
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-        ObjCBlockCallback* blockCallback = ObjCBlockCallback::create(execState->vm(), globalObject, globalObject->objCBlockCallbackStructure(), function, blockType);
+        auto blockCallback = ObjCBlockCallback::create(execState->vm(), globalObject, globalObject->objCBlockCallbackStructure(), function, blockType);
 
         JSBlock* blockPointer = reinterpret_cast<JSBlock*>(calloc(1, sizeof(JSBlock)));
 
@@ -58,7 +57,7 @@ typedef struct JSBlock {
             .descriptor = &kJSBlockDescriptor,
         };
 
-        blockPointer->callback.set(execState->vm(), blockCallback);
+        blockPointer->callback.set(execState->vm(), blockCallback.get());
 
         object_setClass(reinterpret_cast<id>(blockPointer), objc_getClass("__NSMallocBlock__"));
 
@@ -106,7 +105,7 @@ JSValue ObjCBlockType::read(ExecState* execState, const void* buffer, JSCell* se
         return objCBlockCallback;
     }
 
-    return ObjCBlockWrapper::create(execState->vm(), globalObject->objCBlockWrapperStructure(), block, blockType);
+    return ObjCBlockWrapper::create(execState->vm(), globalObject->objCBlockWrapperStructure(), block, blockType).get();
 }
 
 void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
@@ -141,7 +140,7 @@ const char* ObjCBlockType::encode(VM&, JSCell* cell) {
     return "@?";
 }
 
-void ObjCBlockType::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes) {
+void ObjCBlockType::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector<Strong<JSCell>>& parameterTypes) {
     Base::finishCreation(vm);
 
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
@@ -152,8 +151,8 @@ void ObjCBlockType::finishCreation(VM& vm, JSCell* returnType, const WTF::Vector
 
     this->_returnType.set(vm, this, returnType);
 
-    for (JSCell* parameterType : parameterTypes) {
-        this->_parameterTypes.append(WriteBarrier<JSCell>(vm, this, parameterType));
+    for (auto& parameterType : parameterTypes) {
+        this->_parameterTypes.append(WriteBarrier<JSCell>(vm, this, parameterType.get()));
     }
 }
 

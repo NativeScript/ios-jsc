@@ -16,8 +16,8 @@ class ReferenceConstructor : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static ReferenceConstructor* create(JSC::VM& vm, JSC::Structure* structure, ReferencePrototype* referencePrototype) {
-        ReferenceConstructor* constructor = new (NotNull, JSC::allocateCell<ReferenceConstructor>(vm.heap)) ReferenceConstructor(vm, structure);
+    static JSC::Strong<ReferenceConstructor> create(JSC::VM& vm, JSC::Structure* structure, ReferencePrototype* referencePrototype) {
+        JSC::Strong<ReferenceConstructor> constructor(vm, new (NotNull, JSC::allocateCell<ReferenceConstructor>(vm.heap)) ReferenceConstructor(vm, structure));
         constructor->finishCreation(vm, referencePrototype);
         return constructor;
     }

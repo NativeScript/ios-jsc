@@ -11,7 +11,6 @@
 #include "ObjCTypes.h"
 #include <JavaScriptCore/JSObjectRef.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
-#include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/interpreter/FrameTracers.h>
 #include <JavaScriptCore/interpreter/Interpreter.h>
 #include <JavaScriptCore/runtime/Error.h>
@@ -127,8 +126,18 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
     fakeExecState->setThisValue(thisValue);
     fakeExecState->setCodeBlock(nullptr);
     fakeExecState->setCallerFrame(execState->callerFrame());
+
+    __block Vector<Strong<JSCell>> argsOwner(arguments.size() + 1);
+
+    if (thisValue.isCell()) {
+        argsOwner.append(Strong<JSCell>(vm, thisValue.asCell()));
+    }
+
     for (size_t i = 0; i < arguments.size(); i++) {
         fakeExecState->setArgument(i, arguments.at(i));
+        if (arguments.at(i).isCell()) {
+            argsOwner.append(Strong<JSCell>(vm, arguments.at(i).asCell()));
+        }
     }
     ASSERT(fakeExecState->argumentCount() == arguments.size());
 
@@ -143,10 +152,10 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
         }
     }
 
-    JSPromiseDeferred* deferred = JSPromiseDeferred::create(execState, execState->lexicalGlobalObject());
+    auto deferred = Strong<JSPromiseDeferred>(vm, JSPromiseDeferred::create(execState, execState->lexicalGlobalObject()));
     auto* releasePool = new ReleasePoolBase::Item(releasePoolHolder.relinquish());
-    __block Strong<FunctionWrapper> callee(execState->vm(), this);
-    __block TNSRuntime* runtime = [TNSRuntime current];
+    __block Strong<FunctionWrapper> callee(vm, this);
+    TNSRuntime* runtime = [TNSRuntime current];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
       auto scope = DECLARE_CATCH_SCOPE(vm);
@@ -197,6 +206,8 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
 
       delete[] fakeCallFrame;
       delete releasePool;
+      // release `this` value and arguments
+      argsOwner.clear();
     });
 
     return deferred->promise();

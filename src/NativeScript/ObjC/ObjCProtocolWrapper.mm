@@ -48,9 +48,9 @@ bool ObjCProtocolWrapper::getOwnPropertySlot(JSObject* object, ExecState* execSt
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-        ObjCMethodWrapper* wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
-        object->putDirect(execState->vm(), propertyName, wrapper);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper);
+        auto wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
+        object->putDirect(execState->vm(), propertyName, wrapper.get());
+        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper.get());
         return true;
     }
 

@@ -24,8 +24,8 @@ public:
 
     DECLARE_INFO;
 
-    static ObjCProtocolWrapper* create(JSC::VM& vm, JSC::Structure* structure, ObjCPrototype* prototype, const Metadata::ProtocolMeta* metadata, Protocol* aProtocol = nil) {
-        ObjCProtocolWrapper* cell = new (NotNull, JSC::allocateCell<ObjCProtocolWrapper>(vm.heap)) ObjCProtocolWrapper(vm, structure);
+    static JSC::Strong<ObjCProtocolWrapper> create(JSC::VM& vm, JSC::Structure* structure, ObjCPrototype* prototype, const Metadata::ProtocolMeta* metadata, Protocol* aProtocol = nil) {
+        JSC::Strong<ObjCProtocolWrapper> cell(vm, new (NotNull, JSC::allocateCell<ObjCProtocolWrapper>(vm.heap)) ObjCProtocolWrapper(vm, structure));
         cell->finishCreation(vm, prototype, metadata, aProtocol);
         return cell;
     }

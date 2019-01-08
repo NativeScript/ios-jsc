@@ -24,8 +24,8 @@ class ObjCBlockWrapper : public FunctionWrapper {
 public:
     typedef FunctionWrapper Base;
 
-    static ObjCBlockWrapper* create(JSC::VM& vm, JSC::Structure* structure, id block, ObjCBlockType* blockType) {
-        ObjCBlockWrapper* cell = new (NotNull, JSC::allocateCell<ObjCBlockWrapper>(vm.heap)) ObjCBlockWrapper(vm, structure);
+    static JSC::Strong<ObjCBlockWrapper> create(JSC::VM& vm, JSC::Structure* structure, id block, ObjCBlockType* blockType) {
+        JSC::Strong<ObjCBlockWrapper> cell(vm, new (NotNull, JSC::allocateCell<ObjCBlockWrapper>(vm.heap)) ObjCBlockWrapper(vm, structure));
         cell->finishCreation(vm, block, blockType);
         return cell;
     }

@@ -17,8 +17,8 @@ class RecordField : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static RecordField* create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& fieldName, JSCell* fieldType, ptrdiff_t offset) {
-        RecordField* cell = new (NotNull, JSC::allocateCell<RecordField>(vm.heap)) RecordField(vm, structure);
+    static JSC::Strong<RecordField> create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& fieldName, JSCell* fieldType, ptrdiff_t offset) {
+        JSC::Strong<RecordField> cell(vm, new (NotNull, JSC::allocateCell<RecordField>(vm.heap)) RecordField(vm, structure));
         cell->finishCreation(vm, fieldName, fieldType, offset);
         return cell;
     }

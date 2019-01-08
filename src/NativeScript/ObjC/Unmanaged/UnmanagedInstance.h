@@ -8,8 +8,8 @@ public:
 
     DECLARE_INFO;
 
-    static UnmanagedInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* returnType, void* value = nullptr) {
-        UnmanagedInstance* object = new (NotNull, JSC::allocateCell<UnmanagedInstance>(vm.heap)) UnmanagedInstance(vm, structure);
+    static JSC::Strong<UnmanagedInstance> create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* returnType, void* value = nullptr) {
+        JSC::Strong<UnmanagedInstance> object(vm, new (NotNull, JSC::allocateCell<UnmanagedInstance>(vm.heap)) UnmanagedInstance(vm, structure));
         object->finishCreation(vm, returnType, value);
         return object;
     }

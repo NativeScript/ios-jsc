@@ -10,7 +10,6 @@
 #include "FFICache.h"
 #include "FunctionWrapper.h"
 #include <JavaScriptCore/JSPromiseDeferred.h>
-#include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/interpreter/FrameTracers.h>
 #include <JavaScriptCore/interpreter/Interpreter.h>
 #include <dispatch/dispatch.h>
@@ -23,7 +22,7 @@ void deleteCif(ffi_cif* cif) {
     delete cif;
 }
 
-void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* returnType, const Vector<JSCell*>& parameterTypes, size_t initialArgumentIndex) {
+void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* returnType, const Vector<Strong<JSCell>>& parameterTypes, size_t initialArgumentIndex) {
     this->_invocationHooks = hooks;
 
     this->_initialArgumentIndex = initialArgumentIndex;
@@ -43,7 +42,7 @@ void FFICall::initializeFFI(VM& vm, const InvocationHooks& hooks, JSCell* return
     }
 
     for (size_t i = 0; i < parametersCount; i++) {
-        JSCell* parameterTypeCell = parameterTypes[i];
+        JSCell* parameterTypeCell = parameterTypes[i].get();
         this->_parameterTypesCells.append(WriteBarrier<JSCell>(vm, owner, parameterTypeCell));
 
         const FFITypeMethodTable& ffiTypeMethodTable = getFFITypeMethodTable(vm, parameterTypeCell);

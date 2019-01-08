@@ -18,8 +18,8 @@ public:
 
     DECLARE_INFO;
 
-    static JSWorkerInstance* create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& applicationPath, const WTF::String& entryModuleId, const WTF::String referrer) {
-        JSWorkerInstance* object = new (NotNull, JSC::allocateCell<JSWorkerInstance>(vm.heap)) JSWorkerInstance(vm, structure);
+    static JSC::Strong<JSWorkerInstance> create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& applicationPath, const WTF::String& entryModuleId, const WTF::String referrer) {
+        JSC::Strong<JSWorkerInstance> object(vm, new (NotNull, JSC::allocateCell<JSWorkerInstance>(vm.heap)) JSWorkerInstance(vm, structure));
         object->finishCreation(vm, applicationPath, entryModuleId, referrer);
         return object;
     }

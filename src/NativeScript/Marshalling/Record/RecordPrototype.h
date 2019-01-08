@@ -20,8 +20,8 @@ class RecordPrototype : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static RecordPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        RecordPrototype* cell = new (NotNull, JSC::allocateCell<RecordPrototype>(vm.heap)) RecordPrototype(vm, structure);
+    static JSC::Strong<RecordPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<RecordPrototype> cell(vm, new (NotNull, JSC::allocateCell<RecordPrototype>(vm.heap)) RecordPrototype(vm, structure));
         cell->finishCreation(vm, globalObject);
         return cell;
     }
@@ -32,15 +32,11 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    const WTF::Vector<RecordField*> fields() const {
-        WTF::Vector<RecordField*> result(this->_fields.size());
-        for (size_t i = 0; i < this->_fields.size(); ++i) {
-            result[i] = this->_fields[i].get();
-        }
-        return result;
+    const WTF::Vector<JSC::WriteBarrier<RecordField>> fields() const {
+        return this->_fields;
     }
 
-    void setFields(JSC::VM&, GlobalObject*, const WTF::Vector<RecordField*>&);
+    void setFields(JSC::VM&, GlobalObject*, const WTF::Vector<JSC::Strong<RecordField>>&);
 
 private:
     RecordPrototype(JSC::VM& vm, JSC::Structure* structure)

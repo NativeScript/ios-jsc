@@ -36,8 +36,8 @@ static EncodedJSValue JSC_HOST_CALL getIterator(ExecState* execState) {
     id object = toObject(execState, execState->thisValue());
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    ObjCFastEnumerationIterator* iterator = ObjCFastEnumerationIterator::create(execState->vm(), globalObject, globalObject->fastEnumerationIteratorStructure(), object);
-    return JSValue::encode(iterator);
+    auto iterator = ObjCFastEnumerationIterator::create(execState->vm(), globalObject, globalObject->fastEnumerationIteratorStructure(), object);
+    return JSValue::encode(iterator.get());
 }
 
 void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const BaseClassMeta* metadata) {
@@ -74,9 +74,9 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
             SymbolLoader::instance().ensureModule(metas[0]->topLevelModule());
 
             GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
-            ObjCMethodWrapper* method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
-            object->putDirect(execState->vm(), propertyName, method);
-            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method);
+            auto method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
+            object->putDirect(execState->vm(), propertyName, method.get());
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
         }
 
         return true;
@@ -190,14 +190,18 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
 
             PropertyDescriptor descriptor;
             descriptor.setConfigurable(true);
+            Strong<ObjCMethodWrapper> strongGetter;
+            Strong<ObjCMethodWrapper> strongSetter;
             if (getter) {
                 std::vector<const MemberMeta*> getters(1, getter);
-                descriptor.setGetter(ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), getters));
+                strongGetter = ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), getters);
+                descriptor.setGetter(strongGetter.get());
             }
 
             if (setter) {
                 std::vector<const MemberMeta*> setters(1, setter);
-                descriptor.setSetter(ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), setters));
+                strongSetter = ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), setters);
+                descriptor.setSetter(strongSetter.get());
             }
 
             Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);

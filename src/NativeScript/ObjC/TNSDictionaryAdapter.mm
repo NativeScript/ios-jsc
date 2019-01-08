@@ -12,7 +12,6 @@
 #include "TNSRuntime+Private.h"
 #include <JavaScriptCore/JSMap.h>
 #include <JavaScriptCore/JSMapIterator.h>
-#include <JavaScriptCore/StrongInlines.h>
 
 using namespace JSC;
 using namespace NativeScript;

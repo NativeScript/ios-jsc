@@ -35,7 +35,7 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) 
 
     JSObject* result = constructEmptyObject(execState);
 
-    for (RecordField* field : recordPrototype->fields()) {
+    for (const auto& field : recordPrototype->fields()) {
         const Identifier fieldName = Identifier::fromString(execState, field->fieldName());
         JSValue fieldValue = record->get(execState, fieldName);
         result->putDirect(execState->vm(), fieldName, fieldValue);
@@ -58,18 +58,18 @@ void RecordPrototype::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(object->_fields.begin(), object->_fields.end());
 }
 
-void RecordPrototype::setFields(VM& vm, GlobalObject* globalObject, const WTF::Vector<RecordField*>& fields) {
-    for (RecordField* field : fields) {
-        this->_fields.append(WriteBarrier<RecordField>(vm, this, field));
+void RecordPrototype::setFields(VM& vm, GlobalObject* globalObject, const WTF::Vector<Strong<RecordField>>& fields) {
+    for (const auto& field : fields) {
+        this->_fields.append(WriteBarrier<RecordField>(vm, this, field.get()));
 
         PropertyDescriptor descriptor;
         descriptor.setEnumerable(true);
 
-        RecordProtoFieldGetter* getter = RecordProtoFieldGetter::create(vm, globalObject->recordFieldGetterStructure(), field);
-        descriptor.setGetter(getter);
+        auto getter = RecordProtoFieldGetter::create(vm, globalObject->recordFieldGetterStructure(), field.get());
+        descriptor.setGetter(getter.get());
 
-        RecordProtoFieldSetter* setter = RecordProtoFieldSetter::create(vm, globalObject->recordFieldSetterStructure(), field);
-        descriptor.setSetter(setter);
+        auto setter = RecordProtoFieldSetter::create(vm, globalObject->recordFieldSetterStructure(), field.get());
+        descriptor.setSetter(setter.get());
 
         Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(&vm, field->fieldName()), descriptor, false);
     }

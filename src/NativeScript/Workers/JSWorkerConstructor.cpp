@@ -42,8 +42,8 @@ EncodedJSValue JSC_HOST_CALL JSWorkerConstructor::constructJSWorker(ExecState* e
     WTF::String referrer = applicationPath;
     referrer.append(relativeFilePath);
 
-    JSWorkerInstance* worker = JSWorkerInstance::create(exec->vm(), globalObject->workerInstanceStructure(), applicationPath, entryModule, referrer);
-    return JSValue::encode(worker);
+    auto worker = JSWorkerInstance::create(exec->vm(), globalObject->workerInstanceStructure(), applicationPath, entryModule, referrer);
+    return JSValue::encode(worker.get());
 }
 
 EncodedJSValue JSC_HOST_CALL JSWorkerConstructor::callJSWorker(ExecState* exec) {

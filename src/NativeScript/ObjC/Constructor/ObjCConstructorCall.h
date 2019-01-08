@@ -22,8 +22,8 @@ class ObjCConstructorWrapper : public FunctionWrapper {
 public:
     typedef FunctionWrapper Base;
 
-    static ObjCConstructorWrapper* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, Class klass, const Metadata::MethodMeta* metadata) {
-        ObjCConstructorWrapper* constructor = new (NotNull, JSC::allocateCell<ObjCConstructorWrapper>(vm.heap)) ObjCConstructorWrapper(vm, structure);
+    static JSC::Strong<ObjCConstructorWrapper> create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, Class klass, const Metadata::MethodMeta* metadata) {
+        JSC::Strong<ObjCConstructorWrapper> constructor(vm, new (NotNull, JSC::allocateCell<ObjCConstructorWrapper>(vm.heap)) ObjCConstructorWrapper(vm, structure));
         constructor->finishCreation(vm, globalObject, klass, metadata);
         return constructor;
     }

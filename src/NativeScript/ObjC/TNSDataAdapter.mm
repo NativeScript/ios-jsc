@@ -11,7 +11,6 @@
 #include "JSErrors.h"
 #include "TNSRuntime+Private.h"
 #include <JavaScriptCore/JSArrayBuffer.h>
-#include <JavaScriptCore/StrongInlines.h>
 
 using namespace NativeScript;
 using namespace JSC;

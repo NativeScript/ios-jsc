@@ -14,8 +14,8 @@ class PointerPrototype : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static PointerPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        PointerPrototype* prototype = new (NotNull, JSC::allocateCell<PointerPrototype>(vm.heap)) PointerPrototype(vm, structure);
+    static JSC::Strong<PointerPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<PointerPrototype> prototype(vm, new (NotNull, JSC::allocateCell<PointerPrototype>(vm.heap)) PointerPrototype(vm, structure));
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }

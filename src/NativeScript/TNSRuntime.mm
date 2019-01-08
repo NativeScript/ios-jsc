@@ -14,7 +14,6 @@
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
-#include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectInspectorController.h>
 #include <iostream>
 
@@ -137,7 +136,7 @@ static NSPointerArray* _runtimes;
 #endif
 
         JSLockHolder lock(*self->_vm);
-        self->_globalObject = Strong<GlobalObject>(*self->_vm, [self createGlobalObjectInstance]);
+        self->_globalObject = [self createGlobalObjectInstance];
 
         {
             WTF::LockHolder lock(_runtimesLock);
@@ -148,7 +147,7 @@ static NSPointerArray* _runtimes;
     return self;
 }
 
-- (GlobalObject*)createGlobalObjectInstance {
+- (JSC::Strong<GlobalObject>)createGlobalObjectInstance {
     TNSPERF();
     return GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
@@ -358,7 +357,7 @@ double getSystemFreeMemoryRatio() {
 
 @implementation TNSWorkerRuntime
 
-- (GlobalObject*)createGlobalObjectInstance {
+- (Strong<GlobalObject>)createGlobalObjectInstance {
     TNSPERF();
     return JSWorkerGlobalObject::create(*self->_vm, JSWorkerGlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }

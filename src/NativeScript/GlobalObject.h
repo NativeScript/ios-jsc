@@ -32,8 +32,8 @@ public:
 
     static const unsigned StructureFlags;
 
-    static GlobalObject* create(JSC::VM& vm, JSC::Structure* structure, WTF::String applicationPath) {
-        GlobalObject* object = new (NotNull, JSC::allocateCell<GlobalObject>(vm.heap)) GlobalObject(vm, structure);
+    static JSC::Strong<GlobalObject> create(JSC::VM& vm, JSC::Structure* structure, WTF::String applicationPath) {
+        JSC::Strong<GlobalObject> object(vm, new (NotNull, JSC::allocateCell<GlobalObject>(vm.heap)) GlobalObject(vm, structure));
         object->finishCreation(vm, applicationPath);
         return object;
     }
@@ -98,9 +98,9 @@ public:
         return this->_interop.get();
     }
 
-    ObjCConstructorBase* constructorFor(Class klass, Class fallback = Nil);
+    JSC::Strong<ObjCConstructorBase> constructorFor(Class klass, Class fallback = Nil);
 
-    ObjCProtocolWrapper* protocolWrapperFor(Protocol* aProtocol);
+    JSC::Strong<ObjCProtocolWrapper> protocolWrapperFor(Protocol* aProtocol);
 
     JSC::Structure* weakRefConstructorStructure() const {
         return this->_weakRefConstructorStructure.get();

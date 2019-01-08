@@ -22,8 +22,8 @@ public:
 
     static JSC::EncodedJSValue JSC_HOST_CALL constructPointerInstance(JSC::ExecState* execState);
 
-    static PointerConstructor* create(JSC::VM& vm, JSC::Structure* structure, PointerPrototype* pointerPrototype) {
-        PointerConstructor* constructor = new (NotNull, JSC::allocateCell<PointerConstructor>(vm.heap)) PointerConstructor(vm, structure);
+    static JSC::Strong<PointerConstructor> create(JSC::VM& vm, JSC::Structure* structure, PointerPrototype* pointerPrototype) {
+        JSC::Strong<PointerConstructor> constructor(vm, new (NotNull, JSC::allocateCell<PointerConstructor>(vm.heap)) PointerConstructor(vm, structure));
         constructor->finishCreation(vm, pointerPrototype);
         return constructor;
     }

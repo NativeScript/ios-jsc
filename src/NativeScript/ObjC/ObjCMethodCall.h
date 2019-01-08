@@ -23,13 +23,13 @@ class ObjCMethodWrapper : public FunctionWrapper {
 public:
     typedef FunctionWrapper Base;
 
-    static ObjCMethodWrapper* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, std::vector<const Metadata::MemberMeta*> metadata) {
-        ObjCMethodWrapper* cell = new (NotNull, JSC::allocateCell<ObjCMethodWrapper>(vm.heap)) ObjCMethodWrapper(vm, structure);
+    static JSC::Strong<ObjCMethodWrapper> create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, std::vector<const Metadata::MemberMeta*> metadata) {
+        JSC::Strong<ObjCMethodWrapper> cell(vm, new (NotNull, JSC::allocateCell<ObjCMethodWrapper>(vm.heap)) ObjCMethodWrapper(vm, structure));
         cell->finishCreation(vm, globalObject, metadata);
         return cell;
     }
 
-    static ObjCMethodWrapper* create(JSC::ExecState* execState, std::vector<const Metadata::MemberMeta*> metadata) {
+    static Strong<ObjCMethodWrapper> create(JSC::ExecState* execState, std::vector<const Metadata::MemberMeta*> metadata) {
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         return create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metadata);
     }

@@ -23,8 +23,8 @@ public:
 
     static const unsigned StructureFlags;
 
-    static ObjCPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, const Metadata::BaseClassMeta* metadata) {
-        ObjCPrototype* prototype = new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap)) ObjCPrototype(globalObject->vm(), structure);
+    static JSC::Strong<ObjCPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, const Metadata::BaseClassMeta* metadata) {
+        JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap)) ObjCPrototype(globalObject->vm(), structure));
         prototype->finishCreation(vm, globalObject, metadata);
         return prototype;
     }

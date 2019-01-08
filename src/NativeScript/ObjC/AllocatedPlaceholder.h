@@ -14,8 +14,8 @@ class AllocatedPlaceholder : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static AllocatedPlaceholder* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, id wrappedObject, JSC::Structure* instanceStructure) {
-        AllocatedPlaceholder* object = new (NotNull, JSC::allocateCell<AllocatedPlaceholder>(vm.heap)) AllocatedPlaceholder(vm, structure);
+    static JSC::Strong<AllocatedPlaceholder> create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, id wrappedObject, JSC::Structure* instanceStructure) {
+        JSC::Strong<AllocatedPlaceholder> object(vm, new (NotNull, JSC::allocateCell<AllocatedPlaceholder>(vm.heap)) AllocatedPlaceholder(vm, structure));
         object->finishCreation(vm, globalObject, wrappedObject, instanceStructure);
         return object;
     }
