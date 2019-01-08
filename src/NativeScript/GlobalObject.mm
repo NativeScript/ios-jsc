@@ -243,6 +243,8 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
     _jsUncaughtErrorCallbackIdentifier = Identifier::fromString(&vm, "onerror"); // Keep in sync with TNSExceptionHandler.h
     _jsUncaughtErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onUncaughtError"); // Keep in sync with TNSExceptionHandler.h
+    _jsDiscardedErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onDiscardedError");
+    
 }
 
 void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
@@ -466,6 +468,24 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
     return protocolWrapper;
+}
+    
+void GlobalObject::callJsDiscardedErrorCallback(ExecState* execState, Exception* exception, NakedPtr<Exception>& outException) {
+    JSValue callback = execState->lexicalGlobalObject()->get(execState, _jsDiscardedErrorCallbackIdentifierFallback);
+    CallData callData;
+    CallType callType = JSC::getCallData(execState->vm(), callback, callData);
+    if (callType == JSC::CallType::None) {
+        return;
+    }
+    
+    MarkedArgumentBuffer uncaughtErrorArguments;
+    uncaughtErrorArguments.append(exception->value());
+    
+    outException = nullptr;
+    call(execState, callback, callType, callData, jsUndefined(), uncaughtErrorArguments, outException);
+    if (outException) {
+        warn(execState, outException->value().toWTFString(execState));
+    }
 }
 
 bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* exception, NakedPtr<Exception>& outException) {

@@ -49,14 +49,25 @@ void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
             id discardExceptionsValue = [[TNSRuntime current] appPackageJson][@"discardUncaughtJsExceptions"];
             bool discardExceptions = [discardExceptionsValue boolValue];
             scope.clearException();
-            reportFatalErrorBeforeShutdown(execState, exception, true, discardExceptions);
+            if (discardExceptions) {
+                reportDiscardedError(execState, exception);
+            } else {
+                reportFatalErrorBeforeShutdown(execState, exception, true);
+            }
         }
     }
 }
-
-void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks, bool dontCrash) {
+    
+void reportDiscardedError(ExecState* execState, Exception* exception) {
+    NakedPtr<Exception> errorCallbackException;
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
+    globalObject->callJsDiscardedErrorCallback(execState, exception, errorCallbackException);
+    NSLog(@"NativeScript discarding uncaught JS exception!");
+}
 
+void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks) {
+    GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
+    
     NakedPtr<Exception> errorCallbackException;
     bool errorCallbackResult = false;
     if (callUncaughtErrorCallbacks) {
@@ -108,17 +119,13 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                     reportFatalErrorBeforeShutdown(execState, errorCallbackException, false);
             }
         } else {
-            if (dontCrash) {
-                NSLog(@"NativeScript discarding uncaught JS exception!");
-            } else {
-                String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
-                NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
-                                                                                                       message.utf8().data(),
-                                                                                                       jsCallstack.c_str()]
-                                                                     reason:nil
-                                                                   userInfo:nil];
-                @throw objcException;
-            }
+            String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
+            NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
+                                                                                                   message.utf8().data(),
+                                                                                                   jsCallstack.c_str()]
+                                                                 reason:nil
+                                                               userInfo:nil];
+            @throw objcException;
         }
     }
 }
