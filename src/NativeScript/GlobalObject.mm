@@ -243,7 +243,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
     _jsUncaughtErrorCallbackIdentifier = Identifier::fromString(&vm, "onerror"); // Keep in sync with TNSExceptionHandler.h
     _jsUncaughtErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onUncaughtError"); // Keep in sync with TNSExceptionHandler.h
-    _jsDiscardedErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onDiscardedError");
+    _jsDiscardedErrorCallbackIdentifier = Identifier::fromString(&vm, "__onDiscardedError");
     
 }
 
@@ -471,7 +471,7 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
 }
     
 void GlobalObject::callJsDiscardedErrorCallback(ExecState* execState, Exception* exception, NakedPtr<Exception>& outException) {
-    JSValue callback = execState->lexicalGlobalObject()->get(execState, _jsDiscardedErrorCallbackIdentifierFallback);
+    JSValue callback = execState->lexicalGlobalObject()->get(execState, _jsDiscardedErrorCallbackIdentifier);
     CallData callData;
     CallType callType = JSC::getCallData(execState->vm(), callback, callData);
     if (callType == JSC::CallType::None) {

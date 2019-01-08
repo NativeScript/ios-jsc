@@ -223,7 +223,7 @@ private:
 
     JSC::Identifier _jsUncaughtErrorCallbackIdentifier;
     JSC::Identifier _jsUncaughtErrorCallbackIdentifierFallback;
-    JSC::Identifier _jsDiscardedErrorCallbackIdentifierFallback;
+    JSC::Identifier _jsDiscardedErrorCallbackIdentifier;
 
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 
