@@ -36,15 +36,15 @@ using namespace JSC;
 using namespace Inspector;
 
 Boolean setStackTraceProperty(JSC::ExecState* execState, JSC::Exception* exception, std::string stackTraceContent) {
-    auto error = exception->value().asCell()->getObject();
-
+    auto error = exception->value().toObject(execState);
+    
     Identifier stackTraceName = Identifier::fromString(execState, "stackTrace");
     VM* vm = &execState->vm();
     JSString* stackTrace = jsString(vm, stackTraceContent.c_str());
     PutPropertySlot slot(error);
-
+    
     auto result = error->putDirect(*vm, stackTraceName, JSValue(stackTrace));
-
+    
     return result;
 }
 
