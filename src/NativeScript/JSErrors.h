@@ -23,6 +23,7 @@ void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*, bool callJ
 void reportDiscardedError(JSC::ExecState* execState, JSC::Exception* exception);
 void dumpExecJsCallStack(JSC::ExecState* execState);
 std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames);
+std::string getCallStack(const Inspector::ScriptCallStack& frames);
 
 } // namespace NativeScript
 

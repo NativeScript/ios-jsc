@@ -35,8 +35,55 @@ using namespace WTF;
 using namespace JSC;
 using namespace Inspector;
 
+Boolean setStackTraceProperty(JSC::ExecState* execState, JSC::Exception* exception, std::string stackTraceContent) {
+    auto error = exception->value().asCell()->getObject();
+
+    Identifier stackTraceName = Identifier::fromString(execState, "stackTrace");
+    VM* vm = &execState->vm();
+    JSString* stackTrace = jsString(vm, stackTraceContent.c_str());
+    PutPropertySlot slot(error);
+
+    auto result = error->putDirect(*vm, stackTraceName, JSValue(stackTrace));
+
+    return result;
+}
+
+std::string getNativeStackTrace(JSC::ExecState* execState, JSC::Exception* exception) {
+    Ref<Inspector::ScriptCallStack> nativeCallStack = ScriptCallStack::create();
+
+    static const int framesToShow = 32;
+    static const int framesToSkip = 4; // WTFGetBacktrace, getNativeStackTrace, setStackTrace, reportErrorIfAny.
+
+    void* samples[framesToShow + framesToSkip];
+    int frames = framesToShow + framesToSkip;
+    WTFGetBacktrace(samples, &frames);
+
+    void** stack = samples + framesToSkip;
+    int size = frames - framesToSkip;
+    for (int i = 0; i < size; ++i) {
+        auto demangled = StackTrace::demangle(stack[i]);
+        if (demangled) {
+            nativeCallStack.get().append(ScriptCallFrame(demangled->demangledName() ? demangled->demangledName() : demangled->mangledName(), "[native code]"_s, noSourceID, 0, 0));
+        } else {
+            nativeCallStack.get().append(ScriptCallFrame("?"_s, "[native code]"_s, noSourceID, 0, 0));
+        }
+    }
+
+    return getCallStack(nativeCallStack);
+}
+
+Boolean setStackTrace(JSC::ExecState* execState, JSC::Exception* exception) {
+    Ref<Inspector::ScriptCallStack> jsCallStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
+    std::string jsStackTrace = getCallStack(jsCallStack.get());
+
+    std::string nativeStackTrace = getNativeStackTrace(execState, exception);
+
+    return setStackTraceProperty(execState, exception, "JS: " + jsStackTrace + "\nNative:" + nativeStackTrace);
+}
+
 void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
     if (JSC::Exception* exception = scope.exception()) {
+        setStackTrace(execState, exception);
         NSMutableDictionary* threadData = [[NSThread currentThread] threadDictionary];
         NSNumber* zeroRecursionForThread = threadData[NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY];
         unsigned zeroRecursion = zeroRecursionForThread != nil ? [zeroRecursionForThread unsignedIntValue] : 0;
@@ -57,7 +104,7 @@ void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
         }
     }
 }
-    
+
 void reportDiscardedError(ExecState* execState, Exception* exception) {
     NakedPtr<Exception> errorCallbackException;
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -67,7 +114,7 @@ void reportDiscardedError(ExecState* execState, Exception* exception) {
 
 void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks) {
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
-    
+
     NakedPtr<Exception> errorCallbackException;
     bool errorCallbackResult = false;
     if (callUncaughtErrorCallbacks) {
@@ -134,19 +181,25 @@ void dumpExecJsCallStack(ExecState* execState) {
     dumpJsCallStack(createScriptCallStack(execState).get());
 }
 
-std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
-    std::stringstream jsCallstack;
+std::string getCallStack(const Inspector::ScriptCallStack& frames) {
+    std::stringstream resultCallstack;
     for (size_t i = 0; i < frames.size(); ++i) {
         Inspector::ScriptCallFrame frame = frames.at(i);
-        jsCallstack << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
+        resultCallstack << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
         if (frame.lineNumber() && frame.columnNumber()) {
-            jsCallstack << ":" << frame.lineNumber() << ":" << frame.columnNumber();
+            resultCallstack << ":" << frame.lineNumber() << ":" << frame.columnNumber();
         }
-        jsCallstack << std::endl;
+        resultCallstack << std::endl;
     }
 
-    NSLog(@"%s", jsCallstack.str().c_str());
+    return resultCallstack.str();
+}
 
-    return jsCallstack.str();
+std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
+    std::string jsCallstack  = getCallStack(frames);
+
+    NSLog(@"%s", jsCallstack.c_str());
+
+    return jsCallstack;
 }
 } // namespace NativeScript
