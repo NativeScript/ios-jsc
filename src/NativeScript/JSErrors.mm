@@ -35,8 +35,57 @@ using namespace WTF;
 using namespace JSC;
 using namespace Inspector;
 
+bool setStackTraceProperty(JSC::ExecState* execState, JSC::Exception* exception, std::string stackTraceContent) {
+    auto error = exception->value().toObject(execState);
+
+    Identifier stackTraceName = Identifier::fromString(execState, "stackTrace");
+    VM* vm = &execState->vm();
+    JSString* stackTrace = jsString(vm, stackTraceContent.c_str());
+
+    auto result = error->putDirect(*vm, stackTraceName, JSValue(stackTrace));
+
+    return result;
+}
+
+/**
+ * \brief Gets the native callstack from WTFGetBacktrace function.
+ */
+std::string getNativeStackTrace(JSC::ExecState* execState, JSC::Exception* exception) {
+    Ref<Inspector::ScriptCallStack> nativeCallStack = ScriptCallStack::create();
+
+    static const int framesToShow = 32;
+    static const int framesToSkip = 4; // WTFGetBacktrace, getNativeStackTrace, setStackTrace, reportErrorIfAny.
+
+    void* samples[framesToShow + framesToSkip];
+    int frames = framesToShow + framesToSkip;
+    WTFGetBacktrace(samples, &frames);
+
+    void** stack = samples + framesToSkip;
+    int size = frames - framesToSkip;
+    for (int i = 0; i < size; ++i) {
+        auto demangled = StackTrace::demangle(stack[i]);
+        if (demangled) {
+            nativeCallStack.get().append(ScriptCallFrame(demangled->demangledName() ? demangled->demangledName() : demangled->mangledName(), "[native code]"_s, noSourceID, 0, 0));
+        } else {
+            nativeCallStack.get().append(ScriptCallFrame("?"_s, "[native code]"_s, noSourceID, 0, 0));
+        }
+    }
+
+    return getCallStack(nativeCallStack);
+}
+
+Boolean setStackTrace(JSC::ExecState* execState, JSC::Exception* exception) {
+    Ref<Inspector::ScriptCallStack> jsCallStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
+    std::string jsStackTrace = getCallStack(jsCallStack.get());
+
+    std::string nativeStackTrace = getNativeStackTrace(execState, exception);
+
+    return setStackTraceProperty(execState, exception, "JS: " + jsStackTrace + "\nNative:" + nativeStackTrace);
+}
+
 void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
     if (JSC::Exception* exception = scope.exception()) {
+        setStackTrace(execState, exception);
         NSMutableDictionary* threadData = [[NSThread currentThread] threadDictionary];
         NSNumber* zeroRecursionForThread = threadData[NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY];
         unsigned zeroRecursion = zeroRecursionForThread != nil ? [zeroRecursionForThread unsignedIntValue] : 0;
@@ -49,12 +98,32 @@ void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
             id discardExceptionsValue = [[TNSRuntime current] appPackageJson][@"discardUncaughtJsExceptions"];
             bool discardExceptions = [discardExceptionsValue boolValue];
             scope.clearException();
-            reportFatalErrorBeforeShutdown(execState, exception, true, discardExceptions);
+            if (discardExceptions) {
+                reportDiscardedError(execState, globalObject, exception);
+            } else {
+                reportFatalErrorBeforeShutdown(execState, exception, true);
+            }
         }
     }
 }
 
-void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks, bool dontCrash) {
+void logJsException(ExecState* execState, GlobalObject* globalObject, NSString* message, Exception* exception) {
+    NSLog(@"%@", message);
+    // System logs are disabled in release app builds, but we want the error to be printed in crash logs
+    GlobalObjectConsoleClient::setLogToSystemConsole(true);
+    globalObject->inspectorController().reportAPIException(execState, exception);
+}
+
+void reportDiscardedError(ExecState* execState, GlobalObject* globalObject, Exception* exception) {
+    NakedPtr<Exception> errorCallbackException;
+    globalObject->callJsDiscardedErrorCallback(execState, exception, errorCallbackException);
+    NSLog(@"NativeScript discarding uncaught JS exception!");
+    if (errorCallbackException) {
+        logJsException(execState, globalObject, @"Error executing __onDiscardedError callback:", errorCallbackException);
+    }
+}
+
+void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks) {
     GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
 
     NakedPtr<Exception> errorCallbackException;
@@ -90,10 +159,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
         NSLog(@"JavaScript stack trace:");
         std::string jsCallstack = dumpJsCallStack(callStack.get());
 
-        NSLog(@"JavaScript error:");
-        // System logs are disabled in release app builds, but we want the error to be printed in crash logs
-        GlobalObjectConsoleClient::setLogToSystemConsole(true);
-        globalObject->inspectorController().reportAPIException(execState, exception);
+        logJsException(execState, globalObject, @"JavaScript error:", exception);
 
         if (isWorker) {
             if (!errorCallbackResult) {
@@ -104,21 +170,22 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                 } else {
                     workerGlobalObject->uncaughtErrorReported(message);
                 }
-                if (errorCallbackException)
+                if (errorCallbackException) {
                     reportFatalErrorBeforeShutdown(execState, errorCallbackException, false);
+                }
             }
         } else {
-            if (dontCrash) {
-                NSLog(@"NativeScript discarding uncaught JS exception!");
-            } else {
-                String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
-                NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
-                                                                                                       message.utf8().data(),
-                                                                                                       jsCallstack.c_str()]
-                                                                     reason:nil
-                                                                   userInfo:nil];
-                @throw objcException;
+            if (errorCallbackException) {
+                // log first any error coming from execution of UncaughtErrorCallback
+                logJsException(execState, globalObject, @"Error executing __onUncaughtError callback:", errorCallbackException);
             }
+            String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
+            NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
+                                                                                                   message.utf8().data(),
+                                                                                                   jsCallstack.c_str()]
+                                                                 reason:nil
+                                                               userInfo:nil];
+            @throw objcException;
         }
     }
 }
@@ -127,19 +194,25 @@ void dumpExecJsCallStack(ExecState* execState) {
     dumpJsCallStack(createScriptCallStack(execState).get());
 }
 
-std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
-    std::stringstream jsCallstack;
+std::string getCallStack(const Inspector::ScriptCallStack& frames) {
+    std::stringstream resultCallstack;
     for (size_t i = 0; i < frames.size(); ++i) {
         Inspector::ScriptCallFrame frame = frames.at(i);
-        jsCallstack << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
+        resultCallstack << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
         if (frame.lineNumber() && frame.columnNumber()) {
-            jsCallstack << ":" << frame.lineNumber() << ":" << frame.columnNumber();
+            resultCallstack << ":" << frame.lineNumber() << ":" << frame.columnNumber();
         }
-        jsCallstack << std::endl;
+        resultCallstack << std::endl;
     }
 
-    NSLog(@"%s", jsCallstack.str().c_str());
+    return resultCallstack.str();
+}
 
-    return jsCallstack.str();
+std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
+    std::string jsCallstack  = getCallStack(frames);
+
+    NSLog(@"%s", jsCallstack.c_str());
+
+    return jsCallstack;
 }
 } // namespace NativeScript

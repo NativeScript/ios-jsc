@@ -185,6 +185,7 @@ public:
     }
 
     bool callJsUncaughtErrorCallback(JSC::ExecState* execState, JSC::Exception* exception, WTF::NakedPtr<JSC::Exception>& outException);
+    void callJsDiscardedErrorCallback(JSC::ExecState* execState, JSC::Exception* exception, WTF::NakedPtr<JSC::Exception>& outException);
 
     bool isUIApplicationMainAtTopOfCallstack();
 
@@ -222,6 +223,7 @@ private:
 
     JSC::Identifier _jsUncaughtErrorCallbackIdentifier;
     JSC::Identifier _jsUncaughtErrorCallbackIdentifierFallback;
+    JSC::Identifier _jsDiscardedErrorCallbackIdentifier;
 
     std::unique_ptr<GlobalObjectInspectorController> _inspectorController;
 
