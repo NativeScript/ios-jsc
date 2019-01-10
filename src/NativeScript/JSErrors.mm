@@ -35,19 +35,21 @@ using namespace WTF;
 using namespace JSC;
 using namespace Inspector;
 
-Boolean setStackTraceProperty(JSC::ExecState* execState, JSC::Exception* exception, std::string stackTraceContent) {
+bool setStackTraceProperty(JSC::ExecState* execState, JSC::Exception* exception, std::string stackTraceContent) {
     auto error = exception->value().toObject(execState);
-    
+
     Identifier stackTraceName = Identifier::fromString(execState, "stackTrace");
     VM* vm = &execState->vm();
     JSString* stackTrace = jsString(vm, stackTraceContent.c_str());
-    PutPropertySlot slot(error);
-    
+
     auto result = error->putDirect(*vm, stackTraceName, JSValue(stackTrace));
-    
+
     return result;
 }
 
+/**
+ * \brief Gets the native callstack from WTFGetBacktrace function.
+ */
 std::string getNativeStackTrace(JSC::ExecState* execState, JSC::Exception* exception) {
     Ref<Inspector::ScriptCallStack> nativeCallStack = ScriptCallStack::create();
 
@@ -97,7 +99,7 @@ void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
             bool discardExceptions = [discardExceptionsValue boolValue];
             scope.clearException();
             if (discardExceptions) {
-                reportDiscardedError(execState, exception);
+                reportDiscardedError(execState, globalObject, exception);
             } else {
                 reportFatalErrorBeforeShutdown(execState, exception, true);
             }
@@ -105,11 +107,20 @@ void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
     }
 }
 
-void reportDiscardedError(ExecState* execState, Exception* exception) {
+void logJsException(ExecState* execState, GlobalObject* globalObject, NSString* message, Exception* exception) {
+    NSLog(@"%@", message);
+    // System logs are disabled in release app builds, but we want the error to be printed in crash logs
+    GlobalObjectConsoleClient::setLogToSystemConsole(true);
+    globalObject->inspectorController().reportAPIException(execState, exception);
+}
+
+void reportDiscardedError(ExecState* execState, GlobalObject* globalObject, Exception* exception) {
     NakedPtr<Exception> errorCallbackException;
-    GlobalObject* globalObject = static_cast<GlobalObject*>(execState->lexicalGlobalObject());
     globalObject->callJsDiscardedErrorCallback(execState, exception, errorCallbackException);
     NSLog(@"NativeScript discarding uncaught JS exception!");
+    if (errorCallbackException) {
+        logJsException(execState, globalObject, @"Error executing __onDiscardedError callback:", errorCallbackException);
+    }
 }
 
 void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, bool callUncaughtErrorCallbacks) {
@@ -148,10 +159,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
         NSLog(@"JavaScript stack trace:");
         std::string jsCallstack = dumpJsCallStack(callStack.get());
 
-        NSLog(@"JavaScript error:");
-        // System logs are disabled in release app builds, but we want the error to be printed in crash logs
-        GlobalObjectConsoleClient::setLogToSystemConsole(true);
-        globalObject->inspectorController().reportAPIException(execState, exception);
+        logJsException(execState, globalObject, @"JavaScript error:", exception);
 
         if (isWorker) {
             if (!errorCallbackResult) {
@@ -162,10 +170,15 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                 } else {
                     workerGlobalObject->uncaughtErrorReported(message);
                 }
-                if (errorCallbackException)
+                if (errorCallbackException) {
                     reportFatalErrorBeforeShutdown(execState, errorCallbackException, false);
+                }
             }
         } else {
+            if (errorCallbackException) {
+                // log first any error coming from execution of UncaughtErrorCallback
+                logJsException(execState, globalObject, @"Error executing __onUncaughtError callback:", errorCallbackException);
+            }
             String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
             NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
                                                                                                    message.utf8().data(),

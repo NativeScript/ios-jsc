@@ -20,7 +20,7 @@ namespace NativeScript {
 
 void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope);
 void reportFatalErrorBeforeShutdown(JSC::ExecState*, JSC::Exception*, bool callJsUncaughtErrorCallback = true);
-void reportDiscardedError(JSC::ExecState* execState, JSC::Exception* exception);
+void reportDiscardedError(JSC::ExecState* execState, GlobalObject* globalObject, JSC::Exception* exception);
 void dumpExecJsCallStack(JSC::ExecState* execState);
 std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames);
 std::string getCallStack(const Inspector::ScriptCallStack& frames);
