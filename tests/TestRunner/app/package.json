@@ -1,0 +1,7 @@
+{
+    "ios": {
+        "gcThrottleTime": 5,
+        "memoryCheckInterval": 0,
+        "freeMemoryRatio": 0.60
+    }
+}
