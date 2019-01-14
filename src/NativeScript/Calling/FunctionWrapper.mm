@@ -97,13 +97,17 @@ EncodedJSValue JSC_HOST_CALL FunctionWrapper::call(ExecState* execState) {
             ffi_call(callee->cif().get(), FFI_FN(invocation.function), invocation.resultBuffer(), reinterpret_cast<void**>(invocation._buffer + callee->argsArrayOffset()));
         }
 
-        JSValue result = callee->returnType().read(execState, invocation._buffer + callee->returnOffset(), callee->returnTypeCell().get());
+        if (scope.exception()) {
+            return JSValue::encode(scope.exception());
+        }
 
-        callee->postCall(execState, invocation);
+        JSValue result = callee->returnType().read(execState, invocation._buffer + callee->returnOffset(), callee->returnTypeCell().get());
 
         return JSValue::encode(result);
     } @catch (NSException* exception) {
         return throwVMError(execState, scope, createErrorFromNSException([TNSRuntime current], execState, exception));
+    } @finally {
+        callee->postCall(execState, invocation);
     }
 }
 
@@ -182,7 +186,11 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
           throwVMError(fakeExecState, throwScope, JSValue(createErrorFromNSException(runtime, fakeExecState, ex)));
       }
 
-      JSValue result = call->returnType().read(fakeExecState, invocation->_buffer + call->returnOffset(), call->returnTypeCell().get());
+      // The result is invalid and could crash on read when an exception has been thrown.
+      JSValue result;
+      if (!scope.exception()) {
+          result = call->returnType().read(fakeExecState, invocation->_buffer + call->returnOffset(), call->returnTypeCell().get());
+      }
 
       call->postCall(fakeExecState, *invocation);
 
