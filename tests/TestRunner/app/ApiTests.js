@@ -435,9 +435,14 @@ describe(module.id, function () {
                 .then(done);
         });
 
-        it("should throw errors in the argument marshalling phase", function () {
+        it("argument marshalling phase should be done asyncronously", function (done) {
             var str = NSString.alloc();
-            expect(() => str.initWithString.async(str, [])).toThrow();
+            str.initWithString.async(str, [])
+                .then(() => { throw new Error ("Promise should be rejected due to incorrect number of arguments."); })
+                .catch(err => {
+                    expect(err.toString()).toMatch(/Error.* arguments count.*0.*expected.*1/i);
+                    done();
+                });
         });
 
         it("should reject the returned promise if an error is raised in the result marshalling phase", function (done) {

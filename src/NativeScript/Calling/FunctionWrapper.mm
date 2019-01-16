@@ -145,26 +145,14 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
     }
     ASSERT(fakeExecState->argumentCount() == arguments.size());
 
-    {
-        auto scope = DECLARE_THROW_SCOPE(vm);
-
-        TopCallFrameSetter frameSetter(vm, fakeExecState);
-        call->preCall(fakeExecState, *invocation);
-        if (Exception* exception = scope.exception()) {
-            delete[] fakeCallFrame;
-            return exception;
-        }
-    }
-
-    auto deferred = Strong<JSPromiseDeferred>(vm, JSPromiseDeferred::create(execState, execState->lexicalGlobalObject()));
+    __block auto deferred = Strong<JSPromiseDeferred>(vm, JSPromiseDeferred::create(execState, execState->lexicalGlobalObject()));
     auto* releasePool = new ReleasePoolBase::Item(releasePoolHolder.relinquish());
     __block Strong<FunctionWrapper> callee(vm, this);
     TNSRuntime* runtime = [TNSRuntime current];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-      auto scope = DECLARE_CATCH_SCOPE(vm);
-
       JSLockHolder lockHolder(vm);
+      auto scope = DECLARE_CATCH_SCOPE(vm);
 
       [[TNSRuntime current] tryCollectGarbage];
 
@@ -172,27 +160,31 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
       fakeExecState->setCallerFrame(fakeExecState->lexicalGlobalObject()->globalExec());
       TopCallFrameSetter frameSetter(vm, fakeExecState);
 
-      @try {
-          // Native call is made outside of the VM lock by design.
-          // For more information see https://github.com/NativeScript/ios-runtime/issues/215 and it's corresponding PR.
-          // This creates a racing condition which might corrupt the internal state of the VM but
-          // a fix for it is outside of this PR's scope, so I'm leaving it like it has always been.
-          JSLock::DropAllLocks locksDropper(fakeExecState);
+      call->preCall(fakeExecState, *invocation);
 
-          ffi_call(call->cif().get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + call->argsArrayOffset()));
-
-      } @catch (NSException* ex) {
-          auto throwScope = DECLARE_THROW_SCOPE(vm);
-          throwVMError(fakeExecState, throwScope, JSValue(createErrorFromNSException(runtime, fakeExecState, ex)));
-      }
-
-      // The result is invalid and could crash on read when an exception has been thrown.
       JSValue result;
       if (!scope.exception()) {
-          result = call->returnType().read(fakeExecState, invocation->_buffer + call->returnOffset(), call->returnTypeCell().get());
-      }
+          @try {
+              // Native call is made outside of the VM lock by design.
+              // For more information see https://github.com/NativeScript/ios-runtime/issues/215 and it's corresponding PR.
+              // This creates a racing condition which might corrupt the internal state of the VM but
+              // a fix for it is outside of this PR's scope, so I'm leaving it like it has always been.
+              JSLock::DropAllLocks locksDropper(fakeExecState);
 
-      call->postCall(fakeExecState, *invocation);
+              ffi_call(call->cif().get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + call->argsArrayOffset()));
+
+          } @catch (NSException* ex) {
+              auto throwScope = DECLARE_THROW_SCOPE(vm);
+              throwVMError(fakeExecState, throwScope, JSValue(createErrorFromNSException(runtime, fakeExecState, ex)));
+          }
+
+          // The result is invalid and could crash on read when an exception has been thrown.
+          if (!scope.exception()) {
+              result = call->returnType().read(fakeExecState, invocation->_buffer + call->returnOffset(), call->returnTypeCell().get());
+          }
+
+          call->postCall(fakeExecState, *invocation);
+      }
 
       if (Exception* ex = scope.exception()) {
           scope.clearException();
@@ -211,7 +203,6 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
           resolveArguments.append(result);
           JSC::call(fakeExecState->lexicalGlobalObject()->globalExec(), deferred->resolve(), resolveCallType, resolveCallData, jsUndefined(), resolveArguments);
       }
-
       delete[] fakeCallFrame;
       delete releasePool;
       // release `this` value and arguments
