@@ -17,8 +17,8 @@ class RecordInstance : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static RecordInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, size_t size, PointerInstance* pointer) {
-        RecordInstance* cell = new (NotNull, JSC::allocateCell<RecordInstance>(vm.heap)) RecordInstance(vm, structure);
+    static JSC::Strong<RecordInstance> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, size_t size, PointerInstance* pointer) {
+        JSC::Strong<RecordInstance> cell(vm, new (NotNull, JSC::allocateCell<RecordInstance>(vm.heap)) RecordInstance(vm, structure));
         cell->finishCreation(globalObject->globalExec(), globalObject, size, pointer);
         return cell;
     }

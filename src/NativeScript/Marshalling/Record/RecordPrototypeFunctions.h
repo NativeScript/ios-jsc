@@ -18,8 +18,8 @@ class RecordProtoFieldGetter : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static RecordProtoFieldGetter* create(JSC::VM& vm, JSC::Structure* structure, RecordField* recordField) {
-        RecordProtoFieldGetter* cell = new (NotNull, JSC::allocateCell<RecordProtoFieldGetter>(vm.heap)) RecordProtoFieldGetter(vm, structure);
+    static JSC::Strong<RecordProtoFieldGetter> create(JSC::VM& vm, JSC::Structure* structure, RecordField* recordField) {
+        JSC::Strong<RecordProtoFieldGetter> cell(vm, new (NotNull, JSC::allocateCell<RecordProtoFieldGetter>(vm.heap)) RecordProtoFieldGetter(vm, structure));
         cell->finishCreation(vm, recordField);
         return cell;
     }
@@ -61,8 +61,8 @@ class RecordProtoFieldSetter : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static RecordProtoFieldSetter* create(JSC::VM& vm, JSC::Structure* structure, RecordField* recordField) {
-        RecordProtoFieldSetter* cell = new (NotNull, JSC::allocateCell<RecordProtoFieldSetter>(vm.heap)) RecordProtoFieldSetter(vm, structure);
+    static JSC::Strong<RecordProtoFieldSetter> create(JSC::VM& vm, JSC::Structure* structure, RecordField* recordField) {
+        JSC::Strong<RecordProtoFieldSetter> cell(vm, new (NotNull, JSC::allocateCell<RecordProtoFieldSetter>(vm.heap)) RecordProtoFieldSetter(vm, structure));
         cell->finishCreation(vm, recordField);
         return cell;
     }

@@ -160,7 +160,7 @@ public:
         }
     }
 
-    void initializeFFI(JSC::VM&, const InvocationHooks&, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
+    void initializeFFI(JSC::VM&, const InvocationHooks&, JSC::JSCell* returnType, const WTF::Vector<Strong<JSC::JSCell>>& parameterTypes, size_t initialArgumentIndex = 0);
 
 protected:
     std::shared_ptr<ffi_cif> _cif;

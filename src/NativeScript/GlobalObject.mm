@@ -47,7 +47,6 @@
 #include <JavaScriptCore/FunctionConstructor.h>
 #include <JavaScriptCore/FunctionPrototype.h>
 #include <JavaScriptCore/Microtask.h>
-#include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectConsoleClient.h>
 #include <JavaScriptCore/runtime/JSGlobalObjectFunctions.h>
 #include <JavaScriptCore/runtime/VMEntryScope.h>
@@ -71,19 +70,19 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
         });
         return JSValue::encode(jsValue);
     } else if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(execState->vm(), constructor)) {
-        AllocatedPlaceholder* allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, nativeConstructor->allocatedPlaceholderStructure(), instance, nativeConstructor->instancesStructure());
-        return JSValue::encode(allocatedPlaceholder);
+        auto allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, nativeConstructor->allocatedPlaceholderStructure(), instance, nativeConstructor->instancesStructure());
+        return JSValue::encode(allocatedPlaceholder.get());
     }
 
     ASSERT_NOT_REACHED();
     return JSValue::encode(jsUndefined());
 }
 
-static ObjCProtocolWrapper* createProtocolWrapper(GlobalObject* globalObject, const ProtocolMeta* protocolMeta, Protocol* aProtocol) {
+static Strong<ObjCProtocolWrapper> createProtocolWrapper(GlobalObject* globalObject, const ProtocolMeta* protocolMeta, Protocol* aProtocol) {
     Structure* prototypeStructure = ObjCPrototype::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
-    ObjCPrototype* prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta);
+    auto prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta);
     Structure* protocolWrapperStructure = ObjCProtocolWrapper::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
-    ObjCProtocolWrapper* protocolWrapper = ObjCProtocolWrapper::create(globalObject->vm(), protocolWrapperStructure, prototype, protocolMeta, aProtocol);
+    auto protocolWrapper = ObjCProtocolWrapper::create(globalObject->vm(), protocolWrapperStructure, prototype.get(), protocolMeta, aProtocol);
     prototype->materializeProperties(globalObject->vm(), globalObject);
     return protocolWrapper;
 }
@@ -162,7 +161,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
     this->_applicationPath = applicationPath;
 
-    this->_ffiCallPrototype.set(vm, this, FFICallPrototype::create(vm, this, FFICallPrototype::createStructure(vm, this, this->functionPrototype())));
+    this->_ffiCallPrototype.set(vm, this, FFICallPrototype::create(vm, this, FFICallPrototype::createStructure(vm, this, this->functionPrototype())).get());
     this->_objCMethodWrapperStructure.set(vm, this, ObjCMethodWrapper::createStructure(vm, this, this->ffiCallPrototype()));
     this->_objCConstructorWrapperStructure.set(vm, this, ObjCConstructorWrapper::createStructure(vm, this, this->functionPrototype()));
     this->_objCBlockWrapperStructure.set(vm, this, ObjCBlockWrapper::createStructure(vm, this, this->ffiCallPrototype()));
@@ -173,29 +172,29 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_recordFieldGetterStructure.set(vm, this, RecordProtoFieldGetter::createStructure(vm, this, this->functionPrototype()));
     this->_recordFieldSetterStructure.set(vm, this, RecordProtoFieldSetter::createStructure(vm, this, this->functionPrototype()));
 
-    this->_typeFactory.set(vm, this, TypeFactory::create(vm, this, TypeFactory::createStructure(vm, this, jsNull())));
+    this->_typeFactory.set(vm, this, TypeFactory::create(vm, this, TypeFactory::createStructure(vm, this, jsNull())).get());
 
     this->_weakRefConstructorStructure.set(vm, this, JSWeakRefConstructor::createStructure(vm, this, Base::functionPrototype()));
     this->_weakRefPrototypeStructure.set(vm, this, JSWeakRefPrototype::createStructure(vm, this, Base::objectPrototype()));
-    JSWeakRefPrototype* weakRefPrototype = JSWeakRefPrototype::create(vm, this, this->weakRefPrototypeStructure());
-    this->_weakRefInstanceStructure.set(vm, this, JSWeakRefInstance::createStructure(vm, this, weakRefPrototype));
-    this->putDirect(vm, Identifier::fromString(&vm, "WeakRef"_s), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype));
+    auto weakRefPrototype = JSWeakRefPrototype::create(vm, this, this->weakRefPrototypeStructure());
+    this->_weakRefInstanceStructure.set(vm, this, JSWeakRefInstance::createStructure(vm, this, weakRefPrototype.get()));
+    this->putDirect(vm, Identifier::fromString(&vm, "WeakRef"_s), JSWeakRefConstructor::create(vm, this->weakRefConstructorStructure(), weakRefPrototype.get()).get());
 
     this->_workerConstructorStructure.set(vm, this, JSWorkerConstructor::createStructure(vm, this, Base::functionPrototype()));
     this->_workerPrototypeStructure.set(vm, this, JSWorkerPrototype::createStructure(vm, this, Base::objectPrototype()));
-    JSWorkerPrototype* workerPrototype = JSWorkerPrototype::create(vm, this, this->workerPrototypeStructure());
-    this->_workerInstanceStructure.set(vm, this, JSWorkerInstance::createStructure(vm, this, workerPrototype));
-    this->putDirect(vm, Identifier::fromString(&vm, "Worker"_s), JSWorkerConstructor::create(vm, this->workerConstructorStructure(), workerPrototype));
+    auto workerPrototype = JSWorkerPrototype::create(vm, this, this->workerPrototypeStructure());
+    this->_workerInstanceStructure.set(vm, this, JSWorkerInstance::createStructure(vm, this, workerPrototype.get()));
+    this->putDirect(vm, Identifier::fromString(&vm, "Worker"_s), JSWorkerConstructor::create(vm, this->workerConstructorStructure(), workerPrototype.get()).get());
 
     auto fastEnumerationIteratorPrototype = ObjCFastEnumerationIteratorPrototype::create(vm, this, ObjCFastEnumerationIteratorPrototype::createStructure(vm, this, this->objectPrototype()));
-    this->_fastEnumerationIteratorStructure.set(vm, this, ObjCFastEnumerationIterator::createStructure(vm, this, fastEnumerationIteratorPrototype));
+    this->_fastEnumerationIteratorStructure.set(vm, this, ObjCFastEnumerationIterator::createStructure(vm, this, fastEnumerationIteratorPrototype.get()));
 
     JSC::Structure* unmanagedPrototypeStructure = UnmanagedPrototype::createStructure(vm, this, this->objectPrototype());
-    UnmanagedPrototype* unmanagedPrototype = UnmanagedPrototype::create(vm, this, unmanagedPrototypeStructure);
-    this->_unmanagedInstanceStructure.set(vm, this, UnmanagedInstance::createStructure(this, unmanagedPrototype));
+    auto unmanagedPrototype = UnmanagedPrototype::create(vm, this, unmanagedPrototypeStructure);
+    this->_unmanagedInstanceStructure.set(vm, this, UnmanagedInstance::createStructure(this, unmanagedPrototype.get()));
 
     this->_interopIdentifier = Identifier::fromString(&vm, Interop::info()->className);
-    this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())));
+    this->_interop.set(vm, this, Interop::create(vm, this, Interop::createStructure(vm, this, this->objectPrototype())).get());
 
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__collect"), 0, &collectGarbage, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
@@ -211,7 +210,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_typeScriptOriginalExtendsFunction.set(vm, this, jsCast<JSFunction*>(evaluate(globalExec, sourceCode, globalExec->thisValue())));
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__extends"), 2, ObjCTypeScriptExtendFunction, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly));
 
-    ObjCConstructorNative* NSObjectConstructor = this->typeFactory()->NSObjectConstructor(this);
+    ObjCConstructorNative* NSObjectConstructor = this->typeFactory()->NSObjectConstructor(this).get();
     NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "extend"_s), 2, ObjCExtendFunction, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
     NSObjectConstructor->putDirectNativeFunction(vm, this, Identifier::fromString(&vm, "alloc"_s), 0, NSObjectAlloc, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontDelete));
 
@@ -297,6 +296,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     if (symbolMeta == nullptr)
         return false;
 
+    Strong<JSCell> strongSymbolWrapper;
     JSValue symbolWrapper;
 
     switch (symbolMeta->type()) {
@@ -308,8 +308,9 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         }
 
         if (klass) {
-            symbolWrapper = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName());
-            globalObject->_objCConstructors.insert({ klass, Strong<ObjCConstructorBase>(vm, jsCast<ObjCConstructorBase*>(symbolWrapper)) });
+            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName());
+            strongSymbolWrapper = constructor;
+            globalObject->_objCConstructors.insert({ klass, constructor });
         }
         break;
     }
@@ -320,9 +321,10 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
             aProtocol = objc_getProtocol(symbolMeta->name());
         }
 
-        symbolWrapper = createProtocolWrapper(globalObject, static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
+        auto protocol = createProtocolWrapper(globalObject, static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
+        strongSymbolWrapper = protocol;
         if (aProtocol) {
-            globalObject->_objCProtocolWrappers.insert({ aProtocol, Strong<ObjCProtocolWrapper>(vm, jsCast<ObjCProtocolWrapper*>(symbolWrapper)) });
+            globalObject->_objCProtocolWrappers.insert({ aProtocol, protocol });
         }
 
         break;
@@ -332,7 +334,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         break;
     }
     case Struct: {
-        symbolWrapper = globalObject->typeFactory()->getStructConstructor(globalObject, symbolName);
+        strongSymbolWrapper = globalObject->typeFactory()->getStructConstructor(globalObject, symbolName);
         break;
     }
     case MetaType::Function: {
@@ -340,15 +342,15 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         if (functionSymbol) {
             const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
             const Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr, false);
-            const WTF::Vector<JSCell*> parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1, false);
+            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr, false);
+            auto parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1, false);
 
             if (functionMeta->returnsUnmanaged()) {
                 JSC::Structure* unmanagedStructure = UnmanagedType::createStructure(vm, globalObject, jsNull());
-                returnType = UnmanagedType::create(vm, returnType, unmanagedStructure);
+                returnType = UnmanagedType::create(vm, returnType.get(), unmanagedStructure);
             }
 
-            symbolWrapper = CFunctionWrapper::create(vm, globalObject->ffiFunctionWrapperStructure(), functionSymbol, functionMeta->jsName(), returnType, parametersTypes, functionMeta->ownsReturnedCocoaObject());
+            strongSymbolWrapper = CFunctionWrapper::create(vm, globalObject->ffiFunctionWrapperStructure(), functionSymbol, functionMeta->jsName(), returnType.get(), parametersTypes, functionMeta->ownsReturnedCocoaObject());
         }
         break;
     }
@@ -357,7 +359,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule(), varMeta->name());
         if (varSymbol) {
             const Metadata::TypeEncoding* encoding = varMeta->encoding();
-            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding, false);
+            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding, false).get();
             symbolWrapper = getFFITypeMethodTable(vm, symbolType).read(execState, varSymbol, symbolType);
         }
         break;
@@ -370,6 +372,10 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     default: {
         break;
     }
+    }
+
+    if (strongSymbolWrapper) {
+        symbolWrapper = strongSymbolWrapper.get();
     }
 
     if (!symbolWrapper) {
@@ -411,12 +417,12 @@ void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, P
 }
 #endif
 
-ObjCConstructorBase* GlobalObject::constructorFor(Class klass, Class fallback) {
+Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, Class fallback) {
     ASSERT(klass);
 
     auto kvp = this->_objCConstructors.find(klass);
     if (kvp != this->_objCConstructors.end()) {
-        return kvp->second.get();
+        return kvp->second;
     }
 
     const Meta* meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
@@ -431,21 +437,21 @@ ObjCConstructorBase* GlobalObject::constructorFor(Class klass, Class fallback) {
 
     kvp = this->_objCConstructors.find(klass);
     if (kvp != this->_objCConstructors.end()) {
-        return kvp->second.get();
+        return kvp->second;
     }
 
-    ObjCConstructorNative* constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, meta->jsName());
-    this->_objCConstructors.insert({ klass, Strong<ObjCConstructorBase>(this->vm(), constructor) });
-    this->putDirect(this->vm(), Identifier::fromString(this->globalExec(), class_getName(klass)), constructor);
+    auto constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, meta->jsName());
+    this->_objCConstructors.insert({ klass, constructor });
+    this->putDirect(this->vm(), Identifier::fromString(this->globalExec(), class_getName(klass)), constructor.get());
     return constructor;
 }
 
-ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
+Strong<ObjCProtocolWrapper> GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     ASSERT(aProtocol);
 
     auto kvp = this->_objCProtocolWrappers.find(aProtocol);
     if (kvp != this->_objCProtocolWrappers.end()) {
-        return kvp->second.get();
+        return kvp->second;
     }
 
     CString protocolName = protocol_getName(aProtocol);
@@ -462,10 +468,10 @@ ObjCProtocolWrapper* GlobalObject::protocolWrapperFor(Protocol* aProtocol) {
     }
     ASSERT(meta && meta->type() == MetaType::ProtocolType);
 
-    ObjCProtocolWrapper* protocolWrapper = createProtocolWrapper(this, static_cast<const ProtocolMeta*>(meta), aProtocol);
+    auto protocolWrapper = createProtocolWrapper(this, static_cast<const ProtocolMeta*>(meta), aProtocol);
 
     this->_objCProtocolWrappers.insert({ aProtocol, Strong<ObjCProtocolWrapper>(this->vm(), protocolWrapper) });
-    this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectWithoutTransition(this->vm(), Identifier::fromString(this->globalExec(), meta->jsName()), protocolWrapper.get(), PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
     return protocolWrapper;
 }

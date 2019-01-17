@@ -39,7 +39,7 @@ EncodedJSValue JSC_HOST_CALL ReferenceTypeConstructor::constructReferenceType(Ex
         return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter."_s));
     }
 
-    return JSValue::encode(globalObject->typeFactory()->getReferenceType(globalObject, type.asCell()));
+    return JSValue::encode(globalObject->typeFactory()->getReferenceType(globalObject, type.asCell()).get());
 }
 
 } // namespace NativeScript

@@ -11,7 +11,6 @@
 
 #include "JSWorkerInstance.h"
 #include <JavaScriptCore/InternalFunction.h>
-#include <JavaScriptCore/StrongInlines.h>
 
 @class TNSRuntime;
 

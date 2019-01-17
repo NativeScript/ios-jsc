@@ -17,8 +17,8 @@ class ObjCConstructorDerived : public ObjCConstructorBase {
 public:
     typedef ObjCConstructorBase Base;
 
-    static ObjCConstructorDerived* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
-        ObjCConstructorDerived* cell = new (NotNull, JSC::allocateCell<ObjCConstructorDerived>(vm.heap)) ObjCConstructorDerived(vm, structure);
+    static JSC::Strong<ObjCConstructorDerived> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
+        JSC::Strong<ObjCConstructorDerived> cell(vm, new (NotNull, JSC::allocateCell<ObjCConstructorDerived>(vm.heap)) ObjCConstructorDerived(vm, structure));
         cell->finishCreation(vm, globalObject, prototype, klass);
         return cell;
     }

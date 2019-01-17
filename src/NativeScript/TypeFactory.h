@@ -36,8 +36,8 @@ class TypeFactory : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static TypeFactory* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure) {
-        TypeFactory* object = new (NotNull, JSC::allocateCell<TypeFactory>(vm.heap)) TypeFactory(vm, structure);
+    static JSC::Strong<TypeFactory> create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<TypeFactory> object(vm, new (NotNull, JSC::allocateCell<TypeFactory>(vm.heap)) TypeFactory(vm, structure));
         object->finishCreation(vm, globalObject);
         return object;
     }
@@ -48,25 +48,25 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    JSC::JSCell* parseType(GlobalObject*, const Metadata::TypeEncoding*&, bool isStructMember);
+    Strong<JSC::JSCell> parseType(GlobalObject*, const Metadata::TypeEncoding*&, bool isStructMember);
 
-    const WTF::Vector<JSC::JSCell*> parseTypes(GlobalObject*, const Metadata::TypeEncoding*& typeEncodings, int count, bool isStructMember);
+    const WTF::Vector<JSC::Strong<JSC::JSCell>> parseTypes(GlobalObject*, const Metadata::TypeEncoding*& typeEncodings, int count, bool isStructMember);
 
-    ObjCConstructorNative* getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName);
+    JSC::Strong<ObjCConstructorNative> getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName);
 
-    RecordConstructor* getStructConstructor(GlobalObject*, const WTF::String& structName);
+    JSC::Strong<RecordConstructor> getStructConstructor(GlobalObject*, const WTF::String& structName);
 
-    ObjCConstructorNative* NSObjectConstructor(GlobalObject*);
+    JSC::Strong<ObjCConstructorNative> NSObjectConstructor(GlobalObject*);
 
-    ReferenceTypeInstance* getReferenceType(GlobalObject* globalObject, JSC::JSCell* innerType);
+    JSC::Strong<ReferenceTypeInstance> getReferenceType(GlobalObject* globalObject, JSC::JSCell* innerType);
 
-    IndexedRefTypeInstance* getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
+    JSC::Strong<IndexedRefTypeInstance> getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize);
 
-    ExtVectorTypeInstance* getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize, bool isStructMember);
+    JSC::Strong<ExtVectorTypeInstance> getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize, bool isStructMember);
 
-    FunctionReferenceTypeInstance* getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSC::JSCell* returnType, WTF::Vector<JSCell*> parametersTypes);
+    JSC::Strong<FunctionReferenceTypeInstance> getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSC::JSCell* returnType, WTF::Vector<Strong<JSCell>> parametersTypes);
 
-    ObjCBlockType* getObjCBlockType(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<JSCell*> parametersTypes);
+    JSC::Strong<ObjCBlockType> getObjCBlockType(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<Strong<JSCell>> parametersTypes);
 
     PointerConstructor* pointerConstructor() const {
         return this->_pointerConstructor.get();
@@ -145,18 +145,18 @@ private:
 
     void finishCreation(JSC::VM&, GlobalObject*);
 
-    JSC::JSCell* parsePrimitiveType(JSC::JSGlobalObject* globalOBject, const Metadata::TypeEncoding*& typeEncoding);
+    Strong<JSC::JSCell> parsePrimitiveType(JSC::JSGlobalObject* globalOBject, const Metadata::TypeEncoding*& typeEncoding);
     size_t resolveConstArrayTypeSize(const Metadata::TypeEncoding* typeEncoding, const Metadata::TypeEncoding* innerTypeEncoding);
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
-    WTF::Vector<RecordField*> createRecordFields(GlobalObject*, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
+    WTF::Vector<Strong<RecordField>> createRecordFields(GlobalObject*, const WTF::Vector<Strong<JSCell>>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
 
-    ObjCBlockType* parseBlockType(GlobalObject*, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
+    Strong<ObjCBlockType> parseBlockType(GlobalObject*, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
 
-    JSC::JSCell* parseFunctionReferenceType(GlobalObject* globalObject, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
+    Strong<JSC::JSCell> parseFunctionReferenceType(GlobalObject* globalObject, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
 
-    RecordConstructor* getAnonymousStructConstructor(GlobalObject*, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details);
+    JSC::Strong<RecordConstructor> getAnonymousStructConstructor(GlobalObject*, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details);
 
     JSC::WriteBarrier<FFISimpleType> _noopType;
     JSC::WriteBarrier<FFISimpleType> _voidType;

@@ -31,7 +31,7 @@ JSValue IndexedRefTypeInstance::read(ExecState* execState, const void* buffer, J
     IndexedRefTypeInstance* referenceType = jsCast<IndexedRefTypeInstance*>(self);
 
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, const_cast<void*>(data)));
-    return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->indexedRefInstanceStructure(), referenceType->innerType(), pointer);
+    return IndexedRefInstance::create(execState->vm(), globalObject, globalObject->interop()->indexedRefInstanceStructure(), referenceType->innerType(), pointer).get();
 }
 
 void IndexedRefTypeInstance::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {

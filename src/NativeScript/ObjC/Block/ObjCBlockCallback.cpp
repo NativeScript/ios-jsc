@@ -32,6 +32,6 @@ void ObjCBlockCallback::ffiClosureCallback(void* retValue, void** argValues, voi
 }
 
 void ObjCBlockCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, ObjCBlockType* blockType) {
-    Base::finishCreation(vm, globalObject, function, blockType->returnType(), blockType->parameterTypes(), 1);
+    Base::finishCreation(vm, globalObject, function, blockType->returnType(), blockType->parameterTypes(vm), 1);
 }
 } // namespace NativeScript

@@ -21,7 +21,6 @@
 #include "TNSFastEnumerationAdapter.h"
 #include "TNSRuntime+Private.h"
 #include "TypeFactory.h"
-#include <JavaScriptCore/StrongInlines.h>
 #include <sstream>
 
 @protocol TNSDerivedClass
@@ -68,14 +67,14 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
       JSLockHolder lockHolder(vm);
 
       Structure* instancesStructure = globalObject->constructorFor(blockKlass)->instancesStructure();
-      ObjCWrapperObject* derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
+      auto derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
 
       /// TODO: This call might be unnecessary
-      gcProtect(derivedWrapper);
+      gcProtect(derivedWrapper.get());
 
       Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
-      ObjCSuperObject* superObject = ObjCSuperObject::create(vm, superStructure, derivedWrapper, globalObject);
-      derivedWrapper->putDirect(vm, vm.propertyNames->superKeyword, superObject, PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
+      auto superObject = ObjCSuperObject::create(vm, superStructure, derivedWrapper.get(), globalObject);
+      derivedWrapper->putDirect(vm, vm.propertyNames->superKeyword, superObject.get(), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum | PropertyAttribute::DontDelete);
 
       return instance;
     });
@@ -166,7 +165,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
         return;
     }
 
-    WTF::Vector<JSCell*> parameterTypesCells;
+    WTF::Vector<Strong<JSCell>> parameterTypesCells;
     JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(vm, parameterTypesValue);
     if (parameterTypesArr) {
         for (unsigned int i = 0; i < parameterTypesArr->length(); ++i) {
@@ -175,13 +174,13 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
                 return;
             }
 
-            parameterTypesCells.append(parameterType.asCell());
+            parameterTypesCells.append(Strong<JSCell>(vm, parameterType.asCell()));
             compilerEncoding << getCompilerEncoding(vm, parameterType.asCell());
         }
     }
 
-    ObjCMethodCallback* callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeValue.asCell(), parameterTypesCells);
-    gcProtect(callback);
+    auto callback = ObjCMethodCallback::create(execState->vm(), globalObject, globalObject->objCMethodCallbackStructure(), method, returnTypeValue.asCell(), parameterTypesCells);
+    gcProtect(callback.get());
     if (!class_addMethod(klass, methodName, reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.str().c_str())) {
         WTFCrash();
     }
@@ -215,11 +214,11 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     Structure* structure = ObjCConstructorDerived::createStructure(execState->vm(), globalObject, this->_baseConstructor.get());
-    ObjCConstructorDerived* derivedConstructor = ObjCConstructorDerived::create(execState->vm(), globalObject, structure, prototype, klass);
+    auto derivedConstructor = ObjCConstructorDerived::create(execState->vm(), globalObject, structure, prototype, klass);
 
-    prototype->putDirect(execState->vm(), execState->vm().propertyNames->constructor, derivedConstructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    prototype->putDirect(execState->vm(), execState->vm().propertyNames->constructor, derivedConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
-    this->_constructor = Strong<ObjCConstructorDerived>(execState->vm(), derivedConstructor);
+    this->_constructor = derivedConstructor;
 }
 
 void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolWrapper) {
@@ -324,11 +323,11 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
             }
 
             const TypeEncoding* encodings = getter->encodings()->first();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
-            const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->count - 1, false);
+            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
+            auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->count - 1, false);
 
-            ObjCMethodCallback* getterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.getter().asCell(), returnType, parameterTypes);
-            gcProtect(getterCallback);
+            auto getterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.getter().asCell(), returnType.get(), parameterTypes);
+            gcProtect(getterCallback.get());
             std::string compilerEncoding = getCompilerEncoding(globalObject, getter);
             if (!class_addMethod(klass, getter->selector(), reinterpret_cast<IMP>(getterCallback->functionPointer()), compilerEncoding.c_str())) {
                 WTFCrash();
@@ -342,11 +341,11 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
             }
 
             const TypeEncoding* encodings = setter->encodings()->first();
-            JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
-            const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->count - 1, false);
+            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
+            auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->count - 1, false);
 
-            ObjCMethodCallback* setterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.setter().asCell(), returnType, parameterTypes);
-            gcProtect(setterCallback);
+            auto setterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.setter().asCell(), returnType.get(), parameterTypes);
+            gcProtect(setterCallback.get());
             std::string compilerEncoding = getCompilerEncoding(globalObject, setter);
             if (!class_addMethod(klass, setter->selector(), reinterpret_cast<IMP>(setterCallback->functionPointer()), compilerEncoding.c_str())) {
                 WTFCrash();

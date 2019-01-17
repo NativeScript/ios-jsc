@@ -18,8 +18,8 @@ class FFIFunctionCallback : public FFICallback<FFIFunctionCallback> {
 public:
     typedef FFICallback Base;
 
-    static FFIFunctionCallback* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function, FunctionReferenceTypeInstance* functionReferenceType) {
-        FFIFunctionCallback* cell = new (NotNull, JSC::allocateCell<FFIFunctionCallback>(vm.heap)) FFIFunctionCallback(vm, structure);
+    static JSC::Strong<FFIFunctionCallback> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function, FunctionReferenceTypeInstance* functionReferenceType) {
+        JSC::Strong<FFIFunctionCallback> cell(vm, new (NotNull, JSC::allocateCell<FFIFunctionCallback>(vm.heap)) FFIFunctionCallback(vm, structure));
         cell->finishCreation(vm, globalObject, function, functionReferenceType);
         return cell;
     }

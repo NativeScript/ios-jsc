@@ -50,7 +50,7 @@ protected:
         static_cast<FFICallback*>(cell)->~FFICallback();
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex = 0);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSCell* function, JSC::JSCell* returnType, const WTF::Vector<JSC::Strong<JSC::JSCell>>& parameterTypes, size_t initialArgumentIndex = 0);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 

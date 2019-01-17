@@ -16,8 +16,8 @@ class FFISimpleType : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static FFISimpleType* create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& name, const FFITypeMethodTable& methodTable) {
-        FFISimpleType* cell = new (NotNull, JSC::allocateCell<FFISimpleType>(vm.heap)) FFISimpleType(vm, structure);
+    static JSC::Strong<FFISimpleType> create(JSC::VM& vm, JSC::Structure* structure, const WTF::String& name, const FFITypeMethodTable& methodTable) {
+        JSC::Strong<FFISimpleType> cell(vm, new (NotNull, JSC::allocateCell<FFISimpleType>(vm.heap)) FFISimpleType(vm, structure));
         cell->finishCreation(vm, name, methodTable);
         return cell;
     }

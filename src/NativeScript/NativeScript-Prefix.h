@@ -14,6 +14,7 @@
 #include <JavaScriptCore/config.h>
 #include <JavaScriptCore/JSCInlines.h>
 #include <JavaScriptCore/Error.h>
+#include <JavaScriptCore/StrongInlines.h>
 #include "RecordType.h"
 #include "GlobalObject.h"
 #include "JSWarnings.h"

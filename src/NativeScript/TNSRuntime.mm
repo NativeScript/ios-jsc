@@ -14,7 +14,6 @@
 #include <JavaScriptCore/JSInternalPromise.h>
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
-#include <JavaScriptCore/StrongInlines.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectInspectorController.h>
 #include <iostream>
 
@@ -30,6 +29,8 @@
 #import "TNSRuntime+Private.h"
 #import "TNSRuntime.h"
 #include "Workers/JSWorkerGlobalObject.h"
+
+#include <mach/mach_host.h>
 
 using namespace JSC;
 using namespace NativeScript;
@@ -47,13 +48,33 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 
 @interface TNSRuntime ()
 
-@property(nonatomic, retain) id appPackageJsonData;
+@property(nonatomic, retain) NSDictionary* appPackageJsonData;
+
+@property double* gcThrottleTimeValue;
+
+@property double* memoryCheckIntervalValue;
+
+@property double* freeMemoryRatioValue;
+
+- (double)gcThrottleTime;
+
+- (double)memoryCheckInterval;
+
+- (double)freeMemoryRatio;
+
+- (double)readDoubleFromPackageJsonIos:(NSString*)key;
 
 @end
 
 @implementation TNSRuntime
 
 @synthesize appPackageJsonData;
+
+@synthesize gcThrottleTimeValue;
+
+@synthesize memoryCheckIntervalValue;
+
+@synthesize freeMemoryRatioValue;
 
 static WTF::Lock _runtimesLock;
 static NSPointerArray* _runtimes;
@@ -115,7 +136,7 @@ static NSPointerArray* _runtimes;
 #endif
 
         JSLockHolder lock(*self->_vm);
-        self->_globalObject = Strong<GlobalObject>(*self->_vm, [self createGlobalObjectInstance]);
+        self->_globalObject = [self createGlobalObjectInstance];
 
         {
             WTF::LockHolder lock(_runtimesLock);
@@ -126,7 +147,7 @@ static NSPointerArray* _runtimes;
     return self;
 }
 
-- (GlobalObject*)createGlobalObjectInstance {
+- (JSC::Strong<GlobalObject>)createGlobalObjectInstance {
     TNSPERF();
     return GlobalObject::create(*self->_vm, GlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }
@@ -191,7 +212,7 @@ static NSPointerArray* _runtimes;
     return toRef(self->_globalObject->globalExec(), toValue(self->_globalObject->globalExec(), object));
 }
 
-- (id)appPackageJson {
+- (NSDictionary*)appPackageJson {
 
     if (self->appPackageJsonData != nil) {
         return self->appPackageJsonData;
@@ -205,6 +226,105 @@ static NSPointerArray* _runtimes;
     }
 
     return self->appPackageJsonData;
+}
+
+- (double)gcThrottleTime {
+
+    if (self->gcThrottleTimeValue != nullptr) {
+        return *self->gcThrottleTimeValue;
+    }
+
+    self->gcThrottleTimeValue = new double([self readDoubleFromPackageJsonIos:@"gcThrottleTime"]);
+
+    return *self->gcThrottleTimeValue;
+}
+
+- (double)memoryCheckInterval {
+
+    if (self->memoryCheckIntervalValue != nullptr) {
+        return *self->memoryCheckIntervalValue;
+    }
+
+    self->memoryCheckIntervalValue = new double([self readDoubleFromPackageJsonIos:@"memoryCheckInterval"]);
+
+    return *self->memoryCheckIntervalValue;
+}
+
+- (double)freeMemoryRatio {
+
+    if (self->freeMemoryRatioValue != nullptr) {
+        return *self->freeMemoryRatioValue;
+    }
+
+    self->freeMemoryRatioValue = new double([self readDoubleFromPackageJsonIos:@"freeMemoryRatio"]);
+
+    return *self->freeMemoryRatioValue;
+}
+
+- (double)readDoubleFromPackageJsonIos:(NSString*)key {
+    double res = 0;
+    if (auto packageJson = [self appPackageJson]) {
+        if (NSDictionary* ios = packageJson[@"ios"]) {
+            if (id value = ios[key]) {
+                if ([value respondsToSelector:@selector(doubleValue)]) {
+                    res = [value doubleValue];
+                } else {
+                    NSLog(@"\"%@\" setting from package.json cannot be converted to double: %@", key, value);
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+double getSystemFreeMemoryRatio() {
+    mach_port_t host_port = mach_host_self();
+    ;
+    mach_msg_type_number_t host_size = sizeof(vm_statistics_data_t) / sizeof(integer_t);
+    vm_statistics_data_t vm_stat;
+    if (host_statistics(host_port, HOST_VM_INFO, (host_info_t)&vm_stat, &host_size) != KERN_SUCCESS) {
+        NSLog(@"Failed to fetch vm statistics");
+        return 0;
+    }
+
+    double free = static_cast<double>(vm_stat.free_count + vm_stat.inactive_count);
+    double used = static_cast<double>(vm_stat.active_count + vm_stat.wire_count);
+    double total = free + used;
+
+    return free / total;
+}
+
+- (void)tryCollectGarbage {
+    using namespace std;
+    using namespace std::chrono;
+
+    static auto previousGcTime = steady_clock::now();
+
+    auto triggerGc = ^{
+      JSLockHolder locker(self->_vm.get());
+      self->_vm->heap.collectAsync(CollectionScope::Full);
+      previousGcTime = steady_clock::now();
+    };
+    auto elapsedMs = duration_cast<duration<double, milli>>(steady_clock::now() - previousGcTime).count();
+
+    if (auto gcThrottleTimeMs = [self gcThrottleTime]) {
+        if (elapsedMs > gcThrottleTimeMs) {
+            triggerGc();
+            return;
+        }
+    }
+
+    if (auto gcMemCheckIntervalMs = [self memoryCheckInterval]) {
+        if (elapsedMs > gcMemCheckIntervalMs) {
+            if (auto freeMemoryRatio = [self freeMemoryRatio]) {
+                if (getSystemFreeMemoryRatio() < freeMemoryRatio) {
+                    triggerGc();
+                    return;
+                }
+            }
+        }
+    }
 }
 
 - (void)dealloc {
@@ -237,7 +357,7 @@ static NSPointerArray* _runtimes;
 
 @implementation TNSWorkerRuntime
 
-- (GlobalObject*)createGlobalObjectInstance {
+- (Strong<GlobalObject>)createGlobalObjectInstance {
     TNSPERF();
     return JSWorkerGlobalObject::create(*self->_vm, JSWorkerGlobalObject::createStructure(*self->_vm, jsNull()), self->_applicationPath);
 }

@@ -13,7 +13,7 @@ using namespace JSC;
 
 const ClassInfo CFunctionWrapper::s_info = { "CFunctionWrapper", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(CFunctionWrapper) };
 
-void CFunctionWrapper::finishCreation(VM& vm, void* functionPointer, const WTF::String& name, JSCell* returnType, const WTF::Vector<JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects) {
+void CFunctionWrapper::finishCreation(VM& vm, void* functionPointer, const WTF::String& name, JSCell* returnType, const WTF::Vector<Strong<JSCell>>& parameterTypes, bool retainsReturnedCocoaObjects) {
     Base::finishCreation(vm, name);
     auto call = std::make_unique<CFunctionCall>(this, functionPointer, retainsReturnedCocoaObjects);
     call->initializeFFI(vm, { &preInvocation, &postInvocation }, returnType, parameterTypes);

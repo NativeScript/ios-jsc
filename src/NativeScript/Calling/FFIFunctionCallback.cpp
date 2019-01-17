@@ -32,6 +32,6 @@ void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, v
 }
 
 void FFIFunctionCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, FunctionReferenceTypeInstance* functionReferenceType) {
-    Base::finishCreation(vm, globalObject, function, functionReferenceType->returnType(), functionReferenceType->parameterTypes());
+    Base::finishCreation(vm, globalObject, function, functionReferenceType->returnType(), functionReferenceType->parameterTypes(vm));
 }
 } // namespace NativeScript

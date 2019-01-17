@@ -18,8 +18,8 @@ public:
 
     static const unsigned StructureFlags = Base::StructureFlags;
 
-    static FFICallPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        FFICallPrototype* prototype = new (NotNull, JSC::allocateCell<FFICallPrototype>(globalObject->vm().heap)) FFICallPrototype(globalObject->vm(), structure);
+    static JSC::Strong<FFICallPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<FFICallPrototype> prototype(vm, new (NotNull, JSC::allocateCell<FFICallPrototype>(globalObject->vm().heap)) FFICallPrototype(globalObject->vm(), structure));
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }

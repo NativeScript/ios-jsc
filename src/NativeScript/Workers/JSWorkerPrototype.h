@@ -14,8 +14,8 @@ class JSWorkerPrototype : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static JSWorkerPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        JSWorkerPrototype* prototype = new (NotNull, JSC::allocateCell<JSWorkerPrototype>(vm.heap)) JSWorkerPrototype(vm, structure);
+    static JSC::Strong<JSWorkerPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<JSWorkerPrototype> prototype(vm, new (NotNull, JSC::allocateCell<JSWorkerPrototype>(vm.heap)) JSWorkerPrototype(vm, structure));
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }

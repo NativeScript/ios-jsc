@@ -171,8 +171,8 @@ const WTF::Vector<WriteBarrier<ObjCConstructorWrapper>>& ObjCConstructorBase::in
             std::vector<const Metadata::MethodMeta*> initializers = metadata->initializersWithProtcols();
             for (const Metadata::MethodMeta* method : initializers) {
                 if (method->isAvailable()) {
-                    ObjCConstructorWrapper* constructorWrapper = ObjCConstructorWrapper::create(vm, globalObject, globalObject->objCConstructorWrapperStructure(), this->_klass, method);
-                    this->_initializers.append(WriteBarrier<ObjCConstructorWrapper>(vm, this, constructorWrapper));
+                    auto constructorWrapper = ObjCConstructorWrapper::create(vm, globalObject, globalObject->objCConstructorWrapperStructure(), this->_klass, method);
+                    this->_initializers.append(WriteBarrier<ObjCConstructorWrapper>(vm, this, constructorWrapper.get()));
                 }
             }
 
@@ -268,8 +268,10 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
             id instance = [newTarget->klass() alloc];
             JSValue thisValue;
 
+            Strong<AllocatedPlaceholder> allocatedPlaceHolder;
             if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(vm, constructor)) {
-                thisValue = AllocatedPlaceholder::create(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
+                allocatedPlaceHolder = AllocatedPlaceholder::create(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
+                thisValue = allocatedPlaceHolder.get();
             } else {
                 thisValue = NativeScript::toValue(execState, instance, ^{
                   return constructor->instancesStructure();

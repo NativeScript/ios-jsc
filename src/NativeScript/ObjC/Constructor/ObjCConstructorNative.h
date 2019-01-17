@@ -18,9 +18,9 @@ class ObjCConstructorNative : public ObjCConstructorBase {
 public:
     typedef ObjCConstructorBase Base;
 
-    static ObjCConstructorNative* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
+    static JSC::Strong<ObjCConstructorNative> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
         ASSERT(klass);
-        ObjCConstructorNative* cell = new (NotNull, JSC::allocateCell<ObjCConstructorNative>(vm.heap)) ObjCConstructorNative(vm, structure);
+        JSC::Strong<ObjCConstructorNative> cell(vm, new (NotNull, JSC::allocateCell<ObjCConstructorNative>(vm.heap)) ObjCConstructorNative(vm, structure));
         cell->finishCreation(vm, globalObject, prototype, klass);
         return cell;
     }

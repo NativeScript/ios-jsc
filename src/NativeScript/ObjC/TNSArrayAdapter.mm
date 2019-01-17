@@ -10,7 +10,6 @@
 #include "Interop.h"
 #include "ObjCTypes.h"
 #include "TNSRuntime+Private.h"
-#include <JavaScriptCore/StrongInlines.h>
 
 using namespace NativeScript;
 using namespace JSC;
@@ -56,6 +55,9 @@ using namespace JSC;
 
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState*)state objects:(id[])buffer count:(NSUInteger)len {
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
+
+    JSLockHolder lock(self->_execState);
+
     if (state->state == 0) { // uninitialized
         state->state = 1;
         state->mutationsPtr = reinterpret_cast<unsigned long*>(self);
@@ -68,7 +70,6 @@ using namespace JSC;
     NSUInteger count = 0;
     state->itemsPtr = buffer;
 
-    JSLockHolder lock(self->_execState);
     while (count < len && currentIndex < length) {
         *buffer++ = toObject(self->_execState, self->_object->get(self->_execState, currentIndex));
         currentIndex++;

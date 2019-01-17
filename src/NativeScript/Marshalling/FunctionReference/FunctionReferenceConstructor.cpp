@@ -33,8 +33,8 @@ EncodedJSValue JSC_HOST_CALL FunctionReferenceConstructor::constructFunctionRefe
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     JSCell* func = execState->uncheckedArgument(0).asCell();
-    FunctionReferenceInstance* functionReference = FunctionReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->functionReferenceInstanceStructure(), func);
-    return JSValue::encode(functionReference);
+    auto functionReference = FunctionReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->functionReferenceInstanceStructure(), func);
+    return JSValue::encode(functionReference.get());
 }
 
 } // namespace NativeScript

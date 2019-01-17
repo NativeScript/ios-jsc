@@ -47,8 +47,8 @@ class CFunctionWrapper : public FunctionWrapper {
 public:
     typedef FunctionWrapper Base;
 
-    static CFunctionWrapper* create(JSC::VM& vm, JSC::Structure* structure, void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects) {
-        CFunctionWrapper* function = new (NotNull, JSC::allocateCell<CFunctionWrapper>(vm.heap)) CFunctionWrapper(vm, structure);
+    static JSC::Strong<CFunctionWrapper> create(JSC::VM& vm, JSC::Structure* structure, void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::Strong<JSC::JSCell>>& parameterTypes, bool retainsReturnedCocoaObjects) {
+        JSC::Strong<CFunctionWrapper> function(vm, new (NotNull, JSC::allocateCell<CFunctionWrapper>(vm.heap)) CFunctionWrapper(vm, structure));
         function->finishCreation(vm, functionPointer, name, returnType, parameterTypes, retainsReturnedCocoaObjects);
         return function;
     }
@@ -68,7 +68,7 @@ private:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM&, void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, bool retainsReturnedCocoaObjects);
+    void finishCreation(JSC::VM&, void* functionPointer, const WTF::String& name, JSC::JSCell* returnType, const WTF::Vector<JSC::Strong<JSC::JSCell>>& parameterTypes, bool retainsReturnedCocoaObjects);
 
     static void destroy(JSC::JSCell* cell) {
         static_cast<CFunctionWrapper*>(cell)->~CFunctionWrapper();

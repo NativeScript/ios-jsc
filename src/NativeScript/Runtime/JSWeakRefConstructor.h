@@ -20,8 +20,8 @@ public:
 
     DECLARE_INFO;
 
-    static JSWeakRefConstructor* create(JSC::VM& vm, JSC::Structure* structure, JSWeakRefPrototype* prototype) {
-        JSWeakRefConstructor* object = new (NotNull, JSC::allocateCell<JSWeakRefConstructor>(vm.heap)) JSWeakRefConstructor(vm, structure);
+    static JSC::Strong<JSWeakRefConstructor> create(JSC::VM& vm, JSC::Structure* structure, JSWeakRefPrototype* prototype) {
+        JSC::Strong<JSWeakRefConstructor> object(vm, new (NotNull, JSC::allocateCell<JSWeakRefConstructor>(vm.heap)) JSWeakRefConstructor(vm, structure));
         object->finishCreation(vm, prototype);
         return object;
     }

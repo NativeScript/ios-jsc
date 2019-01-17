@@ -38,16 +38,16 @@ EncodedJSValue JSC_HOST_CALL ObjCBlockTypeConstructor::constructObjCBlockTypeCon
         return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as return type of block type."_s));
     }
 
-    WTF::Vector<JSCell*> parametersTypes;
+    WTF::Vector<Strong<JSCell>> parametersTypes;
     for (size_t i = 1; i < execState->argumentCount(); i++) {
         JSValue currentParameter = execState->uncheckedArgument(i);
         if (!tryGetFFITypeMethodTable(vm, currentParameter, &methodTable)) {
             return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter of block type."_s));
         }
-        parametersTypes.append(currentParameter.asCell());
+        parametersTypes.append(Strong<JSCell>(vm, currentParameter.asCell()));
     }
 
-    return JSValue::encode(globalObject->typeFactory()->getObjCBlockType(globalObject, returnType.asCell(), parametersTypes));
+    return JSValue::encode(globalObject->typeFactory()->getObjCBlockType(globalObject, returnType.asCell(), parametersTypes).get());
 }
 
 } // namespace NativeScript

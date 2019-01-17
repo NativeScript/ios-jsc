@@ -10,6 +10,7 @@
 #define __NativeScript__ReferenceTypeInstance__
 
 #include "FFIType.h"
+#include <JavaScriptCore/JSObject.h>
 #include <string>
 
 namespace NativeScript {
@@ -17,8 +18,8 @@ class ReferenceTypeInstance : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static ReferenceTypeInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType) {
-        ReferenceTypeInstance* cell = new (NotNull, JSC::allocateCell<ReferenceTypeInstance>(vm.heap)) ReferenceTypeInstance(vm, structure);
+    static JSC::Strong<ReferenceTypeInstance> create(JSC::VM& vm, JSC::Structure* structure, JSC::JSCell* innerType) {
+        JSC::Strong<ReferenceTypeInstance> cell(vm, new (NotNull, JSC::allocateCell<ReferenceTypeInstance>(vm.heap)) ReferenceTypeInstance(vm, structure));
         cell->finishCreation(vm, innerType);
         return cell;
     }

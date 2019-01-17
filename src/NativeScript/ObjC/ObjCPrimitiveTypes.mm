@@ -72,8 +72,8 @@ static JSValue objCProtocol_read(ExecState* execState, const void* buffer, JSCel
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    ObjCProtocolWrapper* protocolWrapper = globalObject->protocolWrapperFor(aProtocol);
-    return protocolWrapper;
+    auto protocolWrapper = globalObject->protocolWrapperFor(aProtocol);
+    return protocolWrapper.get();
 }
 static void objCProtocol_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     VM& vm = execState->vm();
@@ -112,7 +112,7 @@ static JSValue objCClass_read(ExecState* execState, const void* buffer, JSCell* 
         return jsNull();
     }
 
-    return jsCast<GlobalObject*>(execState->lexicalGlobalObject())->constructorFor(klass);
+    return jsCast<GlobalObject*>(execState->lexicalGlobalObject())->constructorFor(klass).get();
 }
 static void objCClass_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     JSC::VM& vm = execState->vm();

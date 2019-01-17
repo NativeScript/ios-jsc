@@ -14,8 +14,8 @@ class ReferencePrototype : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static ReferencePrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        ReferencePrototype* prototype = new (NotNull, JSC::allocateCell<ReferencePrototype>(vm.heap)) ReferencePrototype(vm, structure);
+    static JSC::Strong<ReferencePrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<ReferencePrototype> prototype(vm, new (NotNull, JSC::allocateCell<ReferencePrototype>(vm.heap)) ReferencePrototype(vm, structure));
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }

@@ -13,8 +13,8 @@ class IndexedRefPrototype : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static IndexedRefPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        IndexedRefPrototype* prototype = new (NotNull, JSC::allocateCell<IndexedRefPrototype>(vm.heap)) IndexedRefPrototype(vm, structure);
+    static JSC::Strong<IndexedRefPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<IndexedRefPrototype> prototype(vm, new (NotNull, JSC::allocateCell<IndexedRefPrototype>(vm.heap)) IndexedRefPrototype(vm, structure));
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }

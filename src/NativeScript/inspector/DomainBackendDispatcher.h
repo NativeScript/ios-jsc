@@ -1,7 +1,6 @@
 #ifndef DomainBackendDispatcher_h
 #define DomainBackendDispatcher_h
 
-#include <JavaScriptCore/StrongInlines.h>
 #include <inspector/InspectorAgentBase.h>
 #include <inspector/InspectorBackendDispatcher.h>
 

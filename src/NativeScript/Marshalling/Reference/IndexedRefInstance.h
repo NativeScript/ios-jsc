@@ -20,14 +20,14 @@ public:
 
     DECLARE_INFO;
 
-    static IndexedRefInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSValue value = JSC::jsUndefined()) {
-        IndexedRefInstance* cell = new (NotNull, JSC::allocateCell<IndexedRefInstance>(vm.heap)) IndexedRefInstance(vm, structure);
+    static JSC::Strong<IndexedRefInstance> create(JSC::VM& vm, JSC::Structure* structure, JSC::JSValue value = JSC::jsUndefined()) {
+        JSC::Strong<IndexedRefInstance> cell(vm, new (NotNull, JSC::allocateCell<IndexedRefInstance>(vm.heap)) IndexedRefInstance(vm, structure));
         cell->finishCreation(vm, value);
         return cell;
     }
 
-    static IndexedRefInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* innerType, PointerInstance* pointer) {
-        IndexedRefInstance* object = new (NotNull, JSC::allocateCell<IndexedRefInstance>(vm.heap)) IndexedRefInstance(vm, structure);
+    static JSC::Strong<IndexedRefInstance> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* innerType, PointerInstance* pointer) {
+        JSC::Strong<IndexedRefInstance> object(vm, new (NotNull, JSC::allocateCell<IndexedRefInstance>(vm.heap)) IndexedRefInstance(vm, structure));
         object->finishCreation(vm, globalObject, innerType, pointer);
         return object;
     }

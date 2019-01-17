@@ -70,7 +70,7 @@ inline void FFICallback<DerivedCallback>::callFunction(const JSC::JSValue& thisV
 }
 
 template <class DerivedCallback>
-inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSCell* function, JSC::JSCell* returnType, const WTF::Vector<JSC::JSCell*>& parameterTypes, size_t initialArgumentIndex) {
+inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSCell* function, JSC::JSCell* returnType, const WTF::Vector<JSC::Strong<JSC::JSCell>>& parameterTypes, size_t initialArgumentIndex) {
     Base::finishCreation(vm);
 
     this->_globalExecState = globalObject->globalExec();
@@ -90,7 +90,7 @@ inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlo
     }
 
     for (size_t i = 0; i < parametersCount; ++i) {
-        JSCell* parameterTypeCell = parameterTypes[i];
+        JSCell* parameterTypeCell = parameterTypes[i].get();
         this->_parameterTypesCells.append(JSC::WriteBarrier<JSCell>(vm, this, parameterTypeCell));
 
         const FFITypeMethodTable& ffiTypeMethodTable = getFFITypeMethodTable(vm, parameterTypeCell);

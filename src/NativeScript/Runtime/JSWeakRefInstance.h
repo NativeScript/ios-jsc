@@ -19,8 +19,8 @@ public:
 
     DECLARE_INFO;
 
-    static JSWeakRefInstance* create(JSC::VM& vm, JSC::Structure* structure, JSC::JSObject* weakObject) {
-        JSWeakRefInstance* object = new (NotNull, JSC::allocateCell<JSWeakRefInstance>(vm.heap)) JSWeakRefInstance(vm, structure);
+    static JSC::Strong<JSWeakRefInstance> create(JSC::VM& vm, JSC::Structure* structure, JSC::JSObject* weakObject) {
+        JSC::Strong<JSWeakRefInstance> object(vm, new (NotNull, JSC::allocateCell<JSWeakRefInstance>(vm.heap)) JSWeakRefInstance(vm, structure));
         object->finishCreation(vm, weakObject);
         return object;
     }

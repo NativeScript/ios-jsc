@@ -11,6 +11,7 @@
 
 #include "FFIFunctionCallback.h"
 #include "JavaScriptCore/IsoSubspace.h"
+#include <JavaScriptCore/JSObject.h>
 
 namespace NativeScript {
 
@@ -18,8 +19,8 @@ class FunctionReferenceInstance : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static FunctionReferenceInstance* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function) {
-        FunctionReferenceInstance* cell = new (NotNull, JSC::allocateCell<FunctionReferenceInstance>(vm.heap)) FunctionReferenceInstance(vm, structure);
+    static JSC::Strong<FunctionReferenceInstance> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSCell* function) {
+        JSC::Strong<FunctionReferenceInstance> cell(vm, new (NotNull, JSC::allocateCell<FunctionReferenceInstance>(vm.heap)) FunctionReferenceInstance(vm, structure));
         cell->finishCreation(vm, globalObject, function);
         return cell;
     }

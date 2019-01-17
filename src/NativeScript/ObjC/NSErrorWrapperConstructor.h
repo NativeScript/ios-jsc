@@ -17,8 +17,8 @@ class NSErrorWrapperConstructor : public JSC::InternalFunction {
 public:
     typedef JSC::InternalFunction Base;
 
-    static NSErrorWrapperConstructor* create(JSC::VM& vm, JSC::Structure* structure) {
-        NSErrorWrapperConstructor* cell = new (NotNull, JSC::allocateCell<NSErrorWrapperConstructor>(vm.heap)) NSErrorWrapperConstructor(vm, structure);
+    static JSC::Strong<NSErrorWrapperConstructor> create(JSC::VM& vm, JSC::Structure* structure) {
+        JSC::Strong<NSErrorWrapperConstructor> cell(vm, new (NotNull, JSC::allocateCell<NSErrorWrapperConstructor>(vm.heap)) NSErrorWrapperConstructor(vm, structure));
         cell->finishCreation(vm, structure->globalObject());
         return cell;
     }

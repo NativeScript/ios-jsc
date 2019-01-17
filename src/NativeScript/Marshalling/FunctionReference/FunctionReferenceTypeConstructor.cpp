@@ -37,16 +37,16 @@ EncodedJSValue JSC_HOST_CALL FunctionReferenceTypeConstructor::constructFunction
         return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as return type of function reference."_s));
     }
 
-    WTF::Vector<JSCell*> parametersTypes;
+    WTF::Vector<Strong<JSCell>> parametersTypes;
     for (size_t i = 1; i < execState->argumentCount(); i++) {
         JSValue currentParameter = execState->uncheckedArgument(i);
         if (!tryGetFFITypeMethodTable(vm, currentParameter, &methodTable)) {
             return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter of function reference."_s));
         }
-        parametersTypes.append(currentParameter.asCell());
+        parametersTypes.append(Strong<JSCell>(vm, currentParameter.asCell()));
     }
 
-    return JSValue::encode(globalObject->typeFactory()->getFunctionReferenceTypeInstance(globalObject, returnType.asCell(), parametersTypes));
+    return JSValue::encode(globalObject->typeFactory()->getFunctionReferenceTypeInstance(globalObject, returnType.asCell(), parametersTypes).get());
 }
 
 } // namespace NativeScript

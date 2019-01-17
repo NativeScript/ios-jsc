@@ -27,7 +27,7 @@ void ReferenceConstructor::finishCreation(VM& vm, ReferencePrototype* referenceP
 
 EncodedJSValue JSC_HOST_CALL ReferenceConstructor::constructReference(ExecState* execState) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    ReferenceInstance* result;
+    Strong<ReferenceInstance> result;
 
     JSValue maybeType = execState->argument(0);
     JSC::VM& vm = execState->vm();
@@ -74,7 +74,7 @@ EncodedJSValue JSC_HOST_CALL ReferenceConstructor::constructReference(ExecState*
         result = ReferenceInstance::create(vm, globalObject->interop()->referenceInstanceStructure(), maybeType);
     }
 
-    return JSValue::encode(result);
+    return JSValue::encode(result.get());
 }
 
 } // namespace NativeScript

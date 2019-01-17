@@ -22,8 +22,8 @@ static EncodedJSValue JSC_HOST_CALL construct(ExecState* execState) {
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSWeakRefInstance* weakRef = JSWeakRefInstance::create(execState->vm(), globalObject->weakRefInstanceStructure(), argument.toObject(execState));
-    return JSValue::encode(weakRef);
+    auto weakRef = JSWeakRefInstance::create(execState->vm(), globalObject->weakRefInstanceStructure(), argument.toObject(execState));
+    return JSValue::encode(weakRef.get());
 }
 
 const ClassInfo JSWeakRefConstructor::s_info = { "WeakRef", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSWeakRefConstructor) };

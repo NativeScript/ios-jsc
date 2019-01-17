@@ -34,67 +34,67 @@ using namespace Metadata;
 
 const ClassInfo TypeFactory::s_info = { "TypeFactory", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(TypeFactory) };
 
-ObjCBlockType* TypeFactory::parseBlockType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
+Strong<ObjCBlockType> TypeFactory::parseBlockType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
     const TypeEncoding* typeEncodingPtr = typeEncodings.first();
-    JSCell* returnType = this->parseType(globalObject, typeEncodingPtr, false);
-    const WTF::Vector<JSCell*> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1, false);
-    return this->getObjCBlockType(globalObject, returnType, parameters);
+    Strong<JSCell> returnType = this->parseType(globalObject, typeEncodingPtr, false);
+    const WTF::Vector<Strong<JSCell>> parameters = this->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1, false);
+    return this->getObjCBlockType(globalObject, returnType.get(), parameters);
 }
 
-ObjCBlockType* TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<JSCell*> parametersTypes) {
+Strong<ObjCBlockType> TypeFactory::getObjCBlockType(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<Strong<JSCell>> parametersTypes) {
     WTF::Vector<JSC::WeakImpl*> weakParametersTypes;
     weakParametersTypes.append(WeakSet::allocate(JSValue(returnType))); // add return value
     for (size_t i = 0; i < parametersTypes.size(); i++) {
-        weakParametersTypes.append(WeakSet::allocate(JSValue(parametersTypes[i])));
+        weakParametersTypes.append(WeakSet::allocate(JSValue(parametersTypes[i].get())));
     }
 
     if (this->_cacheObjCBlockType.contains(weakParametersTypes)) {
         WeakImpl* value = this->_cacheObjCBlockType.get(weakParametersTypes);
         if (value->state() == WeakImpl::State::Live) {
-            return static_cast<ObjCBlockType*>(value->jsValue().asCell());
+            return Strong<ObjCBlockType>(globalObject->vm(), static_cast<ObjCBlockType*>(value->jsValue().asCell()));
         } else {
             this->_cacheObjCBlockType.remove(weakParametersTypes);
         }
     }
 
-    ObjCBlockType* result = ObjCBlockType::create(globalObject->vm(), this->_objCBlockTypeStructure.get(), returnType, parametersTypes);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    Strong<ObjCBlockType> result = ObjCBlockType::create(globalObject->vm(), this->_objCBlockTypeStructure.get(), returnType, parametersTypes);
+    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result.get()));
     this->_cacheObjCBlockType.add(weakParametersTypes, resultWeak);
     return result;
 }
 
-JSCell* TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
+Strong<JSCell> TypeFactory::parseFunctionReferenceType(GlobalObject* globalObject, const TypeEncodingsList<uint8_t>& typeEncodings) {
     const TypeEncoding* typeEncodingPtr = typeEncodings.first();
-    JSCell* returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr, false);
-    const WTF::Vector<JSCell*> parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1, false);
-    return this->getFunctionReferenceTypeInstance(globalObject, returnType, parameterTypes);
+    Strong<JSCell> returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodingPtr, false);
+    const auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodingPtr, typeEncodings.count - 1, false);
+    return this->getFunctionReferenceTypeInstance(globalObject, returnType.get(), parameterTypes);
 }
 
-FunctionReferenceTypeInstance* TypeFactory::getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<JSCell*> parametersTypes) {
+Strong<FunctionReferenceTypeInstance> TypeFactory::getFunctionReferenceTypeInstance(GlobalObject* globalObject, JSCell* returnType, WTF::Vector<Strong<JSCell>> parametersTypes) {
     WTF::Vector<JSC::WeakImpl*> weakParametersTypes;
     weakParametersTypes.append(WeakSet::allocate(JSValue(returnType))); // add return value
     for (size_t i = 0; i < parametersTypes.size(); i++) {
-        weakParametersTypes.append(WeakSet::allocate(JSValue(parametersTypes[i])));
+        weakParametersTypes.append(WeakSet::allocate(JSValue(parametersTypes[i].get())));
     }
 
     if (this->_cacheFunctionReferenceType.contains(weakParametersTypes)) {
         WeakImpl* value = this->_cacheFunctionReferenceType.get(weakParametersTypes);
         if (value->state() == WeakImpl::State::Live) {
-            return jsDynamicCast<FunctionReferenceTypeInstance*>(globalObject->vm(), value->jsValue().asCell());
+            return Strong<FunctionReferenceTypeInstance>(globalObject->vm(), jsDynamicCast<FunctionReferenceTypeInstance*>(globalObject->vm(), value->jsValue().asCell()));
         } else {
             this->_cacheFunctionReferenceType.remove(weakParametersTypes);
         }
     }
 
-    FunctionReferenceTypeInstance* result = FunctionReferenceTypeInstance::create(globalObject->vm(), this->_functionReferenceTypeStructure.get(), returnType, parametersTypes);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    Strong<FunctionReferenceTypeInstance> result(globalObject->vm(), FunctionReferenceTypeInstance::create(globalObject->vm(), this->_functionReferenceTypeStructure.get(), returnType, parametersTypes));
+    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result.get()));
     this->_cacheFunctionReferenceType.add(weakParametersTypes, resultWeak);
     return result;
 }
 
-RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject, const WTF::String& structName) {
+Strong<RecordConstructor> TypeFactory::getStructConstructor(GlobalObject* globalObject, const WTF::String& structName) {
     if (RecordConstructor* constructor = this->_cacheStruct.get(structName)) {
-        return constructor;
+        return Strong<RecordConstructor>(globalObject->vm(), constructor);
     }
 
     ffi_type* ffiType = new ffi_type({ .size = 0,
@@ -104,16 +104,16 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
     VM& vm = globalObject->vm();
 
     // Handle linked list structures
-    RecordPrototype* recordPrototype = RecordPrototype::create(vm, globalObject, _recordPrototypeStructure.get());
-    RecordConstructor* constructor = RecordConstructor::create(vm, globalObject, _recordConstructorStructure.get(), recordPrototype, structName, ffiType, RecordType::Struct);
-    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    auto recordPrototype = RecordPrototype::create(vm, globalObject, _recordPrototypeStructure.get());
+    auto constructor = RecordConstructor::create(vm, globalObject, _recordConstructorStructure.get(), recordPrototype.get(), structName, ffiType, RecordType::Struct);
+    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
-    auto addResult = this->_cacheStruct.set(structName, constructor);
+    auto addResult = this->_cacheStruct.set(structName, constructor.get());
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }
 
-    WTF::Vector<JSCell*> fieldsTypes;
+    WTF::Vector<Strong<JSCell>> fieldsTypes;
     WTF::Vector<WTF::String> fieldsNames;
 
     const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTable()->findMeta(structName.impl()));
@@ -126,22 +126,22 @@ RecordConstructor* TypeFactory::getStructConstructor(GlobalObject* globalObject,
         fieldsNames.append((*it).valuePtr());
     }
 
-    WTF::Vector<RecordField*> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
+    WTF::Vector<Strong<RecordField>> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
     recordPrototype->setFields(vm, globalObject, fields);
 
     // This could already be initialized at this point.
     if (RecordConstructor* constructor = this->_cacheStruct.get(structName)) {
-        return constructor;
+        return Strong<RecordConstructor>(globalObject->vm(), constructor);
     }
 
-    addResult = this->_cacheStruct.set(structName, constructor);
+    addResult = this->_cacheStruct.set(structName, constructor.get());
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }
     return constructor;
 }
 
-RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
+Strong<RecordConstructor> TypeFactory::getAnonymousStructConstructor(GlobalObject* globalObject, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details) {
     ffi_type* ffiType = new ffi_type({ .size = 0,
                                        .alignment = 0,
                                        .type = FFI_TYPE_STRUCT });
@@ -149,11 +149,11 @@ RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* glob
     VM& vm = globalObject->vm();
 
     // Handle linked list structures
-    RecordPrototype* recordPrototype = RecordPrototype::create(vm, globalObject, _recordPrototypeStructure.get());
-    RecordConstructor* constructor = RecordConstructor::create(vm, globalObject, _recordConstructorStructure.get(), recordPrototype, "?", ffiType, RecordType::Struct);
-    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    auto recordPrototype = RecordPrototype::create(vm, globalObject, _recordPrototypeStructure.get());
+    auto constructor = RecordConstructor::create(vm, globalObject, _recordConstructorStructure.get(), recordPrototype.get(), "?", ffiType, RecordType::Struct);
+    recordPrototype->putDirect(vm, vm.propertyNames->constructor, constructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
-    WTF::Vector<JSCell*> fieldsTypes;
+    WTF::Vector<Strong<JSCell>> fieldsTypes;
     WTF::Vector<WTF::String> fieldsNames;
 
     for (int i = 0; i < details.fieldsCount; ++i) {
@@ -164,13 +164,13 @@ RecordConstructor* TypeFactory::getAnonymousStructConstructor(GlobalObject* glob
     const TypeEncoding* encodingsPtr = details.getFieldsEncodings();
     fieldsTypes = parseTypes(globalObject, encodingsPtr, details.fieldsCount, true);
 
-    WTF::Vector<RecordField*> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
+    auto fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
     recordPrototype->setFields(vm, globalObject, fields);
 
-    return constructor;
+    return Strong<RecordConstructor>(globalObject->vm(), constructor);
 }
 
-WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalObject, const WTF::Vector<JSCell*>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType) {
+WTF::Vector<Strong<RecordField>> TypeFactory::createRecordFields(GlobalObject* globalObject, const WTF::Vector<Strong<JSCell>>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType) {
     DeferGCForAWhile deferGC(globalObject->vm().heap);
 
     ASSERT(fieldsNames.size() == fieldsTypes.size());
@@ -181,9 +181,9 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
 #if defined(__x86_64__)
     bool hasNestedStruct = false;
 #endif
-    WTF::Vector<RecordField*> fields;
+    WTF::Vector<Strong<RecordField>> fields;
     for (size_t i = 0; i < fieldsTypes.size(); i++) {
-        const ffi_type* fieldFFIType = getFFITypeMethodTable(vm, fieldsTypes[i]).ffiType;
+        const ffi_type* fieldFFIType = getFFITypeMethodTable(vm, fieldsTypes[i].get()).ffiType;
 #if defined(__x86_64__)
         hasNestedStruct = hasNestedStruct || (fieldFFIType->type == FFI_TYPE_STRUCT);
 #endif
@@ -199,7 +199,7 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
         ffiType->size = offset + fieldFFIType->size;
         ffiType->alignment = std::max(ffiType->alignment, fieldFFIType->alignment);
 
-        RecordField* field = RecordField::create(vm, this->_recordFieldStructure.get(), fieldsNames[i], fieldsTypes[i], offset);
+        Strong<RecordField> field(vm, RecordField::create(vm, this->_recordFieldStructure.get(), fieldsNames[i], fieldsTypes[i].get(), offset));
         fields.append(field);
     }
 
@@ -239,10 +239,10 @@ WTF::Vector<RecordField*> TypeFactory::createRecordFields(GlobalObject* globalOb
     return fields;
 }
 
-ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const WTF::String& klassName) {
+Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const WTF::String& klassName) {
     tns::instrumentation::Frame frame;
     if (ObjCConstructorNative* type = this->_cacheId.get(klassName)) {
-        return type;
+        return Strong<ObjCConstructorNative>(globalObject->vm(), type);
     }
 
     VM& vm = globalObject->vm();
@@ -262,8 +262,8 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
 #ifdef DEBUG
         NSLog(@"** Can not create constructor for \"%@\". Casting it to \"NSObject\". **", klassName.createCFString().autorelease());
 #endif
-        ObjCConstructorNative* nsobjectConstructor = this->NSObjectConstructor(globalObject);
-        this->_cacheId.set(klassName, nsobjectConstructor);
+        auto nsobjectConstructor = this->NSObjectConstructor(globalObject);
+        this->_cacheId.set(klassName, nsobjectConstructor.get());
         return nsobjectConstructor;
     }
 
@@ -272,7 +272,7 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
 
     const char* superKlassName = metadata->baseName();
     if (superKlassName) {
-        parentConstructor = getObjCNativeConstructor(globalObject, superKlassName);
+        parentConstructor = getObjCNativeConstructor(globalObject, superKlassName).get();
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
     } else {
         // NSObject and NSProxy don't have a base class and therefore inherit directly from GlobalObject.
@@ -285,17 +285,17 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     /// the parent constructor has been created.
     /// TODO: Move this check in the if (superKlassName) case.
     if (ObjCConstructorNative* type = this->_cacheId.get(klassName)) {
-        return type;
+        return Strong<ObjCConstructorNative>(globalObject->vm(), type);
     }
 
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
-    ObjCPrototype* prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata);
+    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata);
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
-    ObjCConstructorNative* constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype, klass);
-    prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor, PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), klass);
+    prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor.get(), PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
-    auto addResult = this->_cacheId.set(klassName, constructor);
+    auto addResult = this->_cacheId.set(klassName, constructor.get());
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }
@@ -310,109 +310,107 @@ ObjCConstructorNative* TypeFactory::getObjCNativeConstructor(GlobalObject* globa
     return constructor;
 }
 
-ObjCConstructorNative* TypeFactory::NSObjectConstructor(GlobalObject* globalObject) {
+Strong<ObjCConstructorNative> TypeFactory::NSObjectConstructor(GlobalObject* globalObject) {
     if (LIKELY(this->_nsObjectConstructor)) {
-        return this->_nsObjectConstructor.get();
+        return Strong<ObjCConstructorNative>(globalObject->vm(), this->_nsObjectConstructor.get());
     }
 
-    ObjCConstructorNative* constructor = getObjCNativeConstructor(globalObject, "NSObject"_s);
-    this->_nsObjectConstructor.set(globalObject->vm(), this, constructor);
+    auto constructor = getObjCNativeConstructor(globalObject, "NSObject"_s);
+    this->_nsObjectConstructor.set(globalObject->vm(), this, constructor.get());
     return constructor;
 }
 
-IndexedRefTypeInstance* TypeFactory::getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
+Strong<IndexedRefTypeInstance> TypeFactory::getIndexedRefType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize) {
 
-    IndexedRefTypeInstance* result = IndexedRefTypeInstance::create(globalObject->vm(), this->_indexedRefTypeStructure.get(), innerType, typeSize);
-    return result;
+    return IndexedRefTypeInstance::create(globalObject->vm(), this->_indexedRefTypeStructure.get(), innerType, typeSize);
 }
 
-ExtVectorTypeInstance* TypeFactory::getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize, bool isStructMember) {
-    ExtVectorTypeInstance* result = ExtVectorTypeInstance::create(globalObject->vm(), this->_extVectorTypeStructure.get(), innerType, typeSize, isStructMember);
-    return result;
+Strong<ExtVectorTypeInstance> TypeFactory::getExtVectorType(GlobalObject* globalObject, JSCell* innerType, size_t typeSize, bool isStructMember) {
+    return ExtVectorTypeInstance::create(globalObject->vm(), this->_extVectorTypeStructure.get(), innerType, typeSize, isStructMember);
 }
 
-ReferenceTypeInstance* TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
+Strong<ReferenceTypeInstance> TypeFactory::getReferenceType(GlobalObject* globalObject, JSCell* innerType) {
     WeakImpl* innerWeak = WeakSet::allocate(JSValue(innerType));
     if (this->_cacheReferenceType.contains(innerWeak)) {
         WeakImpl* value = this->_cacheReferenceType.get(innerWeak);
         if (value->state() == WeakImpl::State::Live) {
-            return static_cast<ReferenceTypeInstance*>(value->jsValue().asCell());
+            return Strong<ReferenceTypeInstance>(globalObject->vm(), static_cast<ReferenceTypeInstance*>(value->jsValue().asCell()));
         } else {
             this->_cacheReferenceType.remove(innerWeak);
         }
     }
 
-    ReferenceTypeInstance* result = ReferenceTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType);
-    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result));
+    auto result = ReferenceTypeInstance::create(globalObject->vm(), this->_referenceTypeStructure.get(), innerType);
+    WeakImpl* resultWeak = WeakSet::allocate(JSValue(result.get()));
     this->_cacheReferenceType.add(innerWeak, resultWeak);
     return result;
 }
 
-JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncoding, bool isStructMember) {
+Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncoding, bool isStructMember) {
     DeferGCForAWhile deferGC(globalObject->vm().heap);
 
-    JSC::JSCell* result = nullptr;
+    Strong<JSC::JSCell> result;
 
     switch (typeEncoding->type) {
     case BinaryTypeEncodingType::VoidEncoding:
-        result = this->_voidType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_voidType.get());
         break;
     case BinaryTypeEncodingType::BoolEncoding:
-        result = this->_boolType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_boolType.get());
         break;
     case BinaryTypeEncodingType::ShortEncoding:
-        result = this->_int16Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_int16Type.get());
         break;
     case BinaryTypeEncodingType::UShortEncoding:
-        result = this->_uint16Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_uint16Type.get());
         break;
     case BinaryTypeEncodingType::IntEncoding:
-        result = this->_int32Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_int32Type.get());
         break;
     case BinaryTypeEncodingType::UIntEncoding:
-        result = this->_uint32Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_uint32Type.get());
         break;
     case BinaryTypeEncodingType::LongEncoding:
 #if defined(__LP64__)
         COMPILE_ASSERT(sizeof(long) == sizeof(int64_t), "sizeof long");
-        result = this->_int64Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_int64Type.get());
 #else
         COMPILE_ASSERT(sizeof(long) == sizeof(int32_t), "sizeof long");
-        result = this->_int32Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_int32Type.get());
 #endif
         break;
     case BinaryTypeEncodingType::ULongEncoding:
 #if defined(__LP64__)
         COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint64_t), "sizeof ulong");
-        result = this->_uint64Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_uint64Type.get());
 #else
         COMPILE_ASSERT(sizeof(unsigned long) == sizeof(uint32_t), "sizeof ulong");
-        result = this->_uint32Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_uint32Type.get());
 #endif
         break;
     case BinaryTypeEncodingType::LongLongEncoding:
-        result = this->_int64Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_int64Type.get());
         break;
     case BinaryTypeEncodingType::ULongLongEncoding:
-        result = this->_uint64Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_uint64Type.get());
         break;
     case BinaryTypeEncodingType::CharEncoding:
-        result = this->_int8Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_int8Type.get());
         break;
     case BinaryTypeEncodingType::UCharEncoding:
-        result = this->_uint8Type.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_uint8Type.get());
         break;
     case BinaryTypeEncodingType::UnicharEncoding:
-        result = this->_unicharType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_unicharType.get());
         break;
     case BinaryTypeEncodingType::CStringEncoding:
-        result = this->_utf8CStringType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_utf8CStringType.get());
         break;
     case BinaryTypeEncodingType::FloatEncoding:
-        result = this->_floatType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_floatType.get());
         break;
     case BinaryTypeEncodingType::DoubleEncoding:
-        result = this->_doubleType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_doubleType.get());
         break;
     case BinaryTypeEncodingType::InterfaceDeclarationReference: {
         WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
@@ -425,34 +423,34 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         break;
     }
     case BinaryTypeEncodingType::UnionDeclarationReference: {
-        result = this->_noopType.get(); // unions are not supported
+        result = Strong<JSCell>(globalObject->vm(), this->_noopType.get()); // unions are not supported
         break;
     }
     case BinaryTypeEncodingType::PointerEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.pointer.getInnerType();
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, false);
-        if (innerType == this->_voidType.get()) {
-            result = this->_pointerConstructor.get();
+        auto innerType = this->parseType(globalObject, innerTypeEncoding, false);
+        if (innerType.get() == this->_voidType.get()) {
+            result = Strong<JSCell>(globalObject->vm(), this->_pointerConstructor.get());
         } else {
-            result = this->getReferenceType(globalObject, innerType);
+            result = this->getReferenceType(globalObject, innerType.get());
         }
 
         break;
     }
     case BinaryTypeEncodingType::VaListEncoding:
-        result = this->_noopType.get(); // Not supported
+        result = Strong<JSCell>(globalObject->vm(), this->_noopType.get()); // Not supported
         break;
     case BinaryTypeEncodingType::SelectorEncoding:
-        result = this->_objCSelectorType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_objCSelectorType.get());
         break;
     case BinaryTypeEncodingType::ClassEncoding:
-        result = this->_objCClassType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_objCClassType.get());
         break;
     case BinaryTypeEncodingType::ProtocolEncoding:
-        result = this->_objCProtocolType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_objCProtocolType.get());
         break;
     case BinaryTypeEncodingType::InstanceTypeEncoding:
-        result = this->_objCInstancetypeType.get();
+        result = Strong<JSCell>(globalObject->vm(), this->_objCInstancetypeType.get());
         break;
     case BinaryTypeEncodingType::IdEncoding:
         result = this->NSObjectConstructor(globalObject);
@@ -460,11 +458,11 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
         size_t arraySize = typeEncoding->details.constantArray.size;
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
+        auto innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
         if (isStructMember) {
-            result = this->getIndexedRefType(globalObject, innerType, arraySize);
+            result = this->getIndexedRefType(globalObject, innerType.get(), arraySize);
         } else {
-            result = this->getReferenceType(globalObject, innerType);
+            result = this->getReferenceType(globalObject, innerType.get());
         }
 
         break;
@@ -472,14 +470,14 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     case BinaryTypeEncodingType::ExtVectorEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.extVector.getInnerType();
         size_t arraySize = typeEncoding->details.extVector.size;
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
-        result = this->getExtVectorType(globalObject, innerType, arraySize, isStructMember);
+        auto innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
+        result = this->getExtVectorType(globalObject, innerType.get(), arraySize, isStructMember);
         break;
     }
     case BinaryTypeEncodingType::IncompleteArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.incompleteArray.getInnerType();
-        JSCell* innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
-        result = this->getReferenceType(globalObject, innerType);
+        auto innerType = this->parseType(globalObject, innerTypeEncoding, isStructMember);
+        result = this->getReferenceType(globalObject, innerType.get());
         break;
     }
     case BinaryTypeEncodingType::FunctionPointerEncoding:
@@ -492,7 +490,7 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
         result = this->getAnonymousStructConstructor(globalObject, typeEncoding->details.anonymousRecord);
         break;
     case BinaryTypeEncodingType::AnonymousUnionEncoding:
-        result = this->_noopType.get(); // unions are not supported
+        result = Strong<JSCell>(globalObject->vm(), this->_noopType.get()); // unions are not supported
         break;
     default:
         ASSERT_NOT_REACHED(); // Unknown type encoding
@@ -501,10 +499,10 @@ JSC::JSCell* TypeFactory::parseType(GlobalObject* globalObject, const Metadata::
     return result;
 }
 
-const WTF::Vector<JSC::JSCell*> TypeFactory::parseTypes(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncodings, int count, bool isStructMember) {
+const WTF::Vector<Strong<JSCell>> TypeFactory::parseTypes(GlobalObject* globalObject, const Metadata::TypeEncoding*& typeEncodings, int count, bool isStructMember) {
     DeferGCForAWhile deferGC(globalObject->vm().heap);
 
-    WTF::Vector<JSCell*> types;
+    WTF::Vector<Strong<JSCell>> types;
     for (int i = 0; i < count; i++) {
         types.append(parseType(globalObject, typeEncodings, isStructMember));
     }
@@ -523,31 +521,35 @@ void TypeFactory::finishCreation(VM& vm, GlobalObject* globalObject) {
     this->_recordConstructorStructure.set(vm, this, RecordConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()));
     this->_recordFieldStructure.set(vm, this, RecordField::createStructure(vm, globalObject, jsNull()));
 
-    PointerPrototype* pointerPrototype = PointerPrototype::create(vm, globalObject, PointerPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
-    this->_pointerConstructor.set(vm, this, PointerConstructor::create(vm, PointerConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()), pointerPrototype));
+    auto pointerPrototype = PointerPrototype::create(vm, globalObject, PointerPrototype::createStructure(vm, globalObject, globalObject->objectPrototype()));
+    this->_pointerConstructor.set(vm, this,
+                                  PointerConstructor::create(vm,
+                                                             PointerConstructor::createStructure(vm, globalObject, globalObject->functionPrototype()),
+                                                             pointerPrototype.get())
+                                      .get());
     pointerPrototype->putDirect(vm, vm.propertyNames->constructor, this->_pointerConstructor.get(), static_cast<unsigned>(PropertyAttribute::DontEnum));
 
-    this->_noopType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "noop"_s, noopTypeMethodTable));
-    this->_voidType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "void"_s, voidTypeMethodTable));
-    this->_boolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "bool"_s, boolTypeMethodTable));
-    this->_utf8CStringType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "UTF8CString"_s, utf8CStringTypeMethodTable));
-    this->_unicharType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "unichar"_s, unicharTypeMethodTable));
+    this->_noopType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "noop"_s, noopTypeMethodTable).get());
+    this->_voidType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "void"_s, voidTypeMethodTable).get());
+    this->_boolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "bool"_s, boolTypeMethodTable).get());
+    this->_utf8CStringType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "UTF8CString"_s, utf8CStringTypeMethodTable).get());
+    this->_unicharType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "unichar"_s, unicharTypeMethodTable).get());
 
-    this->_int8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int8"_s, int8TypeMethodTable));
-    this->_uint8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint8"_s, uint8TypeMethodTable));
-    this->_int16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int16"_s, int16TypeMethodTable));
-    this->_uint16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint16"_s, uint16TypeMethodTable));
-    this->_int32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int32"_s, int32TypeMethodTable));
-    this->_uint32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint32"_s, uint32TypeMethodTable));
-    this->_int64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int64"_s, int64TypeMethodTable));
-    this->_uint64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint64"_s, uint64TypeMethodTable));
-    this->_floatType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "float"_s, floatTypeMethodTable));
-    this->_doubleType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "double"_s, doubleTypeMethodTable));
+    this->_int8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int8"_s, int8TypeMethodTable).get());
+    this->_uint8Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint8"_s, uint8TypeMethodTable).get());
+    this->_int16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int16"_s, int16TypeMethodTable).get());
+    this->_uint16Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint16"_s, uint16TypeMethodTable).get());
+    this->_int32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int32"_s, int32TypeMethodTable).get());
+    this->_uint32Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint32"_s, uint32TypeMethodTable).get());
+    this->_int64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "int64"_s, int64TypeMethodTable).get());
+    this->_uint64Type.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "uint64"_s, uint64TypeMethodTable).get());
+    this->_floatType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "float"_s, floatTypeMethodTable).get());
+    this->_doubleType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "double"_s, doubleTypeMethodTable).get());
 
-    this->_objCInstancetypeType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "instancetype"_s, objCInstancetypeTypeMethodTable));
-    this->_objCProtocolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "protocol"_s, objCProtocolTypeMethodTable));
-    this->_objCClassType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "class"_s, objCClassTypeMethodTable));
-    this->_objCSelectorType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "selector"_s, objCSelectorTypeMethodTable));
+    this->_objCInstancetypeType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "instancetype"_s, objCInstancetypeTypeMethodTable).get());
+    this->_objCProtocolType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "protocol"_s, objCProtocolTypeMethodTable).get());
+    this->_objCClassType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "class"_s, objCClassTypeMethodTable).get());
+    this->_objCSelectorType.set(vm, this, FFISimpleType::create(vm, FFISimpleType::createStructure(vm, globalObject, globalObject->objectPrototype()), "selector"_s, objCSelectorTypeMethodTable).get());
 }
 
 void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {

@@ -17,8 +17,8 @@ class ObjCWrapperObject : public JSC::JSDestructibleObject {
 public:
     typedef JSC::JSDestructibleObject Base;
 
-    static ObjCWrapperObject* create(JSC::VM& vm, JSC::Structure* structure, id wrappedObject, GlobalObject* globalObject) {
-        ObjCWrapperObject* object = new (NotNull, JSC::allocateCell<ObjCWrapperObject>(vm.heap)) ObjCWrapperObject(vm, structure);
+    static JSC::Strong<ObjCWrapperObject> create(JSC::VM& vm, JSC::Structure* structure, id wrappedObject, GlobalObject* globalObject) {
+        JSC::Strong<ObjCWrapperObject> object(vm, new (NotNull, JSC::allocateCell<ObjCWrapperObject>(vm.heap)) ObjCWrapperObject(vm, structure));
         object->finishCreation(vm, wrappedObject, globalObject);
         return object;
     }

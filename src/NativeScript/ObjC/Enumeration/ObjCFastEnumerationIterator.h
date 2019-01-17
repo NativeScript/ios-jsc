@@ -22,8 +22,8 @@ public:
 
     static const unsigned StructureFlags = Base::StructureFlags;
 
-    static ObjCFastEnumerationIterator* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, id object) {
-        ObjCFastEnumerationIterator* prototype = new (NotNull, JSC::allocateCell<ObjCFastEnumerationIterator>(vm.heap)) ObjCFastEnumerationIterator(vm, structure);
+    static JSC::Strong<ObjCFastEnumerationIterator> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, id object) {
+        JSC::Strong<ObjCFastEnumerationIterator> prototype(vm, new (NotNull, JSC::allocateCell<ObjCFastEnumerationIterator>(vm.heap)) ObjCFastEnumerationIterator(vm, structure));
         prototype->finishCreation(vm, globalObject, object);
         return prototype;
     }

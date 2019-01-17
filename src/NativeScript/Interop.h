@@ -29,8 +29,8 @@ class Interop : public JSC::JSObject {
 public:
     typedef JSC::JSObject Base;
 
-    static Interop* create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure) {
-        Interop* object = new (NotNull, JSC::allocateCell<Interop>(vm.heap)) Interop(vm, structure);
+    static JSC::Strong<Interop> create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<Interop> object(vm, new (NotNull, JSC::allocateCell<Interop>(vm.heap)) Interop(vm, structure));
         object->finishCreation(vm, globalObject);
         return object;
     }

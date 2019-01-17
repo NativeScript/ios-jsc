@@ -36,15 +36,15 @@ void ObjCMethodWrapper::finishCreation(VM& vm, GlobalObject* globalObject, std::
 
         const TypeEncoding* encodings = method->encodings()->first();
 
-        JSCell* returnTypeCell = globalObject->typeFactory()->parseType(globalObject, /*r*/ encodings, false);
-        const WTF::Vector<JSCell*> parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, /*r*/ encodings, method->encodings()->count - 1, false);
+        auto returnTypeCell = globalObject->typeFactory()->parseType(globalObject, /*r*/ encodings, false);
+        auto parameterTypesCells = globalObject->typeFactory()->parseTypes(globalObject, /*r*/ encodings, method->encodings()->count - 1, false);
 
         if (parameterTypesCells.size() > maxParamsCount) {
             maxParamsCount = parameterTypesCells.size();
         }
 
         std::unique_ptr<ObjCMethodCall> call(new ObjCMethodCall(this, method));
-        call->initializeFFI(vm, { &preInvocation, &postInvocation }, returnTypeCell, parameterTypesCells, 2);
+        call->initializeFFI(vm, { &preInvocation, &postInvocation }, returnTypeCell.get(), parameterTypesCells, 2);
         call->_retainsReturnedCocoaObjects = method->ownsReturnedCocoaObject();
         call->_isOptional = method->isOptional();
         call->_isInitializer = method->isInitializer();

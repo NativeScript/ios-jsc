@@ -139,7 +139,7 @@ JSValue toValue(ExecState* execState, id object, Class klass) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     if (class_isMetaClass(object_getClass(object))) {
-        return globalObject->constructorFor(object_getClass(object), klass);
+        return globalObject->constructorFor(object_getClass(object), klass).get();
     }
 
     return toValue(execState, object, ^{
@@ -163,6 +163,6 @@ JSValue toValue(ExecState* execState, id object, Structure* (^structureResolver)
         return wrapper;
     }
 
-    return ObjCWrapperObject::create(execState->vm(), structureResolver(), object, globalObject);
+    return ObjCWrapperObject::create(execState->vm(), structureResolver(), object, globalObject).get();
 }
 }

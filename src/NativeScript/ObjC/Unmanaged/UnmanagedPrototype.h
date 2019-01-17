@@ -6,8 +6,8 @@ class UnmanagedPrototype : public JSC::JSNonFinalObject {
 public:
     typedef JSC::JSNonFinalObject Base;
 
-    static UnmanagedPrototype* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
-        UnmanagedPrototype* prototype = new (NotNull, JSC::allocateCell<UnmanagedPrototype>(vm.heap)) UnmanagedPrototype(vm, structure);
+    static JSC::Strong<UnmanagedPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure) {
+        JSC::Strong<UnmanagedPrototype> prototype(vm, new (NotNull, JSC::allocateCell<UnmanagedPrototype>(vm.heap)) UnmanagedPrototype(vm, structure));
         prototype->finishCreation(vm, globalObject);
         return prototype;
     }
