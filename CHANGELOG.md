@@ -7,6 +7,15 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.1.1
+=====
+
+## Bug Fixes
+
+* **debugging:** Ensure a valid listenSource on each AttachRequest ([#1058](https://github.com/NativeScript/ios-runtime/pull/1058))
+* **debugging:** Logs are not shown in Chrome console tab ([#1037](https://github.com/NativeScript/ios-runtime/issues/1037))
+
+
 5.1.0
 =====
 
