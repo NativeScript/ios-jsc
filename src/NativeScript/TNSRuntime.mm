@@ -62,7 +62,11 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 
 - (double)freeMemoryRatio;
 
-- (double)readDoubleFromPackageJsonIos:(NSString*)key;
++ (double)readDoubleFromPackageJsonIos: (NSDictionary*)packageJson withKey: (NSString*)key;
+
++ (NSString*)readStringFromPackageJsonIos: (NSDictionary*)packageJson withKey: (NSString*)key;
+
++ (NSDictionary*)readAppPackageJson:(NSString*)applicationPath;
 
 @end
 
@@ -103,7 +107,14 @@ static NSPointerArray* _runtimes;
     if (self == [TNSRuntime self]) {
         WTF::initializeMainThread();
         initializeThreading();
+        
         JSC::Options::useJIT() = false;
+        NSDictionary* packageJson = [TNSRuntime readAppPackageJson:[NSBundle mainBundle].bundlePath];
+        NSString *jscFlags = [TNSRuntime readStringFromPackageJsonIos:packageJson withKey:@"jscFlags"];
+        if (jscFlags != nil) {
+            JSC::Options::setOptions([jscFlags cStringUsingEncoding:NSUTF8StringEncoding]);
+        }
+        
         _runtimes = [[NSPointerArray alloc] initWithOptions:NSPointerFunctionsOpaquePersonality | NSPointerFunctionsOpaqueMemory];
     }
 }
@@ -212,19 +223,24 @@ static NSPointerArray* _runtimes;
     return toRef(self->_globalObject->globalExec(), toValue(self->_globalObject->globalExec(), object));
 }
 
++ (NSDictionary*)readAppPackageJson:(NSString*)applicationPath {
+    NSString* packageJsonPath = [applicationPath stringByAppendingPathComponent:@"app/package.json"];
+    NSData* data = [NSData dataWithContentsOfFile:packageJsonPath];
+    NSDictionary *res = @{};
+    if (data) {
+        NSError* error = nil;
+        res = [[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error] retain];
+    }
+    return res;
+}
+
 - (NSDictionary*)appPackageJson {
 
     if (self->appPackageJsonData != nil) {
         return self->appPackageJsonData;
     }
 
-    NSString* packageJsonPath = [self->_applicationPath stringByAppendingPathComponent:@"app/package.json"];
-    NSData* data = [NSData dataWithContentsOfFile:packageJsonPath];
-    if (data) {
-        NSError* error = nil;
-        self->appPackageJsonData = [[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error] retain];
-    }
-
+    self->appPackageJsonData = [TNSRuntime readAppPackageJson:self->_applicationPath] ;
     return self->appPackageJsonData;
 }
 
@@ -234,7 +250,7 @@ static NSPointerArray* _runtimes;
         return *self->gcThrottleTimeValue;
     }
 
-    self->gcThrottleTimeValue = new double([self readDoubleFromPackageJsonIos:@"gcThrottleTime"]);
+    self->gcThrottleTimeValue = new double([TNSRuntime readDoubleFromPackageJsonIos:[self appPackageJson] withKey:@"gcThrottleTime"]);
 
     return *self->gcThrottleTimeValue;
 }
@@ -245,7 +261,7 @@ static NSPointerArray* _runtimes;
         return *self->memoryCheckIntervalValue;
     }
 
-    self->memoryCheckIntervalValue = new double([self readDoubleFromPackageJsonIos:@"memoryCheckInterval"]);
+    self->memoryCheckIntervalValue = new double([TNSRuntime readDoubleFromPackageJsonIos:[self appPackageJson] withKey:@"memoryCheckInterval"]);
 
     return *self->memoryCheckIntervalValue;
 }
@@ -256,14 +272,14 @@ static NSPointerArray* _runtimes;
         return *self->freeMemoryRatioValue;
     }
 
-    self->freeMemoryRatioValue = new double([self readDoubleFromPackageJsonIos:@"freeMemoryRatio"]);
+    self->freeMemoryRatioValue = new double([TNSRuntime readDoubleFromPackageJsonIos:[self appPackageJson] withKey:@"freeMemoryRatio"]);
 
     return *self->freeMemoryRatioValue;
 }
 
-- (double)readDoubleFromPackageJsonIos:(NSString*)key {
++ (double)readDoubleFromPackageJsonIos: (NSDictionary*)packageJson withKey: (NSString*)key {
     double res = 0;
-    if (auto packageJson = [self appPackageJson]) {
+    if (packageJson){
         if (NSDictionary* ios = packageJson[@"ios"]) {
             if (id value = ios[key]) {
                 if ([value respondsToSelector:@selector(doubleValue)]) {
@@ -275,6 +291,19 @@ static NSPointerArray* _runtimes;
         }
     }
 
+    return res;
+}
+
++ (NSString*)readStringFromPackageJsonIos:(NSDictionary*)packageJson withKey: (NSString*)key {
+    NSString *res = nil;
+    if (packageJson) {
+        if (NSDictionary* ios = packageJson[@"ios"]) {
+            if (id value = ios[key]) {
+                res = value;
+            }
+        }
+    }
+    
     return res;
 }
 
