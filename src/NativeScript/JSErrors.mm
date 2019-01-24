@@ -184,7 +184,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                                                                                                    message.utf8().data(),
                                                                                                    jsCallstack.c_str()]
                                                                  reason:nil
-                                                               userInfo:nil];
+                                                                 userInfo:@{ @"sender": @"reportFatalErrorBeforeShutdown" }];
             @throw objcException;
         }
     }

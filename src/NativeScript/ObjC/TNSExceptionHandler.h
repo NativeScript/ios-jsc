@@ -22,7 +22,11 @@ static void TNSObjectiveCUncaughtExceptionHandler(NSException* currentException)
     JSStringRef uncaughtPropertyName = JSStringCreateWithUTF8CString("onerror"); // Keep in sync with JSErrors.mm
     JSValueRef uncaughtCallback = JSObjectGetProperty(context, globalObject, uncaughtPropertyName, NULL);
     JSStringRelease(uncaughtPropertyName);
-    if (JSValueIsUndefined(context, uncaughtCallback)) {
+
+    NSDictionary *userInfo = currentException.userInfo;
+    // check whether the exception is comming form fatalErrorBeforeShutdown method
+    Boolean exceptionAlreadyReported = (userInfo && userInfo[@"sender"] && [userInfo[@"sender"] isEqualToString:@"reportFatalErrorBeforeShutdown"]);
+    if (!exceptionAlreadyReported && JSValueIsUndefined(context, uncaughtCallback)) {
         uncaughtPropertyName = JSStringCreateWithUTF8CString("__onUncaughtError"); // Keep in sync with JSErrors.mm
         uncaughtCallback = JSObjectGetProperty(context, globalObject, uncaughtPropertyName, NULL);
         JSStringRelease(uncaughtPropertyName);
