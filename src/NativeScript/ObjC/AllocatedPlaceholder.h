@@ -35,21 +35,23 @@ public:
     }
 
 private:
-    id _wrappedObject;
-
-    JSC::WriteBarrier<JSC::Structure> _instanceStructure;
-
     AllocatedPlaceholder(JSC::VM& vm, JSC::Structure* structure)
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM& vm, GlobalObject* globalObject, id wrappedObject, JSC::Structure* instanceStructure) {
-        Base::finishCreation(vm);
-        this->_wrappedObject = wrappedObject;
-        this->_instanceStructure.set(vm, this, instanceStructure);
-    }
+    ~AllocatedPlaceholder();
+
+    void finishCreation(JSC::VM& vm, GlobalObject* globalObject, id wrappedObject, JSC::Structure* instanceStructure);
+
+    static void destroy(JSC::JSCell* cell);
 
     static void visitChildren(JSCell*, JSC::SlotVisitor&);
+
+    // Can't be a RetainPtr<id> because of issues with some types
+    // E.g. [NSTimer alloc] retain] causes an endless recursion on iPad (armv7) with iOS 10.3.3
+    id _wrappedObject;
+
+    JSC::WriteBarrier<JSC::Structure> _instanceStructure;
 };
 } // namespace NativeScript
 

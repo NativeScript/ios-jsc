@@ -3,7 +3,7 @@ describe("Constructing Objective-C classes with new operator", function () {
         TNSClearOutput();
     });
 
-    it("should not release the result of alloc", function () {
+    it("should release the result of alloc after GC", function () {
         var obj = new TNSClassWithPlaceholder();
 
         expect(obj.description).toBe("real");
@@ -59,16 +59,16 @@ describe("Constructing Objective-C classes with new operator", function () {
 
     it('allocAndNewMethodsRetaining', function () {
         var obj1 = new NSObject();
-        expect(obj1.retainCount()).toBe(1);
+        expect(obj1.retainCount()).toBe(1, "new NSObject()");
 
         var obj2 = NSObject.alloc();
-        expect(obj2.retainCount()).toBe(1);
+        expect(obj2.retainCount()).toBe(1, "NSObject.alloc()");
 
         var obj3 = NSObject.new();
-        expect(obj3.retainCount()).toBe(1);
+        expect(obj3.retainCount()).toBe(1, "NSObject.new()");
 
         var obj4 = NSObject.alloc().init();
-        expect(obj4.retainCount()).toBe(1);
+        expect(obj4.retainCount()).toBe(1, "NSObject.alloc().init()");
     });
 
     it('initializerResolving', function () {

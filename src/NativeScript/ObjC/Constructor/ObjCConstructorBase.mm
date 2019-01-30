@@ -11,6 +11,7 @@
 #include "Interop.h"
 #include "Metadata/Metadata.h"
 #include "ObjCConstructorCall.h"
+#include "ObjCConstructorDerived.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCMethodCall.h"
 #include "ObjCPrototype.h"
@@ -272,10 +273,13 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
             if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(vm, constructor)) {
                 allocatedPlaceHolder = AllocatedPlaceholder::create(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
                 thisValue = allocatedPlaceHolder.get();
+                // No release -> give ownership to AllocatedPlaceholder, it will be relinquished after the init call in ObjCMethodWrapper::postInvocation
             } else {
                 thisValue = NativeScript::toValue(execState, instance, ^{
                   return constructor->instancesStructure();
                 });
+                // Now owned by the wrapper created in toValue
+                [instance release];
             }
 
             return JSValue::encode(JSC::call(execState, initializer.asCell(), callType, callData, thisValue, initializerArguments));

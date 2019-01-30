@@ -34,6 +34,7 @@
 #include "ObjCPrototype.h"
 #include "ObjCTypeScriptExtend.h"
 #include "ObjCTypes.h"
+#include "ObjCWrapperObject.h"
 #include "RecordConstructor.h"
 #include "RecordPrototypeFunctions.h"
 #include "SymbolLoader.h"
@@ -63,19 +64,27 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
     id instance = [klass alloc];
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
+    JSValue ret = jsUndefined();
+
     if (ObjCConstructorDerived* constructorDerived = jsDynamicCast<ObjCConstructorDerived*>(execState->vm(), constructor)) {
-        [instance release];
-        JSValue jsValue = toValue(execState, instance, ^{
+        ret = toValue(execState, instance, ^{
           return constructorDerived->instancesStructure();
         });
-        return JSValue::encode(jsValue);
+        // Now owned by the wrapper created in toValue
+        [instance release];
     } else if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(execState->vm(), constructor)) {
-        auto allocatedPlaceholder = AllocatedPlaceholder::create(execState->vm(), globalObject, nativeConstructor->allocatedPlaceholderStructure(), instance, nativeConstructor->instancesStructure());
-        return JSValue::encode(allocatedPlaceholder.get());
+        ret = AllocatedPlaceholder::create(execState->vm(),
+                                           globalObject,
+                                           nativeConstructor->allocatedPlaceholderStructure(),
+                                           instance,
+                                           nativeConstructor->instancesStructure())
+                  .get();
+        // No release -> give ownership to AllocatedPlaceholder, it will be relinquished after the init call in ObjCMethodWrapper::postInvocation
+    } else {
+        ASSERT_NOT_REACHED();
     }
 
-    ASSERT_NOT_REACHED();
-    return JSValue::encode(jsUndefined());
+    return JSValue::encode(ret);
 }
 
 static Strong<ObjCProtocolWrapper> createProtocolWrapper(GlobalObject* globalObject, const ProtocolMeta* protocolMeta, Protocol* aProtocol) {
@@ -114,6 +123,26 @@ static EncodedJSValue JSC_HOST_CALL time(ExecState* execState) {
     auto nano = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now());
     double duration = nano.time_since_epoch().count() / 1000000.0;
     return JSValue::encode(jsNumber(duration));
+}
+
+static EncodedJSValue JSC_HOST_CALL releaseNativeCounterpart(ExecState* execState) {
+    if (execState->argumentCount() != 1) {
+        auto scope = DECLARE_THROW_SCOPE(execState->vm());
+        WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\". ", execState->argumentCount(), 1);
+        return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message)));
+    }
+
+    auto arg0 = execState->argument(0);
+    auto wrapper = jsCast<ObjCWrapperObject*>(arg0);
+    if (!wrapper) {
+        auto scope = DECLARE_THROW_SCOPE(execState->vm());
+        WTF::String message("Argument is an object which is not a native wrapper.");
+        return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message)));
+    }
+
+    wrapper->setWrappedObject(nil);
+
+    return JSValue::encode(jsUndefined());
 }
 
 static void microtaskRunLoopSourcePerformWork(void* context) {
@@ -200,6 +229,8 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
 
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__time"), 0, &time, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
+    this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__releaseNativeCounterpart"), 1, &releaseNativeCounterpart, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+
     this->_smartStringifyFunction.set(vm, this, jsCast<JSFunction*>(evaluate(this->globalExec(), makeSource(WTF::String(smartStringify_js, smartStringify_js_len), SourceOrigin()), JSValue())));
 
 #ifdef DEBUG
@@ -243,7 +274,6 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     _jsUncaughtErrorCallbackIdentifier = Identifier::fromString(&vm, "onerror"); // Keep in sync with TNSExceptionHandler.h
     _jsUncaughtErrorCallbackIdentifierFallback = Identifier::fromString(&vm, "__onUncaughtError"); // Keep in sync with TNSExceptionHandler.h
     _jsDiscardedErrorCallbackIdentifier = Identifier::fromString(&vm, "__onDiscardedError");
-    
 }
 
 void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
@@ -475,7 +505,7 @@ Strong<ObjCProtocolWrapper> GlobalObject::protocolWrapperFor(Protocol* aProtocol
 
     return protocolWrapper;
 }
-    
+
 void GlobalObject::callJsDiscardedErrorCallback(ExecState* execState, Exception* exception, NakedPtr<Exception>& outException) {
     JSValue callback = execState->lexicalGlobalObject()->get(execState, _jsDiscardedErrorCallbackIdentifier);
     CallData callData;
@@ -483,10 +513,10 @@ void GlobalObject::callJsDiscardedErrorCallback(ExecState* execState, Exception*
     if (callType == JSC::CallType::None) {
         return;
     }
-    
+
     MarkedArgumentBuffer uncaughtErrorArguments;
     uncaughtErrorArguments.append(exception->value());
-    
+
     outException = nullptr;
     call(execState, callback, callType, callData, jsUndefined(), uncaughtErrorArguments, outException);
     if (outException) {
