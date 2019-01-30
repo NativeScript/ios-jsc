@@ -18,6 +18,14 @@ describe(module.id, function () {
         expect(pointer.toString()).toBe(`<Pointer: ${hexMinusOneForCurrentBitness}>`);
     });
 
+    it("Pointer from a wrapped Number", function () {
+        const number = 0x12abcdef;
+        var pointer = new interop.Pointer(new Number(number));
+        expect(pointer instanceof interop.Pointer).toBe(true);
+        expect(pointer.toNumber()).toBe(number);
+        expect(pointer.toString()).toBe(`<Pointer: 0x${number.toString(16)}>`);
+    });
+
     it("PointerArithmetic", function () {
         var pointer = new interop.Pointer(0xFFFFFFFE);
         expect(pointer.toNumber()).toBe(0xFFFFFFFE);

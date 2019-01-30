@@ -35,6 +35,12 @@ EncodedJSValue JSC_HOST_CALL PointerConstructor::constructPointerInstance(ExecSt
     if (execState->argumentCount() == 1) {
         auto arg0 = execState->argument(0);
 
+        if (arg0.isObject()) {
+            if (JSWrapperObject* wrapper = jsCast<JSWrapperObject*>(arg0)) {
+                arg0 = wrapper->internalValue();
+            }
+        }
+
         if (!arg0.isAnyInt()) {
             auto scope = DECLARE_THROW_SCOPE(execState->vm());
             return throwVMError(execState, scope, createError(execState, "Pointer constructor's first arg must be an integer."_s));
