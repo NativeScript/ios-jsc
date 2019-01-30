@@ -9,6 +9,15 @@ describe(module.id, function () {
         expect(pointer.toString()).toBe('<Pointer: 0x1>');
     });
 
+    it("SimplePointer -1", function () {
+        var pointer = new interop.Pointer(-1);
+        expect(pointer instanceof interop.Pointer).toBe(true);
+        const hexMinusOneForCurrentBitness = "0x" + "f".repeat(interop.sizeof(interop.types.id)*2);
+        // Subtraction used as a workaround for expect(<p>).toBe(<n>) failing due to rounding of 64-bit numbers
+        expect(pointer.toNumber() - new Number(hexMinusOneForCurrentBitness)).toBe(0);
+        expect(pointer.toString()).toBe(`<Pointer: ${hexMinusOneForCurrentBitness}>`);
+    });
+
     it("PointerArithmetic", function () {
         var pointer = new interop.Pointer(0xFFFFFFFE);
         expect(pointer.toNumber()).toBe(0xFFFFFFFE);

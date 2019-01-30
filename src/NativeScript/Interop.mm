@@ -341,6 +341,15 @@ JSValue Interop::pointerInstanceForPointer(ExecState* execState, void* value) {
         return jsNull();
     }
 
+    if (reinterpret_cast<intptr_t>(value) == -1) {
+        if (!this->minusOnePointerInstance) {
+            auto pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
+            this->minusOnePointerInstance = pointerInstance.get();
+        }
+
+        return this->minusOnePointerInstance.get();
+    }
+
     if (PointerInstance* pointerInstance = this->_pointerToInstance.get(value)) {
         return pointerInstance;
     }
