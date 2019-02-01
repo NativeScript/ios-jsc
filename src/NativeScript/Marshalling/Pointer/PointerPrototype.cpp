@@ -42,6 +42,20 @@ static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToString(ExecState* execStat
     return JSValue::encode(result);
 }
 
+static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToHexString(ExecState* execState) {
+    PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
+    const void* value = pointer->data();
+    JSValue result = jsString(execState, WTF::String::format("%p", value));
+    return JSValue::encode(result);
+}
+
+static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToDecimalString(ExecState* execState) {
+    PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
+    const void* value = pointer->data();
+    JSValue result = jsString(execState, WTF::String::format("%ld", static_cast<intptr_t>(reinterpret_cast<size_t>(value))));
+    return JSValue::encode(result);
+}
+
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToNumber(ExecState* execState) {
     PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
     const void* value = pointer->data();
@@ -56,5 +70,7 @@ void PointerPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "subtract"), 1, pointerProtoFuncSubtract, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
     this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->toString, 0, pointerProtoFuncToString, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
     this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "toNumber"), 0, pointerProtoFuncToNumber, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "toHexString"), 0, pointerProtoFuncToHexString, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
+    this->putDirectNativeFunction(vm, globalObject, Identifier::fromString(globalObject->globalExec(), "toDecimalString"), 0, pointerProtoFuncToDecimalString, NoIntrinsic, PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 }
 } // namespace NativeScript

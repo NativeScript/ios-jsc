@@ -88,6 +88,9 @@ private:
     JSC::WriteBarrier<NSErrorWrapperConstructor> _nsErrorWrapperConstructor;
 
     JSC::WeakGCMap<const void*, PointerInstance> _pointerToInstance;
+    // Special case when the pointer is -1. It is the "deleted" value of WeakGCMap's hashing
+    // function and cannot be added to the map as a key;
+    JSC::Weak<PointerInstance> minusOnePointerInstance;
 };
 
 static inline Interop* interop(JSC::ExecState* execState) {
