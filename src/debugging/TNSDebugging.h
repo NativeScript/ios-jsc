@@ -235,7 +235,6 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
       }
     });
     dispatch_source_set_cancel_handler(listenSource, ^{
-      isWaitingForDebugger = NO;
       listenSource = nil;
       close(listenSocket);
     });
