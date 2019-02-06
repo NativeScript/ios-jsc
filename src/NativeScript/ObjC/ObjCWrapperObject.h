@@ -35,6 +35,8 @@ public:
 
     void setWrappedObject(id wrappedObject);
 
+    void removeFromCache();
+
     static WTF::String className(const JSObject* object, JSC::VM&);
 
     ~ObjCWrapperObject();

@@ -48,6 +48,10 @@ bool ObjCWrapperObject::putByIndex(JSCell* cell, ExecState* execState, unsigned 
     return Base::putByIndex(cell, execState, propertyName, value, shouldThrow);
 }
 
+void ObjCWrapperObject::removeFromCache() {
+    this->_objectMap->remove(this->_wrappedObject.get());
+}
+
 void ObjCWrapperObject::setWrappedObject(id wrappedObject) {
     if (this->_wrappedObject) {
         this->_objectMap->remove(this->_wrappedObject.get());

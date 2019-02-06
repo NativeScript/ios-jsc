@@ -13,6 +13,7 @@
 #include "Metadata.h"
 #include "ObjCConstructorNative.h"
 #include "ObjCTypes.h"
+#include "ObjCWrapperObject.h"
 #include "ReferenceTypeInstance.h"
 #include "TypeFactory.h"
 
@@ -151,8 +152,8 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
     ExecState* execState = methodCallback->_globalExecState;
 
     id target = *static_cast<id*>(argValues[0]);
-#ifdef DEBUG_OBJC_INVOCATION
     SEL selector = *static_cast<SEL*>(argValues[1]);
+#ifdef DEBUG_OBJC_INVOCATION
     bool isInstance = !class_isMetaClass(object_getClass(target));
     NSLog(@"< %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(selector));
 #endif
@@ -171,6 +172,18 @@ void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, vo
 
     JSValue thisValue = toValue(execState, target);
     methodCallback->callFunction(thisValue, arguments, retValue);
+
+    if (sel_isEqual(selector, @selector(dealloc))) {
+        // When `dealloc` is implemented in JS we were caching a wrapper to the
+        // already deallocated instance. This doesn't do any harm until the same
+        // memory address is reused for another Objective-C instance. When this happens
+        // the new object will be returned to the JS world via the cached wrapper,
+        // which however won't increment its retention count, leading to its premature
+        // deallocation and a crash whenever it's attempted to be used afterwards.
+        if (auto wrapperObject = jsCast<ObjCWrapperObject*>(thisValue)) {
+            wrapperObject->removeFromCache();
+        }
+    }
 
     if (methodCallback->_hasErrorOutParameter) {
         //        size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
