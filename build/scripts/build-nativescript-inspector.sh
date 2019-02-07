@@ -14,13 +14,12 @@ INSPECTOR_SOURCE_PATH="$WORKSPACE/src/debugging/Inspector/Inspector"
 INSPECTOR_BUILD_OUTPUT_PATH="$WORKSPACE/cmake-build/Inspector"
 
 checkpoint "Inspector build started"
-mkdir -p "$WORKSPACE/cmake-build"
 
 checkpoint "Building WebKit"
 
 CCACHE_ARGS=""
 if type -p ccache >/dev/null 2>&1; then
-    test -e ./cmake-build || ./cmake-gen.sh
+    ./cmake-gen.sh
     CCACHE_ARGS="CXX=$PWD/cmake-build/launch-cxx CC=$PWD/cmake-build/launch-c"
 fi
 
