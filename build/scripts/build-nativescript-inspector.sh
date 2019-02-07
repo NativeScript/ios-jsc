@@ -20,7 +20,7 @@ checkpoint "Building WebKit"
 
 CCACHE_ARGS=""
 if type -p ccache >/dev/null 2>&1; then
-    test -e ./cmake-build1 || ./cmake-gen.sh
+    test -e ./cmake-build || ./cmake-gen.sh
     CCACHE_ARGS="CXX=$PWD/cmake-build/launch-cxx CC=$PWD/cmake-build/launch-c"
 fi
 
