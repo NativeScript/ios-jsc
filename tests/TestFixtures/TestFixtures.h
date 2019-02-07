@@ -22,6 +22,7 @@
 #import "Interfaces/TNSInheritance.h"
 #import "Interfaces/TNSMethodCalls.h"
 
+#import "Marshalling/TNSAllocLog.h"
 #import "Marshalling/TNSFunctionPointers.h"
 #import "Marshalling/TNSObjCTypes.h"
 #import "Marshalling/TNSPrimitivePointers.h"

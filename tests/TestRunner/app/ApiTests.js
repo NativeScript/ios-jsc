@@ -427,6 +427,55 @@ describe(module.id, function () {
         expect(str.normalize()).toBe(str);
     });
 
+    describe("__releaseNativeCounterpart", function () {
+        it("deallocates js derived instances created with alloc().init()", function () {
+            var P = TNSAllocLog.extend({
+                dealloc: function () {
+                    TNSAllocLog.dealloc.apply(this);
+                }
+            });
+
+            var p = P.alloc().init();
+
+            __releaseNativeCounterpart(p);
+
+            const output = TNSGetOutput();
+            expect(output).toBe("TNSAllocLog initTNSAllocLog dealloc");
+        });
+
+        it("deallocates js derived instances created with new", function () {
+            var P = TNSAllocLog.extend({
+                dealloc: function () {
+                    TNSAllocLog.dealloc.apply(this);
+                }
+            });
+
+            var p = new P();
+
+            __releaseNativeCounterpart(p);
+
+            const output = TNSGetOutput();
+            expect(output).toBe("TNSAllocLog initTNSAllocLog dealloc");
+        });
+
+        it("deallocates native instances created with alloc().init()", function () {
+            var p = TNSAllocLog.alloc().init();
+
+            __releaseNativeCounterpart(p);
+
+            const output = TNSGetOutput();
+            expect(output).toBe("TNSAllocLog initTNSAllocLog dealloc");
+        });
+
+        it("deallocates native instances created with new", function () {
+            var p = new TNSAllocLog();
+
+            __releaseNativeCounterpart(p);
+
+            const output = TNSGetOutput();
+            expect(output).toBe("TNSAllocLog initTNSAllocLog dealloc");
+        });
+    });
     describe("async", function () {
         it("should work", function (done) {
             var str = NSString.alloc();

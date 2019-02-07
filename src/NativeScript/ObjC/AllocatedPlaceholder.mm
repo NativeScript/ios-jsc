@@ -20,4 +20,18 @@ void AllocatedPlaceholder::visitChildren(JSCell* cell, JSC::SlotVisitor& visitor
 
     visitor.append(object->_instanceStructure);
 }
+
+void AllocatedPlaceholder::destroy(JSC::JSCell* cell) {
+    static_cast<AllocatedPlaceholder*>(cell)->~AllocatedPlaceholder();
+}
+
+void AllocatedPlaceholder::finishCreation(JSC::VM& vm, GlobalObject* globalObject, id wrappedObject, JSC::Structure* instanceStructure) {
+    Base::finishCreation(vm);
+    this->_wrappedObject = wrappedObject;
+    this->_instanceStructure.set(vm, this, instanceStructure);
+}
+
+AllocatedPlaceholder::~AllocatedPlaceholder() {
+}
+
 } // namespace NativeScript

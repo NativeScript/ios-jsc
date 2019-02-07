@@ -7,6 +7,7 @@
 //
 
 #include "ObjCClassBuilder.h"
+#include "./TNSDerivedClassProtocol.h"
 #include "FFIType.h"
 #include "Interop.h"
 #include "Metadata.h"
@@ -22,10 +23,6 @@
 #include "TNSRuntime+Private.h"
 #include "TypeFactory.h"
 #include <sstream>
-
-@protocol TNSDerivedClass
-
-@end
 
 namespace NativeScript {
 using namespace JSC;
@@ -68,9 +65,6 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
       Structure* instancesStructure = globalObject->constructorFor(blockKlass)->instancesStructure();
       auto derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
-
-      /// TODO: This call might be unnecessary
-      gcProtect(derivedWrapper.get());
 
       Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
       auto superObject = ObjCSuperObject::create(vm, superStructure, derivedWrapper.get(), globalObject);

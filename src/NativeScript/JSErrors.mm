@@ -184,7 +184,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                                                                                                    message.utf8().data(),
                                                                                                    jsCallstack.c_str()]
                                                                  reason:nil
-                                                                 userInfo:@{ @"sender": @"reportFatalErrorBeforeShutdown" }];
+                                                               userInfo:@{ @"sender": @"reportFatalErrorBeforeShutdown" }];
             @throw objcException;
         }
     }
@@ -192,6 +192,10 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
 
 void dumpExecJsCallStack(ExecState* execState) {
     dumpJsCallStack(createScriptCallStack(execState).get());
+}
+
+std::string getExecJsCallStack(ExecState* execState) {
+    return getCallStack(createScriptCallStack(execState).get());
 }
 
 std::string getCallStack(const Inspector::ScriptCallStack& frames) {
@@ -209,7 +213,7 @@ std::string getCallStack(const Inspector::ScriptCallStack& frames) {
 }
 
 std::string dumpJsCallStack(const Inspector::ScriptCallStack& frames) {
-    std::string jsCallstack  = getCallStack(frames);
+    std::string jsCallstack = getCallStack(frames);
 
     NSLog(@"%s", jsCallstack.c_str());
 

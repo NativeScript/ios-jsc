@@ -73,6 +73,7 @@ set(HEADER_FILES
     ObjC/Inheritance/ObjCClassBuilder.h
     ObjC/Inheritance/ObjCExtend.h
     ObjC/Inheritance/ObjCTypeScriptExtend.h
+    ObjC/Inheritance/TNSDerivedClassProtocol.h
 	ObjC/IsObjcObject.h
     ObjC/NSErrorWrapperConstructor.h
     ObjC/ObjCMethodCall.h
@@ -164,7 +165,7 @@ set(SOURCE_FILES
     Marshalling/Reference/IndexedRefPrototype.cpp
     Marshalling/Reference/ExtVectorTypeInstance.cpp
     Metadata/Metadata.mm
-    ObjC/AllocatedPlaceholder.cpp
+    ObjC/AllocatedPlaceholder.mm
     ObjC/Block/ObjCBlockCall.mm
     ObjC/Block/ObjCBlockCallback.cpp
     ObjC/Block/ObjCBlockType.mm

@@ -33,9 +33,9 @@ public:
         return this->_wrappedObject.get();
     }
 
-    void setWrappedObject(id wrappedObject) {
-        this->_wrappedObject = wrappedObject;
-    }
+    void setWrappedObject(id wrappedObject);
+
+    void removeFromCache();
 
     static WTF::String className(const JSObject* object, JSC::VM&);
 
