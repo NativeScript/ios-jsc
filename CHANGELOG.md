@@ -7,6 +7,31 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.2.0
+=====
+
+## What's new
+
+* **api:** Add OnDiscardedError handler ([#1051](https://github.com/NativeScript/ios-runtime/issues/1051))
+* **api:** Provide API to release the native object wrapped by a JS one ([#1062](https://github.com/NativeScript/ios-runtime/issues/1062))
+* **runtime:** Add support for Objective-C methods with same JS name and different parameters ([#1013](https://github.com/NativeScript/ios-runtime/pull/1013))
+* **runtime:** Provide automatic garbage collection triggering ([edbf653](https://github.com/NativeScript/ios-runtime/commit/edbf653)), closes [#1035](https://github.com/NativeScript/ios-runtime/issues/1035)
+* **runtime:** Provide support for setting JSC options in {N} applications ([#1004](https://github.com/NativeScript/ios-runtime/issues/1004))
+
+## Bug Fixes
+
+* **bridge:** Don't read JS properties without obtaining a lock ([8786f80](https://github.com/NativeScript/ios-runtime/commit/8786f80))
+* **bridge:** Catch ObjC Exceptions and throw them to JS ([#1043](https://github.com/NativeScript/ios-runtime/pull/1043), [#1029](https://github.com/NativeScript/ios-runtime/issues/1029)),
+* **bridge:** Don't read returned value of a function which threw an exception ([bdfdd9c](https://github.com/NativeScript/ios-runtime/commit/bdfdd9c))
+* **bridge:** Marshal arguments of async calls in worker thread ([30bcaca](https://github.com/NativeScript/ios-runtime/commit/30bcaca))
+* **bridge:** Remove ObjCWrapperObject from cache after dealloc ([b3713cb](https://github.com/NativeScript/ios-runtime/commit/b3713cb))
+* **interop:** Interop.Pointer int64 creation from NativeScript side ([#921](https://github.com/NativeScript/ios-runtime/issues/921))
+* **interop:** Add methods `toHexString` and `toDecimalString` to Pointer ([8b4157f](https://github.com/NativeScript/ios-runtime/commit/8b4157f))
+* **interop:** Construct Pointer from a wrapped number ([8d69895](https://github.com/NativeScript/ios-runtime/commit/8d69895))
+* **runtime:** Keep JS instances in Strong references after creation ([0e09ac9](https://github.com/NativeScript/ios-runtime/commit/0e09ac9))
+* **runtime:** GVRKit plugin metadata generation issue ([#877](https://github.com/NativeScript/ios-runtime/issues/877))
+* **runtime:** UncaughtExceptionHandler is called 2 times ([#1049](https://github.com/NativeScript/ios-runtime/issues/1049))
+
 5.1.1
 =====
 
@@ -14,7 +39,6 @@ previous_url: /Changelogs/iOS Runtime
 
 * **debugging:** Ensure a valid listenSource on each AttachRequest ([#1058](https://github.com/NativeScript/ios-runtime/pull/1058))
 * **debugging:** Logs are not shown in Chrome console tab ([#1037](https://github.com/NativeScript/ios-runtime/issues/1037))
-
 
 5.1.0
 =====
@@ -49,7 +73,6 @@ previous_url: /Changelogs/iOS Runtime
 * **LiveSync** [Disable modules debugging linker option for LiveSync library to resolve build warnings in {N} apps](https://github.com/NativeScript/ios-runtime/pull/994/commits/a342fb69ed101161c9a7d67a0c8e495211845fcc)
 * **libffi** [Correctly pass/return standalone vectors in native function calls](https://github.com/NativeScript/ios-runtime/pull/960)
 * **marshalling** [Reading collisionBoundingPath on UIView results in Objective C exception](https://github.com/NativeScript/ios-runtime/issues/978)
-
 
 4.2.0
 =====
