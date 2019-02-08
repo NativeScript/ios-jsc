@@ -133,7 +133,7 @@ static EncodedJSValue JSC_HOST_CALL releaseNativeCounterpart(ExecState* execStat
     }
 
     auto arg0 = execState->argument(0);
-    auto wrapper = jsCast<ObjCWrapperObject*>(arg0);
+    auto wrapper = jsDynamicCast<ObjCWrapperObject*>(execState->vm(), arg0);
     if (!wrapper) {
         auto scope = DECLARE_THROW_SCOPE(execState->vm());
         WTF::String message("Argument is an object which is not a native wrapper.");
