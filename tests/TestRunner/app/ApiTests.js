@@ -475,6 +475,32 @@ describe(module.id, function () {
             const output = TNSGetOutput();
             expect(output).toBe("TNSAllocLog initTNSAllocLog dealloc");
         });
+
+        it("throws when object is not a native wrapper", function () {
+            const expectedError = /argument.*not a native wrapper/i;
+            expect(() => __releaseNativeCounterpart(0)).toThrowError(expectedError);
+            expect(() => __releaseNativeCounterpart("")).toThrowError(expectedError);
+            expect(() => __releaseNativeCounterpart([])).toThrowError(expectedError);
+            expect(() => __releaseNativeCounterpart({})).toThrowError(expectedError);
+            expect(() => __releaseNativeCounterpart(null)).toThrowError(expectedError);
+            expect(() => __releaseNativeCounterpart(undefined)).toThrowError(expectedError);
+        });
+
+        it("sets object to nil", function () {
+            var arr = NSArray.arrayWithArray([1,2,3]);
+            expect(arr.count).toBe(3);
+            __releaseNativeCounterpart(arr);
+
+            expect(arr.toString()).toBe(null);
+            expect(typeof arr).toBe(typeof {});
+
+            // Extract from [Working with nil](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/WorkingwithObjects/WorkingwithObjects.html#//apple_ref/doc/uid/TP40011210-CH4-SW22):
+            // If you expect a return value from a message sent to nil, the return value will be
+            // nil for object return types, 0 for numeric types, and NO for BOOL types. Returned
+            // structures have all members initialized to zero.
+            expect(arr.count).toBe(0);
+        });
+
     });
     describe("async", function () {
         it("should work", function (done) {
