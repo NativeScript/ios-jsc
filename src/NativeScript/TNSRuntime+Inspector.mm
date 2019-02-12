@@ -11,7 +11,9 @@
 #include <JavaScriptCore/Debugger.h>
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorFrontendChannel.h>
-#include <JavaScriptCore/JSONObject.h>
+#include <JavaScriptCore/JSInternalPromise.h>
+#include <JavaScriptCore/JSNativeStdFunction.h>
+#include <JavaScriptCore/inspector/ScriptArguments.h>
 
 #include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectInspectorController.h"
@@ -106,11 +108,28 @@ private:
     JSC::JSLockHolder lock(_runtime->_vm.get());
 
     WTF::Deque<WTF::RefPtr<JSC::Microtask>> other;
-    GlobalObject* globalObject = self->_runtime->_globalObject.get();
+    NativeScript::GlobalObject* globalObject = self->_runtime->_globalObject.get();
 
     globalObject->microtasks().swap(other);
+    auto execState = globalObject->globalExec();
 
-    loadAndEvaluateModule(_runtime->_globalObject->globalExec(), "inspector_modules.js"_s, jsUndefined(), jsUndefined());
+    loadAndEvaluateModule(execState, "inspector_modules.js"_s, jsUndefined(), jsUndefined())
+        ->then(execState, nullptr, JSNativeStdFunction::create(execState->vm(), globalObject, 1, String("reject"), [globalObject](ExecState* execState) {
+                   JSValue error = execState->argument(0);
+                   Vector<JSC::Strong<JSC::Unknown>> argsVector({ JSC::Strong<JSC::Unknown>(execState->vm(), jsString(execState, String("Loading inspector modules failed: "))),
+                                                                  JSC::Strong<JSC::Unknown>(execState->vm(), error)
+
+                   });
+
+                   Ref<Inspector::ScriptArguments> logArgs = Inspector::ScriptArguments::create(*execState, WTFMove(argsVector));
+
+                   globalObject->inspectorController().consoleClient()->messageWithTypeAndLevel(
+                       MessageType::Log,
+                       MessageLevel::Warning,
+                       execState,
+                       WTFMove(logArgs));
+                   return encodedJSUndefined();
+               }));
 
     globalObject->drainMicrotasks();
     globalObject->microtasks().swap(other);

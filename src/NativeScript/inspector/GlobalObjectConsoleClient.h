@@ -19,8 +19,9 @@ public:
     static bool logToSystemConsole();
     static void setLogToSystemConsole(bool);
 
-protected:
     virtual void messageWithTypeAndLevel(MessageType, MessageLevel, JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
+
+protected:
     virtual void count(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
     virtual void profile(JSC::ExecState*, const String& title) override;
     virtual void profileEnd(JSC::ExecState*, const String& title) override;
