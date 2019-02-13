@@ -26,6 +26,8 @@
 #ifndef GlobalObjectInspectorController_h
 #define GlobalObjectInspectorController_h
 
+#include "GlobalObjectConsoleClient.h"
+
 #include <JavaScriptCore/InspectorAgentBase.h>
 #include <JavaScriptCore/InspectorAgentRegistry.h>
 #include <JavaScriptCore/InspectorEnvironment.h>
@@ -102,7 +104,7 @@ public:
     void pause();
     void reportAPIException(JSC::ExecState*, JSC::Exception*);
 
-    JSC::ConsoleClient* consoleClient() const {
+    GlobalObjectConsoleClient* consoleClient() const {
         return m_consoleClient.get();
     }
 
@@ -155,7 +157,7 @@ private:
     void appendAPIBacktrace(Inspector::ScriptCallStack* callStack);
 
     std::unique_ptr<Inspector::InjectedScriptManager> m_injectedScriptManager;
-    std::unique_ptr<JSC::ConsoleClient> m_consoleClient;
+    std::unique_ptr<GlobalObjectConsoleClient> m_consoleClient;
     Ref<WTF::Stopwatch> m_executionStopwatch;
     Inspector::JSGlobalObjectScriptDebugServer m_scriptDebugServer;
     Inspector::AgentRegistry m_agents;
