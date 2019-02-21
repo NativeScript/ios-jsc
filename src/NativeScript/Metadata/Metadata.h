@@ -46,6 +46,18 @@ static const V& getProperFunctionFromContainer(const std::vector<V>& container, 
     return *callee;
 }
 
+inline UInt8 encodeVersion(UInt8 majorVersion, UInt8 minorVersion) {
+    return (majorVersion << 3) | minorVersion;
+}
+
+inline UInt8 getMajorVersion(UInt8 encodedVersion) {
+    return encodedVersion >> 3;
+}
+
+inline UInt8 getMinorVersion(UInt8 encodedVersion) {
+    return encodedVersion & 0b111;
+}
+
 // Bit indices in flags section
 enum MetaFlags {
     HasName = 7,

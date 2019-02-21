@@ -9,3 +9,35 @@
 #define generateVersionImpl
 #import "TNSVersions.h"
 #undef generateVersionImpl
+
+@implementation TNSInterfaceAlwaysAvailable (AvailableAfter1_0)
+
+- (void)availableStaticMethod1_0 {
+}
+
+- (void)explicitlyUnvailableStaticMethod {
+}
+
++ (void)availableMethod1_0 {
+}
+
+- (void)explicitlyUnvailableMethod {
+}
+
+@end
+
+@implementation TNSInterfaceAlwaysAvailable (NeverAvailable)
+
+- (void)unavailableStaticMethod {
+}
+
+- (void)explicitlyAvailableStaticMethod1_0 {
+}
+
++ (void)unavailableMethod {
+}
+
+- (void)explicitlyAvailableMethod1_0 {
+}
+
+@end

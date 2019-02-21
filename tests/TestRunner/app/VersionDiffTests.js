@@ -72,4 +72,22 @@ describe(module.id, function() {
             check(value, major, minor);
         });
     });
+
+    it("Version category static methods", function() {
+        expect(TNSInterfaceAlwaysAvailable.unavailableStaticMethod).toBeUndefined("Parent Category is unavailable, so should the method.");
+        expect(TNSInterfaceAlwaysAvailable.explicitlyAvailableStaticMethod1_0).toBeDefined("Parent Category is unavailable, but method has overridden it.");
+
+        expect(TNSInterfaceAlwaysAvailable.availableStaticMethod1_0).toBeDefined("Parent Category is available, so should the method.");
+        expect(TNSInterfaceAlwaysAvailable.explicitlyUnavailableStaticMethod).toBeUndefined("Parent Category is available, but method has overridden it.");
+    });
+
+    it("Version category methods", function() {
+        const var = new TNSInterfaceAlwaysAvailable();
+
+        expect(var.unavailableMethod).toBeUndefined("Parent Category is unavailable, so should the method.");
+        expect(var.explicitlyAvailableMethod1_0).toBeDefined("Parent Category is unavailable, but method has overridden it.");
+
+        expect(var.availableMethod1_0).toBeDefined("Parent Category is available, so should the method.");
+        expect(var.explicitlyUnavailableMethod).toBeUndefined("Parent Category is available, but method has overridden it.");
+    });
 });
