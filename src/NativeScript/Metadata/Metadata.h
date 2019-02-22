@@ -292,6 +292,12 @@ struct GlobalTable {
 
     const InterfaceMeta* findInterfaceMeta(const char* identifierString, size_t length, unsigned hash) const;
 
+    const ProtocolMeta* findProtocol(WTF::StringImpl* identifier) const;
+
+    const ProtocolMeta* findProtocol(const char* identifierString) const;
+
+    const ProtocolMeta* findProtocol(const char* identifierString, size_t length, unsigned hash) const;
+
     const Meta* findMeta(WTF::StringImpl* identifier, bool onlyIfAvailable = true) const;
 
     const Meta* findMeta(const char* identifierString, bool onlyIfAvailable = true) const;

@@ -78,4 +78,37 @@ describe(module.id, function() {
         // TNSInterfaceNeverAvailableDescendant : TNSInterfaceNeverAvailable(API31.7 - skipped) : TNSInterfaceAlwaysAvailable
         expect(Object.getPrototypeOf(TNSInterfaceNeverAvailableDescendant).toString()).toBe(TNSInterfaceAlwaysAvailable.toString(), "TNSInterfaceNeverAvailable base class should be skipped as it is unavailable");
     });
+
+    it("Members of a protocol which is unavailable should be skipped only when not implemented by class", function() {
+       expect(Object.getOwnPropertyNames(TNSInterfaceAlwaysAvailable)).toContain("staticPropertyFromProtocolNeverAvailable", "TNSProtocolNeverAvailable static properties that are implemented should be present although the protocol is unavailable");
+       expect(Object.getOwnPropertyNames(TNSInterfaceAlwaysAvailable)).not.toContain("staticPropertyFromProtocolNeverAvailableNotImplemented", "TNSProtocolNeverAvailable unimplemented static properties should be skipped");
+       expect(TNSInterfaceAlwaysAvailable.staticMethodFromProtocolNeverAvailable).toBeDefined("TNSProtocolNeverAvailable static methods that are implemented should be present although the protocol is unavailable");
+       expect(TNSInterfaceAlwaysAvailable.staticMethodFromProtocolNeverAvailableNotImplemented).toBeUndefined("TNSProtocolNeverAvailable unimplemented static methods should be skipped");
+       expect(Object.getOwnPropertyNames(TNSInterfaceAlwaysAvailable.prototype)).toContain("propertyFromProtocolNeverAvailable", "TNSProtocolNeverAvailable properties that are implemented should be present although the protocol is unavailable");
+       expect(Object.getOwnPropertyNames(TNSInterfaceAlwaysAvailable.prototype)).not.toContain("propertyFromProtocolNeverAvailableNotImplemented", "TNSProtocolNeverAvailable unimplemented properties should be skipped");
+       expect(new TNSInterfaceAlwaysAvailable().methodFromProtocolNeverAvailable).toBeDefined("TNSProtocolNeverAvailable methods that are implemented should be present although the protocol is unavailable");
+       expect(new TNSInterfaceAlwaysAvailable().methodFromProtocolNeverAvailableNotImplemented).toBeUndefined("TNSProtocolNeverAvailable unimplemented methods should be skipped");
+    });
+
+    it("Members of a protocol which is available should be present", function() {
+        const obj = new TNSInterfaceAlwaysAvailable();
+        let expectedOutput = "";
+        expect(Object.getOwnPropertyNames(TNSInterfaceAlwaysAvailable.prototype)).toContain("propertyFromProtocolAlwaysAvailable", "TNSProtocolAlwaysAvailable properties should be present as it is available");
+        expect(obj.propertyFromProtocolAlwaysAvailable).toBe(0);
+       
+        expect(obj.methodFromProtocolAlwaysAvailable).toBeDefined("TNSProtocolAlwaysAvailable methods should be present as it is available");
+        obj.methodFromProtocolAlwaysAvailable(); expectedOutput += "methodFromProtocolAlwaysAvailable called";
+        expect(TNSGetOutput()).toBe(expectedOutput);
+       
+        TNSClearOutput();
+       
+        expectedOutput = "";
+        expect(Object.getOwnPropertyNames(TNSInterfaceAlwaysAvailable)).toContain("staticPropertyFromProtocolAlwaysAvailable", "TNSProtocolAlwaysAvailable static properties should be present as it is available");
+        TNSInterfaceAlwaysAvailable.staticPropertyFromProtocolAlwaysAvailable; expectedOutput += "staticPropertyFromProtocolAlwaysAvailable called";
+       
+        expect(TNSInterfaceAlwaysAvailable.staticMethodFromProtocolAlwaysAvailable).toBeDefined("TNSProtocolAlwaysAvailable static methods should be present as it is available");
+        TNSInterfaceAlwaysAvailable.staticMethodFromProtocolAlwaysAvailable(); expectedOutput += "staticMethodFromProtocolAlwaysAvailable called";
+       
+       expect(TNSGetOutput()).toBe(expectedOutput);
+    });
 });

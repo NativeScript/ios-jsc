@@ -79,6 +79,25 @@ const InterfaceMeta* GlobalTable::findInterfaceMeta(const char* identifierString
     }
 }
 
+const ProtocolMeta* GlobalTable::findProtocol(WTF::StringImpl* identifier) const {
+    return this->findProtocol(reinterpret_cast<const char*>(identifier->characters8()), identifier->length(), identifier->hash());
+}
+
+const ProtocolMeta* GlobalTable::findProtocol(const char* identifierString) const {
+    unsigned hash = WTF::StringHasher::computeHashAndMaskTop8Bits<LChar>(reinterpret_cast<const LChar*>(identifierString));
+    return this->findProtocol(identifierString, strlen(identifierString), hash);
+}
+
+const ProtocolMeta* GlobalTable::findProtocol(const char* identifierString, size_t length, unsigned hash) const {
+    // Do not check for availability when returning a protocol. Apple regularly create new protocols and move
+    // existing interface members there (e.g. iOS 12.0 introduced the UIFocusItemScrollableContainer protocol
+    // in UIKit which contained members that have existed in UIScrollView since iOS 2.0)
+
+    auto meta = this->findMeta(identifierString, length, hash, /*onlyIfAvailable*/ false);
+    ASSERT(!meta || meta->type() == ProtocolType);
+    return static_cast<const ProtocolMeta*>(meta);
+}
+
 const Meta* GlobalTable::findMeta(WTF::StringImpl* identifier, bool onlyIfAvailable) const {
     return this->findMeta(reinterpret_cast<const char*>(identifier->characters8()), identifier->length(), identifier->hash(), onlyIfAvailable);
 }
@@ -186,10 +205,10 @@ const MembersCollection BaseClassMeta::members(const char* identifier, size_t le
         return result;
     }
 
-    // search in protcols
+    // search in protocols
     if (includeProtocols) {
         for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-            const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr()));
+            const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
             if (protocolMeta != nullptr) {
                 const MembersCollection members = protocolMeta->members(identifier, length, type, onlyIfAvailable);
                 if (members.size() > 0) {
@@ -205,7 +224,7 @@ const MembersCollection BaseClassMeta::members(const char* identifier, size_t le
 std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container, Class klass) const {
     this->instanceProperties(container, klass);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-        const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
+        const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
         if (protocolMeta != nullptr)
             protocolMeta->instancePropertiesWithProtocols(container, klass);
     }
@@ -215,7 +234,7 @@ std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(
 std::vector<const PropertyMeta*> BaseClassMeta::staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container, Class klass) const {
     this->staticProperties(container, klass);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-        const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
+        const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
         if (protocolMeta != nullptr)
             protocolMeta->staticPropertiesWithProtocols(container, klass);
     }
@@ -241,7 +260,7 @@ vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>&
 vector<const MethodMeta*> BaseClassMeta::initializersWithProtocols(vector<const MethodMeta*>& container, Class klass) const {
     this->initializers(container, klass);
     for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); it++) {
-        const ProtocolMeta* protocolMeta = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta((*it).valuePtr(), false));
+        const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
         if (protocolMeta != nullptr)
             protocolMeta->initializersWithProtocols(container, klass);
     }

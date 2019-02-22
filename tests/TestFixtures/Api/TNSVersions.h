@@ -75,7 +75,37 @@ generateMinors(15);
 // max availability version that can be currently represented in the binary metadata is 31.7 (major << 3 | minor) -> uint8_t
 #define MAX_AVAILABILITY 31.7
 
-@interface TNSInterfaceAlwaysAvailable : NSObject
+__attribute__((availability(ios, introduced = MAX_AVAILABILITY)))
+@protocol TNSProtocolNeverAvailable<NSObject>
+
+@property(class, readonly) int staticPropertyFromProtocolNeverAvailable;
+@property(class, readonly) int staticPropertyFromProtocolNeverAvailableNotImplemented;
+
++ (void)staticMethodFromProtocolNeverAvailable;
++ (void)staticMethodFromProtocolNeverAvailableNotImplemented;
+
+@property(readonly) int propertyFromProtocolNeverAvailable;
+@property(readonly) int propertyFromProtocolNeverAvailableNotImplemented;
+
+- (void)methodFromProtocolNeverAvailable;
+- (void)methodFromProtocolNeverAvailableNotImplemented;
+
+@end
+
+__attribute__((availability(ios, introduced = 1.0)))
+@protocol TNSProtocolAlwaysAvailable<NSObject>
+
+@property(class, readonly) int staticPropertyFromProtocolAlwaysAvailable;
+
++ (void)staticMethodFromProtocolAlwaysAvailable;
+
+@property(readonly) int propertyFromProtocolAlwaysAvailable;
+
+- (void)methodFromProtocolAlwaysAvailable;
+
+@end
+
+@interface TNSInterfaceAlwaysAvailable : NSObject <TNSProtocolNeverAvailable, TNSProtocolAlwaysAvailable>
 @end
 
 __attribute__((availability(ios, introduced = MAX_AVAILABILITY)))
