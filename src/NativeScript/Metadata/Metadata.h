@@ -46,6 +46,18 @@ static const V& getProperFunctionFromContainer(const std::vector<V>& container, 
     return *callee;
 }
 
+inline UInt8 encodeVersion(UInt8 majorVersion, UInt8 minorVersion) {
+    return (majorVersion << 3) | minorVersion;
+}
+
+inline UInt8 getMajorVersion(UInt8 encodedVersion) {
+    return encodedVersion >> 3;
+}
+
+inline UInt8 getMinorVersion(UInt8 encodedVersion) {
+    return encodedVersion & 0b111;
+}
+
 // Bit indices in flags section
 enum MetaFlags {
     HasName = 7,
@@ -126,6 +138,7 @@ enum BinaryTypeEncodingType : Byte {
 template <typename T>
 struct PtrTo;
 struct Meta;
+struct InterfaceMeta;
 struct ProtocolMeta;
 struct ModuleMeta;
 struct LibraryMeta;
@@ -272,6 +285,12 @@ struct GlobalTable {
     }
 
     ArrayOfPtrTo<ArrayOfPtrTo<Meta>> buckets;
+
+    const InterfaceMeta* findInterfaceMeta(WTF::StringImpl* identifier) const;
+
+    const InterfaceMeta* findInterfaceMeta(const char* identifierString) const;
+
+    const InterfaceMeta* findInterfaceMeta(const char* identifierString, size_t length, unsigned hash) const;
 
     const Meta* findMeta(WTF::StringImpl* identifier, bool onlyIfAvailable = true) const;
 
@@ -667,9 +686,24 @@ public:
     const char* constructorTokens() const {
         return this->_constructorTokens.valuePtr();
     }
+
+    bool isImplementedInClass(Class klass, bool isStatic) const {
+        // class can be null for Protocol prototypes, treat all members in a protocol as implemented
+        if (klass == nullptr) {
+            return true;
+        }
+
+        return nullptr != (isStatic ? class_getClassMethod(klass, this->selector()) : class_getInstanceMethod(klass, this->selector()));
+    }
+
+    bool isAvailableInClass(Class klass, bool isStatic) const {
+        return this->isAvailable() && this->isImplementedInClass(klass, isStatic);
+    }
 };
 
-std::unordered_map<std::string, std::vector<const MemberMeta*>> getMetasByJSNames(std::vector<const MemberMeta*> methods);
+typedef HashSet<const MemberMeta*> MembersCollection;
+
+std::unordered_map<std::string, MembersCollection> getMetasByJSNames(MembersCollection methods);
 
 struct PropertyMeta : MemberMeta {
     PtrTo<MethodMeta> method1;
@@ -691,6 +725,16 @@ public:
     const MethodMeta* setter() const {
         return (this->hasSetter()) ? (this->hasGetter() ? method2.valuePtr() : method1.valuePtr()) : nullptr;
     }
+
+    bool isImplementedInClass(Class klass, bool isStatic) const {
+        bool getterAvailable = this->hasGetter() && this->getter()->isImplementedInClass(klass, isStatic);
+        bool setterAvailable = this->hasSetter() && this->setter()->isImplementedInClass(klass, isStatic);
+        return getterAvailable || setterAvailable;
+    }
+
+    bool isAvailableInClass(Class klass, bool isStatic) const {
+        return this->isAvailable() && this->isImplementedInClass(klass, isStatic);
+    }
 };
 
 struct BaseClassMeta : Meta {
@@ -706,7 +750,7 @@ struct BaseClassMeta : Meta {
 
     const MethodMeta* member(const char* identifier, size_t length, MemberType type, size_t paramsCount, bool includeProtocols = true, bool onlyIfAvailable = true) const;
 
-    const std::vector<const MemberMeta*> members(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
+    const MembersCollection members(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
 
     const MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
         const char* identif = reinterpret_cast<const char*>(identifier->characters8());
@@ -720,7 +764,7 @@ struct BaseClassMeta : Meta {
         return this->member(identif, length, type, paramsCount, includeProtocols);
     }
 
-    const std::vector<const MemberMeta*> members(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
+    const MembersCollection members(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
         const char* identif = reinterpret_cast<const char*>(identifier->characters8());
         size_t length = (size_t)identifier->length();
         return this->members(identif, length, type, includeProtocols);
@@ -731,101 +775,110 @@ struct BaseClassMeta : Meta {
     }
 
     /// instance methods
-    const MethodMeta* instanceMethod(const char* identifier, size_t paramsCount, bool includeProtocols = true) const {
-        return this->member(identifier, strlen(identifier), MemberType::InstanceMethod, paramsCount, includeProtocols);
+
+    // Remove all optional methods/properties which are not implemented in the class
+    template <typename TMemberMeta>
+    static void filterUnavailableMembers(MembersCollection& members, Class klass, bool isStatic) {
+        members.removeIf([klass, isStatic](const MemberMeta* memberMeta) {
+            return !static_cast<const TMemberMeta*>(memberMeta)->isAvailableInClass(klass, isStatic);
+        });
     }
 
-    const MethodMeta* instanceMethod(StringImpl* identifier, size_t paramsCount, bool includeProtocols = true) const {
-        return this->member(identifier, MemberType::InstanceMethod, paramsCount, includeProtocols);
-    }
+    const MembersCollection getInstanceMethods(StringImpl* identifier, Class klass, bool includeProtocols = true) const {
+        MembersCollection methods = this->members(identifier, MemberType::InstanceMethod, includeProtocols);
 
-    const std::vector<const MemberMeta*> getInstanceMethods(StringImpl* identifier, bool includeProtocols = true) const {
-        return this->members(identifier, MemberType::InstanceMethod, includeProtocols);
+        filterUnavailableMembers<MethodMeta>(methods, klass, false);
+
+        return methods;
     }
 
     /// static methods
-    const MethodMeta* staticMethod(const char* identifier, size_t paramsCount, bool includeProtocols = true) const {
-        return this->member(identifier, strlen(identifier), MemberType::StaticMethod, paramsCount, includeProtocols);
-    }
+    const MembersCollection getStaticMethods(StringImpl* identifier, Class klass, bool includeProtocols = true) const {
+        MembersCollection methods = this->members(identifier, MemberType::StaticMethod, includeProtocols);
 
-    const std::vector<const MemberMeta*> getStaticMethods(StringImpl* identifier, bool includeProtocols = true) const {
-        return this->members(identifier, MemberType::StaticMethod, includeProtocols);
-    }
+        filterUnavailableMembers<MethodMeta>(methods, klass, true);
 
-    const MethodMeta* staticMethod(StringImpl* identifier, size_t paramsCount, bool includeProtocols = true) const {
-        return this->member(identifier, MemberType::StaticMethod, paramsCount, includeProtocols);
+        return methods;
     }
 
     /// instance properties
-    const PropertyMeta* instanceProperty(const char* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols));
+    const PropertyMeta* instanceProperty(const char* identifier, Class klass, bool includeProtocols = true) const {
+        auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols));
+        return propMeta && propMeta->isAvailableInClass(klass, /*isStatic*/ false) ? propMeta : nullptr;
     }
 
-    const PropertyMeta* instanceProperty(StringImpl* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols));
+    const PropertyMeta* instanceProperty(StringImpl* identifier, Class klass, bool includeProtocols = true) const {
+        auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols));
+        return propMeta && propMeta->isAvailableInClass(klass, /*isStatic*/ false) ? propMeta : nullptr;
     }
 
     /// static properties
-    const PropertyMeta* staticProperty(const char* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols));
+    const PropertyMeta* staticProperty(const char* identifier, Class klass, bool includeProtocols = true) const {
+        auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols));
+        return propMeta && propMeta->isAvailableInClass(klass, /*isStatic*/ true) ? propMeta : nullptr;
     }
 
-    const PropertyMeta* staticProperty(StringImpl* identifier, bool includeProtocols = true) const {
-        return reinterpret_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols));
+    const PropertyMeta* staticProperty(StringImpl* identifier, Class klass, bool includeProtocols = true) const {
+        auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols));
+        return propMeta && propMeta->isAvailableInClass(klass, /*isStatic*/ true) ? propMeta : nullptr;
     }
 
     /// vectors
-    std::vector<const PropertyMeta*> instanceProperties() const {
+    std::vector<const PropertyMeta*> instanceProperties(Class klass) const {
         std::vector<const PropertyMeta*> properties;
-        return this->instanceProperties(properties);
+        return this->instanceProperties(properties, klass);
     }
 
-    std::vector<const PropertyMeta*> instancePropertiesWithProtocols() const {
+    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(Class klass) const {
         std::vector<const PropertyMeta*> properties;
-        return this->instancePropertiesWithProtocols(properties);
+        return this->instancePropertiesWithProtocols(properties, klass);
     }
 
-    std::vector<const PropertyMeta*> instanceProperties(std::vector<const PropertyMeta*>& container) const {
+    std::vector<const PropertyMeta*> instanceProperties(std::vector<const PropertyMeta*>& container, Class klass) const {
         for (Array<PtrTo<PropertyMeta>>::iterator it = this->instanceProps->begin(); it != this->instanceProps->end(); it++) {
-            container.push_back((*it).valuePtr());
+            if ((*it)->isAvailableInClass(klass, /*isStatic*/ false)) {
+                container.push_back((*it).valuePtr());
+            }
         }
         return container;
     }
 
-    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const;
+    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container, Class klass) const;
 
-    std::vector<const PropertyMeta*> staticProperties() const {
+    std::vector<const PropertyMeta*> staticProperties(Class klass) const {
         std::vector<const PropertyMeta*> properties;
-        return this->staticProperties(properties);
+        return this->staticProperties(properties, klass);
     }
 
-    std::vector<const PropertyMeta*> staticPropertiesWithProtocols() const {
+    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(Class klass) const {
         std::vector<const PropertyMeta*> properties;
-        return this->staticPropertiesWithProtocols(properties);
+        return this->staticPropertiesWithProtocols(properties, klass);
     }
 
-    std::vector<const PropertyMeta*> staticProperties(std::vector<const PropertyMeta*>& container) const {
+    std::vector<const PropertyMeta*> staticProperties(std::vector<const PropertyMeta*>& container, Class klass) const {
         for (Array<PtrTo<PropertyMeta>>::iterator it = this->staticProps->begin(); it != this->staticProps->end(); it++) {
-            container.push_back((*it).valuePtr());
+            if ((*it)->isAvailableInClass(klass, /*isStatic*/ true)) {
+                container.push_back((*it).valuePtr());
+            }
         }
         return container;
     }
 
-    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container) const;
+    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container, Class klass) const;
 
-    std::vector<const MethodMeta*> initializers() const {
+    std::vector<const MethodMeta*> initializers(Class klass) const {
         std::vector<const MethodMeta*> initializers;
-        return this->initializers(initializers);
+        return this->initializers(initializers, klass);
     }
 
-    std::vector<const MethodMeta*> initializersWithProtcols() const {
+    std::vector<const MethodMeta*> initializersWithProtocols(Class klass) const {
         std::vector<const MethodMeta*> initializers;
-        return this->initializersWithProtcols(initializers);
+        return this->initializersWithProtocols(initializers, klass);
     }
 
-    std::vector<const MethodMeta*> initializers(std::vector<const MethodMeta*>& container) const;
+    std::vector<const MethodMeta*> initializers(std::vector<const MethodMeta*>& container, Class klass) const;
 
-    std::vector<const MethodMeta*> initializersWithProtcols(std::vector<const MethodMeta*>& container) const;
+    std::vector<const MethodMeta*> initializersWithProtocols(std::vector<const MethodMeta*>& container, Class klass) const;
 };
 
 struct ProtocolMeta : BaseClassMeta {
@@ -843,9 +896,10 @@ public:
 
     const InterfaceMeta* baseMeta() const {
         if (this->baseName() != nullptr) {
-            const Meta* baseMeta = MetaFile::instance()->globalTable()->findMeta(this->baseName());
-            return baseMeta->type() == MetaType::Interface ? reinterpret_cast<const InterfaceMeta*>(baseMeta) : nullptr;
+            const InterfaceMeta* baseMeta = MetaFile::instance()->globalTable()->findInterfaceMeta(this->baseName());
+            return baseMeta;
         }
+
         return nullptr;
     }
 };

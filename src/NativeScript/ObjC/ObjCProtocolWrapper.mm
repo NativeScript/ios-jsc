@@ -42,9 +42,9 @@ bool ObjCProtocolWrapper::getOwnPropertySlot(JSObject* object, ExecState* execSt
 
     ObjCProtocolWrapper* protocol = jsCast<ObjCProtocolWrapper*>(object);
 
-    std::vector<const MemberMeta*> metas = protocol->_metadata->getStaticMethods(propertyName.publicName());
+    MembersCollection metas = protocol->_metadata->getStaticMethods(propertyName.publicName(), nullptr);
     if (metas.size() > 0) {
-        SymbolLoader::instance().ensureModule(metas[0]->topLevelModule());
+        SymbolLoader::instance().ensureModule((*metas.begin())->topLevelModule());
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 

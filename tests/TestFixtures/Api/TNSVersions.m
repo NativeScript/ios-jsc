@@ -9,3 +9,12 @@
 #define generateVersionImpl
 #import "TNSVersions.h"
 #undef generateVersionImpl
+
+@implementation TNSInterfaceAlwaysAvailable
+@end
+
+@implementation TNSInterfaceNeverAvailable : TNSInterfaceAlwaysAvailable
+@end
+
+@implementation TNSInterfaceNeverAvailableDescendant : TNSInterfaceNeverAvailable
+@end

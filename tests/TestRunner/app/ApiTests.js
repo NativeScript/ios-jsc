@@ -197,6 +197,32 @@ describe(module.id, function () {
         expect(field.secureTextEntry).toBe(true);
     });
 
+     it("SpecialCaseProperty_When_CustomSelector_ImplementedInJS", function () {
+        var field = new (UITextField.extend({
+            get secureTextEntry() {
+                TNSLog("getter");
+                return this._secureTextEntry;
+            },
+            set secureTextEntry(val) {
+                this._secureTextEntry = val;
+                TNSLog("setter:" + val);
+            }
+        }))();
+        var expectedOutput = "";
+
+        expect(field.secureTextEntry).toBeUndefined(); expectedOutput+="getter";
+
+        field.secureTextEntry = true; expectedOutput+="setter:true";
+
+        expect(field.secureTextEntry).toBe(true); expectedOutput+="getter";
+
+        field.secureTextEntry = false; expectedOutput+="setter:false";
+
+        expect(field.secureTextEntry).toBe(false); expectedOutput+="getter";
+
+        expect(TNSGetOutput()).toBe(expectedOutput);
+     });
+     
     it("TypedefPointerClass", function () {
         expect(TNSApi.alloc().init().strokeColor).toBeNull();
     });

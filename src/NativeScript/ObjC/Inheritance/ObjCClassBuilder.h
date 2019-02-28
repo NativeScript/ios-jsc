@@ -47,6 +47,8 @@ public:
 
     ObjCConstructorDerived* build(JSC::ExecState*);
 
+    Class klass();
+
 private:
     JSC::Strong<ObjCConstructorDerived> _constructor;
 

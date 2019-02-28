@@ -169,12 +169,10 @@ const WTF::Vector<WriteBarrier<ObjCConstructorWrapper>>& ObjCConstructorBase::in
         const Metadata::InterfaceMeta* metadata = this->metadata();
 
         do {
-            std::vector<const Metadata::MethodMeta*> initializers = metadata->initializersWithProtcols();
+            std::vector<const Metadata::MethodMeta*> initializers = metadata->initializersWithProtocols(this->klass());
             for (const Metadata::MethodMeta* method : initializers) {
-                if (method->isAvailable()) {
-                    auto constructorWrapper = ObjCConstructorWrapper::create(vm, globalObject, globalObject->objCConstructorWrapperStructure(), this->_klass, method);
-                    this->_initializers.append(WriteBarrier<ObjCConstructorWrapper>(vm, this, constructorWrapper.get()));
-                }
+                auto constructorWrapper = ObjCConstructorWrapper::create(vm, globalObject, globalObject->objCConstructorWrapperStructure(), this->_klass, method);
+                this->_initializers.append(WriteBarrier<ObjCConstructorWrapper>(vm, this, constructorWrapper.get()));
             }
 
             metadata = metadata->baseMeta();
@@ -216,9 +214,9 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
     std::vector<const Metadata::MethodMeta*> initializers;
     initializers.reserve(16);
     do {
-        interface->initializersWithProtcols(initializers);
+        interface->initializersWithProtocols(initializers, constructor->klass());
         for (const Metadata::MethodMeta* method : initializers) {
-            if (method->isAvailable() && strcmp(method->constructorTokens(), ctorMetadata.data()) == 0) {
+            if (strcmp(method->constructorTokens(), ctorMetadata.data()) == 0) {
                 result = method;
                 break;
             }

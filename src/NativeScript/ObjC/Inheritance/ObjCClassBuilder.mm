@@ -230,7 +230,7 @@ void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolW
     this->_protocols.push_back(protocolWrapperObject->metadata());
 
     if (Protocol* aProtocol = protocolWrapperObject->protocol()) {
-        Class klass = this->_constructor.get()->klass();
+        Class klass = this->klass();
         if ([klass conformsToProtocol:aProtocol]) {
             WTF::String errorMessage = WTF::String::format("Class \"%s\" already implements the \"%s\" protocol.", class_getName(klass), protocol_getName(aProtocol));
             warn(execState, errorMessage);
@@ -266,21 +266,19 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
 }
 
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
-    Class klass = this->_constructor.get()->klass();
     overrideObjcMethodCalls(execState,
                             this->_constructor.get(),
                             jsName,
                             method,
                             this->_constructor->metadata(),
                             MemberType::InstanceMethod,
-                            klass,
+                            this->klass(),
                             &this->_protocols);
 }
 
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {
-    Class klass = this->_constructor.get()->klass();
     SEL methodName = sel_registerName(jsName.utf8().data());
-    addMethodToClass(execState, klass, method, methodName, typeEncoding);
+    addMethodToClass(execState, this->klass(), method, methodName, typeEncoding);
 }
 
 void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name, const PropertyDescriptor& propertyDescriptor) {
@@ -292,20 +290,22 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
     const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
     const PropertyMeta* propertyMeta = nullptr;
     do {
-        propertyMeta = currentClass->instanceProperty(propertyName);
+        // Do not pass a `Class` instance, we need to override the property and must not check whether it's implemented or not
+        propertyMeta = currentClass->instanceProperty(propertyName, nullptr);
         currentClass = currentClass->baseMeta();
     } while (!propertyMeta && currentClass);
 
     if (!propertyMeta && !this->_protocols.empty()) {
         for (const ProtocolMeta* aProtocol : this->_protocols) {
-            if ((propertyMeta = aProtocol->instanceProperty(propertyName))) {
+            // Do not pass a `Class` instance, we need to override the property and must not check whether it's implemented or not
+            if ((propertyMeta = aProtocol->instanceProperty(propertyName, nullptr))) {
                 break;
             }
         }
     }
 
     if (propertyMeta) {
-        Class klass = this->_constructor.get()->klass();
+        Class klass = this->klass();
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         VM& vm = globalObject->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
@@ -407,8 +407,8 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
     }
 
     if (instanceMethods->hasOwnProperty(execState, execState->vm().propertyNames->iteratorSymbol)) {
-        class_addProtocol(this->_constructor->klass(), @protocol(NSFastEnumeration));
-        class_addProtocol(object_getClass(this->_constructor->klass()), @protocol(NSFastEnumeration));
+        class_addProtocol(this->klass(), @protocol(NSFastEnumeration));
+        class_addProtocol(object_getClass(this->klass()), @protocol(NSFastEnumeration));
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         IMP imp = imp_implementationWithBlock(^NSUInteger(id self, NSFastEnumerationState* state, id buffer[], NSUInteger length) {
@@ -416,13 +416,13 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
         });
 
         struct objc_method_description fastEnumerationMethodDescription = protocol_getMethodDescription(@protocol(NSFastEnumeration), @selector(countByEnumeratingWithState:objects:count:), YES, YES);
-        class_addMethod(this->_constructor->klass(), @selector(countByEnumeratingWithState:objects:count:), imp, fastEnumerationMethodDescription.types);
+        class_addMethod(this->klass(), @selector(countByEnumeratingWithState:objects:count:), imp, fastEnumerationMethodDescription.types);
     }
 }
 
 void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
 
-    Class klass = this->_constructor.get()->klass();
+    Class klass = this->klass();
     overrideObjcMethodCalls(execState,
                             this->_constructor.get(),
                             jsName,
@@ -434,7 +434,7 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
 }
 
 void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {
-    Class klass = object_getClass(this->_constructor.get()->klass());
+    Class klass = object_getClass(this->klass());
     SEL methodName = sel_registerName(jsName.utf8().data());
     addMethodToClass(execState, klass, method, methodName, typeEncoding);
 }
@@ -469,7 +469,7 @@ void ObjCClassBuilder::addStaticMethods(ExecState* execState, JSObject* staticMe
 }
 
 ObjCConstructorDerived* ObjCClassBuilder::build(ExecState* execState) {
-    Class klass = this->_constructor.get()->klass();
+    Class klass = this->klass();
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
@@ -477,6 +477,10 @@ ObjCConstructorDerived* ObjCClassBuilder::build(ExecState* execState) {
     attachDerivedMachinery(globalObject, klass, this->_baseConstructor->get(execState, globalObject->vm().propertyNames->prototype));
 
     return this->_constructor.get();
+}
+
+Class ObjCClassBuilder::klass() {
+    return this->_constructor->klass();
 }
 
 } //namespace NativeScript

@@ -247,7 +247,7 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
 
     VM& vm = globalObject->vm();
 
-    const InterfaceMeta* metadata = static_cast<const InterfaceMeta*>(MetaFile::instance()->globalTable()->findMeta(klassName.impl()));
+    const InterfaceMeta* metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(klassName.impl());
     Class klass = Nil;
 
     if (metadata) {
@@ -289,7 +289,7 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
     }
 
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
-    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata);
+    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata, klass);
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
     auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), klass);

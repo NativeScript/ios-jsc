@@ -12,24 +12,20 @@
 #include "FFICall.h"
 #include "FunctionWrapper.h"
 #include "JavaScriptCore/IsoSubspace.h"
-
-namespace Metadata {
-struct MemberMeta;
-struct MethodMeta;
-} // namespace Metadata
+#include "Metadata.h"
 
 namespace NativeScript {
 class ObjCMethodWrapper : public FunctionWrapper {
 public:
     typedef FunctionWrapper Base;
 
-    static JSC::Strong<ObjCMethodWrapper> create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, std::vector<const Metadata::MemberMeta*> metadata) {
+    static JSC::Strong<ObjCMethodWrapper> create(JSC::VM& vm, GlobalObject* globalObject, JSC::Structure* structure, Metadata::MembersCollection metadata) {
         JSC::Strong<ObjCMethodWrapper> cell(vm, new (NotNull, JSC::allocateCell<ObjCMethodWrapper>(vm.heap)) ObjCMethodWrapper(vm, structure));
         cell->finishCreation(vm, globalObject, metadata);
         return cell;
     }
 
-    static Strong<ObjCMethodWrapper> create(JSC::ExecState* execState, std::vector<const Metadata::MemberMeta*> metadata) {
+    static Strong<ObjCMethodWrapper> create(JSC::ExecState* execState, Metadata::MembersCollection metadata) {
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         return create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metadata);
     }
@@ -50,7 +46,7 @@ private:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM&, GlobalObject*, std::vector<const Metadata::MemberMeta*> methods);
+    void finishCreation(JSC::VM&, GlobalObject*, Metadata::MembersCollection methods);
 
     static void preInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);
     static void postInvocation(FFICall*, JSC::ExecState*, FFICall::Invocation&);

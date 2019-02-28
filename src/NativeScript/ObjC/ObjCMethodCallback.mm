@@ -56,7 +56,7 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
     ObjCMethodWrapper* wrapper = jsDynamicCast<ObjCMethodWrapper*>(execState->vm(), object->get(execState, propertyName));
     Strong<ObjCMethodWrapper> strongWrapper;
     if (!wrapper) {
-        std::vector<const Metadata::MemberMeta*> methodMetas;
+        MembersCollection methodMetas;
 
         auto currentClass = meta;
         do {

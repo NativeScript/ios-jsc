@@ -72,4 +72,10 @@ describe(module.id, function() {
             check(value, major, minor);
         });
     });
+
+    it("Base class which is unavailable should be skipped", function() {
+        // Test case inspired from MTLArrayType(8.0) : MTLType(11.0) : NSObject
+        // TNSInterfaceNeverAvailableDescendant : TNSInterfaceNeverAvailable(API31.7 - skipped) : TNSInterfaceAlwaysAvailable
+        expect(Object.getPrototypeOf(TNSInterfaceNeverAvailableDescendant).toString()).toBe(TNSInterfaceAlwaysAvailable.toString(), "TNSInterfaceNeverAvailable base class should be skipped as it is unavailable");
+    });
 });
