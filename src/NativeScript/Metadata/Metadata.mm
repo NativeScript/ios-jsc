@@ -7,6 +7,7 @@
 //
 
 #include "Metadata.h"
+#include "SymbolLoader.h"
 #include <UIKit/UIKit.h>
 #include <sys/stat.h>
 
@@ -127,6 +128,41 @@ bool Meta::isAvailable() const {
     UInt8 introducedIn = this->introducedIn();
     UInt8 systemVersion = getSystemVersion();
     return introducedIn == 0 || introducedIn <= systemVersion;
+}
+
+// MethodMeta class
+bool MethodMeta::isImplementedInClass(Class klass, bool isStatic) const {
+    // class can be null for Protocol prototypes, treat all members in a protocol as implemented
+    if (klass == nullptr) {
+        return true;
+    }
+
+    // Some members are implemented by extension of classes defined in a different
+    // module than the class, ensure they've been initialized
+    NativeScript::SymbolLoader::instance().ensureModule(this->topLevelModule());
+
+    if (isStatic) {
+        return [klass respondsToSelector:this->selector()] || ([klass resolveClassMethod:this->selector()]);
+    } else {
+        if ([klass instancesRespondToSelector:this->selector()] || [klass resolveInstanceMethod:this->selector()]) {
+            return true;
+        }
+
+        // Last resort - allocate an object and ask it if it supports the selector.
+        // There are two kinds of scenarios that need this additional check:
+        //   1. The `alloc` method is overridden and returns an instance of another class
+        //      E.g. [NSAttributedString alloc] returns a NSConcreteAttributedString*
+        //   2. The message is forwarded to another object. E.g. `UITextField` forwards
+        //      `autocapitalizationType` to an instance of `UITextInputTraits`
+        static std::unordered_map<Class, id> sampleInstances;
+
+        auto it = sampleInstances.find(klass);
+        if (it == sampleInstances.end()) {
+            it = sampleInstances.insert(std::make_pair(klass, [klass alloc])).first;
+        }
+        id sampleInstance = it->second;
+        return [sampleInstance respondsToSelector:this->selector()];
+    }
 }
 
 // BaseClassMeta

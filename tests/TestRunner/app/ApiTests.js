@@ -222,7 +222,7 @@ describe(module.id, function () {
 
         expect(TNSGetOutput()).toBe(expectedOutput);
      });
-     
+
     it("TypedefPointerClass", function () {
         expect(TNSApi.alloc().init().strokeColor).toBeNull();
     });
@@ -692,7 +692,7 @@ describe(module.id, function () {
             var counter = 0;
 
             Object.getOwnPropertyNames(global).forEach(function (name) {
-                // console.debug(name);
+//                console.debug(`Symbol global.${name}`);
 
                 // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
                 if (name == "kCFAllocatorUseContext" ||
@@ -715,13 +715,13 @@ describe(module.id, function () {
 
                 if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
                     var klass = symbol;
-                    expect(klass).toBeDefined();
+                    expect(klass).toBeDefined(`Class ${name} should be defined.`);
 
-                    // console.debug(klass);
+//                    console.debug(`Entering class ${klass}`);
 
                     Object.getOwnPropertyNames(klass).forEach(function (y) {
                         if (klass.respondsToSelector(y)) {
-                            // console.debug(name, y);
+//                            console.debug(`Checking class member ${name} . ${y}`);
 
                             // supportedVideoFormats is a property and it's getter is being called the value is read below.
                             // We skip it because it will throw "Supported video formats should be called on individual configuration class."
@@ -729,7 +729,7 @@ describe(module.id, function () {
                                 return;
                             }
                             var method = klass[y];
-                            expect(method).toBeDefined();
+                            expect(method).toBeDefined(`Static method ${name} . ${y} should be defined.`);
 
                             counter++;
                         }
@@ -737,13 +737,13 @@ describe(module.id, function () {
 
                     Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
                         if (klass.instancesRespondToSelector(y)) {
-                            // console.debug(name, "proto", y);
+//                            console.debug(`Checking instance member ${name} . ${y}`);
 
                             var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
 
                             if (!property) {
                                 var method = klass.prototype[y];
-                                expect(method).toBeDefined();
+                                expect(method).toBeDefined(`Instance method -[${name} ${y}] should be defined.`);
                             }
 
                             counter++;

@@ -693,15 +693,7 @@ public:
         return this->_constructorTokens.valuePtr();
     }
 
-    bool isImplementedInClass(Class klass, bool isStatic) const {
-        // class can be null for Protocol prototypes, treat all members in a protocol as implemented
-        if (klass == nullptr) {
-            return true;
-        }
-
-        return nullptr != (isStatic ? class_getClassMethod(klass, this->selector()) : class_getInstanceMethod(klass, this->selector()));
-    }
-
+    bool isImplementedInClass(Class klass, bool isStatic) const;
     bool isAvailableInClass(Class klass, bool isStatic) const {
         return this->isAvailable() && this->isImplementedInClass(klass, isStatic);
     }
