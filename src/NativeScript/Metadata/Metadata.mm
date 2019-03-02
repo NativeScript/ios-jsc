@@ -283,10 +283,12 @@ vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>&
     if (firstInitIndex != -1) {
         for (int i = firstInitIndex; i < instanceMethods->count; i++) {
             const MethodMeta* method = instanceMethods.value()[i].valuePtr();
-            if (method->isInitializer() && method->isAvailableInClass(klass, /*isStatic*/ false)) {
-                container.push_back(method);
-            } else {
+            if (!method->isInitializer()) {
                 break;
+            }
+            
+            if (method->isAvailableInClass(klass, /*isStatic*/ false)) {
+                container.push_back(method);
             }
         }
     }
