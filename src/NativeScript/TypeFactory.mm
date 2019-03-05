@@ -259,6 +259,9 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
     }
 
     if (!metadata || !klass) {
+        if (klassName == "NSObject") {
+            @throw [NSException exceptionWithName:NSGenericException reason:@"fatal error: NativeScript cannot create constructor for NSObject." userInfo:nil];
+        }
 #ifdef DEBUG
         NSLog(@"** Can not create constructor for \"%@\". Casting it to \"NSObject\". **", klassName.createCFString().autorelease());
 #endif
