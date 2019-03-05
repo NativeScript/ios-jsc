@@ -68,7 +68,7 @@ const InterfaceMeta* GlobalTable::findInterfaceMeta(const char* identifierString
     if (interfaceMeta->isAvailable()) {
         return interfaceMeta;
     } else {
-        const char* baseName = static_cast<const InterfaceMeta*>(interfaceMeta)->baseName();
+        const char* baseName = interfaceMeta->baseName();
 
         NSLog(@"** \"%s\" introduced in iOS SDK %d.%d is currently unavailable, attempting to load its base: \"%s\". **",
               std::string(identifierString, length).c_str(),
@@ -286,7 +286,7 @@ vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>&
             if (!method->isInitializer()) {
                 break;
             }
-            
+
             if (method->isAvailableInClass(klass, /*isStatic*/ false)) {
                 container.push_back(method);
             }
