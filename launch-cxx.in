@@ -1,3 +1,6 @@
 #!/bin/sh
 export CCACHE_CPP2=true
-exec "${RULE_LAUNCH_COMPILE}" "${CMAKE_CXX_COMPILER}" "$@"
+# Enable precompiled headers support by following the instructions at
+# https://ccache.samba.org/manual/latest.html#_precompiled_headers
+export CCACHE_SLOPPINESS="pch_defines,time_macros"
+exec "${RULE_LAUNCH_COMPILE}" "${CMAKE_CXX_COMPILER}" "-fpch-preprocess" "$@"

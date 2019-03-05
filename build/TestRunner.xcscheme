@@ -85,7 +85,7 @@
       buildConfiguration = "Debug">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Release"
+      buildConfiguration = "RelWithDebInfo"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

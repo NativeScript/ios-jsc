@@ -8,18 +8,18 @@ CONFIGURATION=$NATIVESCRIPT_XCODE_CONFIGURATION
 
 checkpoint "Building NativeScript.framework"
 
-mkdir -p "$WORKSPACE/cmake-build" && pushd "$_"
+mkdir -p "$WORKSPACE/cmake-build"
 # Delete the CMake cache because a previous build could have generated the runtime with a static library.
-rm -f "CMakeCache.txt"
-cmake .. -G"Xcode" -D"BUILD_SHARED_LIBS=ON"
+rm -f "$WORKSPACE/cmake-build/CMakeCache.txt"
+./cmake-gen.sh
+
 # TODO: fix build when iphoneos build is started first
 checkpoint "Building NativeScript.framework - iphonesimulator SDK"
-xcodebuild -configuration $CONFIGURATION -sdk "iphonesimulator" -target "NativeScript" -quiet
+xcodebuild -configuration $CONFIGURATION -sdk "iphonesimulator" -target "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
 checkpoint "Building NativeScript.framework - iphoneos SDK"
-xcodebuild -configuration $CONFIGURATION -sdk "iphoneos" -target "NativeScript" -quiet
-popd
+xcodebuild -configuration $CONFIGURATION -sdk "iphoneos"        -target "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
 
-checkpoint "Packaging NativeScript.framework"
+checkpoint "Creating fat NativeScript.framework"
 mkdir -p "$DIST_DIR" && pushd "$_"
 cp -r "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework" "."
 rm "NativeScript.framework/NativeScript"

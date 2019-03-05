@@ -16,22 +16,24 @@ rm -f "CMakeCache.txt"
 cmake .. -G"Xcode"
 
 # Define public TestRunner scheme. Xcode schemes is requried for archiving. This can be also done from Xcode GUI. However, CMake 3.1.3 has no support for generating Xcode schemes, so we have to do it manually.
-mkdir -p "$WORKSPACE/cmake-build/NativeScript.xcodeproj/xcshareddata/xcschemes"
-cp "$WORKSPACE/build/TestRunner.xcscheme" "$WORKSPACE/cmake-build/NativeScript.xcodeproj/xcshareddata/xcschemes/TestRunner.xcscheme"
+mkdir -p "$NATIVESCRIPT_XCODEPROJ/xcshareddata/xcschemes"
+cp "$WORKSPACE/build/TestRunner.xcscheme" "$NATIVESCRIPT_XCODEPROJ/xcshareddata/xcschemes/TestRunner.xcscheme"
 
-xcodebuild \
--configuration "$CONFIGURATION" \
--sdk "iphoneos" \
--scheme "TestRunner" \
-ARCHS="armv7 arm64" \
-ONLY_ACTIVE_ARCH="NO" \
--quiet \
+# xcodebuild \
+# -configuration "$CONFIGURATION" \
+# -sdk "iphoneos" \
+# -scheme "TestRunner" \
+# ARCHS="armv7 arm64" \
+# ONLY_ACTIVE_ARCH="NO" \
+# -project $NATIVESCRIPT_XCODEPROJ \
+# -quiet \
 
 xcodebuild archive \
 -archivePath "$WORKSPACE/cmake-build/tests/TestRunner/$CONFIGURATION-iphoneos/TestRunner.xcarchive" \
 -configuration "$CONFIGURATION" \
 -sdk "iphoneos" \
 -scheme "TestRunner" \
+-project $NATIVESCRIPT_XCODEPROJ \
 -quiet \
 
 popd

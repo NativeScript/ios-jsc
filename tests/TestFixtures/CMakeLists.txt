@@ -70,3 +70,20 @@ GroupSources(TestFixtures)
 
 include(PrecompiledHeaders)
 SetPrecompiledHeader(TestFixtures TestFixtures-Prefix.h)
+
+# Copy libTestFixtures.a from the built location to ${NativeScriptFramework_BINARY_DIR}
+# it could be different when invoking `xcodebuild archive`
+add_custom_command(
+    TARGET
+    TestFixtures
+    POST_BUILD COMMAND
+    if [ \"`dirname \\\"$<TARGET_FILE:TestFixtures>\\\"`\" != \"$(TARGET_BUILD_DIR)\" ]
+    \; then
+        ${CMAKE_COMMAND} -E make_directory
+        ${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/
+        &&
+        ${CMAKE_COMMAND} -E copy
+        $(BUILT_PRODUCTS_DIR)/libTestFixtures.a
+        $<TARGET_FILE:TestFixtures>
+    \; fi
+)

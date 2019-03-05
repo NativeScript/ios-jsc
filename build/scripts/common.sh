@@ -11,6 +11,7 @@ function checkpoint {
 }
 
 WORKSPACE=$(pwd)
+NATIVESCRIPT_XCODEPROJ=$WORKSPACE/cmake-build/NativeScript.xcodeproj
 DIST_DIR="$WORKSPACE/dist"
 NATIVESCRIPT_XCODE_CONFIGURATION="RelWithDebInfo"
 

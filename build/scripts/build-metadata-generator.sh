@@ -6,10 +6,9 @@ source "$(dirname "$0")/common.sh"
 
 checkpoint "Building metadata-generator"
 
-mkdir -p "$WORKSPACE/cmake-build" && pushd "$_"
-cmake .. -G"Xcode"
-xcodebuild -configuration "Release" -target "MetadataGenerator" -quiet
-popd
+mkdir -p "$WORKSPACE/cmake-build"
+./cmake-gen.sh
+xcodebuild -configuration "Release" -target "MetadataGenerator" -project $NATIVESCRIPT_XCODEPROJ -quiet
 
 checkpoint "Packaging metadata-generator"
 mkdir -p "$DIST_DIR" && pushd "$_"
