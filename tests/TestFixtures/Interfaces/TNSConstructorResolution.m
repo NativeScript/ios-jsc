@@ -38,4 +38,15 @@
     }
     return [super init];
 }
+
+- (id)initWithInt:(int)x andInt:(int)y {
+    TNSLog([NSString stringWithFormat:@"%@ %d %d called", NSStringFromSelector(_cmd), x, y]);
+    return [super init];
+}
+
+- (id)initWithStringOptional:(NSString*)x andString:(NSString*)y {
+    TNSLog([NSString stringWithFormat:@"%@ %@ %@ called", NSStringFromSelector(_cmd), x, y]);
+    return [super init];
+}
+
 @end

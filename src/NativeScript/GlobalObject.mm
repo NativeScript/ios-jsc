@@ -89,7 +89,7 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
 
 static Strong<ObjCProtocolWrapper> createProtocolWrapper(GlobalObject* globalObject, const ProtocolMeta* protocolMeta, Protocol* aProtocol) {
     Structure* prototypeStructure = ObjCPrototype::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
-    auto prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta);
+    auto prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta, /*klass*/ nullptr);
     Structure* protocolWrapperStructure = ObjCProtocolWrapper::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
     auto protocolWrapper = ObjCProtocolWrapper::create(globalObject->vm(), protocolWrapperStructure, prototype.get(), protocolMeta, aProtocol);
     prototype->materializeProperties(globalObject->vm(), globalObject);

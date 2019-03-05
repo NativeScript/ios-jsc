@@ -23,8 +23,8 @@ public:
 
     static const unsigned StructureFlags;
 
-    static JSC::Strong<ObjCPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, const Metadata::BaseClassMeta* metadata) {
-        JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap)) ObjCPrototype(globalObject->vm(), structure));
+    static JSC::Strong<ObjCPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, const Metadata::BaseClassMeta* metadata, Class klass) {
+        JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap)) ObjCPrototype(globalObject->vm(), structure, klass));
         prototype->finishCreation(vm, globalObject, metadata);
         return prototype;
     }
@@ -39,13 +39,18 @@ public:
 
     void materializeProperties(JSC::VM& vm, GlobalObject* globalObject);
 
-    const Metadata::BaseClassMeta* metadata() {
+    const Metadata::BaseClassMeta* metadata() const {
         return this->_metadata;
     }
 
+    Class klass() const {
+        return this->_klass;
+    }
+
 private:
-    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure)
-        : Base(vm, structure) {
+    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, Class klass)
+        : Base(vm, structure)
+        , _klass(klass) {
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, const Metadata::BaseClassMeta*);
@@ -59,6 +64,8 @@ private:
     static void getOwnPropertyNames(JSC::JSObject*, JSC::ExecState*, JSC::PropertyNameArray&, JSC::EnumerationMode);
 
     const Metadata::BaseClassMeta* _metadata;
+
+    Class _klass;
 };
 } // namespace NativeScript
 

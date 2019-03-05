@@ -20,6 +20,16 @@
 @protocol TNSIBaseProtocol
 
 @optional
+@property(class) int staticBaseImplementedOptionalProperty;
+@property(class) int staticBaseNotImplementedOptionalProperty;
+
++ (void)staticBaseImplementedOptionalMethod;
++ (void)staticBaseNotImplementedOptionalMethod;
++ (void)staticBaseNotImplementedOptionalMethodImplementedInJavaScript;
+
+@property int baseImplementedOptionalProperty;
+@property int baseNotImplementedOptionalProperty;
+
 - (void)baseImplementedOptionalMethod;
 - (void)baseNotImplementedOptionalMethod;
 - (void)baseNotImplementedOptionalMethodImplementedInJavaScript;
@@ -29,6 +39,9 @@
 @end
 
 @interface TNSIBaseInterface (TNSIBaseCategory)
++ (void)staticBaseImplementedCategoryMethod;
++ (void)staticBaseNotImplementedCategoryMethod;
+
 - (void)baseImplementedCategoryMethod;
 - (void)baseNotImplementedCategoryMethod;
 - (void)baseNotImplementedNativeCategoryMethodOverridenInJavaScript;
@@ -37,15 +50,25 @@
 @protocol TNSIDerivedProtocol
 
 @optional
++ (void)staticDerivedImplementedOptionalMethod;
++ (void)staticDerivedNotImplementedOptionalMethod;
+@property(class) int staticDerivedImplementedOptionalProperty;
+@property(class) int staticDerivedNotImplementedOptionalProperty;
+
 - (void)derivedImplementedOptionalMethod;
 - (void)derivedNotImplementedOptionalMethod;
 - (void)derivedNotImplementedOptionalMethodImplementedInJavaScript;
+@property int derivedImplementedOptionalProperty;
+@property int derivedNotImplementedOptionalProperty;
 @end
 
 @interface TNSIDerivedInterface : TNSIBaseInterface <TNSIDerivedProtocol>
 @end
 
 @interface TNSIDerivedInterface (TNSIDerivedCategory)
++ (void)staticDerivedImplementedCategoryMethod;
++ (void)staticDerivedNotImplementedCategoryMethod;
+
 - (void)derivedImplementedCategoryMethod;
 - (void)derivedNotImplementedCategoryMethod;
 - (void)derivedNotImplementedNativeCategoryMethodOverridenInJavaScript;
