@@ -21,23 +21,6 @@ static bool sLogToSystemConsole = true;
 static bool sLogToSystemConsole = false;
 #endif
 
-static void appendURLAndPosition(StringBuilder& builder, const String& url, unsigned lineNumber, unsigned columnNumber) {
-    if (url.isEmpty())
-        return;
-
-    builder.append(url);
-
-    if (lineNumber > 0) {
-        builder.append(':');
-        builder.appendNumber(lineNumber);
-    }
-
-    if (columnNumber > 0) {
-        builder.append(':');
-        builder.appendNumber(columnNumber);
-    }
-}
-
 static WTF::String smartStringifyObject(ExecState* exec, JSC::JSValue value) {
     JSC::CallData smartStringifyCallData;
     NativeScript::GlobalObject* globalObject = JSC::jsCast<GlobalObject*>(exec->lexicalGlobalObject());
@@ -116,7 +99,8 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
 
     String message = this->createMessageFromArguments(type, exec, arguments.copyRef());
     if (GlobalObjectConsoleClient::logToSystemConsole()) {
-        GlobalObjectConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0);
+        auto scriptArguments = Inspector::ScriptArguments::create(*exec, { Strong<JSC::Unknown>(exec->vm(), jsString(exec, message)) });
+        ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, WTFMove(scriptArguments));
     }
 
     std::unique_ptr<Inspector::ConsoleMessage> consoleMessage = std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec);
@@ -202,14 +186,7 @@ void GlobalObjectConsoleClient::recordEnd(ExecState*, Ref<Inspector::ScriptArgum
 WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType type, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
 
     RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
-    const Inspector::ScriptCallFrame& lastCaller = callStack->size() > 0 ? callStack->at(0) : Inspector::ScriptCallFrame("", "", JSC::noSourceID, 0, 0);
-
     StringBuilder builder;
-
-    if (!lastCaller.sourceURL().isEmpty()) {
-        appendURLAndPosition(builder, lastCaller.sourceURL(), lastCaller.lineNumber(), lastCaller.columnNumber());
-        builder.appendLiteral(": ");
-    }
 
     if (type == JSC::MessageType::Dir) {
         // don't enumerate args as console.dir supports only one argument
