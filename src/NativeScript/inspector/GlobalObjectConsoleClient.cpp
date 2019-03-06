@@ -116,11 +116,7 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
 
     String message = this->createMessageFromArguments(type, exec, arguments.copyRef());
     if (GlobalObjectConsoleClient::logToSystemConsole()) {
-        if (type != JSC::MessageType::Trace) {
-            GlobalObjectConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0);
-        } else {
-            ConsoleClient::printConsoleMessageWithArguments(MessageSource::ConsoleAPI, type, level, exec, arguments.copyRef());
-        }
+        GlobalObjectConsoleClient::printConsoleMessage(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0);
     }
 
     std::unique_ptr<Inspector::ConsoleMessage> consoleMessage = std::make_unique<Inspector::ConsoleMessage>(MessageSource::ConsoleAPI, type, level, message, WTF::emptyString(), 0, 0, exec);
