@@ -268,21 +268,56 @@ if(${BUILD_SHARED_LIBS})
         "-framework Security"
     )
 
+    # Copy NativeScript.framework from the built location to ${NativeScriptFramework_BINARY_DIR}
+    # it could be different when invoking `xcodebuild archive`
+    add_custom_command(
+        TARGET
+        NativeScript
+        POST_BUILD COMMAND
+        if [ \"${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\" != \"$(BUILT_PRODUCTS_DIR)\" ]
+        \; then
+            ${CMAKE_COMMAND} -E make_directory
+            ${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/
+            &&
+            ${CMAKE_COMMAND} -E copy_directory
+            $(BUILT_PRODUCTS_DIR)/NativeScript.framework
+            ${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/NativeScript.framework
+        \; fi
+    )
+
     # Tell linker to keep all symbols listed in exported-symbols.txt
     set_target_properties(NativeScript PROPERTIES XCODE_ATTRIBUTE_EXPORTED_SYMBOLS_FILE "${CMAKE_SOURCE_DIR}/src/NativeScript/exported-symbols.txt")
 
 
-elseif(${EMBED_STATIC_DEPENDENCIES})
-    foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
-        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${_directory}")
-    endforeach()
-    foreach(_library ${WEBKIT_LIBRARIES})
-        set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -l${_library}")
-    endforeach()
-
-    set_target_properties(NativeScript PROPERTIES
-        STATIC_LIBRARY_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${LIBFFI_LIB_DIR} -lffi"
+else()
+    # Copy libNativeScript.a from the built location to ${NativeScriptFramework_BINARY_DIR}
+    # it could be different when invoking `xcodebuild archive`
+    add_custom_command(
+        TARGET
+        NativeScript
+        POST_BUILD COMMAND
+        if [ \"${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\" != \"$(BUILT_PRODUCTS_DIR)\" ]
+        \; then
+            ${CMAKE_COMMAND} -E make_directory
+            ${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/
+            &&
+            ${CMAKE_COMMAND} -E copy
+            $(BUILT_PRODUCTS_DIR)/libNativeScript.a
+            ${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/libNativeScript.a
+        \; fi
     )
+    if(${EMBED_STATIC_DEPENDENCIES})
+        foreach(_directory ${WEBKIT_LINK_DIRECTORIES})
+            set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${_directory}")
+        endforeach()
+        foreach(_library ${WEBKIT_LIBRARIES})
+            set(NativeScript_LIBTOOL_FLAGS "${NativeScript_LIBTOOL_FLAGS} -l${_library}")
+        endforeach()
+
+        set_target_properties(NativeScript PROPERTIES
+            STATIC_LIBRARY_FLAGS "${NativeScript_LIBTOOL_FLAGS} -L${LIBFFI_LIB_DIR} -lffi"
+        )
+    endif()
 endif()
 
 include(EmbedResourceInHeader)
