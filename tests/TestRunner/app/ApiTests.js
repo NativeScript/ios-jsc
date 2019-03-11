@@ -687,6 +687,35 @@ describe(module.id, function () {
         expect(result).toBe('method called');
     });
 
+    it("Unimplemented properties from UIBarItem class should be provided by the inheritors", function () {
+        var classConstructors = ["UIBarButtonItem", "UITabBarItem"];
+        var props = ["enabled", "image", "imageInsets", "landscapeImagePhone", "landscapeImagePhoneInsets", "title"];
+        for (var klass of classConstructors) {
+            var instance = new global[klass]();
+            for (var prop of props) {
+                expect(instance[prop]).toBeDefined(`"${prop}" must be defined in instances of "${klass}"`);
+            }
+        }
+    });
+ 
+    it("Unimplemented properties from MTLRenderPassAttachmentDescriptor class should be provided by the inheritors", function () {
+        var classConstructors = [ 
+            "MTLRenderPassDepthAttachmentDescriptor", "MTLRenderPassStencilAttachmentDescriptor", 
+            "MTLRenderPassColorAttachmentDescriptor"
+        ];
+        var props = [
+            "depthPlane", "level", "loadAction", "resolveDepthPlane", "resolveLevel", "resolveSlice",
+            "resolveTexture", "slice", "storeAction", "storeActionOptions", "texture"
+        ];
+        
+        for (var klass of classConstructors) {
+            var instance = new global[klass]();
+            for (var prop of props) {
+                expect(instance[prop]).toBeDefined(`"${prop}" must be defined in instances of "${klass}"`);
+            }
+        }
+    });
+
     if (TNSIsConfigurationDebug) {
         it("ApiIterator", function () {
             var counter = 0;

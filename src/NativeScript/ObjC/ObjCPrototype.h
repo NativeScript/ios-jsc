@@ -13,8 +13,11 @@
 #include <wtf/RetainPtr.h>
 
 namespace Metadata {
+
 struct BaseClassMeta;
-}
+struct PropertyMeta;
+
+} // namespace Metadata
 
 namespace NativeScript {
 class ObjCPrototype : public JSC::JSDestructibleObject {
@@ -38,6 +41,8 @@ public:
     static WTF::String className(const JSObject* object, JSC::VM&);
 
     void materializeProperties(JSC::VM& vm, GlobalObject* globalObject);
+
+    void defineNativeProperty(JSC::VM& vm, GlobalObject* globalObject, const Metadata::PropertyMeta* propertyMeta);
 
     const Metadata::BaseClassMeta* metadata() const {
         return this->_metadata;

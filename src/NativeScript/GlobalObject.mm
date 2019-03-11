@@ -353,10 +353,12 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 
         auto protocol = createProtocolWrapper(globalObject, static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
         strongSymbolWrapper = protocol;
+        // Protocols that are not implemented or referred with @protocol at compile time do not have corresponding
+        // protocol objects at runtime. `objc_getProtocol` returns `nullptr for them!
+        // See Protocol Objects section at https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Chapters/ocProtocols.html#//apple_ref/doc/uid/TP30001163-CH15
         if (aProtocol) {
             globalObject->_objCProtocolWrappers.insert({ aProtocol, protocol });
         }
-
         break;
     }
     case Union: {

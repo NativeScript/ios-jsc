@@ -171,32 +171,86 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
     Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
 }
 
-void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
-    std::vector<const PropertyMeta*> properties = this->_metadata->instancePropertiesWithProtocols(this->klass());
+void ObjCPrototype::defineNativeProperty(VM& vm, GlobalObject* globalObject, const PropertyMeta* propertyMeta) {
+    SymbolLoader::instance().ensureModule(propertyMeta->topLevelModule());
 
-    for (const PropertyMeta* propertyMeta : properties) {
-        SymbolLoader::instance().ensureModule(propertyMeta->topLevelModule());
+    const MethodMeta* getter = (propertyMeta->hasGetter() && propertyMeta->getter()->isAvailable()) ? propertyMeta->getter() : nullptr;
+    const MethodMeta* setter = (propertyMeta->hasSetter() && propertyMeta->setter()->isAvailable()) ? propertyMeta->setter() : nullptr;
 
-        const MethodMeta* getter = (propertyMeta->getter() != nullptr && propertyMeta->getter()->isAvailable()) ? propertyMeta->getter() : nullptr;
-        const MethodMeta* setter = (propertyMeta->setter() != nullptr && propertyMeta->setter()->isAvailable()) ? propertyMeta->setter() : nullptr;
-
-        PropertyDescriptor descriptor;
-        descriptor.setConfigurable(true);
-        Strong<ObjCMethodWrapper> strongGetter;
-        Strong<ObjCMethodWrapper> strongSetter;
-        if (getter) {
-            MembersCollection getters = { getter };
-            strongGetter = ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), getters);
-            descriptor.setGetter(strongGetter.get());
-        }
-
-        if (setter) {
-            MembersCollection setters = { setter };
-            strongSetter = ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), setters);
-            descriptor.setSetter(strongSetter.get());
-        }
-
-        Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
+    PropertyDescriptor descriptor;
+    descriptor.setConfigurable(true);
+    Strong<ObjCMethodWrapper> strongGetter;
+    Strong<ObjCMethodWrapper> strongSetter;
+    if (getter) {
+        MembersCollection getters = { getter };
+        strongGetter = ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), getters);
+        descriptor.setGetter(strongGetter.get());
     }
+
+    if (setter) {
+        MembersCollection setters = { setter };
+        strongSetter = ObjCMethodWrapper::create(vm, globalObject, globalObject->objCMethodWrapperStructure(), setters);
+        descriptor.setSetter(strongSetter.get());
+    }
+
+    Base::defineOwnProperty(this, globalObject->globalExec(), Identifier::fromString(globalObject->globalExec(), propertyMeta->jsName()), descriptor, false);
 }
+
+void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
+    // The cycle here works around an issue with incorrect public headers of some iOS system frameworks.
+    // In particular:
+    //   * UIBarItem doesn't define 6 of its declared properties (enabled, image, imageInsets,
+    //     landscapeImagePhone, landscapeImagePhoneInsets and title) but its inheritors UIBarButtonItem and
+    //     UITabBarItem do
+    //   * MTLRenderPassAttachmentDescriptor doesn't define 11 of its properties but it's inheritors
+    //     MTLRenderPassDepthAttachmentDescriptor, MTLRenderPassColorAttachmentDescriptor and
+    //     MTLRenderPassStencilAttachmentDescriptor do.
+    // As a result we were not providing their implementation in JS before we started looking for missing
+    // properties in the base class. This additional overhead increased the time spent in materializeProperties
+    // from ~5.3 sec to ~7.5 sec (~40%) when running TestRunner with ApiIterator test enabled in RelWithDebInfo configuration
+    // on an iPhone 6s device and from 3.0-3.2 to 4.4 sec (~40%) on an iPhone X
+
+    //    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
+    //    int addedProps = 0;
+
+    const BaseClassMeta* meta = this->metadata();
+    Class klass = this->klass();
+    while (meta) {
+        std::vector<const PropertyMeta*> properties = meta->instancePropertiesWithProtocols(nullptr);
+
+        for (const PropertyMeta* propertyMeta : properties) {
+            bool shouldDefine = false;
+
+            if (klass == this->klass()) {
+                // Property is coming from this class, define it if available
+                shouldDefine = propertyMeta->isAvailableInClass(klass, false);
+            } else {
+                // Property is coming from a base class, define it as our property if isn't available there, but we've got it
+                shouldDefine = !propertyMeta->isAvailableInClass(klass, false) && propertyMeta->isAvailableInClass(this->klass(), false);
+                //                addedProps += shouldDefine ? 1 : 0;
+            }
+
+            if (shouldDefine) {
+                this->defineNativeProperty(vm, globalObject, propertyMeta);
+            }
+        }
+
+        if (klass == this->klass() && meta->type() == Interface) {
+            meta = static_cast<const InterfaceMeta*>(meta)->baseMeta();
+            klass = meta ? objc_getClass(meta->name()) : nullptr;
+        } else {
+            // Check only properties from the direct base class and then stop.
+            // All the cases that we need to fix are like that so we don't have
+            // to pay the additional overhead of looking intothe whole inheritance chain.
+            meta = nullptr;
+        }
+    }
+    //    std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
+    //    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
+    //    static double totalDuration = 0;
+    //    totalDuration += duration;
+    //
+    //    std::cout << "**** materializeProperties " << this->metadata()->jsName() << ": " << duration << "(Total: " << totalDuration << ") added " << addedProps << std::endl;
+}
+
 }
