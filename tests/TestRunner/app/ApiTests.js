@@ -689,7 +689,11 @@ describe(module.id, function () {
 
     it("Unimplemented properties from UIBarItem class should be provided by the inheritors", function () {
         var classConstructors = ["UIBarButtonItem", "UITabBarItem"];
-        var props = ["enabled", "image", "imageInsets", "landscapeImagePhone", "landscapeImagePhoneInsets", "title"];
+        var props = ["enabled", "image", "imageInsets", "title"];
+        if (NSProcessInfo.processInfo.isOperatingSystemAtLeastVersion({majorVersion: 11, minorVersion: 0, patchVersion: 0})) {
+            props = props.concat("landscapeImagePhone", "landscapeImagePhoneInsets");
+        }
+       
         for (var klass of classConstructors) {
             var instance = new global[klass]();
             for (var prop of props) {
@@ -705,9 +709,13 @@ describe(module.id, function () {
         ];
         var props = [
             "depthPlane", "level", "loadAction", "resolveDepthPlane", "resolveLevel", "resolveSlice",
-            "resolveTexture", "slice", "storeAction", "storeActionOptions", "texture"
+            "resolveTexture", "slice", "storeAction", "texture"
         ];
         
+        if (NSProcessInfo.processInfo.isOperatingSystemAtLeastVersion({majorVersion: 11, minorVersion: 0, patchVersion: 0})) {
+            props = props.concat("storeActionOptions");
+        }
+       
         for (var klass of classConstructors) {
             var instance = new global[klass]();
             for (var prop of props) {
