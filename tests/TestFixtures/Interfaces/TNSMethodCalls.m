@@ -359,7 +359,14 @@
 + (void)setDerivedProperty:(int)value {
     TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
-
+- (int)derivedPropertyReadOnly {
+    TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
+- (int)derivedPropertyReadOnlyMadeWritable {
+    TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
 + (void)derivedProtocolMethod1 {
     TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
 }
@@ -483,6 +490,9 @@
     return 0;
 }
 - (void)setDerivedCategoryProperty:(int)value {
+    TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
+- (void)setDerivedPropertyReadOnlyMadeWritable:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
 + (int)derivedCategoryProperty {

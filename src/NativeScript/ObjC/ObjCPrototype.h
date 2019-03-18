@@ -55,6 +55,7 @@ public:
 private:
     ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, Class klass)
         : Base(vm, structure)
+        , _definingPropertyName(nullptr)
         , _klass(klass) {
     }
 
@@ -70,6 +71,8 @@ private:
 
     const Metadata::BaseClassMeta* _metadata;
 
+    // Set to the name of the property that is currently being defined and used to avoid endless recursion in getOwnPropertySlot
+    JSC::PropertyName _definingPropertyName;
     Class _klass;
 };
 } // namespace NativeScript

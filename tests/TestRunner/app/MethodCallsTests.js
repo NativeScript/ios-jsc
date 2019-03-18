@@ -23,7 +23,7 @@ describe(module.id, function () {
     });
     it('Base_OverloadedStaticBaseMethod', function () {
         TNSBaseInterface.baseMethod(1);
-            
+
         var actual = TNSGetOutput();
        expect(actual).toBe("overloaded static baseMethod: called");
     });
@@ -67,7 +67,7 @@ describe(module.id, function () {
     });
     it('Derived_OverloadedStaticBaseMethod', function () {
         TNSDerivedInterface.baseMethod(1);
-            
+
         var actual = TNSGetOutput();
        expect(actual).toBe("overloaded static baseMethod: called");
     });
@@ -152,7 +152,7 @@ describe(module.id, function () {
     it('Base_OverloadedInstanceBaseMethod', function () {
         var instance = TNSBaseInterface.alloc().init();
         instance.baseMethod(1);
-       
+
         var actual = TNSGetOutput();
        expect(actual).toBe("overloaded instance baseMethod: called");
     });
@@ -203,7 +203,7 @@ describe(module.id, function () {
     it('Derived_OverloadedInstanceBaseMethod', function () {
         var instance = TNSDerivedInterface.alloc().init();
         instance.baseMethod(1);
-       
+
         var actual = TNSGetOutput();
         expect(actual).toBe("derived overloaded instance baseMethod: called");
     });
@@ -1003,6 +1003,15 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedProperty: calledinstance derivedProperty called');
     });
+    it('Derived_DerivedPropertyReadOnly', function () {
+        "use strict";
+        var instance = TNSDerivedInterface.alloc().init();
+        expect(() => instance.derivedPropertyReadOnly = 1).toThrowError(/Attempted to assign to readonly property/);
+        UNUSED(instance.derivedPropertyReadOnly);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('instance derivedPropertyReadOnly called');
+    });
     it('Derived_DerivedProperty', function () {
         TNSDerivedInterface.derivedProperty = 1;
         UNUSED(TNSDerivedInterface.derivedProperty);
@@ -1078,6 +1087,14 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance setDerivedCategoryProperty: calledinstance derivedCategoryProperty called');
     });
+    it('Derived_DerivedPropertyReadOnlyMadeWritable', function () {
+        var instance = TNSDerivedInterface.alloc().init();
+        instance.derivedPropertyReadOnlyMadeWritable = 1;
+        UNUSED(instance.derivedPropertyReadOnlyMadeWritable);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe('instance setDerivedPropertyReadOnlyMadeWritable: calledinstance derivedPropertyReadOnlyMadeWritable called');
+    });
     it('Derived_DerivedCategoryProperty', function () {
         TNSDerivedInterface.derivedCategoryProperty = 1;
         UNUSED(TNSDerivedInterface.derivedCategoryProperty);
@@ -1116,9 +1133,9 @@ describe(module.id, function () {
             }
         });
     }
-         
+
      it('Override: More than one methods with same jsname', function () {
-        
+
         var i = TNSBaseInterface.extend({
           baseMethod: function (x) {
             if (typeof x === "undefined") {
@@ -1128,16 +1145,16 @@ describe(module.id, function () {
             }
           }
         }).alloc().init();
-        
+
         i.callBaseMethod(false);
-        
+
         expect(i.zeroArgs).toBe(true);
-        
+
         i.callBaseMethod(true);
 
         expect(i.x).toBe(2);
     });
-         
+
      it("Prototype.put", function () {
         var i = TNSBaseInterface.extend({}).alloc().init();
         TNSBaseInterface.prototype.baseMethod = function(x) {

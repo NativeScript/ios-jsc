@@ -51,6 +51,9 @@ void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const B
 }
 
 bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
+
+    //    static double totalDuration = 0;
+    //    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
     if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
         return true;
     }
@@ -60,20 +63,83 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
     }
 
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
-
-    MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klass());
-
-    if (methods.size() > 0) {
-        SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
-
-        GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
-        auto method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), methods);
-        object->putDirect(execState->vm(), propertyName, method.get());
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
-
-        return true;
+    if (UNLIKELY(propertyName == prototype->_definingPropertyName)) {
+        // We're currently defining it, it's still not defined
+        return false;
     }
 
+    GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
+    // Check for property
+    if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klass())) {
+        prototype->_definingPropertyName = propertyName;
+        prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
+        prototype->_definingPropertyName = PropertyName(nullptr);
+
+        //        std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
+        //        double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
+        //        static int cnt = 0;
+        //        cnt++;
+        //        totalDuration += duration;
+        //
+        //        NSLog(@"**** getOwnPropSlot (prop) %s.%s : %f (Total: %f) count: %d", prototype->metadata()->jsName(), propertyMeta->jsName(), duration, totalDuration, cnt);
+        return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
+    } else {
+        // Check for base class property which is implemented in inheritor as a workaround
+        // to inaccurate header information in iOS SDKs (https://github.com/NativeScript/ios-runtime/pull/1092)
+        if (prototype->metadata()->type() == MetaType::Interface) {
+            if (auto baseMeta = static_cast<const InterfaceMeta*>(prototype->metadata())->baseMeta()) {
+                if (auto propertyMeta = baseMeta->instanceProperty(propertyName.publicName(), prototype->klass())) {
+                    JSObject* basePrototype = prototype->getPrototype(execState->vm(), execState).toObject(execState);
+                    PropertySlot tempPropSlot(JSValue(basePrototype), PropertySlot::InternalMethodType::GetOwnProperty);
+
+                    if (basePrototype->methodTable(execState->vm())->getOwnPropertySlot(basePrototype, execState, propertyName, tempPropSlot)) {
+                        // basePrototype has the property defined return false and let the prototype chain handle it
+                        return false;
+                    }
+
+                    prototype->_definingPropertyName = propertyName;
+                    prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
+                    prototype->_definingPropertyName = PropertyName(nullptr);
+                    //
+                    //                    std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
+                    //                    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
+                    //                    static int cnt = 0;
+                    //                    cnt++;
+                    //                    totalDuration += duration;
+                    //
+                    //                    NSLog(@"**** getOwnPropSlot (baseprop) %s.%s : %f (Total: %f) count: %d", prototype->metadata()->jsName(), propertyMeta->jsName(), duration, totalDuration, cnt);
+                    return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
+                }
+            }
+        }
+
+        MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klass());
+
+        if (methods.size() > 0) {
+            SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
+
+            auto method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), methods);
+            object->putDirect(execState->vm(), propertyName, method.get());
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
+
+            //            std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
+            //            double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
+            //            static int cnt = 0;
+            //            cnt++;
+            //            totalDuration += duration;
+            //
+            //            NSLog(@"**** getOwnPropSlot (method)%s.%s : %f (Total: %f)", prototype->metadata()->jsName(), (*methods.begin())->jsName(), duration, totalDuration);
+            return true;
+        }
+    }
+
+    //    std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
+    //    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
+    //    static int cnt = 0;
+    //    cnt++;
+    //    totalDuration += duration;
+    //
+    //    NSLog(@"**** getOwnPropSlot (false)%s.%s : %f (Total: %f) count: %d", prototype->metadata()->jsName(), propertyName.publicName()->utf8().data(), duration, totalDuration, cnt);
     return false;
 }
 
@@ -197,6 +263,7 @@ void ObjCPrototype::defineNativeProperty(VM& vm, GlobalObject* globalObject, con
 }
 
 void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
+#if 0
     // The cycle here works around an issue with incorrect public headers of some iOS system frameworks.
     // In particular:
     //   * UIBarItem doesn't define 6 of its declared properties (enabled, image, imageInsets,
@@ -250,7 +317,8 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
     //    static double totalDuration = 0;
     //    totalDuration += duration;
     //
-    //    std::cout << "**** materializeProperties " << this->metadata()->jsName() << ": " << duration << "(Total: " << totalDuration << ") added " << addedProps << std::endl;
+    //    NSLog(@"**** materializeProperties %s : %f (Total: %f) %d added", this->metadata()->jsName(), duration, totalDuration, addedProps);
+#endif
 }
 
 }
