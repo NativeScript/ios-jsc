@@ -182,6 +182,9 @@ const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, M
 void collectInheritanceChainMembers(const char* identifier, size_t length, MemberType type, bool onlyIfAvailable, const BaseClassMeta* derivedClass, std::function<void(const MemberMeta*)> collectMember) {
 
     const ArrayOfPtrTo<MemberMeta>* members = nullptr;
+    // Scan method overloads (methods with different selectors and number of arguments which have the same jsName)
+    // in base classes. Properties cannot be overridden like that so there's no need to traverse the hierarchy.
+    bool shouldScanForOverrides = true;
     switch (type) {
     case MemberType::InstanceMethod:
         members = &derivedClass->instanceMethods->castTo<PtrTo<MemberMeta>>();
@@ -190,9 +193,11 @@ void collectInheritanceChainMembers(const char* identifier, size_t length, Membe
         members = &derivedClass->staticMethods->castTo<PtrTo<MemberMeta>>();
         break;
     case MemberType::InstanceProperty:
+        shouldScanForOverrides = false;
         members = &derivedClass->instanceProps->castTo<PtrTo<MemberMeta>>();
         break;
     case MemberType::StaticProperty:
+        shouldScanForOverrides = false;
         members = &derivedClass->staticProps->castTo<PtrTo<MemberMeta>>();
         break;
     }
@@ -209,7 +214,7 @@ void collectInheritanceChainMembers(const char* identifier, size_t length, Membe
             }
         }
 
-        if (derivedClass->type() == MetaType::Interface) {
+        if (shouldScanForOverrides && derivedClass->type() == MetaType::Interface) {
             const BaseClassMeta* superClass = static_cast<const InterfaceMeta*>(derivedClass)->baseMeta();
             if (superClass) {
                 collectInheritanceChainMembers(identifier, length, type, onlyIfAvailable, superClass, collectMember);
