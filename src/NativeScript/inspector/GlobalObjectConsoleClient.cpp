@@ -1,6 +1,7 @@
 #include "GlobalObjectConsoleClient.h"
 #include "GlobalObjectInspectorController.h"
 #include "InspectorTimelineAgent.h"
+#include "JSErrors.h"
 #include <GlobalObject.h>
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/ConsoleMessage.h>
@@ -185,7 +186,6 @@ void GlobalObjectConsoleClient::recordEnd(ExecState*, Ref<Inspector::ScriptArgum
 
 WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType type, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
 
-    RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
     StringBuilder builder;
 
     if (type == JSC::MessageType::Dir) {
@@ -204,6 +204,11 @@ WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType ty
                 builder.append(argAsString);
             }
         }
+    }
+
+    if (type == JSC::MessageType::Trace) {
+        RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, Inspector::ScriptCallStack::maxCallStackSizeToCapture));
+        builder.append(("\n" + dumpJsCallStack(*callStack.get())).c_str());
     }
     return builder.toString();
 }
