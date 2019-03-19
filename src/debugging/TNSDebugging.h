@@ -373,25 +373,18 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
               });
           CFRunLoopWakeUp(runloop);
       }
-      NSArray* inspectorRunloopModes =
-          @[NSRunLoopCommonModes, TNSInspectorRunLoopMode];
       return ^(NSString* message, NSError* error) {
         if (message) {
-            CFRunLoopRef runloop = CFRunLoopGetMain();
-            CFRunLoopPerformBlock(
-                runloop, (__bridge CFTypeRef)(inspectorRunloopModes), ^{
-                  // Keep a working copy for calling into the VM after releasing inspectorLock
-                  TNSRuntimeInspector* tempInspector = nil;
-                  @synchronized(inspectorLock()) {
-                      tempInspector = inspector;
-                  }
+            // Keep a working copy for calling into the VM after releasing inspectorLock
+            TNSRuntimeInspector* tempInspector = nil;
+            @synchronized(inspectorLock()) {
+                tempInspector = inspector;
+            }
 
-                  if (tempInspector) {
-                      // NSLog(@"NativeScript Debugger receiving: %@", message);
-                      [tempInspector dispatchMessage:message];
-                  }
-                });
-            CFRunLoopWakeUp(runloop);
+            if (tempInspector) {
+                // NSLog(@"NativeScript Debugger receiving: %@", message);
+                [tempInspector dispatchMessage:message];
+            }
         } else {
             clearInspector();
 
