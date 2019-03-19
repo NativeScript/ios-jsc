@@ -208,7 +208,7 @@ WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType ty
 
     if (type == JSC::MessageType::Trace) {
         RefPtr<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, Inspector::ScriptCallStack::maxCallStackSizeToCapture));
-        builder.append(("\n" + dumpJsCallStack(*callStack.get())).c_str());
+        builder.append(("\n" + getCallStack(*callStack.get())).c_str());
     }
     return builder.toString();
 }
