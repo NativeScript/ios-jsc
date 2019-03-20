@@ -137,7 +137,8 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
 
     JSWorkerGlobalObject* workerGlobalObject = jsDynamicCast<JSWorkerGlobalObject*>(globalObject->vm(), globalObject);
     bool isWorker = workerGlobalObject != nullptr;
-
+    // The CLI depends on `Fatal JavaScript exception - application has been terminated` in order to handle app crashed. 
+    // If we update this message, we also have to update it in the CLI.
     WTF::ASCIILiteral closingMessage(isWorker ? "Fatal JavaScript exception on worker thread - worker thread has been terminated."_s : "Fatal JavaScript exception - application has been terminated."_s);
 
     if (globalObject->debugger()) {
