@@ -19,6 +19,8 @@
 #include <JavaScriptCore/BuiltinNames.h>
 #include <objc/runtime.h>
 
+#include "StopwatchLogger.h"
+
 namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
@@ -50,10 +52,10 @@ void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const B
     }
 }
 
+//const char StopwatchLabel_getOwnPropertySlot[] = "ObjCPrototype::getOwnPropertySlot";
 bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
+    //StopwatchLogger<StopwatchLabel_getOwnPropertySlot> stopwatch("(unset)");
 
-    //    static double totalDuration = 0;
-    //    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
     if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
         return true;
     }
@@ -75,13 +77,8 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
         prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
         prototype->_definingPropertyName = PropertyName(nullptr);
 
-        //        std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
-        //        double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
-        //        static int cnt = 0;
-        //        cnt++;
-        //        totalDuration += duration;
-        //
-        //        NSLog(@"**** getOwnPropSlot (prop) %s.%s : %f (Total: %f) count: %d", prototype->metadata()->jsName(), propertyMeta->jsName(), duration, totalDuration, cnt);
+        //stopwatch.message << "(prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
+
         return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
     } else {
         // Check for base class property which is implemented in inheritor as a workaround
@@ -100,14 +97,8 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
                     prototype->_definingPropertyName = propertyName;
                     prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
                     prototype->_definingPropertyName = PropertyName(nullptr);
-                    //
-                    //                    std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
-                    //                    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
-                    //                    static int cnt = 0;
-                    //                    cnt++;
-                    //                    totalDuration += duration;
-                    //
-                    //                    NSLog(@"**** getOwnPropSlot (baseprop) %s.%s : %f (Total: %f) count: %d", prototype->metadata()->jsName(), propertyMeta->jsName(), duration, totalDuration, cnt);
+
+                    //stopwatch.message << "(base prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
                     return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
                 }
             }
@@ -122,24 +113,12 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
             object->putDirect(execState->vm(), propertyName, method.get());
             propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
 
-            //            std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
-            //            double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
-            //            static int cnt = 0;
-            //            cnt++;
-            //            totalDuration += duration;
-            //
-            //            NSLog(@"**** getOwnPropSlot (method)%s.%s : %f (Total: %f)", prototype->metadata()->jsName(), (*methods.begin())->jsName(), duration, totalDuration);
+            //stopwatch.message << "(method) " << prototype->metadata()->jsName() << "." << (*methods.begin())->jsName();
             return true;
         }
     }
 
-    //    std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
-    //    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
-    //    static int cnt = 0;
-    //    cnt++;
-    //    totalDuration += duration;
-    //
-    //    NSLog(@"**** getOwnPropSlot (false)%s.%s : %f (Total: %f) count: %d", prototype->metadata()->jsName(), propertyName.publicName()->utf8().data(), duration, totalDuration, cnt);
+    //stopwatch.message << "(not found) " << prototype->metadata()->jsName() << "." << propertyName.publicName()->utf8().data();
     return false;
 }
 
@@ -277,9 +256,6 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
     // from ~5.3 sec to ~7.5 sec (~40%) when running TestRunner with ApiIterator test enabled in RelWithDebInfo configuration
     // on an iPhone 6s device and from 3.0-3.2 to 4.4 sec (~40%) on an iPhone X
 
-    //    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
-    //    int addedProps = 0;
-
     const BaseClassMeta* meta = this->metadata();
     Class klass = this->klass();
     while (meta) {
@@ -312,12 +288,6 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
             meta = nullptr;
         }
     }
-    //    std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
-    //    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
-    //    static double totalDuration = 0;
-    //    totalDuration += duration;
-    //
-    //    NSLog(@"**** materializeProperties %s : %f (Total: %f) %d added", this->metadata()->jsName(), duration, totalDuration, addedProps);
 #endif
 }
 

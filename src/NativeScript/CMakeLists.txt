@@ -95,6 +95,7 @@ set(HEADER_FILES
     Runtime/JSWeakRefInstance.h
     Runtime/JSWeakRefPrototype.h
     Runtime/ReleasePool.h
+    StopwatchLogger.h
     SymbolLoader.h
     TimelineRecordFactory.h
     TNSRuntimeInstrumentation.h
