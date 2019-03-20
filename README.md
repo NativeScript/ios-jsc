@@ -23,25 +23,25 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
 ## Requirements
  - OS X 10.11+
  - [Xcode 10+](https://developer.apple.com/xcode/)
- - [CMake 3.3.2](https://cmake.org/files/v3.3/cmake-3.3.2-Darwin-x86_64.dmg) - after installing CMake.app add a symlink to cmake in `usr/local/bin` using the following command `ln -s /Applications/CMake.app/Contents/bin/cmake /usr/local/bin`
+ - [CMake 3.3.2] or later. Tested with versions up to 3.14 (https://github.com/Kitware/CMake/releases/download/v3.14.0/cmake-3.14.0-Darwin-x86_64.dmg) - after installing CMake.app add a symlink to cmake in `usr/local/bin` using the following command `ln -s /Applications/CMake.app/Contents/bin/cmake /usr/local/bin`
  - [llvm 7.0](http://releases.llvm.org/download.html#7.0.0) - used to build the [metadata generator](https://github.com/NativeScript/ios-metadata-generator) submodule. Be sure to have the folder containing `llvm-config` in `PATH` or make a symlink to in `/usr/local/bin/`.
  - [Automake](https://www.gnu.org/software/automake/) - available in [Homebrew](http://brew.sh) as `automake`.
  - [GNU Libtool](http://www.gnu.org/software/libtool/) - available in [Homebrew](http://brew.sh) as `libtool`.
  - Checkout all git submodules using `git submodule update --init`.
 
 ## Architecture Diagram
-The NativeScript iOS Runtime architecture can be summarized in the following diagram. 
+The NativeScript iOS Runtime architecture can be summarized in the following diagram.
 
 ![iOS Runtime diagram](https://github.com/NativeScript/docs/blob/master/docs/img/ns-runtime-ios.png)
 
-For more details on how it works, read the [documentation](https://docs.nativescript.org/runtimes/ios/overview). 
+For more details on how it works, read the [documentation](https://docs.nativescript.org/runtimes/ios/overview).
 
 ## Local Development
 To be able to open and build {N} iOS Runtime in Xcode you need to configure it for WebKit development and generate the Xcode project files using cmake. To do this execute the following:
 
 ```shell
-sudo ./src/webkit/Tools/Scripts/configure-xcode-for-ios-development 
-./cmake-gen.sh 
+sudo ./src/webkit/Tools/Scripts/configure-xcode-for-ios-development
+./cmake-gen.sh
 open "cmake-build/NativeScript.xcodeproj"
 ```
 
