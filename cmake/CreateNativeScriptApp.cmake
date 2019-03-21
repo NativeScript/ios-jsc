@@ -10,11 +10,11 @@ function(CreateNativeScriptApp _target _main _plist _resources)
         "-framework UIKit"
         "-framework MobileCoreServices"
         "-framework Security"
-        NativeScript
     )
 
     if(NOT ${BUILD_SHARED_LIBS})
         target_link_libraries(${_target}
+            NativeScript
             libicucore.dylib
             libz.dylib
             libc++.dylib
@@ -24,6 +24,11 @@ function(CreateNativeScriptApp _target _main _plist _resources)
             target_link_libraries(${_target} ${WEBKIT_LIBRARIES} ffi)
         endif()
     else()
+        add_dependencies(${_target} NativeScript)
+        target_link_libraries(${_target}
+            "-framework NativeScript"
+            "-F${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/"
+        )
         set_target_properties(${_target} PROPERTIES
             XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS    "@executable_path/Frameworks"
         )

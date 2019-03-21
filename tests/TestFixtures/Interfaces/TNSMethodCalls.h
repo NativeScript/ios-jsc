@@ -119,6 +119,8 @@
 @interface TNSDerivedInterface : TNSBaseInterface <TNSDerivedProtocol2>
 @property int derivedProperty;
 @property(class) int derivedProperty;
+@property(readonly) int derivedPropertyReadOnly;
+@property(readonly) int derivedPropertyReadOnlyMadeWritable;
 + (void)derivedMethod;
 - (instancetype)initDerivedMethod;
 - (void)derivedMethod;
@@ -158,6 +160,7 @@
 @interface TNSDerivedInterface (TNSDerivedCategory) <TNSDerivedCategoryProtocol2>
 @property int derivedCategoryProperty;
 @property(class) int derivedCategoryProperty;
+@property(readwrite) int derivedPropertyReadOnlyMadeWritable;
 + (void)derivedCategoryMethod;
 - (instancetype)initDerivedCategoryMethod;
 - (void)derivedCategoryMethod;

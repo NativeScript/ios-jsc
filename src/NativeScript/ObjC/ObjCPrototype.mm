@@ -19,6 +19,8 @@
 #include <JavaScriptCore/BuiltinNames.h>
 #include <objc/runtime.h>
 
+#include "StopwatchLogger.h"
+
 namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
@@ -50,7 +52,10 @@ void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const B
     }
 }
 
+//const char StopwatchLabel_getOwnPropertySlot[] = "ObjCPrototype::getOwnPropertySlot";
 bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
+    //StopwatchLogger<StopwatchLabel_getOwnPropertySlot> stopwatch("(unset)");
+
     if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
         return true;
     }
@@ -60,20 +65,60 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
     }
 
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
-
-    MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klass());
-
-    if (methods.size() > 0) {
-        SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
-
-        GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
-        auto method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), methods);
-        object->putDirect(execState->vm(), propertyName, method.get());
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
-
-        return true;
+    if (UNLIKELY(propertyName == prototype->_definingPropertyName)) {
+        // We're currently defining it, it's still not defined
+        return false;
     }
 
+    GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
+    // Check for property
+    if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klass())) {
+        prototype->_definingPropertyName = propertyName;
+        prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
+        prototype->_definingPropertyName = PropertyName(nullptr);
+
+        //stopwatch.message << "(prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
+
+        return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
+    } else {
+        // Check for base class property which is implemented in inheritor as a workaround
+        // to inaccurate header information in iOS SDKs (https://github.com/NativeScript/ios-runtime/pull/1092)
+        if (prototype->metadata()->type() == MetaType::Interface) {
+            if (auto baseMeta = static_cast<const InterfaceMeta*>(prototype->metadata())->baseMeta()) {
+                if (auto propertyMeta = baseMeta->instanceProperty(propertyName.publicName(), prototype->klass())) {
+                    JSObject* basePrototype = prototype->getPrototype(execState->vm(), execState).toObject(execState);
+                    PropertySlot tempPropSlot(JSValue(basePrototype), PropertySlot::InternalMethodType::GetOwnProperty);
+
+                    if (basePrototype->methodTable(execState->vm())->getOwnPropertySlot(basePrototype, execState, propertyName, tempPropSlot)) {
+                        // basePrototype has the property defined return false and let the prototype chain handle it
+                        return false;
+                    }
+
+                    prototype->_definingPropertyName = propertyName;
+                    prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
+                    prototype->_definingPropertyName = PropertyName(nullptr);
+
+                    //stopwatch.message << "(base prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
+                    return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
+                }
+            }
+        }
+
+        MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klass());
+
+        if (methods.size() > 0) {
+            SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
+
+            auto method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), methods);
+            object->putDirect(execState->vm(), propertyName, method.get());
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
+
+            //stopwatch.message << "(method) " << prototype->metadata()->jsName() << "." << (*methods.begin())->jsName();
+            return true;
+        }
+    }
+
+    //stopwatch.message << "(not found) " << prototype->metadata()->jsName() << "." << propertyName.publicName()->utf8().data();
     return false;
 }
 
@@ -197,6 +242,7 @@ void ObjCPrototype::defineNativeProperty(VM& vm, GlobalObject* globalObject, con
 }
 
 void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
+#if 0
     // The cycle here works around an issue with incorrect public headers of some iOS system frameworks.
     // In particular:
     //   * UIBarItem doesn't define 6 of its declared properties (enabled, image, imageInsets,
@@ -209,9 +255,6 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
     // properties in the base class. This additional overhead increased the time spent in materializeProperties
     // from ~5.3 sec to ~7.5 sec (~40%) when running TestRunner with ApiIterator test enabled in RelWithDebInfo configuration
     // on an iPhone 6s device and from 3.0-3.2 to 4.4 sec (~40%) on an iPhone X
-
-    //    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
-    //    int addedProps = 0;
 
     const BaseClassMeta* meta = this->metadata();
     Class klass = this->klass();
@@ -245,12 +288,7 @@ void ObjCPrototype::materializeProperties(VM& vm, GlobalObject* globalObject) {
             meta = nullptr;
         }
     }
-    //    std::chrono::time_point<std::chrono::system_clock> endTime = std::chrono::system_clock::now();
-    //    double duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count() / 1000.;
-    //    static double totalDuration = 0;
-    //    totalDuration += duration;
-    //
-    //    std::cout << "**** materializeProperties " << this->metadata()->jsName() << ": " << duration << "(Total: " << totalDuration << ") added " << addedProps << std::endl;
+#endif
 }
 
 }
