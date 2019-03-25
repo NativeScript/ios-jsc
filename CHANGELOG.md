@@ -7,6 +7,36 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.3.0
+=====
+
+## Breaking changes
+
+* **runtime:** UIApplication's deprecated writable properties are now read-only (https://github.com/NativeScript/ios-runtime/issues/1104)
+
+## What's new
+
+* **metadata:** Metadata generator upgraded to use LLVM 7.0.0 (https://github.com/NativeScript/ios-runtime/pull/1082)
+
+## Performance Improvements
+
+* **runtime:** Lazy evaluation of properties (https://github.com/NativeScript/ios-runtime/pull/1100)
+
+## Bug Fixes
+
+* **build:** Can't compile runtime with CMake 3.14 (https://github.com/NativeScript/ios-runtime/issues/1097)
+* **debugger:** Unable to debug onNavigatingTo event (https://github.com/NativeScript/ios-runtime/issues/1021)
+* **debugger:** Chrome DevTools: can set breakpoint in the middle of multiline log (https://github.com/NativeScript/ios-runtime/issues/1036)
+* **debugger:** Catch and log inspector_modules.js loading errors (https://github.com/NativeScript/ios-runtime/pull/1081)
+* **debugger:** VSCode debugger crashes on old simulators (https://github.com/NativeScript/ios-runtime/issues/1084)
+* **debugger:** {N} app crashes when inspecting SearchBar with VSCode debugger (https://github.com/NativeScript/ios-runtime/issues/1085)
+* **debugger:** Chrome DevTools: console.trace() doesn't log call stack in Chrome's Console (https://github.com/NativeScript/ios-runtime/issues/1099)
+* **debugger:** Console evaluation doesn't work with `tns debug ios --bundle` (https://github.com/NativeScript/ios-runtime/issues/1054)
+* **debugger:** Empty Elements tab in Chrome with `tns debug ios --bundle` (https://github.com/NativeScript/ios-runtime/issues/1055)
+* **debugger:** Cannot add watch expressions with `tns debug ios --bundle` (https://github.com/NativeScript/ios-runtime/issues/1056)
+* **debugger:** No requests are shown in Network tab with `tns debug ios --bundle` (https://github.com/NativeScript/ios-runtime/issues/1057)
+* **webkit:** Make JSC log to system logs instead of only to stderr (https://github.com/NativeScript/ios-runtime/pull/1093)
+
 5.2.0
 =====
 
