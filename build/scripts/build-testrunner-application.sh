@@ -19,14 +19,14 @@ cmake .. -G"Xcode"
 mkdir -p "$NATIVESCRIPT_XCODEPROJ/xcshareddata/xcschemes"
 cp "$WORKSPACE/build/TestRunner.xcscheme" "$NATIVESCRIPT_XCODEPROJ/xcshareddata/xcschemes/TestRunner.xcscheme"
 
-# xcodebuild \
-# -configuration "$CONFIGURATION" \
-# -sdk "iphoneos" \
-# -scheme "TestRunner" \
-# ARCHS="armv7 arm64" \
-# ONLY_ACTIVE_ARCH="NO" \
-# -project $NATIVESCRIPT_XCODEPROJ \
-# -quiet \
+xcodebuild \
+-configuration "$CONFIGURATION" \
+-sdk "iphoneos" \
+-scheme "TestRunner" \
+ARCHS="armv7 arm64" \
+ONLY_ACTIVE_ARCH="NO" \
+-project $NATIVESCRIPT_XCODEPROJ \
+-quiet \
 
 xcodebuild archive \
 -archivePath "$WORKSPACE/cmake-build/tests/TestRunner/$CONFIGURATION-iphoneos/TestRunner.xcarchive" \

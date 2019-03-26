@@ -229,7 +229,13 @@ set(JSFILES
     smartStringify.js
 )
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/**" "${LIBFFI_INCLUDE_DIR}" "${WEBKIT_INCLUDE_DIRECTORIES}")
+include_directories(
+    "${CMAKE_CURRENT_BINARY_DIR}" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/**" 
+    "${LIBFFI_INCLUDE_DIR}" 
+    "${WEBKIT_INCLUDE_DIRECTORIES}"
+)
+
 link_directories("${LIBFFI_LIB_DIR}" ${WEBKIT_LINK_DIRECTORIES})
 
 add_library(NativeScript ${SOURCE_FILES} ${HEADER_FILES} ${JSFILES})
