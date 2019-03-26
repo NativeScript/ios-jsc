@@ -32,21 +32,29 @@ void InspectorPageAgent::disable(ErrorString&) {
 }
 
 void InspectorPageAgent::reload(ErrorString&, const bool* const optionalReloadFromOrigin, const bool* const optionalRevalidateAllResources) {
-    JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&m_globalObject.vm(), "__onLiveSync"));
-    JSC::CallData callData;
-    JSC::CallType callType = getCallData(m_globalObject.vm(), liveSyncCallback, callData);
-    if (callType == JSC::CallType::None) {
-        JSC::JSValue error = JSC::createError(m_globalObject.globalExec(), "global.__onLiveSync is not a function.");
-        m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), JSC::Exception::create(m_globalObject.globalExec()->vm(), error));
-        return;
-    }
+    // __onLiveSync interacts with UI elements and has to be called in the main thread
+    CFRunLoopRef runloop = CFRunLoopGetMain();
+    CFRunLoopPerformBlock(runloop, (__bridge CFTypeRef)(kCFRunLoopDefaultMode), ^{
+      JSC::VM& vm = m_globalObject.vm();
+      JSC::JSLockHolder lock(vm);
 
-    WTF::NakedPtr<JSC::Exception> exception;
-    JSC::MarkedArgumentBuffer liveSyncArguments;
-    call(m_globalObject.globalExec(), liveSyncCallback, callType, callData, JSC::jsUndefined(), liveSyncArguments, exception);
-    if (exception) {
-        m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), exception);
-    }
+      JSC::JSValue liveSyncCallback = m_globalObject.get(m_globalObject.globalExec(), JSC::Identifier::fromString(&vm, "__onLiveSync"));
+      JSC::CallData callData;
+      JSC::CallType callType = getCallData(vm, liveSyncCallback, callData);
+      if (callType == JSC::CallType::None) {
+          JSC::JSValue error = JSC::createError(m_globalObject.globalExec(), "global.__onLiveSync is not a function.");
+          m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), JSC::Exception::create(vm, error));
+          return;
+      }
+
+      WTF::NakedPtr<JSC::Exception> exception;
+      JSC::MarkedArgumentBuffer liveSyncArguments;
+      call(m_globalObject.globalExec(), liveSyncCallback, callType, callData, JSC::jsUndefined(), liveSyncArguments, exception);
+      if (exception) {
+          m_globalObject.inspectorController().reportAPIException(m_globalObject.globalExec(), exception);
+      }
+    });
+    CFRunLoopWakeUp(runloop);
 }
 
 void InspectorPageAgent::navigate(ErrorString&, const String& in_url) {

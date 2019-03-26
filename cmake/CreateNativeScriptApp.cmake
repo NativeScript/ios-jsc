@@ -13,11 +13,13 @@ function(CreateNativeScriptApp _target _main _plist _resources)
     )
 
     if(NOT ${BUILD_SHARED_LIBS})
+        add_dependencies(${_target} NativeScript)
         target_link_libraries(${_target}
-            NativeScript
             libicucore.dylib
             libz.dylib
             libc++.dylib
+            "-lNativeScript"
+            "-L${NativeScriptFramework_BINARY_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)"
         )
 
         if(NOT ${EMBED_STATIC_DEPENDENCIES})
