@@ -47,7 +47,7 @@ set(MAIN_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/main.m")
 set(INFO_PLIST_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/Info.plist")
 
 #WTF uses char16_t for UCHAR_TYPE and we need to match it
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14 -stdlib=libc++ -DUCHAR_TYPE=char16_t")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++ -DUCHAR_TYPE=char16_t")
 
 # Override RelWithDebInfo configuration's default optimization O2 to O3
 # because we've started releasing NativeScript.framework from it

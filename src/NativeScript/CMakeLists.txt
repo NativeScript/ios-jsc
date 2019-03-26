@@ -230,9 +230,9 @@ set(JSFILES
 )
 
 include_directories(
-    "${CMAKE_CURRENT_BINARY_DIR}" 
-    "${CMAKE_CURRENT_SOURCE_DIR}/**" 
-    "${LIBFFI_INCLUDE_DIR}" 
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/**"
+    "${LIBFFI_INCLUDE_DIR}"
     "${WEBKIT_INCLUDE_DIRECTORIES}"
 )
 
@@ -244,7 +244,7 @@ add_dependencies(NativeScript WebKit libffi)
 
 set_target_properties(NativeScript PROPERTIES
     COMPILE_FLAGS "
-        -fno-exceptions -fno-rtti -fno-objc-arc
+        -fno-exceptions -fno-rtti -fno-objc-arc -faligned-allocation -fno-aligned-new
         -Werror -Wall -Wextra -Wcast-align -Wformat-security -Wmissing-format-attribute -Wpointer-arith -Wundef -Wwrite-strings
         -Wno-shorten-64-to-32 -Wno-bool-conversion -Wno-unused-parameter -Wno-macro-redefined
     "

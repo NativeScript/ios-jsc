@@ -34,6 +34,7 @@ set(WEBKIT_CMAKE_ARGS
     -DCMAKE_CXX_STANDARD_REQUIRED=ON
     # Override RelWithDebInfo configuration's defaults to the ones from NativeScript
     -DCMAKE_CXX_FLAGS_RELWITHDEBINFO=${CMAKE_CXX_FLAGS_RELWITHDEBINFO}
+    -DCMAKE_CXX_FLAGS=-faligned-allocation -fno-aligned-new
 
 )
 
