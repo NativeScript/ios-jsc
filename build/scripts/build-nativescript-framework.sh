@@ -13,7 +13,11 @@ mkdir -p "$WORKSPACE/cmake-build"
 rm -f "$WORKSPACE/cmake-build/CMakeCache.txt"
 ./cmake-gen.sh
 
-# TODO: fix build when iphoneos build is started first
+# Due to the regeneration of JSC's low level interpreter when changing
+# building target between device/simulator, this order is important for
+# the performance of Jenkins builds. After building the {N} framework, we
+# build TestRunner for device and thus, it is best to build NativeScript.framework
+# for device last.
 checkpoint "Building NativeScript.framework - iphonesimulator SDK"
 xcodebuild -configuration $CONFIGURATION -sdk "iphonesimulator" -target "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
 checkpoint "Building NativeScript.framework - iphoneos SDK"

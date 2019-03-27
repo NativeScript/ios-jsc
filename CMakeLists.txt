@@ -9,7 +9,15 @@ if(CCACHE_FOUND AND USE_CCACHE)
   MESSAGE( STATUS "## Using CCache when building!")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_FOUND})
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_FOUND})
-endif(CCACHE_FOUND AND USE_CCACHE)
+  # Do not precompile the prefix header when using CCache. It doesn't work efficiently because
+  # of clang's logic to always require the timestamps of the precompiled prefix header to be
+  # newer than all its dependencies (and ccache's behaviour to regenerate it whenever some dependency is newer:
+  # see https://github.com/ccache/ccache/blob/b72a04dc51bb7d34ad04e9f75a07b0f92e96a262/src/manifest.c#L390)
+  MESSAGE( STATUS "## Disabling precompilation of prefix headers")
+  set(NATIVESCRIPT_PRECOMPILE_PREFIX_HEADER "NO")
+else()
+  set(NATIVESCRIPT_PRECOMPILE_PREFIX_HEADER "YES")
+endif()
 
 project(NativeScript)
 

@@ -1,6 +1,27 @@
 #!/bin/sh
-export CCACHE_CPP2=true
-# Enable precompiled headers support by following the instructions at
-# https://ccache.samba.org/manual/latest.html#_precompiled_headers
-export CCACHE_SLOPPINESS="pch_defines,time_macros"
+
+# If false, ccache will first run preprocessor to preprocess the source code and then on a cache miss run the compiler on the preprocessed source
+# code instead of the original source code. This makes cache misses slightly faster since the source code only has to be preprocessed once.
+# The downside is that some compilers won’t produce the same result (for instance diagnostics warnings) when compiling preprocessed source code.
+export CCACHE_CPP2="true"
+
+if [ -z "${CCACHE_HASHDIR+set}" ]; then
+	# You can disable CCACHE_HASHDIR to get cache hits when compiling the same source code in
+	# different directories if you don’t mind that CWD in the debug info might be incorrect.
+	export CCACHE_NOHASHDIR="true"
+fi
+
+if [ -z "${CCACHE_BASEDIR+set}" ]; then
+	# If you use absolute paths anywhere on the command line (e.g. the source code file path or an argument to compiler options like -I and -MF),
+	# you must to set base_dir to an absolute path to a “base directory”. ccache will then rewrite absolute paths under that directory to relative
+	# before computing the hash.
+	export CCACHE_BASEDIR="$(PWD)"
+fi
+
+if [ -z "${CCACHE_SLOPPINESS+set}" ]; then
+	# Enable precompiled headers support by following the instructions at
+	# https://ccache.samba.org/manual/latest.html#_precompiled_headers
+	export CCACHE_SLOPPINESS="pch_defines,time_macros"
+fi
+
 exec "${RULE_LAUNCH_COMPILE}" "${CMAKE_C_COMPILER}" "-fpch-preprocess" "$@"
