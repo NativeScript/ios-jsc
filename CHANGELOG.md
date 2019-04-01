@@ -7,6 +7,13 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.3.1
+=====
+
+## Bug Fixes
+
+* **livesync:** `__onLiveSync` function must be called on the UI thread (https://github.com/NativeScript/ios-runtime/pull/1108)
+
 5.3.0
 =====
 
