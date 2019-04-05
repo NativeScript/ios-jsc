@@ -61,6 +61,12 @@ docset_path = os.path.join(os.path.expanduser("~"),
 yaml_output_folder = env_or_none("TNS_DEBUG_METADATA_PATH")
 
 
+def save_stream_to_file(filename, stream):
+    f = open(filename, "w")
+    f.write(stream)
+    f.close()
+
+
 # noinspection PyShadowingNames
 def generate_metadata(arch):
     # metadata generator arguments
@@ -76,6 +82,7 @@ def generate_metadata(arch):
         print("Generating TypeScript declarations in: \"{}\"".format(current_typescript_output_folder))
 
     # optionally add yaml output folder
+    current_yaml_output_folder = None
     if yaml_output_folder is not None:
         current_yaml_output_folder = yaml_output_folder + "-" + arch
         generator_call.extend(["-output-yaml", current_yaml_output_folder])
@@ -99,9 +106,12 @@ def generate_metadata(arch):
 
     # save error stream content to file
     error_log_file = "{}/metadata-generation-stderr-{}.txt".format(conf_build_dir, arch)
-    error_file = open(error_log_file, "w")
-    error_file.write(error_stream_content)
-    error_file.close()
+    print("Saving metadata generation's stderr stream to: {}".format(error_log_file))
+    save_stream_to_file(error_log_file, error_stream_content)
+    if current_yaml_output_folder is not None:
+      yaml_dir_error_log_file = "{}/metadata-generation-stderr.txt".format(current_yaml_output_folder)
+      print("Copying metadata stderr stream to: {}".format(yaml_dir_error_log_file))
+      save_stream_to_file(yaml_dir_error_log_file, error_stream_content)
 
     if child_process.returncode != 0:
         print("Error: Unable to generate metadata for {}.".format(arch))
