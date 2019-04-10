@@ -70,7 +70,7 @@ def save_stream_to_file(filename, stream):
 # noinspection PyShadowingNames
 def generate_metadata(arch):
     # metadata generator arguments
-    generator_call = ["./objc-metadata-generator", "-verbose"
+    generator_call = ["./objc-metadata-generator", "-verbose",
                       "-output-bin", "{}/metadata-{}.bin".format(conf_build_dir, arch),
                       "-output-umbrella", "{}/umbrella-{}.h".format(conf_build_dir, arch),
                       "-docset-path", docset_path]
