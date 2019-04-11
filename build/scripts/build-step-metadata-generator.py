@@ -59,6 +59,7 @@ docset_path = os.path.join(os.path.expanduser("~"),
                            "Library/Developer/Shared/Documentation/DocSets/com.apple.adc.documentation.{}.docset"
                            .format(docset_platform))
 yaml_output_folder = env_or_none("TNS_DEBUG_METADATA_PATH")
+strict_includes = env_or_none("TNS_DEBUG_METADATA_STRICT_INCLUDES")
 
 
 def save_stream_to_file(filename, stream):
@@ -74,6 +75,9 @@ def generate_metadata(arch):
                       "-output-bin", "{}/metadata-{}.bin".format(conf_build_dir, arch),
                       "-output-umbrella", "{}/umbrella-{}.h".format(conf_build_dir, arch),
                       "-docset-path", docset_path]
+
+    if strict_includes is not None:
+        generator_call.extend(["-strict-includes={}".format(strict_includes)])
 
     # optionally add typescript output folder
     if typescript_output_folder is not None:
