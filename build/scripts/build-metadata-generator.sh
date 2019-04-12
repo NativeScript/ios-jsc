@@ -12,6 +12,7 @@ xcodebuild -configuration "Release" -target "MetadataGenerator" -project $NATIVE
 
 checkpoint "Packaging metadata-generator"
 mkdir -p "$DIST_DIR" && pushd "$_"
+rm -rf metadataGenerator
 cp -R "$WORKSPACE/cmake-build/metadataGenerator" "."
 cp "$WORKSPACE/build/scripts/build-step-metadata-generator.py" "metadataGenerator/bin/"
 popd
