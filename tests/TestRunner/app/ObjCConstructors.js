@@ -69,7 +69,7 @@ describe("Constructing Objective-C classes with new operator", function () {
 
     it("NSArray with JS array constructor", function () {
         var nsarray = new NSArray([1, 2, 3]);
-        expect(nsarray.class()).toBe(NSArray);
+        expect(nsarray.class()).toBe(NSClassFromString("__NSArrayI"));
     });
 
     it("Invalid empty constructor args", function () {

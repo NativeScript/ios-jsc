@@ -112,12 +112,33 @@ static JSValue objCClass_read(ExecState* execState, const void* buffer, JSCell* 
         return jsNull();
     }
 
-    return jsCast<GlobalObject*>(execState->lexicalGlobalObject())->constructorFor(klass).get();
+    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    // search for the concrete class in the metadata
+    Strong<ObjCConstructorBase> klassConstructor = globalObject->constructorFor(klass, nullptr, false);
+    if (klassConstructor.get() != nullptr) {
+        return klassConstructor.get();
+    } else {
+        // if there is no metadata for the searched class, return wrapped object with structure from the first parent with metadata
+        Structure* structure = globalObject->constructorFor(class_getSuperclass(klass))->instancesStructure();
+        return toValue(execState, klass, ^{
+            return structure;
+        });
+    }
 }
 static void objCClass_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     JSC::VM& vm = execState->vm();
     if (value.inherits(vm, ObjCConstructorBase::info())) {
         *static_cast<Class*>(buffer) = jsCast<ObjCConstructorBase*>(value.asCell())->klass();
+    } else if (value.inherits(vm, ObjCWrapperObject::info())) {
+        id wrappedObject = jsCast<ObjCWrapperObject*>(value.asCell())->wrappedObject();
+        if(NSStringFromClass(wrappedObject) != nullptr) {
+            *static_cast<Class*>(buffer) = wrappedObject;
+        } else {
+            JSValue exception = createError(execState, "Wrapped native value is not a class."_s);
+            auto scope = DECLARE_THROW_SCOPE(vm);
+            scope.throwException(execState, exception);
+            return;
+        }
     } else if (value.isUndefinedOrNull()) {
         *static_cast<Class*>(buffer) = nullptr;
     } else {

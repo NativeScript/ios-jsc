@@ -98,7 +98,7 @@ public:
         return this->_interop.get();
     }
 
-    JSC::Strong<ObjCConstructorBase> constructorFor(Class klass, Class fallback = Nil);
+    JSC::Strong<ObjCConstructorBase> constructorFor(Class klass, Class fallback = Nil, bool searchBaseClasses = true);
 
     JSC::Strong<ObjCProtocolWrapper> protocolWrapperFor(Protocol* aProtocol);
 
