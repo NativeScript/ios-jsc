@@ -8,7 +8,47 @@
 
 #import "TNSMethodCalls.h"
 
+@interface AnonymousTnsBaseProtocol1 : NSObject <TNSBaseProtocol1>
+@property int baseProtocolProperty1;
+@property(class) int baseProtocolProperty1;
++ (void)baseProtocolMethod1;
+- (instancetype)initBaseProtocolMethod1;
+- (void)baseProtocolMethod1;
+@end
+
+@implementation AnonymousTnsBaseProtocol1
+
+- (int)baseProtocolProperty1 {
+    return 0;
+}
+- (void)setBaseProtocolProperty1:(int)value {
+}
+
++ (int)baseProtocolProperty1 {
+    return 0;
+}
++ (void)setBaseProtocolProperty1:(int)value {
+}
+
++ (void)baseProtocolMethod1 {
+    TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
+}
+
+- (instancetype)initBaseProtocolMethod1 {
+    return self;
+}
+
+- (void)baseProtocolMethod1 {
+    NSLog(@"%@", [NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
+}
+
+@end
+
 @implementation TNSBaseInterface
+
++ (id<TNSBaseProtocol1>)anonymousTnsBaseProtocol1 {
+    return [AnonymousTnsBaseProtocol1 new];
+}
 
 - (int)baseProtocolProperty1 {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
@@ -557,4 +597,5 @@
 - (void)baseMethod:(NSNumber*)param {
     TNSLog([NSString stringWithFormat:@"derived overloaded instance %@ called", NSStringFromSelector(_cmd)]);
 }
+
 @end

@@ -1,6 +1,10 @@
 // Inform the test results runner that the runtime is up.
 console.log('Application Start!');
 
+var p = TNSBaseInterface.anonymousTnsBaseProtocol1();
+console.log("p: ", p, p.baseProtocolMethod1);
+p.baseProtocolMethod1(); // TODO: make this work
+
 import "./Infrastructure/timers";
 import "./Infrastructure/simulator";
 

@@ -39,6 +39,9 @@
 @interface TNSBaseInterface : NSObject <TNSBaseProtocol2>
 @property int baseProperty;
 @property(class) int baseProperty;
+
++ (id<TNSBaseProtocol1>)anonymousTnsBaseProtocol1;
+
 + (void)baseMethod;
 + (void)baseMethod:(NSNumber*)param;
 - (instancetype)initBaseMethod;
@@ -46,6 +49,7 @@
 - (void)baseMethod;
 - (void)methodWithParam:(NSNumber*)p1;
 - (void)callBaseMethod:(BOOL)withArg;
+
 @end
 
 @protocol TNSBaseCategoryProtocol1
