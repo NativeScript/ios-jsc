@@ -99,6 +99,12 @@ describe(module.id, function () {
         expect(object instanceof NSObject).toBe(true);
     });
 
+    it("NSStringFromClassForClassWithoutMetadata", function () {
+        var c = UITableViewCell.new();
+        // UITableViewCellContentView is internal class thus we don't have metadata for it
+        expect(NSStringFromClass(c.subviews[0].class())).toBe('UITableViewCellContentView');
+    });
+
     it("Appearance", function () {
         expect(UILabel.appearance().description.indexOf('<Customizable class: UILabel>')).not.toBe(-1);
 
@@ -410,7 +416,7 @@ describe(module.id, function () {
     if (interop.sizeof(interop.Pointer) == 8) {
         it("TaggedPointers", function () {
             expect(NSDate.dateWithTimeIntervalSinceReferenceDate(0)).toBe(NSDate.dateWithTimeIntervalSinceReferenceDate(0));
-            expect(NSDate.dateWithTimeIntervalSinceReferenceDate(0).class()).toBe(NSDate);
+            expect(NSDate.dateWithTimeIntervalSinceReferenceDate(0).class()).toBe(NSClassFromString("__NSTaggedDate"));
         });
     }
 
@@ -693,7 +699,7 @@ describe(module.id, function () {
         if (NSProcessInfo.processInfo.isOperatingSystemAtLeastVersion({majorVersion: 11, minorVersion: 0, patchVersion: 0})) {
             props = props.concat("landscapeImagePhone", "landscapeImagePhoneInsets");
         }
-       
+
         for (var klass of classConstructors) {
             var instance = new global[klass]();
             for (var prop of props) {
@@ -701,21 +707,21 @@ describe(module.id, function () {
             }
         }
     });
- 
+
     it("Unimplemented properties from MTLRenderPassAttachmentDescriptor class should be provided by the inheritors", function () {
-        var classConstructors = [ 
-            "MTLRenderPassDepthAttachmentDescriptor", "MTLRenderPassStencilAttachmentDescriptor", 
+        var classConstructors = [
+            "MTLRenderPassDepthAttachmentDescriptor", "MTLRenderPassStencilAttachmentDescriptor",
             "MTLRenderPassColorAttachmentDescriptor"
         ];
         var props = [
             "depthPlane", "level", "loadAction", "resolveDepthPlane", "resolveLevel", "resolveSlice",
             "resolveTexture", "slice", "storeAction", "texture"
         ];
-        
+
         if (NSProcessInfo.processInfo.isOperatingSystemAtLeastVersion({majorVersion: 11, minorVersion: 0, patchVersion: 0})) {
             props = props.concat("storeActionOptions");
         }
-       
+
         for (var klass of classConstructors) {
             var instance = new global[klass]();
             for (var prop of props) {

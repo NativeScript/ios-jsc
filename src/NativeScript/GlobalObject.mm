@@ -449,7 +449,7 @@ void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, P
 }
 #endif
 
-Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, Class fallback) {
+Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, Class fallback, bool searchBaseClasses) {
     ASSERT(klass);
 
     auto kvp = this->_objCConstructors.find(klass);
@@ -458,6 +458,10 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, Class fall
     }
 
     const Meta* meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
+    if(!searchBaseClasses && meta == nullptr) {
+        return Strong<ObjCConstructorBase>();
+    }
+    
     while (!(meta && meta->type() == MetaType::Interface)) {
         klass = class_getSuperclass(klass);
         meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
