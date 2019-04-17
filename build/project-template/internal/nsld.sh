@@ -4,7 +4,6 @@
  set +e
  source ./env_vars.sh
  set -e
- set +x
 
  MODULES_DIR=$SRCROOT/internal/Swift-Modules
 
@@ -47,7 +46,7 @@ GEN_MODULEMAP
 printf "Generating metadata..."
 GEN_METADATA
 DELETE_SWIFT_MODULES_DIR
-$DT_TOOLCHAIN_DIR/usr/bin/clang $@
+$TOOLCHAIN_DIR/usr/bin/clang $@
 
 
 

@@ -193,7 +193,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export >./env_vars.sh\nset -e\n";
+			shellScript = "\"$SRCROOT/internal/nativescript-pre-build\"\n";
 			showEnvVarsInLog = 0;
 		};
 		CD3EAD351B05FF060042DBFC /* NativeScript PostBuild */ = {
@@ -280,7 +280,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$SRCROOT/internal/Swift-Modules";
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD = $SRCROOT/internal/nsld.sh;
 				ONLY_ACTIVE_ARCH = YES;
@@ -319,7 +319,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$SRCROOT/internal/Swift-Modules";
+				HEADER_SEARCH_PATHS = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD = $SRCROOT/internal/nsld.sh;
 				SDKROOT = iphoneos;
@@ -343,11 +343,9 @@
 					"$(inherited)",
 					"DEBUG=1",
 				);
-				"HEADER_SEARCH_PATHS[sdk=*]" = (
+				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$SRCROOT/internal/Swift-Modules",
-					"\"$(SRCROOT)/internal\"",
-					"\"$(SRCROOT)/internal/TKLiveSync/include\"",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -364,6 +362,10 @@
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "__PROJECT_NAME__/__PROJECT_NAME__-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$SRCROOT/internal/Swift-Modules",
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = __PROJECT_NAME__;

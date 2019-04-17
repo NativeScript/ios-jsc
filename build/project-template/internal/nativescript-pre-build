@@ -1,6 +1,2 @@
 #!/usr/bin/env bash
-set -e
-
-pushd "$SRCROOT/internal/metadata-generator/bin"
-./build-step-metadata-generator.py
-popd
+export >./env_vars.sh
