@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-export >./env_vars.sh
+(echo "set +e"; export; echo "set -e") >> ./.build_env_vars.sh

@@ -1,13 +1,11 @@
  #/bin/bash
 
- set +o posix
- set +e
- source ./env_vars.sh
- set -e
+set +o posix #Ignore errors while inserting environment variables (some could be readonly)
+source ./.build_env_vars.sh
 
- MODULES_DIR=$SRCROOT/internal/Swift-Modules
+MODULES_DIR=$SRCROOT/internal/Swift-Modules
 
- function DELETE_SWIFT_MODULES_DIR() {
+function DELETE_SWIFT_MODULES_DIR() {
   rm -rf $MODULES_DIR
 }
 
@@ -26,10 +24,10 @@ function GEN_MODULEMAP() {
           CONTENT="module nsswiftsupport { \n header \"$HEADER_PATH\" \n export * \n}"
           printf "$CONTENT" > "$MODULES_DIR/module.modulemap"
       else
-      echo "-Swift.h not found!"
+      echo "NSLD: Swift bridging header '*-Swift.h' not found"
       fi
   else
-    echo "Derived sources directory not found!"
+    echo "NSLD: Derived sources directory not found"
   fi
 
 }
