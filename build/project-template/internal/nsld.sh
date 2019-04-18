@@ -1,6 +1,4 @@
  #/bin/bash
-
-set +o posix #Ignore errors while inserting environment variables (some could be readonly)
 source ./.build_env_vars.sh
 
 MODULES_DIR=$SRCROOT/internal/Swift-Modules
