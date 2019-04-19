@@ -45,7 +45,7 @@ static int compareIdentifiers(const char* nullTerminated, const char* notNullTer
 }
 
 const InterfaceMeta* GlobalTable::findInterfaceMeta(WTF::StringImpl* identifier) const {
-    return this->findInterfaceMeta(reinterpret_cast<const char*>(identifier->characters8()), identifier->length(), identifier->hash());
+    return this->findInterfaceMeta(reinterpret_cast<const char*>(identifier->utf8().data()), identifier->length(), identifier->hash());
 }
 
 const InterfaceMeta* GlobalTable::findInterfaceMeta(const char* identifierString) const {
@@ -81,7 +81,7 @@ const InterfaceMeta* GlobalTable::findInterfaceMeta(const char* identifierString
 }
 
 const ProtocolMeta* GlobalTable::findProtocol(WTF::StringImpl* identifier) const {
-    return this->findProtocol(reinterpret_cast<const char*>(identifier->characters8()), identifier->length(), identifier->hash());
+    return this->findProtocol(reinterpret_cast<const char*>(identifier->utf8().data()), identifier->length(), identifier->hash());
 }
 
 const ProtocolMeta* GlobalTable::findProtocol(const char* identifierString) const {
@@ -100,7 +100,7 @@ const ProtocolMeta* GlobalTable::findProtocol(const char* identifierString, size
 }
 
 const Meta* GlobalTable::findMeta(WTF::StringImpl* identifier, bool onlyIfAvailable) const {
-    return this->findMeta(reinterpret_cast<const char*>(identifier->characters8()), identifier->length(), identifier->hash(), onlyIfAvailable);
+    return this->findMeta(reinterpret_cast<const char*>(identifier->utf8().data()), identifier->length(), identifier->hash(), onlyIfAvailable);
 }
 
 const Meta* GlobalTable::findMeta(const char* identifierString, bool onlyIfAvailable) const {

@@ -113,7 +113,7 @@ void overrideObjcMethodWrapperCalls(ExecState* execState, Class klass, JSCell* m
     if (warnForMultipleOverrides) {
         WTF::String message = WTF::String::format("More than one native methods overriden! Assigning to \"%s\" will override native methods with the following selectors: %s.",
                                                   jsName.c_str(),
-                                                  metaNames.characters8());
+                                                  metaNames.toString().utf8().data());
         warn(execState, message);
     }
 }
