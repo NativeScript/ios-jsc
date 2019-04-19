@@ -1,6 +1,3 @@
 #!/usr/bin/env bash
-set -e
-
-pushd "$SRCROOT/internal/metadata-generator/bin"
-./build-step-metadata-generator.py
-popd
+#Ignore errors while inserting environment variables (some could be readonly)
+(echo "set +e"; echo "set +o posix"; export; echo "set -o posix"; echo "set -e";) > ./.build_env_vars.sh

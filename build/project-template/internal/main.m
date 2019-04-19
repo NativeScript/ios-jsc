@@ -8,8 +8,8 @@
 #include <NativeScript/NativeScript.h>
 
 #if DEBUG
-#include "TKLiveSync.h"
 #include "TNSDebugging.h"
+#include "TKLiveSync/include/TKLiveSync.h"
 #endif
 
 int main(int argc, char *argv[]) {
