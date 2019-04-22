@@ -21,7 +21,7 @@ public:
 
 private:
     EditableSourceProvider(const WTF::String& source, const WTF::String& url, const WTF::TextPosition& startPosition, JSC::SourceProviderSourceType sourceType)
-        : JSC::SourceProvider(JSC::SourceOrigin(), url, startPosition, sourceType)
+        : JSC::SourceProvider(JSC::SourceOrigin(), URL(URL(), url), startPosition, sourceType)
         , m_source(source.isNull() ? *StringImpl::empty() : *source.impl()) {
     }
 

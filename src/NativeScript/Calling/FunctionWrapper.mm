@@ -145,7 +145,7 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
     }
     ASSERT(fakeExecState->argumentCount() == arguments.size());
 
-    __block auto deferred = Strong<JSPromiseDeferred>(vm, JSPromiseDeferred::create(execState, execState->lexicalGlobalObject()));
+    __block auto deferred = Strong<JSPromiseDeferred>(vm, JSPromiseDeferred::tryCreate(execState, execState->lexicalGlobalObject()));
     auto* releasePool = new ReleasePoolBase::Item(releasePoolHolder.relinquish());
     __block Strong<FunctionWrapper> callee(vm, this);
     TNSRuntime* runtime = [TNSRuntime current];

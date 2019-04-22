@@ -234,7 +234,7 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->_smartStringifyFunction.set(vm, this, jsCast<JSFunction*>(evaluate(this->globalExec(), makeSource(WTF::String(smartStringify_js, smartStringify_js_len), SourceOrigin()), JSValue())));
 
 #ifdef DEBUG
-    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), "__extends.ts"_s);
+    SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), URL(URL(), "__extends.ts"_s));
 #else
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin());
 #endif

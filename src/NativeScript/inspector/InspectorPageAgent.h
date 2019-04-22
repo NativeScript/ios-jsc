@@ -41,6 +41,8 @@ public:
     virtual void snapshotRect(ErrorString&, int in_x, int in_y, int in_width, int in_height, const String& in_coordinateSystem, String* out_dataURL) override;
     virtual void archive(ErrorString&, String* out_data) override;
 
+    virtual void setForcedAppearance(ErrorString&, const String& in_appearance) override;
+
 private:
     const WTF::String m_frameIdentifier;
     const WTF::String m_frameUrl;

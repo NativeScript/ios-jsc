@@ -19,6 +19,7 @@ public:
     virtual void setResourceCachingDisabled(ErrorString&, bool in_disabled) override;
     virtual void loadResource(const String& frameId, const String& url, Ref<LoadResourceCallback>&&) override;
     virtual void resolveWebSocket(ErrorString&, const String& in_requestId, const String* const opt_in_objectGroup, RefPtr<Inspector::Protocol::Runtime::RemoteObject>& out_object) override;
+    virtual void getSerializedCertificate(ErrorString&, const String& in_requestId, String* out_serializedCertificate) override;
 
 private:
     NativeScript::GlobalObject& m_globalObject;
