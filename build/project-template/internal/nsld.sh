@@ -1,4 +1,4 @@
- #/bin/bash
+#!/usr/bin/env bash
 source ./.build_env_vars.sh
 
 MODULES_DIR=$SRCROOT/internal/Swift-Modules
