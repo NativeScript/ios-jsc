@@ -34,7 +34,7 @@ public:
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
 
-    static WTF::String className(const JSObject* object, JSC::VM&);
+    DECLARE_CLASSNAME()
 
     const Metadata::ProtocolMeta* metadata() const {
         return this->_metadata;

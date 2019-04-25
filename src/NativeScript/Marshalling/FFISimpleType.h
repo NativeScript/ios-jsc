@@ -24,6 +24,8 @@ public:
 
     DECLARE_INFO;
 
+    DECLARE_CLASSNAME();
+
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype) {
         return JSC::Structure::create(vm, globalObject, prototype, JSC::TypeInfo(JSC::ObjectType, StructureFlags), info());
     }
@@ -31,8 +33,6 @@ public:
     const FFITypeMethodTable& ffiTypeMethodTable() const {
         return this->_ffiTypeMethodTable;
     }
-
-    static WTF::String className(const JSC::JSObject*, JSC::VM&);
 
 private:
     FFISimpleType(JSC::VM& vm, JSC::Structure* structure)
