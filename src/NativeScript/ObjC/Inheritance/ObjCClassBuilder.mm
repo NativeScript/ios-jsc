@@ -266,8 +266,12 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
 }
 
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method) {
+    JSValue basePrototype = this->_constructor->get(execState, execState->vm().propertyNames->prototype)
+                                .toObject(execState)
+                                ->getPrototypeDirect(execState->vm());
+
     overrideObjcMethodCalls(execState,
-                            this->_constructor.get(),
+                            basePrototype.toObject(execState),
                             jsName,
                             method,
                             this->_constructor->metadata(),
