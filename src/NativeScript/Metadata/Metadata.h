@@ -751,19 +751,25 @@ struct BaseClassMeta : Meta {
     const MembersCollection members(const char* identifier, size_t length, MemberType type, bool includeProtocols = true, bool onlyIfAvailable = true) const;
 
     const MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
-        const char* identif = reinterpret_cast<const char*>(identifier->utf8().data());
+        // Assign to a separate variable to ensure the lifetime of the string returned by utf8
+        auto identifierUtf8 = identifier->utf8();
+        const char* identif = reinterpret_cast<const char*>(identifierUtf8.data());
         size_t length = (size_t)identifier->length();
         return this->member(identif, length, type, includeProtocols);
     }
 
     const MethodMeta* member(StringImpl* identifier, MemberType type, size_t paramsCount, bool includeProtocols = true) const {
-        const char* identif = reinterpret_cast<const char*>(identifier->utf8().data());
+        // Assign to a separate variable to ensure the lifetime of the string returned by utf8
+        auto identifierUtf8 = identifier->utf8();
+        const char* identif = reinterpret_cast<const char*>(identifierUtf8.data());
         size_t length = (size_t)identifier->length();
         return this->member(identif, length, type, paramsCount, includeProtocols);
     }
 
     const MembersCollection members(StringImpl* identifier, MemberType type, bool includeProtocols = true) const {
-        const char* identif = reinterpret_cast<const char*>(identifier->characters8());
+        // Assign to a separate variable to ensure the lifetime of the string returned by utf8
+        auto identifierUtf8 = identifier->utf8();
+        const char* identif = reinterpret_cast<const char*>(identifierUtf8.data());
         size_t length = (size_t)identifier->length();
         return this->members(identif, length, type, includeProtocols);
     }
