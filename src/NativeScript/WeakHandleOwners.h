@@ -68,11 +68,10 @@ struct WeakImplVectorKeyTraits {
     }
 
     template <typename Traits>
-    static void constructEmptyValue(TraitType& slot)
-    {
-        slot = WeakImplVectorKeyTraits::emptyValue();
+    static void constructEmptyValue(TraitType& slot) {
+        new (NotNull, std::addressof(slot)) TraitType(Traits::emptyValue());
     }
-    
+
     template <typename U, typename V>
     static void assignToEmpty(U& emptyValue, V&& value) {
         emptyValue = std::forward<V>(value);
