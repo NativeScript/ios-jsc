@@ -54,6 +54,8 @@
 #include <chrono>
 #include <string>
 
+#include "TNSRuntime.h"
+
 namespace NativeScript {
 using namespace JSC;
 using namespace Metadata;
@@ -115,6 +117,11 @@ GlobalObject::~GlobalObject() {
 
 extern "C" void JSSynchronousGarbageCollectForDebugging(ExecState*);
 static EncodedJSValue JSC_HOST_CALL collectGarbage(ExecState* execState) {
+    if (nil != [[TNSRuntime current] debuglogGCValue]) {
+        NSLog(@">>>>> collectGarbage called. JS Stack: ");
+        dumpExecJsCallStack(execState);
+    }
+
     JSSynchronousGarbageCollectForDebugging(execState->lexicalGlobalObject()->globalExec());
     return JSValue::encode(jsUndefined());
 }

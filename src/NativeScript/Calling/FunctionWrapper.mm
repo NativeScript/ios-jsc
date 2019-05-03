@@ -82,7 +82,7 @@ EncodedJSValue JSC_HOST_CALL FunctionWrapper::call(ExecState* execState) {
 
     JSC::VM& vm = execState->vm();
 
-    [[TNSRuntime current] tryCollectGarbage];
+    [[TNSRuntime current] tryCollectGarbage:execState];
 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
@@ -154,7 +154,7 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
       JSLockHolder lockHolder(vm);
       auto scope = DECLARE_CATCH_SCOPE(vm);
 
-      [[TNSRuntime current] tryCollectGarbage];
+      [[TNSRuntime current] tryCollectGarbage:execState];
 
       // we no longer have a valid caller on the stack, what with being async and all
       fakeExecState->setCallerFrame(fakeExecState->lexicalGlobalObject()->globalExec());

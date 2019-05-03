@@ -25,6 +25,8 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 + (TNSRuntime*)current;
 
+- (NSString*)debuglogGCValue;
+
 - (instancetype)initWithApplicationPath:(NSString*)applicationPath;
 
 - (void)scheduleInRunLoop:(NSRunLoop*)runLoop forMode:(NSString*)mode;
@@ -41,7 +43,10 @@ FOUNDATION_EXTERN void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handle
 
 - (NSDictionary*)appPackageJson;
 
-- (void)tryCollectGarbage;
+#if defined __cplusplus
+- (void)tryCollectGarbage:(JSC::ExecState*)execState;
+#endif
+
 @end
 
 @interface TNSWorkerRuntime : TNSRuntime
