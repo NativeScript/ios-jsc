@@ -42,7 +42,7 @@ GEN_MODULEMAP
 printf "Generating metadata..."
 GEN_METADATA
 DELETE_SWIFT_MODULES_DIR
-$NS_LD="${NS_LD:-"$TOOLCHAIN_DIR/usr/bin/clang"}"
+NS_LD="${NS_LD:-"$TOOLCHAIN_DIR/usr/bin/clang"}"
 $NS_LD "$@"
 
 
