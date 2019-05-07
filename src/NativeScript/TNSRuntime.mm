@@ -104,6 +104,14 @@ static NSPointerArray* _runtimes;
     return nil;
 }
 
+void SEGV_handler(int sig) {
+    NSLog(@">>>>> Caught signal %d. JS Stack: ", sig);
+    dumpExecJsCallStack([TNSRuntime current] -> _globalObject -> globalExec());
+    NSLog(@">>>>> Native Stack: ");
+    WTFReportBacktrace();
+    exit(-sig);
+}
+
 + (void)initialize {
     TNSPERF();
     if (self == [TNSRuntime self]) {
@@ -118,6 +126,12 @@ static NSPointerArray* _runtimes;
         }
 
         _runtimes = [[NSPointerArray alloc] initWithOptions:NSPointerFunctionsOpaquePersonality | NSPointerFunctionsOpaqueMemory];
+
+        signal(SIGABRT, SEGV_handler);
+        signal(SIGILL, SEGV_handler);
+        signal(SIGSEGV, SEGV_handler);
+        signal(SIGFPE, SEGV_handler);
+        signal(SIGBUS, SEGV_handler);
     }
 }
 
