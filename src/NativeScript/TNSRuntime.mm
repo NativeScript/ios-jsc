@@ -62,9 +62,9 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 
 - (double)freeMemoryRatio;
 
-+ (double)readDoubleFromPackageJsonIos: (NSDictionary*)packageJson withKey: (NSString*)key;
++ (double)readDoubleFromPackageJsonIos:(NSDictionary*)packageJson withKey:(NSString*)key;
 
-+ (NSString*)readStringFromPackageJsonIos: (NSDictionary*)packageJson withKey: (NSString*)key;
++ (NSString*)readStringFromPackageJsonIos:(NSDictionary*)packageJson withKey:(NSString*)key;
 
 + (NSDictionary*)readAppPackageJson:(NSString*)applicationPath;
 
@@ -102,20 +102,45 @@ static NSPointerArray* _runtimes;
     return nil;
 }
 
+void (*oldHandlers[__DARWIN_NSIG])(int) = {};
+void sig_handler(int sig) {
+    NSLog(@"NativeScript caught signal %d.", sig);
+    NSLog(@"Native Stack: ");
+    WTFReportBacktrace();
+    NSLog(@"JS Stack: ");
+    dumpExecJsCallStack([TNSRuntime current] -> _globalObject -> globalExec());
+
+    if (oldHandlers[sig]) {
+        oldHandlers[sig](sig);
+    }
+
+    exit(-sig);
+}
+
+void install_handler(int sig) {
+    oldHandlers[sig] = signal(sig, sig_handler);
+}
+
 + (void)initialize {
     TNSPERF();
     if (self == [TNSRuntime self]) {
         WTF::initializeMainThread();
         initializeThreading();
-        
+
         JSC::Options::useJIT() = false;
         NSDictionary* packageJson = [TNSRuntime readAppPackageJson:[NSBundle mainBundle].bundlePath];
-        NSString *jscFlags = [TNSRuntime readStringFromPackageJsonIos:packageJson withKey:@"jscFlags"];
+        NSString* jscFlags = [TNSRuntime readStringFromPackageJsonIos:packageJson withKey:@"jscFlags"];
         if (jscFlags != nil) {
             JSC::Options::setOptions([jscFlags cStringUsingEncoding:NSUTF8StringEncoding]);
         }
-        
+
         _runtimes = [[NSPointerArray alloc] initWithOptions:NSPointerFunctionsOpaquePersonality | NSPointerFunctionsOpaqueMemory];
+
+        install_handler(SIGABRT);
+        install_handler(SIGILL);
+        install_handler(SIGSEGV);
+        install_handler(SIGFPE);
+        install_handler(SIGBUS);
     }
 }
 
@@ -226,7 +251,7 @@ static NSPointerArray* _runtimes;
 + (NSDictionary*)readAppPackageJson:(NSString*)applicationPath {
     NSString* packageJsonPath = [applicationPath stringByAppendingPathComponent:@"app/package.json"];
     NSData* data = [NSData dataWithContentsOfFile:packageJsonPath];
-    NSDictionary *res = @{};
+    NSDictionary* res = @{};
     if (data) {
         NSError* error = nil;
         res = [[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&error] retain];
@@ -240,7 +265,7 @@ static NSPointerArray* _runtimes;
         return self->appPackageJsonData;
     }
 
-    self->appPackageJsonData = [TNSRuntime readAppPackageJson:self->_applicationPath] ;
+    self->appPackageJsonData = [TNSRuntime readAppPackageJson:self->_applicationPath];
     return self->appPackageJsonData;
 }
 
@@ -277,9 +302,9 @@ static NSPointerArray* _runtimes;
     return *self->freeMemoryRatioValue;
 }
 
-+ (double)readDoubleFromPackageJsonIos: (NSDictionary*)packageJson withKey: (NSString*)key {
++ (double)readDoubleFromPackageJsonIos:(NSDictionary*)packageJson withKey:(NSString*)key {
     double res = 0;
-    if (packageJson){
+    if (packageJson) {
         if (NSDictionary* ios = packageJson[@"ios"]) {
             if (id value = ios[key]) {
                 if ([value respondsToSelector:@selector(doubleValue)]) {
@@ -294,8 +319,8 @@ static NSPointerArray* _runtimes;
     return res;
 }
 
-+ (NSString*)readStringFromPackageJsonIos:(NSDictionary*)packageJson withKey: (NSString*)key {
-    NSString *res = nil;
++ (NSString*)readStringFromPackageJsonIos:(NSDictionary*)packageJson withKey:(NSString*)key {
+    NSString* res = nil;
     if (packageJson) {
         if (NSDictionary* ios = packageJson[@"ios"]) {
             if (id value = ios[key]) {
@@ -303,7 +328,7 @@ static NSPointerArray* _runtimes;
             }
         }
     }
-    
+
     return res;
 }
 
