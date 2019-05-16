@@ -7,6 +7,23 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.4.0
+=====
+
+## What's new
+
+* **metadata:** Add `TNS_DEBUG_METADATA_STRICT_INCLUDES` option (https://github.com/NativeScript/ios-runtime/commit/b2d03e4ccbf6815d417d91c5c7daadb1b1d451c5)
+* **project-template:** Support Swift files in the .xcodeproj (https://github.com/NativeScript/ios-runtime/pull/1128)
+* **project-template:** Add NS_LD variable to be used for alternate linker (https://github.com/NativeScript/ios-runtime/pull/1133)
+
+## Bug Fixes
+* **project-template:** Change angled bracketed includes to quoted (https://github.com/NativeScript/ios-runtime/pull/1116)
+* **metadata:** Copy stderr log to yaml dir (https://github.com/NativeScript/ios-runtime/pull/1119)
+* **marshalling:** return WrappedObject for classes with no meta (https://github.com/NativeScript/ios-runtime/pull/1125)
+* **runtime:** Unicode properties (https://github.com/NativeScript/ios-runtime/pull/1129)
+* **runtime:** added const to avoid using `seen` as global ()
+* **metadata:** Stop randomizing modules' order of serialization (https://github.com/NativeScript/ios-runtime/pull/1141)
+
 5.3.1
 =====
 
