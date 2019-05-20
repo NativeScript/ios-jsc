@@ -17,16 +17,15 @@ using namespace JSC;
 
 @implementation TNSDataAdapter {
     Strong<JSObject> _object;
-    ExecState* _execState;
-    VM* _vm;
+    JSGlobalObject* _globalObject;
 }
 
 - (instancetype)initWithJSObject:(JSObject*)jsObject execState:(ExecState*)execState {
     if (self) {
-        self->_object.set(execState->vm(), jsObject);
-        self->_execState = execState;
-        self->_vm = &execState->vm();
-        [TNSRuntime runtimeForVM:self->_vm] -> _objectMap.get()->set(self, jsObject);
+        VM& vm = execState->vm();
+        self->_object.set(vm, jsObject);
+        self->_globalObject = execState->lexicalGlobalObject();
+        [TNSRuntime runtimeForVM:&vm] -> _objectMap.get()->set(self, jsObject);
     }
 
     return self;
@@ -37,10 +36,11 @@ using namespace JSC;
 }
 
 - (void*)mutableBytes {
-    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
-    JSLockHolder lock(self->_execState);
+    VM& vm = self->_globalObject->vm();
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
+    JSLockHolder lock(vm);
 
-    if (JSArrayBuffer* arrayBuffer = jsDynamicCast<JSArrayBuffer*>(self->_execState->vm(), self->_object.get())) {
+    if (JSArrayBuffer* arrayBuffer = jsDynamicCast<JSArrayBuffer*>(vm, self->_object.get())) {
         return arrayBuffer->impl()->data();
     }
 
@@ -53,21 +53,26 @@ using namespace JSC;
 }
 
 - (NSUInteger)length {
-    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
-    VM& vm = self->_execState->vm();
-    JSLockHolder lock(self->_execState);
+    VM& vm = self->_globalObject->vm();
+    ExecState* execState = self->_globalObject->globalExec();
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
+    JSLockHolder lock(vm);
     auto scope = DECLARE_CATCH_SCOPE(vm);
-    NSUInteger length = self->_object->get(self->_execState, vm.propertyNames->byteLength).toUInt32(self->_execState);
-    reportErrorIfAny(self->_execState, scope);
+    NSUInteger length = self->_object->get(execState, vm.propertyNames->byteLength).toUInt32(execState);
+    reportErrorIfAny(execState, scope);
     return length;
 }
 
 - (void)dealloc {
     {
-        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:self->_vm]) {
-            JSLockHolder lock(self->_execState);
+        VM& vm = self->_globalObject->vm();
+        JSLockHolder lock(vm);
+        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:&vm]) {
             runtime->_objectMap.get()->remove(self);
         }
+        // Clear Strong reference inside the locked section. Otherwise it would be done when the
+        // C++ members' destructros are run. This races with other threads and can corrupt the VM's heap.
+        self->_object.clear();
     }
 
     [super dealloc];
