@@ -29,7 +29,7 @@ static UInt8 getSystemVersion() {
     UInt8 majorVersion = (UInt8)[versionTokens[0] intValue];
     UInt8 minorVersion = (UInt8)[versionTokens[1] intValue];
 
-    return encodeVersion(majorVersion, minorVersion);
+    return iosVersion = encodeVersion(majorVersion, minorVersion);
 }
 std::unordered_map<std::string, MembersCollection> getMetasByJSNames(MembersCollection members) {
     std::unordered_map<std::string, MembersCollection> result;
