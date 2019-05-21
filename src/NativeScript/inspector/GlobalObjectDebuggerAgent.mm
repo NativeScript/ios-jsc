@@ -106,49 +106,49 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
 
             EditableSourceProvider* sourceProvider = static_cast<EditableSourceProvider*>(sourceCode.provider());
             if (sourceProvider->asID() == scriptId) {
-                WTF::String moduleSource;
-                ParserError parseError;
-                std::unique_ptr<ScopeNode> program;
-                if (moduleFunction != nullptr) {
-                    // Wrap the new source in a CommonJS function if not already wrapped
-                    bool addPrologueAndEpilogue = !scriptSource.startsWith(COMMONJS_FUNCTION_PROLOGUE);
-
-                    WTF::StringBuilder moduleFunctionSource;
-                    if (addPrologueAndEpilogue) {
-                        moduleFunctionSource.append(COMMONJS_FUNCTION_PROLOGUE);
-                    }
-
-                    moduleFunctionSource.append(scriptSource);
-
-                    if (addPrologueAndEpilogue) {
-                        moduleFunctionSource.append(COMMONJS_FUNCTION_EPILOGUE);
-                    }
-
-                    moduleSource = moduleFunctionSource.toString();
-
-                    SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
-                    program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
-                } else {
-                    // No need to wrap the new source in a CommonJS function
-                    moduleSource = scriptSource;
-                    program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::ModuleEvaluateMode, SuperBinding::NotNeeded, parseError);
-                }
-
-                if (!program) {
-                    error = parseError.message();
-                    return;
-                }
-
-                WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source().toString());
-                sourceProvider->setSource(moduleSource);
-                sourceCode.setEndOffset(sourceProvider->source().length());
-
-                m_globalObject->vm().clearSourceProviderCaches();
-                const ClearChangedCellsFunctor functor(vm, moduleRecord->sourceCode().provider()->url(), diff);
-                {
-                    HeapIterationScope iterationScope(m_globalObject->vm().heap);
-                    vm.heap.objectSpace().forEachLiveCell(iterationScope, functor);
-                }
+                //                WTF::String moduleSource;
+                //                ParserError parseError;
+                //                std::unique_ptr<ScopeNode> program;
+                //                if (moduleFunction != nullptr) {
+                //                    // Wrap the new source in a CommonJS function if not already wrapped
+                //                    bool addPrologueAndEpilogue = !scriptSource.startsWith(COMMONJS_FUNCTION_PROLOGUE);
+                //
+                //                    WTF::StringBuilder moduleFunctionSource;
+                //                    if (addPrologueAndEpilogue) {
+                //                        moduleFunctionSource.append(COMMONJS_FUNCTION_PROLOGUE);
+                //                    }
+                //
+                //                    moduleFunctionSource.append(scriptSource);
+                //
+                //                    if (addPrologueAndEpilogue) {
+                //                        moduleFunctionSource.append(COMMONJS_FUNCTION_EPILOGUE);
+                //                    }
+                //
+                //                    moduleSource = moduleFunctionSource.toString();
+                //
+                //                    SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
+                //                    program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Classic, SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
+                //                } else {
+                //                    // No need to wrap the new source in a CommonJS function
+                //                    moduleSource = scriptSource;
+                //                    program = parse<JSC::ProgramNode>(&m_globalObject->vm(), sourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin, JSParserStrictMode::NotStrict, JSParserScriptMode::Module, SourceParseMode::ModuleEvaluateMode, SuperBinding::NotNeeded, parseError);
+                //                }
+                //
+                //                if (!program) {
+                //                    error = parseError.message();
+                //                    return;
+                //                }
+                //
+                //                WTF::Vector<DiffChunk> diff = TextualDifferencesHelper::CompareStrings(moduleSource, sourceCode.provider()->source().toString());
+                //                sourceProvider->setSource(moduleSource);
+                //                sourceCode.setEndOffset(sourceProvider->source().length());
+                //
+                //                m_globalObject->vm().clearSourceProviderCaches();
+                //                const ClearChangedCellsFunctor functor(vm, moduleRecord->sourceCode().provider()->url(), diff);
+                //                {
+                //                    HeapIterationScope iterationScope(m_globalObject->vm().heap);
+                //                    vm.heap.objectSpace().forEachLiveCell(iterationScope, functor);
+                //                }
                 return;
             }
         }
