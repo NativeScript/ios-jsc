@@ -16,53 +16,57 @@ using namespace JSC;
 
 @implementation TNSArrayAdapter {
     Strong<JSObject> _object;
-    ExecState* _execState;
-    VM* _vm;
+    JSGlobalObject* _globalObject;
 }
 
 - (instancetype)initWithJSObject:(JSObject*)jsObject execState:(ExecState*)execState {
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
-        self->_execState = execState;
-        self->_vm = &execState->vm();
-        [TNSRuntime runtimeForVM:self->_vm] -> _objectMap.get()->set(self, jsObject);
+        self->_globalObject = execState->lexicalGlobalObject();
+        VM& vm = execState->vm();
+        [TNSRuntime runtimeForVM:&vm] -> _objectMap.get()->set(self, jsObject);
     }
 
     return self;
 }
 
 - (NSUInteger)count {
-    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
-    JSLockHolder lock(self->_execState);
+    VM& vm = self->_globalObject->vm();
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
+    JSLockHolder lock(vm);
 
     JSObject* object = self->_object.get();
-    if (JSArray* array = jsDynamicCast<JSArray*>(self->_execState->vm(), object)) {
+    if (JSArray* array = jsDynamicCast<JSArray*>(vm, object)) {
         return array->length();
     }
-
-    return object->get(self->_execState, self->_execState->vm().propertyNames->length).toUInt32(self->_execState);
+    ExecState* execState = self->_globalObject->globalExec();
+    return object->get(execState, vm.propertyNames->length).toUInt32(execState);
 }
 
 - (id)objectAtIndex:(NSUInteger)index {
-    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
+    VM& vm = self->_globalObject->vm();
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
     if (!(index < [self count])) {
         @throw [NSException exceptionWithName:NSRangeException reason:[NSString stringWithFormat:@"Index (%tu) out of bounds", index] userInfo:nil];
     }
 
-    JSLockHolder lock(self->_execState);
-    return toObject(self->_execState, self->_object.get()->get(self->_execState, index));
+    JSLockHolder lock(vm);
+    ExecState* execState = self->_globalObject->globalExec();
+    return toObject(execState, self->_object.get()->get(execState, index));
 }
 
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState*)state objects:(id[])buffer count:(NSUInteger)len {
-    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
+    VM& vm = self->_globalObject->vm();
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
 
-    JSLockHolder lock(self->_execState);
+    JSLockHolder lock(vm);
+    ExecState* execState = self->_globalObject->globalExec();
 
     if (state->state == 0) { // uninitialized
         state->state = 1;
         state->mutationsPtr = reinterpret_cast<unsigned long*>(self);
         state->extra[0] = 0; // current index
-        state->extra[1] = self->_object->get(self->_execState, self->_vm->propertyNames->length).toUInt32(self->_execState);
+        state->extra[1] = self->_object->get(execState, vm.propertyNames->length).toUInt32(execState);
     }
 
     NSUInteger currentIndex = state->extra[0];
@@ -71,7 +75,7 @@ using namespace JSC;
     state->itemsPtr = buffer;
 
     while (count < len && currentIndex < length) {
-        *buffer++ = toObject(self->_execState, self->_object->get(self->_execState, currentIndex));
+        *buffer++ = toObject(execState, self->_object->get(execState, currentIndex));
         currentIndex++;
         count++;
     }
@@ -83,10 +87,14 @@ using namespace JSC;
 
 - (void)dealloc {
     {
-        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:self->_vm]) {
-            JSLockHolder lock(self->_execState);
+        VM& vm = self->_globalObject->vm();
+        JSLockHolder lock(vm);
+        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:&vm]) {
             runtime->_objectMap.get()->remove(self);
         }
+        // Clear Strong reference inside the locked section. Otherwise it would be done when the
+        // C++ members' destructros are run. This races with other threads and can corrupt the VM's heap.
+        self->_object.clear();
     }
 
     [super dealloc];

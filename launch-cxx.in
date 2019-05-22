@@ -24,4 +24,4 @@ if [ -z "${CCACHE_SLOPPINESS+set}" ]; then
 	export CCACHE_SLOPPINESS="pch_defines,time_macros"
 fi
 
-exec "${RULE_LAUNCH_COMPILE}" "${CMAKE_CXX_COMPILER}" "-fpch-preprocess" "$@"
+exec "${RULE_LAUNCH_COMPILE}" "${CMAKE_CXX_COMPILER}" "-fpch-preprocess" "$@" -Xclang -fno-validate-pch

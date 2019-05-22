@@ -74,24 +74,26 @@ void WorkerMessagingProxy::parentPerformWork() {
 void WorkerMessagingProxy::workerPerformWork() {
     ASSERT_IS_WORKER_THREAD;
 
-    int initialQueueSize = 1;
-    for (int i = 0; i < initialQueueSize; i++) {
-        if (_workerData->stopExecutingQueueTasksInTheCurrentLoopTick)
-            return;
+    @autoreleasepool {
+        int initialQueueSize = 1;
+        for (int i = 0; i < initialQueueSize; i++) {
+            if (_workerData->stopExecutingQueueTasksInTheCurrentLoopTick)
+                return;
 
-        std::function<void()> function;
-        {
-            LockHolder lock(_workerPortLock);
-            if (!_workerPort || _workerPort->tasksQueue.isEmpty())
-                break;
-            initialQueueSize = (i == 0) ? _workerPort->tasksQueue.size() : initialQueueSize;
-            function = _workerPort->tasksQueue.takeFirst();
+            std::function<void()> function;
+            {
+                LockHolder lock(_workerPortLock);
+                if (!_workerPort || _workerPort->tasksQueue.isEmpty())
+                    break;
+                initialQueueSize = (i == 0) ? _workerPort->tasksQueue.size() : initialQueueSize;
+                function = _workerPort->tasksQueue.takeFirst();
+            }
+
+            JSLockHolder lock = JSLockHolder(_workerData->globalObject()->vm());
+            auto scope = DECLARE_CATCH_SCOPE(_workerData->globalObject()->vm());
+            function();
+            reportErrorIfAny(_workerData->globalObject()->globalExec(), scope);
         }
-
-        JSLockHolder lock = JSLockHolder(_workerData->globalObject()->vm());
-        auto scope = DECLARE_CATCH_SCOPE(_workerData->globalObject()->vm());
-        function();
-        reportErrorIfAny(_workerData->globalObject()->globalExec(), scope);
     }
 }
 
