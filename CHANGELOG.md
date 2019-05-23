@@ -7,6 +7,20 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.2.1
+=====
+
+### Bug Fixes
+
+* **bridge:** Synchronize access to Strong handles in collection adapters ([b1cfb82](https://github.com/NativeScript/ios-runtime/commit/b1cfb82))
+
+
+### Features
+
+* Dump Native and JS callstacks on signal ([11304ed](https://github.com/NativeScript/ios-runtime/commit/11304ed))
+
+
+
 5.2.0
 =====
 
