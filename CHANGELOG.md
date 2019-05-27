@@ -7,6 +7,25 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.4.1
+=====
+
+### Bug Fixes
+
+* **bridge:** Synchronize access to Strong handles in collection adapters ([#1144](https://github.com/NativeScript/ios-runtime/pull/1144))
+* **workers:** Memory leak when creating/wrapping native objects in worker.onmessage([#1137](https://github.com/NativeScript/ios-runtime/issues/1137))
+
+
+### Features
+
+* Dump Native and JS callstacks on signal ([6ec5d5c](https://github.com/NativeScript/ios-runtime/commit/6ec5d5c))
+
+
+### Performance Improvements
+
+* Cache result in getSystemVersion() ([f0e9253](https://github.com/NativeScript/ios-runtime/commit/f0e9253))
+
+
 5.4.0
 =====
 
