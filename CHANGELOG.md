@@ -7,7 +7,7 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
-5.4.1
+5.4.1 (2019-05-28)
 =====
 
 ### Bug Fixes
@@ -25,8 +25,7 @@ previous_url: /Changelogs/iOS Runtime
 
 * Cache result in getSystemVersion() ([f0e9253](https://github.com/NativeScript/ios-runtime/commit/f0e9253))
 
-
-5.4.0
+5.4.0 (2019-05-15)
 =====
 
 ## What's new
@@ -43,14 +42,14 @@ previous_url: /Changelogs/iOS Runtime
 * **runtime:** added const to avoid using `seen` as global ()
 * **metadata:** Stop randomizing modules' order of serialization (https://github.com/NativeScript/ios-runtime/pull/1141)
 
-5.3.1
+5.3.1 (2019-04-01)
 =====
 
 ## Bug Fixes
 
 * **livesync:** `__onLiveSync` function must be called on the UI thread (https://github.com/NativeScript/ios-runtime/pull/1108)
 
-5.3.0
+5.3.0 (2019-03-27)
 =====
 
 ## Breaking changes
@@ -80,7 +79,19 @@ previous_url: /Changelogs/iOS Runtime
 * **debugger:** No requests are shown in Network tab with `tns debug ios --bundle` (https://github.com/NativeScript/ios-runtime/issues/1057)
 * **webkit:** Make JSC log to system logs instead of only to stderr (https://github.com/NativeScript/ios-runtime/pull/1093)
 
-5.2.0
+5.2.1 (2019-05-23)
+=====
+
+### Bug Fixes
+
+* **bridge:** Synchronize access to Strong handles in collection adapters ([b1cfb82](https://github.com/NativeScript/ios-runtime/commit/b1cfb82))
+
+
+### Features
+
+* Dump Native and JS callstacks on signal ([11304ed](https://github.com/NativeScript/ios-runtime/commit/11304ed))
+
+5.2.0 (2019-02-12)
 =====
 
 ## What's new
@@ -105,7 +116,7 @@ previous_url: /Changelogs/iOS Runtime
 * **runtime:** GVRKit plugin metadata generation issue ([#877](https://github.com/NativeScript/ios-runtime/issues/877))
 * **runtime:** UncaughtExceptionHandler is called 2 times ([#1049](https://github.com/NativeScript/ios-runtime/issues/1049))
 
-5.1.1
+5.1.1 (2019-01-17)
 =====
 
 ## Bug Fixes
@@ -113,7 +124,7 @@ previous_url: /Changelogs/iOS Runtime
 * **debugging:** Ensure a valid listenSource on each AttachRequest ([#1058](https://github.com/NativeScript/ios-runtime/pull/1058))
 * **debugging:** Logs are not shown in Chrome console tab ([#1037](https://github.com/NativeScript/ios-runtime/issues/1037))
 
-5.1.0
+5.1.0 (2018-12-11)
 =====
 
 ## What's new
@@ -128,7 +139,7 @@ previous_url: /Changelogs/iOS Runtime
 * **libffi:** Cannot handle double3, double4, SCNVector3 function parameters([#979](https://github.com/NativeScript/ios-runtime/issues/979))
 * **metadata-typings** Accept Pointers and References for `char*` args ([#1022](https://github.com/NativeScript/ios-runtime/pull/1022))
 
-5.0.0
+5.0.0 (2018-10-31)
 =====
 
 ## Breaking Changes
@@ -147,8 +158,9 @@ previous_url: /Changelogs/iOS Runtime
 * **libffi** [Correctly pass/return standalone vectors in native function calls](https://github.com/NativeScript/ios-runtime/pull/960)
 * **marshalling** [Reading collisionBoundingPath on UIView results in Objective C exception](https://github.com/NativeScript/ios-runtime/issues/978)
 
-4.2.0
+4.2.0 (2018-08-07)
 =====
+
 ## What's New
 - [Introduce a setting for discarding uncaught exceptions from called JS methods](https://github.com/NativeScript/ios-runtime/issues/965)
 - [Introduce NativeScriptEmbedder protocol](https://github.com/NativeScript/ios-runtime/issues/972)
@@ -159,15 +171,17 @@ previous_url: /Changelogs/iOS Runtime
 - [App not crashing on unhandled exception](https://github.com/NativeScript/ios-runtime/issues/971)
 - [Throw an Objective C exception on fatal error](https://github.com/NativeScript/ios-runtime/issues/969)
 
-4.1.1
+4.1.1 (2018-06-19)
 =====
+
 ## Bug Fixes
 - [Fixed Chrome DevTools doesn't reconnect everytime from the first attempt](https://github.com/NativeScript/ios-runtime/issues/940)
 - [Fixed empty tabs in Chrome DevTools](https://github.com/NativeScript/ios-runtime/issues/927)
 - [Fixed Inspector: console.dir(object) prints "undefined"](https://github.com/NativeScript/ios-runtime/issues/930)
 
-4.1.0
+4.1.1 (2018-06-19)
 =====
+
 ## What's New
 - [Improvement: Don't close inspector socket after 30 sec. timeout](https://github.com/NativeScript/ios-runtime/pull/907)
 - [Feature: SIMD matrices support](https://github.com/NativeScript/ios-runtime/issues/836)
@@ -177,8 +191,9 @@ previous_url: /Changelogs/iOS Runtime
 - [Fixed console.time() doesn't print anything in Chrome DevTools console](https://github.com/NativeScript/ios-runtime/issues/888)
 - [FIxed in Chrome DevTools console console.dir() prints only [object Object]](https://github.com/NativeScript/ios-runtime/issues/906)
 
-4.0.1
+4.0.1  (2018-04-10)
 =====
+
 ## What's New
 - [Update WebKit to version ios-11.2.5](https://github.com/NativeScript/ios-runtime/pull/825)
 
@@ -189,7 +204,7 @@ previous_url: /Changelogs/iOS Runtime
 - [Fixed issue with console.dir()](https://github.com/NativeScript/ios-runtime/issues/875)
 - [Fixed issue with missing console.time() messages](https://github.com/NativeScript/ios-runtime/issues/843)
 
-3.4.1
+3.4.1 (2018-01-11)
 =====
 
 ## Bug Fixes
@@ -197,7 +212,7 @@ previous_url: /Changelogs/iOS Runtime
 - [Fixed various issues with iOS Inspector](https://github.com/NativeScript/ios-runtime/pull/835)
 - [Fixed issue with Inspector crashing on macOS versions earlier than High Sierra (10.13)](https://github.com/NativeScript/ios-runtime/pull/854)
 
-3.4.0
+3.4.0 (2017-12-20)
 =====
 
 ## Bug Fixes
@@ -205,13 +220,13 @@ previous_url: /Changelogs/iOS Runtime
 - [Fixed issue with WTF threading not initialized](https://github.com/NativeScript/NativeScript/issues/5019)
 - [Fixed issue with Inspector crashing on MacOS High Sierra](https://github.com/NativeScript/ios-runtime/pull/838)
 
-3.3.0
+3.3.0 (2017-10-26)
 =====
 
 ## What's New
 - [Optimized FFI calls with CIF caching](https://github.com/NativeScript/ios-runtime/pull/795)
 
-3.2.0
+3.2.0 (2017-09-07)
 =====
 
 ## What's New
@@ -220,19 +235,19 @@ previous_url: /Changelogs/iOS Runtime
 - [Fixed memory leak](https://github.com/NativeScript/NativeScript/issues/4490)
 - [Enable Xcode 8.3 support](https://github.com/NativeScript/ios-runtime/commit/4d86288f4bd3bb26e109c688add6a6d2ca14af0b)
 
-3.1.0
+3.1.0 (2017-06-22)
 =====
 
 ## What's New
 - [Add global.__time function](https://github.com/NativeScript/ios-runtime/pull/766)
 
-3.0.1
+3.0.1 (2017-05-17)
 =====
 
 ## Bug Fixes
 - [Fix module resolution logic](https://github.com/NativeScript/ios-runtime/pull/765)
 
-3.0.0
+3.0.0 (2017-05-03)
 =====
 
 ## What's New
@@ -244,26 +259,26 @@ previous_url: /Changelogs/iOS Runtime
 - [Tagged (rc) versions cannot be uploaded to TestFlight/iTunes](https://github.com/NativeScript/ios-runtime/pull/760)
 - [Prevent crash when materializing a property without a getter](https://github.com/NativeScript/ios-runtime/commit/93f21af78adfcca026edb5600f75c8b6ed6a3615)
 
-2.5.1
+2.5.1 (2017-05-17)
 =====
 
 ## Bug Fixes
 - Fix the AppIcon setting - [#743](https://github.com/NativeScript/ios-runtime/pull/743)
 
-2.5.0
+2.5.0 (2017-02-01)
 =====
 
 ## What's New
 - Support for Chrome DevTools remote debugging
 
-2.4.0
+2.4.0 (2016-11-16)
 =====
 
 ## What's New
 - Update the JavaScriptCore Engine (100% ES6 support)
 - [Experimental] Multithreading support enabled with Web Workers API - [#620](https://github.com/NativeScript/ios-runtime/issues/620)
 
-2.3.0
+2.3.0 (2016-09-15)
 =====
 
 ## What's New
@@ -272,24 +287,24 @@ previous_url: /Changelogs/iOS Runtime
 ## Bug Fixes
 - Fix debugging without rebuild on iOS device - [#634](https://github.com/NativeScript/ios-runtime/pull/634)
 
-2.2.1
+2.2.1 (2016-08-16)
 =====
 
 ## Bug Fixes
 - Fixed struct marshalling on x86_64 architecture
 
-2.2.0
+2.2.0 (2016-08-10)
 =====
 
 - LiveSync improvements
 
-2.1.1
+2.1.1 (2016-07-06)
 =====
 
 ## Bug Fixes
 - Add `CFBundleVersion` and `CFBundleShortVersionString` keys in the `Info.plist` of the NativeScript framework
 
-2.1.0
+2.1.0 (2016-06-30)
 =====
 
 ## Bug Fixes
@@ -298,20 +313,20 @@ previous_url: /Changelogs/iOS Runtime
 ## Breaking Changes
 - Removed iOS 7 support
 
-2.0.1
+2.0.1 (2016-06-02)
 =====
 
 ## Bug Fixes
 - [Attaching a debugger crashes the app if it was already livesynced](https://github.com/NativeScript/ios-runtime/issues/572)
 
-2.0.0
+2.0.0 (2016-04-27)
 =====
 
 ## Bug Fixes
 - [LLVM/Clang in metadata generator is updated to v3.8.0](https://github.com/NativeScript/ios-runtime/pull/547)
 - [Throw error on unknown module character encoding](https://github.com/NativeScript/ios-runtime/pull/540)
 
-1.7.0
+1.7.0 (2016-03-16)
 =====
 
 ## What's New
@@ -322,7 +337,7 @@ previous_url: /Changelogs/iOS Runtime
 ## Bug Fixes
 - [Debugger crashes when open the Storage tab](https://github.com/NativeScript/ios-runtime/pull/527)
 
-1.6.0
+1.6.0 (2016-02-17)
 =====
 
 ## What's New
@@ -345,13 +360,13 @@ previous_url: /Changelogs/iOS Runtime
 - [TypeScript extends should not replace parent scope variables](https://github.com/NativeScript/ios-runtime/pull/454)
 - [Remove quotes from paths in nativescript-build.xcconfig](https://github.com/NativeScript/ios-runtime/pull/447)
 
-1.5.2
+1.5.2 (2016-01-04)
 =====
 
 ## Bug Fixes
 - [Private iOS API usage in JavaScriptCore](https://github.com/NativeScript/webkit/commit/0ebcf48cd284269540892244ef163dbaab9e79b9)
 
-1.5.1
+1.5.1 (2015-12-16)
 =====
 
 ## Bug Fixes
@@ -364,7 +379,7 @@ previous_url: /Changelogs/iOS Runtime
 - [Update JavaScriptCore](https://github.com/NativeScript/ios-runtime/issues/355)
 - [Enable requiring of JSON files](https://github.com/NativeScript/ios-runtime/issues/294)
 
-1.5.0
+1.5.0 (2015-11-24)
 =====
 
 ## Bug Fixes
@@ -384,16 +399,16 @@ previous_url: /Changelogs/iOS Runtime
 - [Automatic memory management of CoreFoundation functions marked with `CF_IMPLICIT_BRIDGING_ENABLED`](https://github.com/NativeScript/ios-runtime/pull/351)
 - [Manual memory management of CoreFoundation functions not-marked with `CF_IMPLICIT_BRIDGING_ENABLED`](https://github.com/NativeScript/ios-runtime/pull/386)
 
-1.4.1
-==
+1.4.1 (2015-10-23)
+=====
 
 ## Bug Fixes
 
 - [Include merged xcconfig files from CLI (#363)](https://github.com/NativeScript/ios-runtime/pull/363)
 - [Fix issues with iPhone 6s and iPad Air 2 devices (#377)](https://github.com/NativeScript/ios-runtime/pull/377)
 
-1.4.0
-==
+1.4.0 (2015-10-12)
+=====
 
 ## What's New
 
@@ -417,8 +432,8 @@ previous_url: /Changelogs/iOS Runtime
 - [ReferenceConstructor should accept a single type argument (#284)](https://github.com/NativeScript/ios-runtime/pull/284)
 - [Rename some enums to be consistent with how Swift exposes Objective-C enums (#318)](https://github.com/NativeScript/ios-runtime/issues/318)
 
-1.3.0
-==
+1.3.0 (2015-09-16)
+=====
 
 ## What's New
 
@@ -443,16 +458,16 @@ previous_url: /Changelogs/iOS Runtime
  - [Explicitly set the metadata generator's OS X deployment target (#285)](https://github.com/NativeScript/ios-runtime/pull/285)
  - [-[TNSValueWrapper value] can return null (#262)](https://github.com/NativeScript/ios-runtime/pull/262)
 
-1.2.2
-==
+1.2.2 (2015-08-18)
+=====
 
 ## Bug Fixes
 
 - [Add lib/iOS folder to framework search paths #266](https://github.com/NativeScript/ios-runtime/pull/266)
 - [Call Block_copy in ObjCBlockCall::finishCreation #264](https://github.com/NativeScript/ios-runtime/pull/264)
 
-1.2.1
-==
+1.2.1 (2015-08-11)
+=====
 
 ## Bug Fixes
 
@@ -461,8 +476,8 @@ previous_url: /Changelogs/iOS Runtime
  - [Work around crash when logging warnings (#248)](https://github.com/NativeScript/ios-runtime/pull/248)
  - [Do not register the instance structure (#247)](https://github.com/NativeScript/ios-runtime/pull/247)
 
-1.2.0
-==
+1.2.0 (2015-07-24)
+=====
 
 ## What's New
 
@@ -483,8 +498,8 @@ previous_url: /Changelogs/iOS Runtime
  - [Recursive calls from JavaScript to Objective-C method receiving a block argument (#199)](https://github.com/NativeScript/ios-runtime/issues/199)
  - [Fix TypeScript extends (#178)](https://github.com/NativeScript/ios-runtime/issues/178)
 
-1.1.0
-==
+1.1.0 (2015-06-10)
+=====
 [Milestone 1.1.0](https://github.com/NativeScript/ios-runtime/issues?q=milestone%3A1.1.0), [Release v1.1.0](https://github.com/NativeScript/ios-runtime/releases/tag/v1.1.0).
 
 ## What's New
@@ -504,12 +519,12 @@ previous_url: /Changelogs/iOS Runtime
  - Accessing JavaScript from multiple threads is properly synchronized
  - The `tns-ios` package is versioned
 
-1.0.1
-==
+1.0.1 (2015-05-08)
+=====
  - Escape header and framework search paths in metadata generator
 
-1.0.0
-==
+1.0.0 (2015-04-29)
+=====
 [Milestone 1.0.0](https://github.com/NativeScript/ios-runtime/issues?q=milestone%3A1.0.0), [Release v1.0.0](https://github.com/NativeScript/ios-runtime/releases/tag/v1.0.0).
  - New metadata generator using Clang
  - Fix some threading issues
