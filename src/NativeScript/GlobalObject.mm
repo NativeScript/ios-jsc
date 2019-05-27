@@ -146,9 +146,11 @@ static EncodedJSValue JSC_HOST_CALL releaseNativeCounterpart(ExecState* execStat
 }
 
 static void microtaskRunLoopSourcePerformWork(void* context) {
-    GlobalObject* self = static_cast<GlobalObject*>(context);
-    JSLockHolder lockHolder(self->vm());
-    self->drainMicrotasks();
+    @autoreleasepool {
+        GlobalObject* self = static_cast<GlobalObject*>(context);
+        JSLockHolder lockHolder(self->vm());
+        self->drainMicrotasks();
+    }
 }
 
 static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void* info) {
@@ -458,10 +460,10 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, Class fall
     }
 
     const Meta* meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
-    if(!searchBaseClasses && meta == nullptr) {
+    if (!searchBaseClasses && meta == nullptr) {
         return Strong<ObjCConstructorBase>();
     }
-    
+
     while (!(meta && meta->type() == MetaType::Interface)) {
         klass = class_getSuperclass(klass);
         meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
