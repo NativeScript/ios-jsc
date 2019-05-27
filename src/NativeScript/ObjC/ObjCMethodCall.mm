@@ -65,7 +65,7 @@ void ObjCMethodWrapper::finishCreation(VM& vm, GlobalObject* globalObject, Membe
         const ffi_type* returnFFIType = call->returnType().ffiType;
         if (returnFFIType->type == FFI_TYPE_FLOAT || returnFFIType->type == FFI_TYPE_DOUBLE || returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
             call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
-        } else if (call->cif()->flags == X86_RET_STRUCTPOP) {
+        } else if (call->cif()->get()->flags == X86_RET_STRUCTPOP) {
             call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
             call->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
         }
@@ -75,7 +75,7 @@ void ObjCMethodWrapper::finishCreation(VM& vm, GlobalObject* globalObject, Membe
         const ffi_type* returnFFIType = call->returnType().ffiType;
         if (returnFFIType->type == FFI_TYPE_LONGDOUBLE) {
             call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_fpret);
-        } else if (returnFFIType->type == FFI_TYPE_STRUCT && (call->cif()->flags & UNIX64_FLAG_RET_IN_MEM)) {
+        } else if (returnFFIType->type == FFI_TYPE_STRUCT && (call->cif()->get()->flags & UNIX64_FLAG_RET_IN_MEM)) {
             call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
             call->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
         }
