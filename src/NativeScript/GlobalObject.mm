@@ -146,11 +146,9 @@ static EncodedJSValue JSC_HOST_CALL releaseNativeCounterpart(ExecState* execStat
 }
 
 static void microtaskRunLoopSourcePerformWork(void* context) {
-    @autoreleasepool {
-        GlobalObject* self = static_cast<GlobalObject*>(context);
-        JSLockHolder lockHolder(self->vm());
-        self->drainMicrotasks();
-    }
+    GlobalObject* self = static_cast<GlobalObject*>(context);
+    JSLockHolder lockHolder(self->vm());
+    self->drainMicrotasks();
 }
 
 static void runLoopBeforeWaitingPerformWork(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void* info) {
@@ -589,8 +587,10 @@ void GlobalObject::queueTaskToEventLoop(JSGlobalObject& globalObject, WTF::Ref<M
 }
 
 void GlobalObject::drainMicrotasks() {
-    while (!this->_microtasksQueue.isEmpty()) {
-        this->_microtasksQueue.takeFirst()->run(this->globalExec());
+    @autoreleasepool {
+        while (!this->_microtasksQueue.isEmpty()) {
+            this->_microtasksQueue.takeFirst()->run(this->globalExec());
+        }
     }
 }
 
