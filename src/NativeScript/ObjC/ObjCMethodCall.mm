@@ -82,7 +82,7 @@ void ObjCMethodWrapper::finishCreation(VM& vm, GlobalObject* globalObject, Membe
 #elif defined(__arm__) && !defined(__LP64__)
         const unsigned ARM_TYPE_STRUCT = 6;
 
-        if (call->cif()->flags == ARM_TYPE_STRUCT) {
+        if (call->cif()->get()->flags == ARM_TYPE_STRUCT) {
             call->_msgSend = reinterpret_cast<void*>(&objc_msgSend_stret);
             call->_msgSendSuper = reinterpret_cast<void*>(&objc_msgSendSuper_stret);
         }
