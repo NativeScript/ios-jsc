@@ -85,7 +85,7 @@ public:
         return call->parametersCount() == execState->argumentCount();
     };
 
-    const std::shared_ptr<ffi_cif>& cif() const {
+    const std::shared_ptr<CifWrapper>& cif() const {
         return this->_cif;
     }
 
@@ -125,7 +125,7 @@ public:
         return this->_parameterTypes;
     }
 
-    std::shared_ptr<ffi_cif> getCif(unsigned int nargs, ffi_type* rtype, ffi_type** atypes);
+    std::shared_ptr<CifWrapper> getCif(ffi_type* rtype, std::vector<const ffi_type*> atypes);
 
     std::vector<const ffi_type*> signatureVector;
 
@@ -163,7 +163,7 @@ public:
     void initializeFFI(JSC::VM&, const InvocationHooks&, JSC::JSCell* returnType, const WTF::Vector<Strong<JSC::JSCell>>& parameterTypes, size_t initialArgumentIndex = 0);
 
 protected:
-    std::shared_ptr<ffi_cif> _cif;
+    std::shared_ptr<CifWrapper> _cif;
 
     FunctionWrapper* owner;
 
