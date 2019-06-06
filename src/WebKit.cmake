@@ -43,9 +43,9 @@ include(ExternalProject)
 ExternalProject_Add(
     WebKit
     SOURCE_DIR ${WEBKIT_SOURCE_DIR}
-    CONFIGURE_COMMAND ""
+    CONFIGURE_COMMAND env -i "${CMAKE_COMMAND}" ${WEBKIT_CMAKE_ARGS} -G${CMAKE_GENERATOR} ${WEBKIT_SOURCE_DIR}
     BUILD_ALWAYS 1
-    BUILD_COMMAND env -i "${CMAKE_COMMAND}" ${WEBKIT_CMAKE_ARGS} -G${CMAKE_GENERATOR} ${WEBKIT_SOURCE_DIR} && ${CMAKE_SOURCE_DIR}/build/scripts/build-step-webkit.sh
+    BUILD_COMMAND ${CMAKE_SOURCE_DIR}/build/scripts/build-step-webkit.sh
     INSTALL_COMMAND ""
 )
 
