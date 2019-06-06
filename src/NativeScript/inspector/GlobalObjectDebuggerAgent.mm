@@ -126,7 +126,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
 
                     moduleSource = moduleFunctionSource.toString();
 
-                    SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 2, 1, sourceCode.startColumn().zeroBasedInt() - 1);
+                    SourceCode updatedSourceCode = makeSource(moduleSource, SourceOrigin()).subExpression(sourceCode.startOffset(), moduleSource.length() - 1, 1, sourceCode.startColumn().zeroBasedInt() - 1);
                     program = parse<FunctionNode>(&m_globalObject->vm(), updatedSourceCode, Identifier(), JSParserBuiltinMode::NotBuiltin,
                                                   JSParserStrictMode::NotStrict, JSParserScriptMode::Classic,
                                                   SourceParseMode::MethodMode, SuperBinding::NotNeeded, parseError);
