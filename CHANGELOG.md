@@ -7,6 +7,14 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+5.4.2 (2019-06-13)
+=====
+
+### Bug Fixes
+
+* **metadata-generator:** Place Swift headers at the bottom of the umbrella header ([#1153](https://github.com/NativeScript/ios-runtime/issues/1153))
+
+
 5.4.1 (2019-06-06)
 =====
 
@@ -14,7 +22,7 @@ previous_url: /Changelogs/iOS Runtime
 
 * **bridge:** Synchronize access to Strong handles in collection adapters ([#1144](https://github.com/NativeScript/ios-runtime/pull/1144))
 * **workers:** Memory leak when creating/wrapping native objects in worker.onmessage([#1137](https://github.com/NativeScript/ios-runtime/issues/1137))
-* **metadata-generator:** Convert unsigned 64-bit enum values to signed ([#1150]https://github.com/NativeScript/ios-runtime/issues/1150))
+* **metadata-generator:** Convert unsigned 64-bit enum values to signed ([#1150](https://github.com/NativeScript/ios-runtime/issues/1150))
 * **jsc:** Prevent 2nd destructor call from ThreadSafeRefCounted ([60b589bc5547b](https://github.com/NativeScript/ios-runtime/pull/1148/commits/60b589bc5547bb4e758fd4e9f2c20cedbbbf6afd))
 
 ### Features
