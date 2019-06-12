@@ -13,7 +13,7 @@ previous_url: /Changelogs/iOS Runtime
 ### Bug Fixes
 
 * **metadata-generator:** Place Swift headers at the bottom of the umbrella header ([#1153](https://github.com/NativeScript/ios-runtime/issues/1153))
-
+* **jsc:** Incorrect sources shown in Chrome DevTools when attaching to application ([#1158](https://github.com/NativeScript/ios-runtime/issues/1158))
 
 5.4.1 (2019-06-06)
 =====
