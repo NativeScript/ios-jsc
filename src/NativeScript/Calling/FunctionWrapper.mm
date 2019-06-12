@@ -94,7 +94,7 @@ EncodedJSValue JSC_HOST_CALL FunctionWrapper::call(ExecState* execState) {
     @try {
         {
             JSLock::DropAllLocks locksDropper(execState);
-            ffi_call(callee->cif().get(), FFI_FN(invocation.function), invocation.resultBuffer(), reinterpret_cast<void**>(invocation._buffer + callee->argsArrayOffset()));
+            ffi_call(callee->cif()->get(), FFI_FN(invocation.function), invocation.resultBuffer(), reinterpret_cast<void**>(invocation._buffer + callee->argsArrayOffset()));
         }
 
         if (scope.exception()) {
@@ -171,7 +171,7 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
               // a fix for it is outside of this PR's scope, so I'm leaving it like it has always been.
               JSLock::DropAllLocks locksDropper(fakeExecState);
 
-              ffi_call(call->cif().get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + call->argsArrayOffset()));
+              ffi_call(call->cif()->get(), FFI_FN(invocation->function), invocation->resultBuffer(), reinterpret_cast<void**>(invocation->_buffer + call->argsArrayOffset()));
 
           } @catch (NSException* ex) {
               auto throwScope = DECLARE_THROW_SCOPE(vm);

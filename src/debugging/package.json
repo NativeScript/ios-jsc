@@ -4,7 +4,7 @@
   "description": "WebSockets proxy for debugging NativeScript iOS runtime",
   "main": "debugger-proxy.js",
   "dependencies": {
-    "ws": "1.1.1"
+    "ws": "^3.3.1"
   },
   "devDependencies": {},
   "scripts": {

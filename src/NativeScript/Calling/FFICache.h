@@ -29,7 +29,7 @@ struct SignatureHash {
 class FFICache {
 
 public:
-    typedef std::unordered_map<std::vector<const ffi_type*>, std::shared_ptr<ffi_cif>, SignatureHash> FFIMap;
+    typedef std::unordered_map<std::vector<const ffi_type*>, std::shared_ptr<CifWrapper>, SignatureHash> FFIMap;
     FFIMap cifCache;
 
     static FFICache* global();

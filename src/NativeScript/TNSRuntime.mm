@@ -15,7 +15,6 @@
 #include <JavaScriptCore/JSModuleLoader.h>
 #include <JavaScriptCore/JSNativeStdFunction.h>
 #include <JavaScriptCore/inspector/JSGlobalObjectInspectorController.h>
-#include <iostream>
 
 #if PLATFORM(IOS)
 #import <UIKit/UIApplication.h>
@@ -114,7 +113,8 @@ void sig_handler(int sig) {
         oldHandlers[sig](sig);
     }
 
-    exit(-sig);
+    signal(sig, nullptr);
+    kill(getpid(), sig);
 }
 
 void install_handler(int sig) {

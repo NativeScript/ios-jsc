@@ -13,6 +13,7 @@
 #pragma clang diagnostic ignored "-Wundef"
 #include <ffi.h>
 #pragma clang diagnostic pop
+#include <vector>
 
 namespace NativeScript {
 
@@ -31,6 +32,35 @@ struct FFITypeMethodTable {
 bool tryGetFFITypeMethodTable(JSC::VM& vm, JSC::JSValue value, const FFITypeMethodTable** methodTable);
 
 const FFITypeMethodTable& getFFITypeMethodTable(JSC::VM& vm, JSC::JSCell* cell);
+
+// Wraps a ffi_cif structure and its alotted argument types vector.
+// This binds the lifetimes of both entities together and resolves memory leaks.
+class CifWrapper {
+public:
+    CifWrapper(ffi_type* rtype, std::vector<const ffi_type*> atypes)
+        : atypes(atypes)
+        , cif(new ffi_cif) {
+
+        ffi_prep_cif(cif.get(), FFI_DEFAULT_ABI, atypes.size(), rtype, const_cast<ffi_type**>(&this->atypes.front()));
+    }
+
+    ffi_cif* get() const {
+        return this->cif.get();
+    }
+
+    ffi_cif* operator->() const {
+        return this->cif.get();
+    }
+
+    operator ffi_cif*() const {
+        return this->cif.get();
+    }
+
+private:
+    std::vector<const ffi_type*> atypes;
+    std::unique_ptr<ffi_cif> cif;
+};
+
 } // namespace NativeScript
 
 #endif /* defined(__NativeScript__FFIType__) */

@@ -458,10 +458,10 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, Class fall
     }
 
     const Meta* meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
-    if(!searchBaseClasses && meta == nullptr) {
+    if (!searchBaseClasses && meta == nullptr) {
         return Strong<ObjCConstructorBase>();
     }
-    
+
     while (!(meta && meta->type() == MetaType::Interface)) {
         klass = class_getSuperclass(klass);
         meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
@@ -587,8 +587,10 @@ void GlobalObject::queueTaskToEventLoop(JSGlobalObject& globalObject, WTF::Ref<M
 }
 
 void GlobalObject::drainMicrotasks() {
-    while (!this->_microtasksQueue.isEmpty()) {
-        this->_microtasksQueue.takeFirst()->run(this->globalExec());
+    @autoreleasepool {
+        while (!this->_microtasksQueue.isEmpty()) {
+            this->_microtasksQueue.takeFirst()->run(this->globalExec());
+        }
     }
 }
 
