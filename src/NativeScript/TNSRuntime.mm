@@ -39,7 +39,7 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
     RELEASE_ASSERT(exec->vm().atomicStringTable() == Thread::current().atomicStringTable());
     RELEASE_ASSERT(!exec->vm().isCollectorBusyOnCurrentThread());
 
-    JSGlobalObject* globalObject = exec->vmEntryGlobalObject();
+    JSGlobalObject* globalObject = exec->wasmAwareLexicalGlobalObject(exec->vm());
     JSValue moduleNameJsValue = jsString(&exec->vm(), Identifier::fromString(exec, moduleName).impl());
     JSValue referrerJsValue = referrer.isEmpty() ? jsUndefined() : jsString(&exec->vm(), Identifier::fromString(exec, referrer).impl());
     return globalObject->moduleLoader()->loadAndEvaluateModule(exec, moduleNameJsValue, referrerJsValue, initiator);

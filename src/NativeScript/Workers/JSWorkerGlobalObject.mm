@@ -3,7 +3,7 @@
 #include "WorkerMessagingProxy.h"
 
 #include "JSClientData.h"
-#include <JavaScriptCore/runtime/JSJob.h>
+#include <JavaScriptCore/runtime/JSMicrotask.h>
 #include <JavaScriptCore/runtime/JSONObject.h>
 
 using namespace JSC;

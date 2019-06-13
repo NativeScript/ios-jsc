@@ -63,8 +63,13 @@ struct WeakImplVectorKeyTraits {
     static bool isEmptyValue(const WTF::Vector<JSC::WeakImpl*>& value) {
         return false;
     }
-    static WTF::Vector<JSC::WeakImpl*> emptyValue() {
-        return WTF::Vector<JSC::WeakImpl*>();
+    static EmptyValueType emptyValue() {
+        return EmptyValueType();
+    }
+
+    template <typename Traits>
+    static void constructEmptyValue(TraitType& slot) {
+        new (NotNull, std::addressof(slot)) TraitType(Traits::emptyValue());
     }
 
     template <typename U, typename V>

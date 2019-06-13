@@ -162,7 +162,7 @@ void GlobalObjectInspectorController::connectFrontend(FrontendChannel* frontendC
     m_isAutomaticInspection = isAutomaticInspection;
 
     bool connectedFirstFrontend = !m_frontendRouter->hasFrontends();
-    m_frontendRouter->connectFrontend(frontendChannel);
+    m_frontendRouter->connectFrontend(*frontendChannel);
 
     if (!connectedFirstFrontend)
         return;
@@ -185,7 +185,7 @@ void GlobalObjectInspectorController::disconnectFrontend(FrontendChannel* fronte
     // FIXME: change this to notify agents which frontend has disconnected (by id).
     m_agents.willDestroyFrontendAndBackend(DisconnectReason::InspectorDestroyed);
 
-    m_frontendRouter->disconnectFrontend(frontendChannel);
+    m_frontendRouter->disconnectFrontend(*frontendChannel);
 
     m_isAutomaticInspection = false;
 

@@ -40,7 +40,7 @@ public:
         return this->_ffiTypeMethodTable;
     }
 
-    static WTF::String className(const JSObject* object, JSC::VM&);
+    DECLARE_CLASSNAME()
 
     const WTF::Vector<JSC::WriteBarrier<ObjCConstructorWrapper>>& initializers(JSC::VM&, GlobalObject*);
 

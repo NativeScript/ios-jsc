@@ -17,14 +17,14 @@ describe(module.id, function () {
     });
     it("Exception in callback propagates to caller and doesn't crash app", function () {
 		const jsCallback = TNSPrimitives.extend({
-			methodWithChar: function (x) {
+			methodWithNSNumber: function (x) {
 				throw new Error("Called with " + x);
 			}
 		}).alloc().init();
 
-		// const invocation = () => jsCallback.methodWithChar(NSNumber.numberWithInt(127));
-		const invocation = () => jsCallback.performSelectorWithObject("methodWithChar:", NSNumber.numberWithInt(127));
-        expect(invocation).toThrow();
+        // performSelector is used to perform a native callback(instead of direct JS call)
+		const invocation = () => jsCallback.performSelectorWithObject("methodWithNSNumber:", 127);
+        expect(invocation).toThrowError(/Called with 127/);
     });
     it("DerivedMethodWithChar2", function () {
         var result = TNSPrimitives.extend({

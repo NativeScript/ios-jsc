@@ -14,7 +14,7 @@ static Inspector::Protocol::Log::LogEntry::Source messageSourceValue(MessageSour
     case MessageSource::XML:
         return Inspector::Protocol::Log::LogEntry::Source::XML;
     case MessageSource::JS:
-        return Inspector::Protocol::Log::LogEntry::Source::Javascript;
+            return Inspector::Protocol::Log::LogEntry::Source::JavaScript;
     case MessageSource::Network:
         return Inspector::Protocol::Log::LogEntry::Source::Network;
     case MessageSource::Storage:

@@ -64,13 +64,13 @@ struct ModuleName {
 
 ModuleName::ModuleName(const String& moduleName) {
     // A module name given from code is represented as the UNIX style path. Like, `./A/B.js`.
-    moduleName.split('/', true, queries);
+    queries = moduleName.splitAllowingEmptyEntries('/');
 }
 
-static std::optional<DirectoryName> extractDirectoryName(const String& absolutePathToFile) {
+static Optional<DirectoryName> extractDirectoryName(const String& absolutePathToFile) {
     size_t firstSeparatorPosition = absolutePathToFile.find(pathSeparator());
     if (firstSeparatorPosition == notFound)
-        return std::nullopt;
+        return WTF::nullopt;
     DirectoryName directoryName;
     directoryName.rootName = absolutePathToFile.substring(0, firstSeparatorPosition + 1); // Include the separator.
     size_t lastSeparatorPosition = absolutePathToFile.reverseFind(pathSeparator());
@@ -86,8 +86,7 @@ static std::optional<DirectoryName> extractDirectoryName(const String& absoluteP
 }
 
 static String resolvePath(const DirectoryName& directoryName, const ModuleName& moduleName) {
-    Vector<String> directoryPieces;
-    directoryName.queryName.split(pathSeparator(), false, directoryPieces);
+    Vector<String> directoryPieces = directoryName.queryName.split(pathSeparator());
 
     // Only first '/' is recognized as the path from the root.
     if (moduleName.startsWithRoot())
@@ -308,7 +307,7 @@ Identifier GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecS
 }
 
 JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject, ExecState* execState, JSModuleLoader* loader, JSValue keyValue, JSC::JSValue parameters, JSValue initiator) {
-    JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::create(execState, globalObject);
+    JSInternalPromiseDeferred* deferred = JSInternalPromiseDeferred::tryCreate(execState, globalObject);
 
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_CATCH_SCOPE(vm);
@@ -341,7 +340,7 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
         moduleUrl.append(WTF::String(modulePath.impl()));
     }
 
-    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(modulePath), moduleUrl.toString(), TextPosition(), SourceProviderSourceType::Module)));
+    return deferred->resolve(execState, JSSourceCode::create(vm, makeSource(moduleContentStr, SourceOrigin(modulePath), URL(URL(), moduleUrl.toString()), TextPosition(), SourceProviderSourceType::Module)));
 }
 
 JSObject* GlobalObject::moduleLoaderCreateImportMetaProperties(JSGlobalObject* globalObject, ExecState* exec, JSModuleLoader*, JSValue key, JSModuleRecord*, JSValue) {
@@ -509,7 +508,7 @@ JSInternalPromise* GlobalObject::moduleLoaderImportModule(JSGlobalObject* global
     auto scope = DECLARE_CATCH_SCOPE(vm);
 
     auto rejectPromise = [&](JSValue error) {
-        return JSInternalPromiseDeferred::create(exec, globalObject)->reject(exec, error);
+        return JSInternalPromiseDeferred::tryCreate(exec, globalObject)->reject(exec, error);
     };
 
     if (sourceOrigin.isNull())

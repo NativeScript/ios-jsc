@@ -170,6 +170,10 @@ unichar functionWithUnichar(unichar x) {
     TNSLog([NSString stringWithFormat:@"%C", x]);
     return x;
 }
++ (NSNumber*)methodWithNSNumber:(NSNumber*)x {
+    TNSLog([NSString stringWithFormat:@"%@", x]);
+    return x;
+}
 
 + (int)methodVariadicSum:(int)count, ... {
     va_list ap;
@@ -264,6 +268,10 @@ unichar functionWithUnichar(unichar x) {
 }
 - (unichar)methodWithUnichar:(unichar)x {
     TNSLog([NSString stringWithFormat:@"%C", x]);
+    return x;
+}
+- (NSNumber*)methodWithNSNumber:(NSNumber*)x {
+    TNSLog([NSString stringWithFormat:@"%@", x]);
     return x;
 }
 
