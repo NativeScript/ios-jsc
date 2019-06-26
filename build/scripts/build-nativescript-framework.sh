@@ -18,35 +18,47 @@ rm -f "$WORKSPACE/cmake-build/CMakeCache.txt"
 # the performance of Jenkins builds. After building the {N} framework, we
 # build TestRunner for device and thus, it is best to build NativeScript.framework
 # for device last.
+checkpoint "Building NativeScript.framework - UIKit for Mac"
+xcodebuild -configuration $CONFIGURATION -destination "variant=UIKit for Mac,arch=x86_64" -scheme "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
 checkpoint "Building NativeScript.framework - iphonesimulator SDK"
-xcodebuild -configuration $CONFIGURATION -sdk "iphonesimulator" -target "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
+xcodebuild -configuration $CONFIGURATION -sdk "iphonesimulator" -scheme "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
 checkpoint "Building NativeScript.framework - iphoneos SDK"
-xcodebuild -configuration $CONFIGURATION -sdk "iphoneos"        -target "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
+xcodebuild -configuration $CONFIGURATION -sdk "iphoneos"        -scheme "NativeScript" -project $NATIVESCRIPT_XCODEPROJ -quiet
 
-checkpoint "Creating fat NativeScript.framework"
+checkpoint "Creating NativeScript.xcframework"
+
 mkdir -p "$DIST_DIR" && pushd "$_"
-cp -r "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework" "."
-rm "NativeScript.framework/NativeScript"
+
+SRC_SIMULATOR="$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework"
+SRC_IPHONEOS="$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework"
+SRC_MACOS="$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-uikitformac/NativeScript.framework"
+XCFRAMEWORK_PATH="$DIST_DIR/NativeScript.xcframework"
+IOS_DSYM="$DIST_DIR/NativeScript.ios.framework.dSYM"
+MACOS_DSYM="$DIST_DIR/NativeScript.macos.framework.dSYM"
 
 # Strip debug information, dSYM package must be used for debugging and symbolicating
-strip -S "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework/NativeScript" \
-    "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework/NativeScript"
-echo "CodeSign $WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework/NativeScript"
+strip -S "$SRC_SIMULATOR/NativeScript" "$SRC_IPHONEOS/NativeScript" # "$SRC_MACOS/NativeScript" # don't strip macos binary for now 
 
-/usr/bin/codesign --force --sign - --timestamp=none "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework/NativeScript"
+rm -rf $XCFRAMEWORK_PATH
+xcodebuild -create-xcframework -framework "$SRC_IPHONEOS" -framework "$SRC_SIMULATOR" -framework "$SRC_MACOS" -output "$XCFRAMEWORK_PATH"
 
-lipo -create -output "NativeScript.framework/NativeScript" \
-    "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework/NativeScript" \
-    "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework/NativeScript"
+checkpoint "Creating dSYM packages"
 
-cp -r "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework.dSYM" "."
-rm "NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript"
-lipo -create -output "NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript" \
-    "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript" \
-    "$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework.dSYM/Contents/Resources/DWARF/NativeScript"
+cp -r $SRC_IPHONEOS.dSYM $IOS_DSYM
+rm "$IOS_DSYM/Contents/Resources/DWARF/NativeScript"
 
-zip -qr NativeScript.framework.dSYM.zip NativeScript.framework.dSYM
-rm -rf NativeScript.framework.dSYM
+lipo -create -output "$IOS_DSYM/Contents/Resources/DWARF/NativeScript" \
+    "$SRC_SIMULATOR.dSYM/Contents/Resources/DWARF/NativeScript" \
+    "$SRC_IPHONEOS.dSYM/Contents/Resources/DWARF/NativeScript"
+
+echo "Archiving iOS dSYM at $IOS_DSYM.zip"
+(cd $DIST_DIR && zip -qr NativeScript.ios.framework.dSYM.zip NativeScript.ios.framework.dSYM && rm -rf NativeScript.ios.framework.dSYM)
+
+echo "TODO: Copying macOS dSYM at $MACOS_DSYM"
+# cp -r $SRC_MACOS.dSYM $MACOS_DSYM
+
+echo "TODO: Archiving macOS dSYM at $MACOS_DSYM.zip"
+# (cd $DIST_DIR && zip -qr NativeScript.macos.framework.dSYM.zip NativeScript.macos.framework.dSYM)
 
 popd
 

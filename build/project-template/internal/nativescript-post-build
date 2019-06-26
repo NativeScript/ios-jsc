@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-function add_embedded_framework() {
-    local FRAMEWORK_NAME=$(basename "$1")
-    rsync --archive "$1" "${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}" \
-        --exclude "/$FRAMEWORK_NAME/Headers" \
-        --exclude "/$FRAMEWORK_NAME/Modules"
-}
-
-add_embedded_framework "${SRCROOT}/internal/NativeScript.framework"
-
 pushd "$SRCROOT/internal"
 ./strip-dynamic-framework-architectures.sh
 popd

@@ -21,13 +21,18 @@ function build {
         exit 1
     fi
 
-    if [ ! -e ./configure ]; then 
+    if [ ! -e ./configure ]; then
         autoreconf -i
     fi
 
     mkdir -p "$BINARY_DIR" && pushd "$_"
 
     local COMPILER_FLAGS="-arch $ARCH -isysroot $SDKROOT -$DEPLOYMENT_TARGET_CLANG_FLAG_NAME=${!DEPLOYMENT_TARGET_CLANG_ENV_NAME}"
+
+    # Add compiler flags for "UIKit for Mac". See https://github.com/CocoaPods/CocoaPods/issues/8877#issuecomment-499752865
+    if [ "$(echo ${IS_UIKITFORMAC-} | tr '[:upper:]' '[:lower:]')" = "yes" -o "$(echo ${IS_UIKITFORMAC-} | tr '[:upper:]' '[:lower:]')" = "true" -o "${IS_UIKITFORMAC-}" = "1" ]; then
+        COMPILER_FLAGS="-isysroot $SDKROOT -Wno-overriding-t-option -target x86_64-apple-ios-macabi -miphoneos-version-min=13.0"
+    fi
 
     (
         export CC="clang $COMPILER_FLAGS"

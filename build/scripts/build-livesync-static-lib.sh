@@ -12,35 +12,45 @@ rm -rf "build"
 
 pod install
 
+echo "Building TKLiveSync for iphonesimulator"
 xcodebuild \
     -workspace "./TKLiveSync.xcworkspace" \
     -scheme "TKLiveSync" \
     -configuration "Release" \
     -sdk "iphonesimulator" \
     build \
-    CONFIGURATION_BUILD_DIR="$(pwd)/build/Release-iphonesimulator" \
+    BUILD_DIR="$(pwd)/build" \
     ARCHS="i386 x86_64" VALID_ARCHS="i386 x86_64" \
     -quiet
 
+echo "Building TKLiveSync for iphoneos"
 xcodebuild \
     -workspace "./TKLiveSync.xcworkspace" \
     -scheme "TKLiveSync" \
     -configuration "Release" \
     -sdk "iphoneos" \
     build \
-    CONFIGURATION_BUILD_DIR="$(pwd)/build/Release-iphoneos" \
+    BUILD_DIR="$(pwd)/build" \
     ARCHS="armv7 arm64" VALID_ARCHS="armv7 arm64" \
     -quiet
 
-checkpoint "Packaging TKLiveSync.framework"
-rm -rf "$WORKSPACE/dist/TKLiveSync"
-mkdir -p "$WORKSPACE/dist/TKLiveSync/"
-cp -r "build/Release-iphoneos/TKLiveSync.framework/Headers" "$WORKSPACE/dist/TKLiveSync"
-mv "$WORKSPACE/dist/TKLiveSync/Headers" "$WORKSPACE/dist/TKLiveSync/include"
-lipo -create -output "$WORKSPACE/dist/TKLiveSync/TKLiveSync" \
-    "build/Release-iphonesimulator/TKLiveSync.framework/TKLiveSync" \
-    "build/Release-iphoneos/TKLiveSync.framework/TKLiveSync"
-chmod +x "$WORKSPACE/dist/TKLiveSync/TKLiveSync"
+echo "Building TKLiveSync for UIKit for Mac"
+xcodebuild \
+    -workspace "./TKLiveSync.xcworkspace" \
+    -scheme "TKLiveSync" \
+    -configuration "Release" \
+    -destination "variant=UIKit for Mac,arch=x86_64" -UseModernBuildSystem=YES \
+    build \
+    BUILD_DIR="$(pwd)/build" \
+    -quiet
+
+checkpoint "Packaging TKLiveSync.xcframework"
+
+rm -rf "$WORKSPACE/dist/TKLiveSync.xcframework"
+xcodebuild -create-xcframework -output "$WORKSPACE/dist/TKLiveSync.xcframework" \
+    -framework "build/Release-iphonesimulator/TKLiveSync.framework" \
+    -framework "build/Release-iphoneos/TKLiveSync.framework" \
+    -framework "build/Release-uikitformac/TKLiveSync.framework" 
 
 popd
 checkpoint "Finished building TKLiveSync - $WORKSPACE/dist/TKLiveSync"

@@ -15,10 +15,10 @@ rm -rf $PACKAGE_DIR
 mkdir -p "$INTERNAL_DIR"
 
 "$WORKSPACE/build/scripts/build-livesync-static-lib.sh"
-cp -R "$DIST_DIR/TKLiveSync" "$INTERNAL_DIR"
+cp -R "$DIST_DIR/TKLiveSync.xcframework" "$INTERNAL_DIR"
 
 "$WORKSPACE/build/scripts/build-nativescript-framework.sh"
-cp -R "$DIST_DIR/NativeScript.framework" "$INTERNAL_DIR/NativeScript.framework"
+cp -R "$DIST_DIR/NativeScript.xcframework" "$INTERNAL_DIR/NativeScript.xcframework"
 
 "$WORKSPACE/build/scripts/build-metadata-generator.sh"
 cp -R "$DIST_DIR/metadataGenerator" "$INTERNAL_DIR/metadata-generator"

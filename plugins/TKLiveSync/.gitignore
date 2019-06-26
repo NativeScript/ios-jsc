@@ -1,1 +1,12 @@
 /Pods
+
+# CMake build subdirectories
+*.build/
+build/
+xcframework-build/
+
+# Tests zips of libzip
+regress/
+
+!cmake-build/
+!CMakeFiles/

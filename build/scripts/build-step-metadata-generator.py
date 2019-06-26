@@ -40,6 +40,8 @@ header_search_paths = env_or_empty("HEADER_SEARCH_PATHS")
 header_search_paths_parsed = map_and_list((lambda s: "-I" + s), shlex.split(header_search_paths))
 framework_search_paths = env_or_empty("FRAMEWORK_SEARCH_PATHS")
 framework_search_paths_parsed = map_and_list((lambda s: "-F" + s), shlex.split(framework_search_paths))
+system_framework_search_paths = env_or_empty("SYSTEM_FRAMEWORK_SEARCH_PATHS")
+system_framework_search_paths_parsed = map_and_list((lambda s: "-F" + s), shlex.split(system_framework_search_paths))
 other_cflags = env_or_empty("OTHER_CFLAGS")
 other_cflags_parsed = shlex.split(other_cflags)
 preprocessor_defs = env_or_empty("GCC_PREPROCESSOR_DEFINITIONS")
@@ -95,12 +97,17 @@ def generate_metadata(arch):
     # clang arguments
     generator_call.extend(["Xclang",
                            "-isysroot", sdk_root,
-                           "-arch", arch,
                            "-" + deployment_target_flag_name + "=" + deployment_target,
                            "-std=" + std])
 
+    if env_or_empty("IS_UIKITFORMAC").capitalize() is "YES":
+      generator_call.extend(["-arch", arch])
+    else:
+      generator_call.extend(["-target", "{}-apple-ios13.0-macabi".format(arch)])
+
     generator_call.extend(header_search_paths_parsed)  # HEADER_SEARCH_PATHS
     generator_call.extend(framework_search_paths_parsed)  # FRAMEWORK_SEARCH_PATHS
+    generator_call.extend(system_framework_search_paths_parsed)  # SYSTEM_FRAMEWORK_SEARCH_PATHS
     generator_call.extend(other_cflags_parsed)  # OTHER_CFLAGS
     generator_call.extend(preprocessor_defs_parsed)  # GCC_PREPROCESSOR_DEFINITIONS
 

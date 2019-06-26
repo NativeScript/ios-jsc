@@ -25,7 +25,8 @@ Thumbs.db
 /.metadata/
 
 # Build
-/cmake-build*
+cmake-build*/
+!/**/TKLiveSync/**/cmake-build
 /build.log
 /dist/
 /junit-result.xml
