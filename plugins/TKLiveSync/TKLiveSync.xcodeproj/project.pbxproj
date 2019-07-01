@@ -325,6 +325,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LD_DYLIB_INSTALL_NAME = "@rpath/TKLiveSync.framework/TKLiveSync";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_dylib;
 				PRODUCT_BUNDLE_IDENTIFIER = org.nativescript.TKLiveSync;
@@ -361,6 +362,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LD_DYLIB_INSTALL_NAME = "@rpath/TKLiveSync.framework/TKLiveSync";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_dylib;
 				PRODUCT_BUNDLE_IDENTIFIER = org.nativescript.TKLiveSync;
