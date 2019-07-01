@@ -20,6 +20,15 @@ cp -R "$DIST_DIR/TKLiveSync.xcframework" "$INTERNAL_DIR"
 "$WORKSPACE/build/scripts/build-nativescript-framework.sh"
 cp -R "$DIST_DIR/NativeScript.xcframework" "$INTERNAL_DIR/NativeScript.xcframework"
 
+# Add xcframeworks to .zip (NPM modules do not support symlinks, unzipping is done by {N} CLI)
+(
+    set -e
+    cd $INTERNAL_DIR
+    zip -qr --symlinks XCFrameworks.zip *.xcframework
+    rm -rf *.xcframework
+)
+
+
 "$WORKSPACE/build/scripts/build-metadata-generator.sh"
 cp -R "$DIST_DIR/metadataGenerator" "$INTERNAL_DIR/metadata-generator"
 
