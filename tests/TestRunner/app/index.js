@@ -22,7 +22,7 @@ global.__JUnitSaveResults = function (text) {
     }
 };
 
-global.__approot = NSString.stringWithString(NSBundle.mainBundle.bundlePath).stringByResolvingSymlinksInPath;
+global.__approot = NSString.alloc().initWithCString(NSBundle.mainBundle.resourceURL.fileSystemRepresentation).stringByResolvingSymlinksInPath;
 
 import "./Infrastructure/Jasmine/jasmine-2.0.1/boot";
 

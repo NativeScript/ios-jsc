@@ -232,6 +232,12 @@ void GlobalObject::finishCreation(VM& vm, WTF::String applicationPath) {
     this->putDirectNativeFunction(vm, this, Identifier::fromString(globalExec, "__releaseNativeCounterpart"), 1, &releaseNativeCounterpart, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 
     this->_smartStringifyFunction.set(vm, this, jsCast<JSFunction*>(evaluate(this->globalExec(), makeSource(WTF::String(smartStringify_js, smartStringify_js_len), SourceOrigin()), JSValue())));
+#if TARGET_OS_UIKITFORMAC
+    bool uikitformac = true;
+#else
+    bool uikitformac = false;
+#endif
+    this->putDirect(vm, Identifier::fromString(globalExec, "__uikitformac"), JSValue(uikitformac));
 
 #ifdef DEBUG
     SourceCode sourceCode = makeSource(WTF::String(__extends_js, __extends_js_len), SourceOrigin(), URL(URL(), "__extends.ts"_s));
