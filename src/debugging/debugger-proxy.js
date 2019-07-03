@@ -31,7 +31,7 @@ PacketStream.prototype._transform = function(packet, encoding, done) {
     done();
 };
 
-var server = ws.createServer({
+var server = new ws.Server({
     port: 8080
 });
 server.on("connection", function(webSocket) {
