@@ -43,7 +43,11 @@
 #define _OBJC_TAG_EXT_INDEX_MASK 0xff
 
 #if OBJC_MSB_TAGGED_POINTERS
+#if TARGET_OS_UIKITFORMAC
+#define _OBJC_TAG_MASK (-1ULL >> (64 - 53))
+#else
 #define _OBJC_TAG_MASK (1ULL << 63)
+#endif // TARGET_OS_UIKITFORMAC
 #define _OBJC_TAG_INDEX_SHIFT 60
 #define _OBJC_TAG_EXT_INDEX_SHIFT 52
 #else
@@ -90,7 +94,7 @@ typedef enum {
 } objc_tag_index_t;
 
 static inline bool _objc_isTaggedPointer(const void* ptr) {
-    return ((intptr_t)ptr & _OBJC_TAG_MASK) == _OBJC_TAG_MASK;
+    return ((intptr_t)ptr & _OBJC_TAG_MASK) != 0;
 }
 
 static inline objc_tag_index_t _objc_getTaggedPointerTag(const void* ptr) {
