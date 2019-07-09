@@ -6,6 +6,9 @@ OTHER_LDFLAGS[config=Debug] = $(inherited) "$(SRCROOT)/internal/TKLiveSync/TKLiv
 // We need to add CONFIGURATION_BUILD_DIR here so that we can explicitly quote-escape any paths in it, because the implicitly added path by Xcode is not always escaped
 FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/internal/" "$(CONFIGURATION_BUILD_DIR)"
 
+// Launch custom linker script in order to generate metadata binary file and link it in the executable
+LD = $SRCROOT/internal/nsld.sh
+
 // * Uncomment this setting to generate TypeScript declarations for the iOS SDK and all linked libraries.
 // * They will be generated on each build, so you can find them after running "tns build ios" in "YOUR_APP/platforms/ios".
 // TNS_TYPESCRIPT_DECLARATIONS_PATH = $(SRCROOT)/typescript-declarations
