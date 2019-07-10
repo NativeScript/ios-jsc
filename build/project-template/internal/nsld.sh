@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 source ./.build_env_vars.sh
 
-MODULES_DIR=$SRCROOT/internal/Swift-Modules
+MODULES_DIR="$SRCROOT/internal/Swift-Modules"
 
 function DELETE_SWIFT_MODULES_DIR() {
-    rm -rf $MODULES_DIR
+    rm -rf "$MODULES_DIR"
 }
 
 function GEN_MODULEMAP() {
@@ -12,12 +12,12 @@ function GEN_MODULEMAP() {
 
     DELETE_SWIFT_MODULES_DIR
     if [ -d "$SWIFT_HEADER_DIR" ]; then
-        HEADERS_PATHS=$(find $SWIFT_HEADER_DIR -name *-Swift.h 2>/dev/null)
+        HEADERS_PATHS=$(find "$SWIFT_HEADER_DIR" -name *-Swift.h 2>/dev/null)
         if [ -n "$HEADERS_PATHS" ]; then
             # Workaround for ARCH being set to `undefined_arch` here. Get the newest -Swift.h
             # if more than one is found. It should be the one for the current architecture.
-            HEADER_PATH=$(ls -t $HEADERS_PATHS | head -n 1)
-            mkdir -p $MODULES_DIR
+            HEADER_PATH=$(ls -t "$HEADERS_PATHS" | head -n 1)
+            mkdir -p "$MODULES_DIR"
             CONTENT="module nsswiftsupport { \n header \"$HEADER_PATH\" \n export * \n}"
             printf "$CONTENT" > "$MODULES_DIR/module.modulemap"
         else
