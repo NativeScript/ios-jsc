@@ -341,8 +341,8 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$SRCROOT/internal/Swift-Modules",
-					"$(SRCROOT)/internal",
+					"\"$SRCROOT/internal/Swift-Modules\"",
+					"\"$(SRCROOT)/internal\"",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
