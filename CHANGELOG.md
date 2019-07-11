@@ -7,6 +7,20 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.0.0 (2019-07-17)
+=====
+
+### Features
+
+* Update WebKit to version 12.3 ([#1147](https://github.com/NativeScript/ios-runtime/pull/1147))
+* Support script hash parameter in debugger protocol ([#1168](https://github.com/NativeScript/ios-runtime/issues/1168))
+
+### Bug Fixes
+
+* **project-template:** Build fails after adding a watchOS target ([#1171](https://github.com/NativeScript/ios-runtime/issues/1171)
+* **project-template:** Surround all paths in `nsld.sh` with quotes ([177640c](https://github.com/NativeScript/ios-runtime/commit/177640c))
+* **project-template:** Metadata for Swift classes is missing on the first build with Xcode 10.2 ([#1166](https://github.com/NativeScript/ios-runtime/issues/1166))
+
 5.4.2 (2019-06-13)
 =====
 
@@ -28,7 +42,6 @@ previous_url: /Changelogs/iOS Runtime
 ### Features
 
 * Dump Native and JS callstacks on signal ([6ec5d5c](https://github.com/NativeScript/ios-runtime/commit/6ec5d5c))
-
 
 ### Performance Improvements
 
