@@ -7,7 +7,7 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
-6.0.0 (2019-07-17)
+6.0.1 (2019-07-17)
 =====
 
 ### Features
