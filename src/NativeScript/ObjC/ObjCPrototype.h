@@ -12,6 +12,8 @@
 #include <JavaScriptCore/JSObject.h>
 #include <wtf/RetainPtr.h>
 
+#include "KnownUnknownClassPair.h"
+
 namespace Metadata {
 
 struct BaseClassMeta;
@@ -26,8 +28,14 @@ public:
 
     static const unsigned StructureFlags;
 
-    static JSC::Strong<ObjCPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, const Metadata::BaseClassMeta* metadata, Class klass) {
-        JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap)) ObjCPrototype(globalObject->vm(), structure, klass));
+    static JSC::Strong<ObjCPrototype> create(JSC::VM& vm,
+                                             JSC::JSGlobalObject* globalObject,
+                                             JSC::Structure* structure,
+                                             const Metadata::BaseClassMeta* metadata,
+                                             Metadata::KnownUnknownClassPair klasses,
+                                             const Metadata::ProtocolMetaVector& additionalProtocols) {
+        JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap))
+                                                     ObjCPrototype(globalObject->vm(), structure, klasses, additionalProtocols));
         prototype->finishCreation(vm, globalObject, metadata);
         return prototype;
     }
@@ -48,15 +56,20 @@ public:
         return this->_metadata;
     }
 
-    Class klass() const {
-        return this->_klass;
+    Metadata::KnownUnknownClassPair klasses() const {
+        return this->_klasses;
+    }
+
+    const Metadata::ProtocolMetaVector& additionalProtocols() const {
+        return this->_additionalProtocols;
     }
 
 private:
-    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, Class klass)
+    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, Metadata::KnownUnknownClassPair klasses, const Metadata::ProtocolMetaVector& additionalProtocols)
         : Base(vm, structure)
         , _definingPropertyName(nullptr)
-        , _klass(klass) {
+        , _klasses(klasses)
+        , _additionalProtocols(additionalProtocols) {
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, const Metadata::BaseClassMeta*);
@@ -73,7 +86,8 @@ private:
 
     // Set to the name of the property that is currently being defined and used to avoid endless recursion in getOwnPropertySlot
     JSC::PropertyName _definingPropertyName;
-    Class _klass;
+    Metadata::KnownUnknownClassPair _klasses;
+    const Metadata::ProtocolMetaVector _additionalProtocols;
 };
 } // namespace NativeScript
 

@@ -10,6 +10,7 @@
 #define __NativeScript__ObjCConstructorBase__
 
 #include "FFIType.h"
+#include "Metadata/KnownUnknownClassPair.h"
 #include <functional>
 
 namespace Metadata {
@@ -28,8 +29,12 @@ public:
 
     DECLARE_INFO;
 
-    Class klass() const {
-        return this->_klass;
+    Metadata::KnownUnknownClassPair klasses() const {
+        return this->_klasses;
+    }
+
+    const Metadata::ProtocolMetaVector& additionalProtocols() const {
+        return this->_additionalProtocols;
     }
 
     JSC::Structure* instancesStructure() const {
@@ -57,7 +62,7 @@ protected:
         static_cast<ObjCConstructorBase*>(cell)->~ObjCConstructorBase();
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Metadata::KnownUnknownClassPair, const Metadata::ProtocolMetaVector&);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
@@ -78,7 +83,9 @@ private:
 
     static const char* encode(JSC::VM&, JSC::JSCell*);
 
-    Class _klass;
+    Metadata::KnownUnknownClassPair _klasses;
+
+    Metadata::ProtocolMetaVector _additionalProtocols;
 
     JSC::WriteBarrier<JSC::JSObject> _prototype;
 

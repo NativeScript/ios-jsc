@@ -99,3 +99,46 @@
 }
 
 @end
+
+@interface TNSIBaseInterface_Private : NSObject <TNSIBaseProtocol>
+@end
+
+@implementation TNSIBaseInterface_Private
+
++ (int)staticBaseImplementedOptionalProperty {
+    return -100;
+}
+
++ (void)setStaticBaseImplementedOptionalProperty:(int)x {
+    TNSLog([NSString stringWithFormat:@"private %@ called with %d", NSStringFromSelector(_cmd), x]);
+}
+
++ (void)staticBaseImplementedOptionalMethod {
+    TNSLog([NSString stringWithFormat:@"private %@ called", NSStringFromSelector(_cmd)]);
+}
+
+- (int)baseImplementedOptionalProperty {
+    return -100;
+}
+
+- (void)setBaseImplementedOptionalProperty:(int)x {
+    TNSLog([NSString stringWithFormat:@"private %@ called with %d", NSStringFromSelector(_cmd), x]);
+}
+
+- (void)baseImplementedOptionalMethod {
+    TNSLog([NSString stringWithFormat:@"private %@ called", NSStringFromSelector(_cmd)]);
+}
+
+@end
+
+@implementation TNSPrivateInterfaceResults
+
++ (TNSIBaseInterface_Private*)instanceFromUnrelatedPrivateType {
+    return [TNSIBaseInterface_Private new];
+}
+
++ (id<TNSIBaseProtocol>)instanceFromPrivateTypeImplementingProtocol {
+    return [TNSIBaseInterface_Private new];
+}
+
+@end

@@ -38,7 +38,8 @@ id toObject(ExecState* execState, const JSValue& value) {
     }
 
     if (value.inherits(vm, ObjCConstructorBase::info())) {
-        return jsCast<ObjCConstructorBase*>(value.asCell())->klass();
+        auto klasses = jsCast<ObjCConstructorBase*>(value.asCell())->klasses();
+        return klasses.unknown ? klasses.unknown : klasses.known;
     }
 
     if (value.inherits(vm, AllocatedPlaceholder::info())) {
@@ -111,7 +112,7 @@ id toObject(ExecState* execState, const JSValue& value) {
     return nil;
 }
 
-JSValue toValue(ExecState* execState, id object, Class klass) {
+JSValue toValue(ExecState* execState, id object, Class klass, const Metadata::ProtocolMetaVector& additionalProtocols) {
     if (object == nil) {
         return jsNull();
     }
@@ -139,11 +140,12 @@ JSValue toValue(ExecState* execState, id object, Class klass) {
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     if (class_isMetaClass(object_getClass(object))) {
-        return globalObject->constructorFor(object_getClass(object), klass).get();
+        // object is a class -> return its constructor function
+        return globalObject->constructorFor(object, additionalProtocols, klass).get();
     }
 
     return toValue(execState, object, ^{
-      return globalObject->constructorFor(object_getClass(object), klass)->instancesStructure();
+      return globalObject->constructorFor(object_getClass(object), additionalProtocols, klass)->instancesStructure();
     });
 }
 

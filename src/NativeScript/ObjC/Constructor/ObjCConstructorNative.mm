@@ -22,8 +22,8 @@ using namespace Metadata;
 
 const ClassInfo ObjCConstructorNative::s_info = { "Function", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCConstructorNative) };
 
-void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Class klass) {
-    Base::finishCreation(vm, globalObject, prototype, klass);
+void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Metadata::KnownUnknownClassPair klasses, const Metadata::ProtocolMetaVector& additionalProtocols) {
+    Base::finishCreation(vm, globalObject, prototype, klasses, additionalProtocols);
     this->_allocatedPlaceholderStructure.set(vm, this, AllocatedPlaceholder::createStructure(vm, globalObject, prototype));
 }
 
@@ -38,7 +38,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
-    MembersCollection methods = constructor->_metadata->getStaticMethods(propertyName.publicName(), constructor->klass());
+    MembersCollection methods = constructor->_metadata->getStaticMethods(propertyName.publicName(), constructor->klasses(), true, constructor->additionalProtocols());
 
     if (methods.size() > 0) {
         std::unordered_map<std::string, MembersCollection> metasByJsName = Metadata::getMetasByJSNames(methods);
@@ -66,7 +66,7 @@ bool ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName
     if (value.isCell()) {
         auto method = value.asCell();
         ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
-        Class klass = object_getClass(constructor->klass());
+        Class klass = object_getClass(constructor->klasses().known);
 
         overrideObjcMethodCalls(execState,
                                 constructor,
@@ -93,13 +93,13 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
 
         for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->staticMethods->begin(); it != baseClassMeta->staticMethods->end(); it++) {
             const MethodMeta* meta = (*it).valuePtr();
-            if (meta->isAvailableInClass(constructor->klass(), /*isStatic*/ true)) {
+            if (meta->isAvailableInClasses(constructor->klasses(), /*isStatic*/ true)) {
                 propertyNames.add(Identifier::fromString(execState, meta->jsName()));
             }
         }
 
         for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->staticProps->begin(); it != baseClassMeta->staticProps->end(); it++) {
-            if ((*it)->isAvailableInClass(constructor->klass(), /*isStatic*/ true)) {
+            if ((*it)->isAvailableInClasses(constructor->klasses(), /*isStatic*/ true)) {
                 propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
             }
         }
@@ -116,13 +116,13 @@ void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* exe
 }
 
 void ObjCConstructorNative::materializeProperties(VM& vm, GlobalObject* globalObject) {
-    std::vector<const PropertyMeta*> properties = this->metadata()->staticPropertiesWithProtocols(this->klass());
+    std::vector<const PropertyMeta*> properties = this->metadata()->staticPropertiesWithProtocols(this->klasses(), this->additionalProtocols());
 
     for (const PropertyMeta* propertyMeta : properties) {
         SymbolLoader::instance().ensureModule(propertyMeta->topLevelModule());
 
-        const MethodMeta* getterMeta = (propertyMeta->getter() != nullptr && propertyMeta->getter()->isAvailableInClass(this->klass(), /*isStatic*/ true)) ? propertyMeta->getter() : nullptr;
-        const MethodMeta* setterMeta = (propertyMeta->setter() != nullptr && propertyMeta->setter()->isAvailableInClass(this->klass(), /*isStatic*/ true)) ? propertyMeta->setter() : nullptr;
+        const MethodMeta* getterMeta = (propertyMeta->getter() != nullptr && propertyMeta->getter()->isAvailableInClasses(this->klasses(), /*isStatic*/ true)) ? propertyMeta->getter() : nullptr;
+        const MethodMeta* setterMeta = (propertyMeta->setter() != nullptr && propertyMeta->setter()->isAvailableInClasses(this->klasses(), /*isStatic*/ true)) ? propertyMeta->setter() : nullptr;
 
         PropertyDescriptor descriptor;
         Strong<ObjCMethodWrapper> getter;

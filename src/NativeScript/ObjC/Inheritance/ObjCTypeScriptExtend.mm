@@ -108,7 +108,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
     }
 
     // imp_implementationWithBlock calls block copy, class copy and initialize gets skipped
-    __block Class derivedClass = derivedConstructor->klass();
+    __block Class derivedClass = derivedConstructor->klasses().known;
 
     /// Here we define the static initializer our new inherited native class.
     /// This new initializer conforms to the provided protocols if any and also

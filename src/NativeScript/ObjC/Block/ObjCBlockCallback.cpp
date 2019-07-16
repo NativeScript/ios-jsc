@@ -19,7 +19,7 @@ const ClassInfo ObjCBlockCallback::s_info = { "ObjCBlockCallback", &Base::s_info
 void ObjCBlockCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     ObjCBlockCallback* blockCallback = reinterpret_cast<ObjCBlockCallback*>(userData);
 
-    JSC::VM& vm = blockCallback->_globalExecState->vm();
+    JSC::VM& vm = blockCallback->execState()->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     MarkedArgumentBuffer arguments;
@@ -28,7 +28,7 @@ void ObjCBlockCallback::ffiClosureCallback(void* retValue, void** argValues, voi
         return;
     }
 
-    blockCallback->callFunction(blockCallback->_globalExecState->globalThisValue(), arguments, retValue);
+    blockCallback->callFunction(blockCallback->execState()->globalThisValue(), arguments, retValue);
 }
 
 void ObjCBlockCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, ObjCBlockType* blockType) {

@@ -9,6 +9,7 @@ set(HEADER_FILES
     Calling/CFunctionWrapper.h
     Calling/FFIFunctionCallback.h
     Calling/FunctionWrapper.h
+    ConstructorHashKey.h
     GlobalObject.h
     inspector/CachedResource.h
     inspector/DomainBackendDispatcher.h
@@ -56,6 +57,7 @@ set(HEADER_FILES
     Marshalling/Reference/IndexedRefPrototype.h
     Marshalling/Reference/ExtVectorTypeInstance.h
     Metadata/Metadata.h
+    Metadata/KnownUnknownClassPair.h
     NativeScript-Prefix.h
     NativeScript.h
     ObjC/AllocatedPlaceholder.h
@@ -121,6 +123,7 @@ set(SOURCE_FILES
     Calling/CFunctionWrapper.mm
     Calling/FFIFunctionCallback.cpp
     Calling/FunctionWrapper.mm
+    ConstructorHashKey.cpp
     GlobalObject.mm
     GlobalObject.moduleLoader.mm
     inspector/CachedResource.mm
@@ -166,6 +169,7 @@ set(SOURCE_FILES
     Marshalling/Reference/IndexedRefPrototype.cpp
     Marshalling/Reference/ExtVectorTypeInstance.cpp
     Metadata/Metadata.mm
+    Metadata/KnownUnknownClassPair.cpp
     ObjC/AllocatedPlaceholder.mm
     ObjC/Block/ObjCBlockCall.mm
     ObjC/Block/ObjCBlockCallback.cpp

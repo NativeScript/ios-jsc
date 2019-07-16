@@ -22,7 +22,7 @@ const JSC::ClassInfo FFICallback<DerivedCallback>::s_info = { "FFICallback", nul
 template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void* retValue, void** argValues, void* userData) {
     FFICallback* callback = static_cast<FFICallback*>(userData);
-    JSC::ExecState* execState = callback->_globalExecState;
+    JSC::ExecState* execState = callback->execState();
     JSC::VM& vm = execState->vm();
     JSC::JSLockHolder lock(vm);
 
@@ -36,10 +36,10 @@ inline void FFICallback<DerivedCallback>::ffiClosureCallback(ffi_cif* cif, void*
 template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::marshallArguments(void** argValues, JSC::MarkedArgumentBuffer& argumentBuffer, FFICallback* self) {
     for (size_t i = 0; i < this->_parameterTypes.size(); ++i) {
-        JSC::VM& vm = this->_globalExecState->vm();
+        JSC::VM& vm = this->_globalObject->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSC::JSValue argument = this->_parameterTypes[i].read(this->_globalExecState, argValues[i + self->_initialArgumentIndex], this->_parameterTypesCells[i].get());
+        JSC::JSValue argument = this->_parameterTypes[i].read(this->execState(), argValues[i + self->_initialArgumentIndex], this->_parameterTypesCells[i].get());
         argumentBuffer.append(argument);
 
         if (scope.exception()) {
@@ -50,8 +50,8 @@ inline void FFICallback<DerivedCallback>::marshallArguments(void** argValues, JS
 
 template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::callFunction(const JSC::JSValue& thisValue, const JSC::ArgList& arguments, void* retValue) {
-    JSC::ExecState* execState = this->_globalExecState;
-    JSC::VM& vm = this->_globalExecState->vm();
+    JSC::ExecState* execState = this->execState();
+    JSC::VM& vm = this->_globalObject->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     JSC::CallData callData;
@@ -73,7 +73,7 @@ template <class DerivedCallback>
 inline void FFICallback<DerivedCallback>::finishCreation(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSCell* function, JSC::JSCell* returnType, const WTF::Vector<JSC::Strong<JSC::JSCell>>& parameterTypes, size_t initialArgumentIndex) {
     Base::finishCreation(vm);
 
-    this->_globalExecState = globalObject->globalExec();
+    this->_globalObject = globalObject;
     this->_function.set(vm, this, function);
 
     this->_initialArgumentIndex = initialArgumentIndex;

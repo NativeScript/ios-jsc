@@ -60,7 +60,7 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
 
         auto currentClass = meta;
         do {
-            methodMetas = currentClass->members(propertyName.publicName(), memberType);
+            methodMetas = currentClass->members(propertyName.publicName(), memberType, true, ProtocolMetaVector());
             if (currentClass->type() == Metadata::MetaType::Interface) {
                 currentClass = static_cast<const Metadata::InterfaceMeta*>(currentClass)->baseMeta();
             } else {
@@ -71,7 +71,7 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
 
         if (methodMetas.size() == 0 && protocols && !protocols->empty()) {
             for (auto aProtocol : *protocols) {
-                if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType)).size() > 0) {
+                if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType, true, ProtocolMetaVector())).size() > 0) {
                     break;
                 }
             }
@@ -126,7 +126,7 @@ static bool checkErrorOutParameter(ExecState* execState, const WTF::Vector<Stron
     JSC::VM& vm = execState->vm();
     if (ReferenceTypeInstance* referenceInstance = jsDynamicCast<ReferenceTypeInstance*>(vm, parameterTypes.last().get())) {
         if (ObjCConstructorNative* constructor = jsDynamicCast<ObjCConstructorNative*>(vm, referenceInstance->innerType())) {
-            if (constructor->klass() == [NSError class]) {
+            if (constructor->klasses().known == [NSError class]) {
                 return true;
             }
         }
@@ -149,7 +149,7 @@ void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JS
 
 void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     ObjCMethodCallback* methodCallback = reinterpret_cast<ObjCMethodCallback*>(userData);
-    ExecState* execState = methodCallback->_globalExecState;
+    ExecState* execState = methodCallback->execState();
 
     id target = *static_cast<id*>(argValues[0]);
     SEL selector = *static_cast<SEL*>(argValues[1]);

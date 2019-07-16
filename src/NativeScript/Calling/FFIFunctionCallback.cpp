@@ -18,7 +18,7 @@ const ClassInfo FFIFunctionCallback::s_info = { "FFIFunctionCallback", &Base::s_
 void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     FFIFunctionCallback* functionCallback = reinterpret_cast<FFIFunctionCallback*>(userData);
 
-    JSC::VM& vm = functionCallback->_globalExecState->vm();
+    JSC::VM& vm = functionCallback->execState()->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     MarkedArgumentBuffer arguments;
@@ -28,7 +28,7 @@ void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, v
     }
 
     ASSERT(!arguments.hasOverflowed());
-    functionCallback->callFunction(functionCallback->_globalExecState->globalThisValue(), arguments, retValue);
+    functionCallback->callFunction(functionCallback->execState()->globalThisValue(), arguments, retValue);
 }
 
 void FFIFunctionCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, FunctionReferenceTypeInstance* functionReferenceType) {

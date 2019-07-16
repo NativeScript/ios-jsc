@@ -38,6 +38,7 @@
 }
 
 @synthesize propertyFromProtocolAlwaysAvailable;
+
 @synthesize propertyFromProtocolNeverAvailable;
 
 - (void)methodFromProtocolAlwaysAvailable {
@@ -50,10 +51,12 @@
 
 @end
 
+#if 0 // missing from the implementation - it should never be available
 @implementation TNSInterfaceNeverAvailable : TNSInterfaceAlwaysAvailable
 @end
+#endif
 
-@implementation TNSInterfaceNeverAvailableDescendant : TNSInterfaceNeverAvailable
+@implementation TNSInterfaceNeverAvailableDescendant : TNSInterfaceAlwaysAvailable
 @end
 
 #pragma clang diagnostic pop

@@ -72,7 +72,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
     // Check for property
-    if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klass())) {
+    if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->_additionalProtocols)) {
         prototype->_definingPropertyName = propertyName;
         prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
         prototype->_definingPropertyName = PropertyName(nullptr);
@@ -85,7 +85,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
         // to inaccurate header information in iOS SDKs (https://github.com/NativeScript/ios-runtime/pull/1092)
         if (prototype->metadata()->type() == MetaType::Interface) {
             if (auto baseMeta = static_cast<const InterfaceMeta*>(prototype->metadata())->baseMeta()) {
-                if (auto propertyMeta = baseMeta->instanceProperty(propertyName.publicName(), prototype->klass())) {
+                if (auto propertyMeta = baseMeta->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols())) {
                     JSObject* basePrototype = prototype->getPrototype(execState->vm(), execState).toObject(execState);
                     PropertySlot tempPropSlot(JSValue(basePrototype), PropertySlot::InternalMethodType::GetOwnProperty);
 
@@ -104,7 +104,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
             }
         }
 
-        MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klass());
+        MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klasses(), true, prototype->_additionalProtocols);
 
         if (methods.size() > 0) {
             SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
@@ -128,7 +128,7 @@ bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
     if (value.isCell()) {
         auto method = value.asCell();
 
-        Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klass();
+        Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klasses().known;
         overrideObjcMethodCalls(execState,
                                 prototype,
                                 propertyName,
@@ -145,9 +145,11 @@ bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
 bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, PropertyName propertyName, const PropertyDescriptor& propertyDescriptor, bool shouldThrow) {
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
     VM& vm = execState->vm();
-    Class klass = prototype->klass();
+    const auto& klasses = prototype->klasses();
+    // Unknown (if present) is the actual object type - swizzle its selector instead of the public class' one
+    const auto& klass = klasses.unknown ? klasses.unknown : klasses.known;
 
-    if (const PropertyMeta* propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), klass)) {
+    if (const PropertyMeta* propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), klasses, true, prototype->additionalProtocols())) {
         if (!propertyDescriptor.isAccessorDescriptor()) {
             WTFCrash();
         }
@@ -187,7 +189,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
 
 void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
     ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
-    Class klass = prototype->klass();
+    const auto& klasses = prototype->klasses();
 
     std::vector<const BaseClassMeta*> baseClassMetaStack;
     baseClassMetaStack.push_back(prototype->_metadata);
@@ -197,12 +199,12 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
         baseClassMetaStack.pop_back();
 
         for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->instanceMethods->begin(); it != baseClassMeta->instanceMethods->end(); it++) {
-            if ((*it)->isAvailableInClass(klass, /*isStatic*/ false))
+            if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false))
                 propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
         }
 
         for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->instanceProps->begin(); it != baseClassMeta->instanceProps->end(); it++) {
-            if ((*it)->isAvailableInClass(klass, /*isStatic*/ false))
+            if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false))
                 propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
         }
 
