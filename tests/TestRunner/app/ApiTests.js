@@ -729,8 +729,9 @@ describe(module.id, function () {
             }
         }
     });
-
-    if (!isSimulator) { // Metal is unavailable on iOS Simulator
+    
+    // Metal is unavailable on iOS Simulator and devices with processors before A7 (arm64 on iPhone 5s)
+    if (!isSimulator && interop.sizeof(interop.types.id) == 8) {
         it("MetalKit private interface members can be accessed", function() {
             const device = MTLCreateSystemDefaultDevice();
             expect(device.toString()).toMatch(/\[object \w*?Device\]/);
