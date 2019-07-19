@@ -63,7 +63,7 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
       VM& vm = globalObject->vm();
       JSLockHolder lockHolder(vm);
 
-      Structure* instancesStructure = globalObject->constructorFor(blockKlass, ProtocolMetaVector())->instancesStructure();
+      Structure* instancesStructure = globalObject->constructorFor(blockKlass, ProtocolMetas())->instancesStructure();
       auto derivedWrapper = ObjCWrapperObject::create(vm, instancesStructure, instance, globalObject);
 
       Structure* superStructure = ObjCSuperObject::createStructure(vm, globalObject, superPrototype);
@@ -295,14 +295,14 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
     const PropertyMeta* propertyMeta = nullptr;
     do {
         // Do not pass a `Class` instance, we need to override the property and must not check whether it's implemented or not
-        propertyMeta = currentClass->instanceProperty(propertyName, { nullptr, nullptr }, true, ProtocolMetaVector());
+        propertyMeta = currentClass->instanceProperty(propertyName, KnownUnknownClassPair(), /*includeProtocols*/ true, ProtocolMetas());
         currentClass = currentClass->baseMeta();
     } while (!propertyMeta && currentClass);
 
     if (!propertyMeta && !this->_protocols.empty()) {
         for (const ProtocolMeta* aProtocol : this->_protocols) {
             // Do not pass a `Class` instance, we need to override the property and must not check whether it's implemented or not
-            if ((propertyMeta = aProtocol->instanceProperty(propertyName, { nullptr, nullptr }, true, ProtocolMetaVector()))) {
+            if ((propertyMeta = aProtocol->instanceProperty(propertyName, KnownUnknownClassPair(), /*includeProtocols*/ true, ProtocolMetas()))) {
                 break;
             }
         }
@@ -321,8 +321,8 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
             }
 
             const TypeEncoding* encodings = getter->encodings()->first();
-            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
-            auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->count - 1, false);
+            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodings, /*isStructMember*/ false);
+            auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, getter->encodings()->count - 1, /*isStructMember*/ false);
 
             auto getterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.getter().asCell(), returnType.get(), parameterTypes);
             gcProtect(getterCallback.get());
@@ -339,8 +339,8 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
             }
 
             const TypeEncoding* encodings = setter->encodings()->first();
-            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodings, false);
-            auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->count - 1, false);
+            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodings, /*isStructMember*/ false);
+            auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, encodings, setter->encodings()->count - 1, /*isStructMember*/ false);
 
             auto setterCallback = ObjCMethodCallback::create(vm, globalObject, globalObject->objCMethodCallbackStructure(), propertyDescriptor.setter().asCell(), returnType.get(), parameterTypes);
             gcProtect(setterCallback.get());
@@ -478,7 +478,7 @@ ObjCConstructorDerived* ObjCClassBuilder::build(ExecState* execState) {
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    globalObject->_objCConstructors.insert({ { { klass, nullptr }, ProtocolMetaVector() }, Strong<ObjCConstructorBase>(execState->vm(), this->_constructor.get()) });
+    globalObject->_objCConstructors.insert({ ConstructorKey(klass), Strong<ObjCConstructorBase>(execState->vm(), this->_constructor.get()) });
     attachDerivedMachinery(globalObject, klass, this->_baseConstructor->get(execState, globalObject->vm().propertyNames->prototype));
 
     return this->_constructor.get();

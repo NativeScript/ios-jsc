@@ -53,7 +53,7 @@ void* tryHandleofValue(VM& vm, const JSValue& value, bool* hasHandle) {
         handle = static_cast<void*>(wrapper->wrappedObject());
     } else if (ObjCConstructorBase* constructor = jsDynamicCast<ObjCConstructorBase*>(vm, value)) {
         *hasHandle = true;
-        handle = static_cast<void*>(constructor->klasses().known);
+        handle = static_cast<void*>(constructor->klasses().realClass());
     } else if (ObjCProtocolWrapper* protocolWrapper = jsDynamicCast<ObjCProtocolWrapper*>(vm, value)) {
         *hasHandle = true;
         handle = static_cast<void*>(protocolWrapper->protocol());

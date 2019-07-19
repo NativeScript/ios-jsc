@@ -1979,7 +1979,7 @@ describe(module.id, function () {
         // instance is from this same private interface
         expect(inst.class().description).toBe("TNSIBaseInterface_Private");
         // the public interface is returned as constructor
-        expect(inst.constructor.toString()).toBe(global.TNSIBaseInterface.toString());
+        expect(inst.constructor.toString()).toMatch(/function TNSIBaseInterface_unknown_TNSIBaseInterface_Private\(\) \{/);
         // constructor for a { known, unknown } interface pair is different than the default one
         expect(inst.constructor).not.toBe(global.TNSIBaseInterface);
 
@@ -2013,7 +2013,7 @@ describe(module.id, function () {
         // instance is from this same private interface
         expect(inst.class().description).toBe("TNSIBaseInterface_Private");
         // declared base interface is returned as constructor (id => NSObject)
-        expect(inst.constructor.toString()).toBe(global.NSObject.toString());
+        expect(inst.constructor.toString()).toMatch(/function NSObject_unknown_TNSIBaseInterface_Private_TNSIBaseProtocol\(\) \{/);
         // constructor for a { known, unknown } interface pair is different than the default one
         expect(inst.constructor).not.toBe(global.NSObject);
 

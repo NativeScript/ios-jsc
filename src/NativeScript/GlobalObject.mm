@@ -60,7 +60,7 @@ using namespace Metadata;
 
 JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->thisValue().asCell());
-    Class klass = constructor->klasses().known;
+    Class klass = constructor->klasses().realClass();
     id instance = [klass alloc];
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
@@ -89,7 +89,7 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
 
 static Strong<ObjCProtocolWrapper> createProtocolWrapper(GlobalObject* globalObject, const ProtocolMeta* protocolMeta, Protocol* aProtocol) {
     Structure* prototypeStructure = ObjCPrototype::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
-    auto prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta, { /*klass*/ nullptr, nullptr }, Metadata::ProtocolMetaVector());
+    auto prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta, ConstructorKey());
     Structure* protocolWrapperStructure = ObjCProtocolWrapper::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
     auto protocolWrapper = ObjCProtocolWrapper::create(globalObject->vm(), protocolWrapperStructure, prototype.get(), protocolMeta, aProtocol);
     prototype->materializeProperties(globalObject->vm(), globalObject);
@@ -338,9 +338,9 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         }
 
         if (klass) {
-            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName(), ProtocolMetaVector());
+            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName(), ProtocolMetas());
             strongSymbolWrapper = constructor;
-            globalObject->_objCConstructors.insert({ { { klass, nullptr }, ProtocolMetaVector() }, constructor });
+            globalObject->_objCConstructors.insert({ ConstructorKey(klass), constructor });
         }
         break;
     }
@@ -449,10 +449,11 @@ void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, P
 }
 #endif
 
-Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const ProtocolMetaVector& protocols, Class fallback, bool searchBaseClasses) {
+Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const ProtocolMetas& protocols, Class fallback, bool searchBaseClasses) {
     ASSERT(klass);
 
-    auto kvp = this->_objCConstructors.find({ { klass, nullptr }, protocols });
+    ConstructorKey constructorKey(klass, protocols);
+    auto kvp = this->_objCConstructors.find(constructorKey);
     if (kvp != this->_objCConstructors.end()) {
         return kvp->second;
     }
@@ -463,7 +464,6 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const Prot
     }
 
     if (meta) {
-        ConstructorHashKey constructorKey = { { klass, nullptr }, protocols };
         auto constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, constructorKey, meta);
         this->_objCConstructors.insert({ constructorKey, constructor });
 
@@ -477,23 +477,24 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const Prot
             if (auto metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(fallback))) {
                 // We have a hinted fallback class and it has metadata. Treat instances as if they are inheriting from the fallback class.
                 // This way all members known from the metadata will be exposed to JS (if the actual class implements them).
-                ConstructorHashKey constructorKey = { { fallback, klass }, protocols }; // fallback is known (coming from a public header), the actual returned type is unknown (without metadata)
-                return this->getOrCreateConstructor(constructorKey, metadata);
+                ConstructorKey fallbackConstructorKey(fallback, klass, protocols); // fallback is known (coming from a public header), the actual returned type is unknown (without metadata)
+                return this->getOrCreateConstructor(fallbackConstructorKey, metadata);
             }
         }
 
         // No viable fallback - search base classes
+        Class baseClassIterator = klass;
         while (!meta) {
-            klass = class_getSuperclass(klass);
-            meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(klass));
+            baseClassIterator = class_getSuperclass(baseClassIterator);
+            meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(baseClassIterator));
         }
 
-        ConstructorHashKey constructorKey = { { klass, nullptr }, protocols };
+        ConstructorKey knownBaseConstructorKey(baseClassIterator, klass, protocols);
         return this->getOrCreateConstructor(constructorKey, meta);
     }
 }
 
-Strong<ObjCConstructorBase> GlobalObject::getOrCreateConstructor(ConstructorHashKey constructorKey, const InterfaceMeta* metadata) {
+Strong<ObjCConstructorBase> GlobalObject::getOrCreateConstructor(ConstructorKey constructorKey, const InterfaceMeta* metadata) {
     auto kvp = this->_objCConstructors.find(constructorKey);
     if (kvp != this->_objCConstructors.end()) {
         return kvp->second;

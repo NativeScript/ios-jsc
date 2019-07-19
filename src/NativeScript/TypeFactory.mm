@@ -241,10 +241,10 @@ WTF::Vector<Strong<RecordField>> TypeFactory::createRecordFields(GlobalObject* g
 }
 Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject,
                                                                     const WTF::String& klassName,
-                                                                    const ProtocolMetaVector& protocols) {
+                                                                    const ProtocolMetas& protocols) {
     tns::instrumentation::Frame frame;
     const InterfaceMeta* metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(klassName.impl());
-    Class klass = objc_getClass(klassName.ascii().data());
+    Class klass = objc_getClass(klassName.utf8().data());
     if (!klass && metadata) {
         SymbolLoader::instance().ensureModule(metadata->topLevelModule());
         klass = objc_getClass(metadata->name());
@@ -259,15 +259,15 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
 #endif
         auto nsobjectConstructor = this->NSObjectConstructor(globalObject);
         if (klass) {
-            this->_cacheId.set({ { klass, nullptr }, ProtocolMetaVector() }, nsobjectConstructor.get());
+            this->_cacheId.set(ConstructorKey(klass), nsobjectConstructor.get());
         }
         return nsobjectConstructor;
     }
 
-    return this->getObjCNativeConstructor(globalObject, { { klass, nullptr }, protocols }, metadata, frame);
+    return this->getObjCNativeConstructor(globalObject, ConstructorKey(klass, protocols), metadata, frame);
 }
 
-Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const ConstructorHashKey& constructorKey, const InterfaceMeta* metadata, const tns::instrumentation::Frame& frame) {
+Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const ConstructorKey& constructorKey, const InterfaceMeta* metadata, const tns::instrumentation::Frame& frame) {
     assert(constructorKey.klasses.known);
     if (ObjCConstructorNative* type = this->_cacheId.get(constructorKey)) {
         return Strong<ObjCConstructorNative>(globalObject->vm(), type);
@@ -287,14 +287,14 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
 
 JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalObject* globalObject,
                                                                         const InterfaceMeta* metadata,
-                                                                        const ConstructorHashKey& constructorKey) {
+                                                                        const ConstructorKey& constructorKey) {
     VM& vm = globalObject->vm();
 
     JSValue parentPrototype;
     JSValue parentConstructor;
     auto superClass = class_getSuperclass(constructorKey.klasses.known);
     if (superClass) {
-        parentConstructor = getObjCNativeConstructor(globalObject, class_getName(superClass), ProtocolMetaVector()).get();
+        parentConstructor = getObjCNativeConstructor(globalObject, class_getName(superClass), ProtocolMetas()).get();
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
 
         /// If we have a super class which somehow references us, our constructor will already have been cached
@@ -309,10 +309,10 @@ JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalOb
     }
 
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
-    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata, constructorKey.klasses, constructorKey.additionalProtocols);
+    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata, constructorKey);
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
-    auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), constructorKey.klasses, constructorKey.additionalProtocols);
+    auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), constructorKey);
     prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor.get(), PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
     auto addResult = this->_cacheId.set(constructorKey, constructor.get());
@@ -331,7 +331,7 @@ Strong<ObjCConstructorNative> TypeFactory::NSObjectConstructor(GlobalObject* glo
         return Strong<ObjCConstructorNative>(globalObject->vm(), this->_nsObjectConstructor.get());
     }
 
-    auto constructor = getObjCNativeConstructor(globalObject, "NSObject"_s, ProtocolMetaVector());
+    auto constructor = getObjCNativeConstructor(globalObject, "NSObject"_s, ProtocolMetas());
     this->_nsObjectConstructor.set(globalObject->vm(), this, constructor.get());
     return constructor;
 }
@@ -430,15 +430,7 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
         break;
     case BinaryTypeEncodingType::InterfaceDeclarationReference: {
         WTF::String declarationName = WTF::String(typeEncoding->details.interfaceDeclarationReference.name.valuePtr());
-        const Array<Metadata::String>* protocols = typeEncoding->details.interfaceDeclarationReference._protocols.valuePtr();
-
-        ProtocolMetaVector additionalProtocols;
-        for (Array<Metadata::String>::iterator it = protocols->begin(); it != protocols->end(); it++) {
-            const char* protocolName = (*it).valuePtr();
-            if (const ProtocolMeta* p = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta(protocolName))) {
-                additionalProtocols.append(p);
-            }
-        }
+        ProtocolMetas additionalProtocols = this->getProtocolMetas(typeEncoding->details.interfaceDeclarationReference._protocols);
 
         result = getObjCNativeConstructor(globalObject, declarationName, additionalProtocols);
         break;
@@ -478,16 +470,9 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
     case BinaryTypeEncodingType::InstanceTypeEncoding:
         result = Strong<JSCell>(globalObject->vm(), this->_objCInstancetypeType.get());
         break;
-    case BinaryTypeEncodingType::IdEncoding: {
-        const Array<Metadata::String>* protocols = typeEncoding->details.idDetails._protocols.valuePtr();
-        ProtocolMetaVector additionalProtocols;
-        for (Array<Metadata::String>::iterator it = protocols->begin(); it != protocols->end(); it++) {
-            const char* protocolName = (*it).valuePtr();
-            if (const ProtocolMeta* p = static_cast<const ProtocolMeta*>(MetaFile::instance()->globalTable()->findMeta(protocolName))) {
-                additionalProtocols.append(p);
-            }
-        }
 
+    case BinaryTypeEncodingType::IdEncoding: {
+        auto additionalProtocols = getProtocolMetas(typeEncoding->details.idDetails._protocols);
         result = getObjCNativeConstructor(globalObject, "NSObject", additionalProtocols);
         break;
     }
@@ -626,4 +611,20 @@ void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(typeFactory->_nsObjectConstructor);
     visitor.append(typeFactory->_pointerConstructor);
 }
+
+ProtocolMetas TypeFactory::getProtocolMetas(PtrTo<Array<Metadata::String>> protocolsPtr) {
+    ProtocolMetas protocols;
+    for (auto it = protocolsPtr.valuePtr()->begin(); it != protocolsPtr.valuePtr()->end(); it++) {
+        auto protocolName = (*it).valuePtr();
+        if (auto p = MetaFile::instance()->globalTable()->findProtocol(protocolName)) {
+            protocols.append(p);
+        } else {
+            // Protocols that are present in metadata should be discoverable
+            ASSERT(false);
+        }
+    }
+
+    return protocols;
+}
+
 }

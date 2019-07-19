@@ -17,6 +17,15 @@ struct KnownUnknownClassPair {
     Class known;
     Class unknown;
 
+    explicit KnownUnknownClassPair(Class known = nullptr, Class unknown = nullptr)
+        : known(known)
+        , unknown(unknown) {
+    }
+
+    Class realClass() const {
+        return unknown ? unknown : known;
+    }
+
     bool operator<(const KnownUnknownClassPair& other) const {
         return known < other.known || (known == other.known && unknown < other.unknown);
     }
@@ -25,8 +34,8 @@ struct KnownUnknownClassPair {
         return known == other.known && unknown == other.unknown;
     }
 
-    static const KnownUnknownClassPair EmptyValue;
-    static const KnownUnknownClassPair DeletedValue;
+    static const KnownUnknownClassPair& EmptyValue();
+    static const KnownUnknownClassPair& DeletedValue();
 };
 
 } // namespace Metadata
@@ -39,10 +48,10 @@ struct HashTraits<Metadata::KnownUnknownClassPair> : GenericHashTraits<Metadata:
     static const bool safeToCompareToEmptyOrDeleted = true;
 
     static void constructDeletedValue(Metadata::KnownUnknownClassPair& slot) {
-        slot = Metadata::KnownUnknownClassPair::DeletedValue;
+        slot = Metadata::KnownUnknownClassPair::DeletedValue();
     }
     static bool isDeletedValue(Metadata::KnownUnknownClassPair value) {
-        return value == Metadata::KnownUnknownClassPair::DeletedValue;
+        return value == Metadata::KnownUnknownClassPair::DeletedValue();
     }
 };
 

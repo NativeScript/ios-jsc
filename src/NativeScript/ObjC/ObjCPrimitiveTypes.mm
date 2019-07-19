@@ -114,12 +114,12 @@ static JSValue objCClass_read(ExecState* execState, const void* buffer, JSCell* 
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     // search for the concrete class in the metadata
-    Strong<ObjCConstructorBase> klassConstructor = globalObject->constructorFor(klass, Metadata::ProtocolMetaVector(), nullptr, false);
+    Strong<ObjCConstructorBase> klassConstructor = globalObject->constructorFor(klass, Metadata::ProtocolMetas(), /*fallback*/ nullptr, /*searchBaseClasses*/ false);
     if (klassConstructor.get() != nullptr) {
         return klassConstructor.get();
     } else {
         // if there is no metadata for the searched class, return wrapped object with structure from the first parent with metadata
-        Structure* structure = globalObject->constructorFor(class_getSuperclass(klass), Metadata::ProtocolMetaVector())->instancesStructure();
+        Structure* structure = globalObject->constructorFor(class_getSuperclass(klass), Metadata::ProtocolMetas())->instancesStructure();
         return toValue(execState, klass, ^{
           return structure;
         });

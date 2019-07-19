@@ -42,7 +42,7 @@ bool ObjCProtocolWrapper::getOwnPropertySlot(JSObject* object, ExecState* execSt
 
     ObjCProtocolWrapper* protocol = jsCast<ObjCProtocolWrapper*>(object);
 
-    MembersCollection metas = protocol->_metadata->getStaticMethods(propertyName.publicName(), { nullptr, nullptr }, true, ProtocolMetaVector());
+    MembersCollection metas = protocol->_metadata->getStaticMethods(propertyName.publicName(), KnownUnknownClassPair(), /*includeProtocols*/ true, ProtocolMetas());
     if (metas.size() > 0) {
         SymbolLoader::instance().ensureModule((*metas.begin())->topLevelModule());
 

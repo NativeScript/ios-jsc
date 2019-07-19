@@ -14,7 +14,7 @@
 
 namespace NativeScript {
 id toObject(JSC::ExecState*, const JSC::JSValue&);
-JSC::JSValue toValue(JSC::ExecState*, id, Class klass = nil, const Metadata::ProtocolMetaVector& = Metadata::ProtocolMetaVector());
+JSC::JSValue toValue(JSC::ExecState*, id, Class klass = nil, const Metadata::ProtocolMetas& = Metadata::ProtocolMetas());
 JSC::JSValue toValue(JSC::ExecState*, id, JSC::Structure* (^structureResolver)());
 } // namespace NativeScript
 

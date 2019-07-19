@@ -171,7 +171,7 @@ bool MethodMeta::isImplementedInClass(Class klass, bool isStatic) const {
 // BaseClassMeta
 const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberType type,
                                         bool includeProtocols, bool onlyIfAvailable,
-                                        const ProtocolMetaVector& additionalProtocols) const {
+                                        const ProtocolMetas& additionalProtocols) const {
 
     MembersCollection members = this->members(identifier, length, type, includeProtocols, onlyIfAvailable, additionalProtocols);
 
@@ -241,7 +241,7 @@ void collectInheritanceChainMembers(const char* identifier, size_t length, Membe
 
 const MembersCollection BaseClassMeta::members(const char* identifier, size_t length, MemberType type,
                                                bool includeProtocols, bool onlyIfAvailable,
-                                               const ProtocolMetaVector& additionalProtocols) const {
+                                               const ProtocolMetas& additionalProtocols) const {
 
     MembersCollection result;
 
@@ -275,12 +275,12 @@ const MembersCollection BaseClassMeta::members(const char* identifier, size_t le
         for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
             const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
             if (protocolMeta != nullptr) {
-                const MembersCollection members = protocolMeta->members(identifier, length, type, true, onlyIfAvailable, ProtocolMetaVector());
+                const MembersCollection members = protocolMeta->members(identifier, length, type, includeProtocols, onlyIfAvailable, ProtocolMetas());
                 result.add(members.begin(), members.end());
             }
         }
         for (const ProtocolMeta* protocolMeta : additionalProtocols) {
-            const MembersCollection members = protocolMeta->members(identifier, length, type, true, onlyIfAvailable, ProtocolMetaVector());
+            const MembersCollection members = protocolMeta->members(identifier, length, type, includeProtocols, onlyIfAvailable, ProtocolMetas());
             result.add(members.begin(), members.end());
         }
     }
@@ -288,28 +288,28 @@ const MembersCollection BaseClassMeta::members(const char* identifier, size_t le
     return result;
 }
 
-std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const {
+std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
     this->instanceProperties(container, klasses);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
         const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
         if (protocolMeta != nullptr)
-            protocolMeta->instancePropertiesWithProtocols(container, klasses, ProtocolMetaVector());
+            protocolMeta->instancePropertiesWithProtocols(container, klasses, ProtocolMetas());
     }
     for (const ProtocolMeta* protocolMeta : additionalProtocols) {
-        protocolMeta->instancePropertiesWithProtocols(container, klasses, ProtocolMetaVector());
+        protocolMeta->instancePropertiesWithProtocols(container, klasses, ProtocolMetas());
     }
     return container;
 }
 
-std::vector<const PropertyMeta*> BaseClassMeta::staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const {
+std::vector<const PropertyMeta*> BaseClassMeta::staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
     this->staticProperties(container, klasses);
     for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
         const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
         if (protocolMeta != nullptr)
-            protocolMeta->staticPropertiesWithProtocols(container, klasses, ProtocolMetaVector());
+            protocolMeta->staticPropertiesWithProtocols(container, klasses, ProtocolMetas());
     }
     for (const ProtocolMeta* protocolMeta : additionalProtocols) {
-        protocolMeta->staticPropertiesWithProtocols(container, klasses, ProtocolMetaVector());
+        protocolMeta->staticPropertiesWithProtocols(container, klasses, ProtocolMetas());
     }
     return container;
 }
@@ -332,15 +332,15 @@ vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>&
     return container;
 }
 
-vector<const MethodMeta*> BaseClassMeta::initializersWithProtocols(vector<const MethodMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const {
+vector<const MethodMeta*> BaseClassMeta::initializersWithProtocols(vector<const MethodMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
     this->initializers(container, klasses);
     for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); it++) {
         const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
         if (protocolMeta != nullptr)
-            protocolMeta->initializersWithProtocols(container, klasses, ProtocolMetaVector());
+            protocolMeta->initializersWithProtocols(container, klasses, ProtocolMetas());
     }
     for (const ProtocolMeta* protocolMeta : additionalProtocols) {
-        protocolMeta->initializersWithProtocols(container, klasses, ProtocolMetaVector());
+        protocolMeta->initializersWithProtocols(container, klasses, ProtocolMetas());
     }
     return container;
 }

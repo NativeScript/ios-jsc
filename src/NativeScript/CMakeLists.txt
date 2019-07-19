@@ -9,7 +9,7 @@ set(HEADER_FILES
     Calling/CFunctionWrapper.h
     Calling/FFIFunctionCallback.h
     Calling/FunctionWrapper.h
-    ConstructorHashKey.h
+    ConstructorKey.h
     GlobalObject.h
     inspector/CachedResource.h
     inspector/DomainBackendDispatcher.h
@@ -123,7 +123,7 @@ set(SOURCE_FILES
     Calling/CFunctionWrapper.mm
     Calling/FFIFunctionCallback.cpp
     Calling/FunctionWrapper.mm
-    ConstructorHashKey.cpp
+    ConstructorKey.cpp
     GlobalObject.mm
     GlobalObject.moduleLoader.mm
     inspector/CachedResource.mm

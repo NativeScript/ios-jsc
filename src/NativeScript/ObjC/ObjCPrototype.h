@@ -32,10 +32,9 @@ public:
                                              JSC::JSGlobalObject* globalObject,
                                              JSC::Structure* structure,
                                              const Metadata::BaseClassMeta* metadata,
-                                             Metadata::KnownUnknownClassPair klasses,
-                                             const Metadata::ProtocolMetaVector& additionalProtocols) {
+                                             const ConstructorKey& key) {
         JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap))
-                                                     ObjCPrototype(globalObject->vm(), structure, klasses, additionalProtocols));
+                                                     ObjCPrototype(globalObject->vm(), structure, key));
         prototype->finishCreation(vm, globalObject, metadata);
         return prototype;
     }
@@ -57,19 +56,18 @@ public:
     }
 
     Metadata::KnownUnknownClassPair klasses() const {
-        return this->_klasses;
+        return this->_key.klasses;
     }
 
-    const Metadata::ProtocolMetaVector& additionalProtocols() const {
-        return this->_additionalProtocols;
+    const Metadata::ProtocolMetas& additionalProtocols() const {
+        return this->_key.additionalProtocols;
     }
 
 private:
-    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, Metadata::KnownUnknownClassPair klasses, const Metadata::ProtocolMetaVector& additionalProtocols)
+    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, const ConstructorKey& key)
         : Base(vm, structure)
         , _definingPropertyName(nullptr)
-        , _klasses(klasses)
-        , _additionalProtocols(additionalProtocols) {
+        , _key(key) {
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, const Metadata::BaseClassMeta*);
@@ -86,8 +84,7 @@ private:
 
     // Set to the name of the property that is currently being defined and used to avoid endless recursion in getOwnPropertySlot
     JSC::PropertyName _definingPropertyName;
-    Metadata::KnownUnknownClassPair _klasses;
-    const Metadata::ProtocolMetaVector _additionalProtocols;
+    ConstructorKey _key;
 };
 } // namespace NativeScript
 

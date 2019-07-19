@@ -29,9 +29,11 @@ const unsigned ObjCPrototype::StructureFlags = OverridesGetOwnPropertySlot | Bas
 
 const ClassInfo ObjCPrototype::s_info = { "ObjCPrototype", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCPrototype) };
 
-WTF::String ObjCPrototype::className(const JSObject* object, VM&) {
-    const char* className = jsCast<const ObjCPrototype*>(object)->_metadata->name();
-    return WTF::String::format("%sPrototype", className);
+WTF::String ObjCPrototype::className(const JSObject* object, VM& vm) {
+    auto execState = object->globalObject(vm)->globalExec();
+    auto constructor = object->get(execState, vm.propertyNames->constructor);
+    auto constructorName = constructor.get(execState, vm.propertyNames->name);
+    return constructorName.toWTFString(execState) + "Prototype";
 }
 
 static EncodedJSValue JSC_HOST_CALL getIterator(ExecState* execState) {
@@ -72,7 +74,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
     // Check for property
-    if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->_additionalProtocols)) {
+    if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols())) {
         prototype->_definingPropertyName = propertyName;
         prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
         prototype->_definingPropertyName = PropertyName(nullptr);
@@ -104,7 +106,7 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
             }
         }
 
-        MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klasses(), true, prototype->_additionalProtocols);
+        MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols());
 
         if (methods.size() > 0) {
             SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
@@ -128,7 +130,7 @@ bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
     if (value.isCell()) {
         auto method = value.asCell();
 
-        Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klasses().known;
+        Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klasses().realClass();
         overrideObjcMethodCalls(execState,
                                 prototype,
                                 propertyName,
@@ -147,7 +149,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
     VM& vm = execState->vm();
     const auto& klasses = prototype->klasses();
     // Unknown (if present) is the actual object type - swizzle its selector instead of the public class' one
-    const auto& klass = klasses.unknown ? klasses.unknown : klasses.known;
+    const auto& klass = klasses.realClass();
 
     if (const PropertyMeta* propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), klasses, true, prototype->additionalProtocols())) {
         if (!propertyDescriptor.isAccessorDescriptor()) {

@@ -25,8 +25,8 @@ ObjCMethodCallback* createProtectedMethodCallback(ExecState* execState, JSCell* 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
     const Metadata::TypeEncoding* typeEncodings = meta->encodings()->first();
-    auto returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings, false);
-    auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1, false);
+    auto returnType = globalObject->typeFactory()->parseType(globalObject, typeEncodings, /*isStructMember*/ false);
+    auto parameterTypes = globalObject->typeFactory()->parseTypes(globalObject, typeEncodings, meta->encodings()->count - 1, /*isStructMember*/ false);
 
     auto methodCallback = ObjCMethodCallback::create(execState->vm(),
                                                      globalObject,
@@ -60,7 +60,7 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
 
         auto currentClass = meta;
         do {
-            methodMetas = currentClass->members(propertyName.publicName(), memberType, true, ProtocolMetaVector());
+            methodMetas = currentClass->members(propertyName.publicName(), memberType, /*includeProtocols*/ true, ProtocolMetas());
             if (currentClass->type() == Metadata::MetaType::Interface) {
                 currentClass = static_cast<const Metadata::InterfaceMeta*>(currentClass)->baseMeta();
             } else {
@@ -71,7 +71,7 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
 
         if (methodMetas.size() == 0 && protocols && !protocols->empty()) {
             for (auto aProtocol : *protocols) {
-                if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType, true, ProtocolMetaVector())).size() > 0) {
+                if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType, /*includeProtocols*/ true, ProtocolMetas())).size() > 0) {
                     break;
                 }
             }

@@ -22,8 +22,8 @@ using namespace Metadata;
 
 const ClassInfo ObjCConstructorNative::s_info = { "Function", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ObjCConstructorNative) };
 
-void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, Metadata::KnownUnknownClassPair klasses, const Metadata::ProtocolMetaVector& additionalProtocols) {
-    Base::finishCreation(vm, globalObject, prototype, klasses, additionalProtocols);
+void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject, JSObject* prototype, const ConstructorKey& key) {
+    Base::finishCreation(vm, globalObject, prototype, key);
     this->_allocatedPlaceholderStructure.set(vm, this, AllocatedPlaceholder::createStructure(vm, globalObject, prototype));
 }
 
@@ -38,7 +38,7 @@ bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* exec
 
     ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
-    MembersCollection methods = constructor->_metadata->getStaticMethods(propertyName.publicName(), constructor->klasses(), true, constructor->additionalProtocols());
+    MembersCollection methods = constructor->_metadata->getStaticMethods(propertyName.publicName(), constructor->klasses(), /*includeProtocols*/ true, constructor->additionalProtocols());
 
     if (methods.size() > 0) {
         std::unordered_map<std::string, MembersCollection> metasByJsName = Metadata::getMetasByJSNames(methods);

@@ -39,7 +39,7 @@ JSValue ObjCConstructorBase::read(ExecState* execState, void const* buffer, JSCe
     ObjCConstructorBase* type = jsCast<ObjCConstructorBase*>(self);
     id value = *static_cast<const id*>(buffer);
     value = IsObjcObject(value) ? value : nil;
-    return toValue(execState, value, type->_klasses.known, type->_additionalProtocols);
+    return toValue(execState, value, type->klasses().known, type->additionalProtocols());
 }
 
 void ObjCConstructorBase::write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
@@ -62,33 +62,39 @@ static void writeAdapter(ExecState* execState, const JSValue& value, void* buffe
 bool ObjCConstructorBase::canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
     ObjCConstructorBase* type = jsCast<ObjCConstructorBase*>(self);
     VM& vm = execState->vm();
+    Class klass = type->klasses().known;
 
-    if (!type->_klasses.known || value.isUndefinedOrNull()) {
+    // FFI calls and their arguments are parsed from existing metadata and as such
+    // they should never contain an `unknown` class.
+    ASSERT(type->klasses().unknown == nullptr);
+    ASSERT(klass != nullptr);
+
+    if (!klass || value.isUndefinedOrNull()) {
         return true;
     }
 
     if (value.inherits(vm, ObjCWrapperObject::info())) {
-        return [jsCast<ObjCWrapperObject*>(value.asCell())->wrappedObject() isKindOfClass:type->_klasses.known];
+        return [jsCast<ObjCWrapperObject*>(value.asCell())->wrappedObject() isKindOfClass:klass];
     }
 
     if (value.isString()) {
-        return [type->_klasses.known isSubclassOfClass:[NSString class]];
+        return [klass isSubclassOfClass:[NSString class]];
     }
 
     if (value.isNumber() || value.isBoolean()) {
-        return [type->_klasses.known isSubclassOfClass:[NSNumber class]];
+        return [klass isSubclassOfClass:[NSNumber class]];
     }
 
     if (value.inherits(vm, JSArray::info())) {
-        return [type->_klasses.known isSubclassOfClass:[NSArray class]];
+        return [klass isSubclassOfClass:[NSArray class]];
     }
 
     if (value.inherits(vm, JSMap::info())) {
-        return [type->_klasses.known isSubclassOfClass:[NSDictionary class]];
+        return [klass isSubclassOfClass:[NSDictionary class]];
     }
 
     if (value.inherits(vm, JSArrayBuffer::info()) || value.inherits(vm, JSArrayBufferView::info())) {
-        return [type->_klasses.known isSubclassOfClass:[NSData class]];
+        return [klass isSubclassOfClass:[NSData class]];
     }
 
     return false;
@@ -123,15 +129,25 @@ const Metadata::InterfaceMeta* ObjCConstructorBase::metadata() {
 void ObjCConstructorBase::finishCreation(VM& vm,
                                          JSGlobalObject* globalObject,
                                          JSObject* prototype,
-                                         Metadata::KnownUnknownClassPair klasses,
-                                         const Metadata::ProtocolMetaVector& additionalProtocols) {
-    Base::finishCreation(vm, WTF::String(class_getName(klasses.known)));
+                                         const ConstructorKey& key) {
+    WTF::String functionName(class_getName(key.klasses.known));
+
+    if (key.klasses.unknown) {
+        functionName.append("_unknown_");
+        functionName.append(class_getName(key.klasses.unknown));
+    }
+
+    for (auto proto : key.additionalProtocols) {
+        functionName.append("_");
+        functionName.append(proto->name());
+    }
+
+    Base::finishCreation(vm, functionName);
 
     this->_prototype.set(vm, this, prototype);
     this->_instancesStructure.set(vm, this, ObjCWrapperObject::createStructure(vm, globalObject, prototype));
 
-    this->_klasses = klasses;
-    this->_additionalProtocols = additionalProtocols;
+    this->_key = key;
     this->_metadata = nullptr;
 
     this->_ffiTypeMethodTable.ffiType = &ffi_type_pointer;
@@ -139,19 +155,22 @@ void ObjCConstructorBase::finishCreation(VM& vm,
     this->_ffiTypeMethodTable.canConvert = &canConvert;
     this->_ffiTypeMethodTable.encode = &encode;
 
-    if (klasses.known == [NSArray class]) {
+    if (this->klasses().known == [NSArray class]) {
         this->_ffiTypeMethodTable.write = &writeAdapter<TNSArrayAdapter>;
-    } else if (klasses.known == [NSDictionary class]) {
+    } else if (this->klasses().known == [NSDictionary class]) {
         this->_ffiTypeMethodTable.write = &writeAdapter<TNSDictionaryAdapter>;
-    } else if (klasses.known == [NSData class] || klasses.known == [NSMutableData class]) {
+    } else if (this->klasses().known == [NSData class] || this->klasses().known == [NSMutableData class]) {
         this->_ffiTypeMethodTable.write = &writeAdapter<TNSDataAdapter>;
     } else {
         this->_ffiTypeMethodTable.write = &write;
     }
 }
 
-WTF::String ObjCConstructorBase::className(const JSObject* object, VM&) {
-    return [NSStringFromClass(((ObjCConstructorBase*)object)->_klasses.known) stringByAppendingString:@"Constructor"];
+WTF::String ObjCConstructorBase::className(const JSObject* object, VM& vm) {
+    auto name = object->getDirect(vm, vm.propertyNames->name);
+    ASSERT(name.isString());
+    auto global = object->globalObject(vm);
+    return name.toWTFString(global->globalExec()) + "Constructor";
 }
 
 bool ObjCConstructorBase::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
@@ -176,7 +195,7 @@ const WTF::Vector<WriteBarrier<ObjCConstructorWrapper>>& ObjCConstructorBase::in
         do {
             std::vector<const Metadata::MethodMeta*> initializers = metadata->initializersWithProtocols(this->klasses(), this->additionalProtocols());
             for (const Metadata::MethodMeta* method : initializers) {
-                auto constructorWrapper = ObjCConstructorWrapper::create(vm, globalObject, globalObject->objCConstructorWrapperStructure(), this->_klasses.known, method);
+                auto constructorWrapper = ObjCConstructorWrapper::create(vm, globalObject, globalObject->objCConstructorWrapperStructure(), this->klasses().realClass(), method);
                 this->_initializers.append(WriteBarrier<ObjCConstructorWrapper>(vm, this, constructorWrapper.get()));
             }
 

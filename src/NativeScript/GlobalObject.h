@@ -15,7 +15,7 @@
 #include <objc/runtime.h>
 #include <wtf/Deque.h>
 
-#include "ConstructorHashKey.h"
+#include "ConstructorKey.h"
 #include "Metadata/Metadata.h"
 
 namespace NativeScript {
@@ -103,7 +103,7 @@ public:
     }
 
     JSC::Strong<ObjCConstructorBase> constructorFor(Class klass,
-                                                    const Metadata::ProtocolMetaVector& additionalProtocols,
+                                                    const Metadata::ProtocolMetas& additionalProtocols,
                                                     Class fallback = Nil,
                                                     bool searchBaseClasses = true);
 
@@ -228,7 +228,7 @@ private:
 
     static WTF::String defaultLanguage();
 
-    JSC::Strong<ObjCConstructorBase> getOrCreateConstructor(ConstructorHashKey constructorKey, const Metadata::InterfaceMeta* metadata);
+    JSC::Strong<ObjCConstructorBase> getOrCreateConstructor(ConstructorKey constructorKey, const Metadata::InterfaceMeta* metadata);
 
     JSC::Identifier _jsUncaughtErrorCallbackIdentifier;
     JSC::Identifier _jsUncaughtErrorCallbackIdentifierFallback;
@@ -275,7 +275,7 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _unmanagedInstanceStructure;
 
-    std::map<ConstructorHashKey, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
+    std::map<ConstructorKey, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
 
     std::map<const Protocol*, JSC::Strong<ObjCProtocolWrapper>> _objCProtocolWrappers;
 

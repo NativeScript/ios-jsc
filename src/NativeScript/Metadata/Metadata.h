@@ -146,7 +146,7 @@ struct ModuleMeta;
 struct LibraryMeta;
 struct TypeEncoding;
 
-typedef WTF::Vector<const ProtocolMeta*> ProtocolMetaVector;
+typedef WTF::Vector<const ProtocolMeta*> ProtocolMetas;
 
 typedef int32_t ArrayCount;
 
@@ -767,13 +767,13 @@ struct BaseClassMeta : Meta {
     PtrTo<Array<String>> protocols;
     int16_t initializersStartIndex;
 
-    const MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetaVector& additionalProtocols) const;
+    const MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetas& additionalProtocols) const;
 
-    const MethodMeta* member(const char* identifier, size_t length, MemberType type, size_t paramsCount, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetaVector& additionalProtocols) const;
+    const MethodMeta* member(const char* identifier, size_t length, MemberType type, size_t paramsCount, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetas& additionalProtocols) const;
 
-    const MembersCollection members(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetaVector& additionalProtocols) const;
+    const MembersCollection members(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetas& additionalProtocols) const;
 
-    const MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const MemberMeta* member(StringImpl* identifier, MemberType type, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         // Assign to a separate variable to ensure the lifetime of the string returned by utf8
         auto identifierUtf8 = identifier->utf8();
         const char* identif = reinterpret_cast<const char*>(identifierUtf8.data());
@@ -781,7 +781,7 @@ struct BaseClassMeta : Meta {
         return this->member(identif, length, type, includeProtocols, /*onlyIfAvailable*/ true, additionalProtocols);
     }
 
-    const MethodMeta* member(StringImpl* identifier, MemberType type, size_t paramsCount, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const MethodMeta* member(StringImpl* identifier, MemberType type, size_t paramsCount, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         // Assign to a separate variable to ensure the lifetime of the string returned by utf8
         auto identifierUtf8 = identifier->utf8();
         const char* identif = reinterpret_cast<const char*>(identifierUtf8.data());
@@ -789,7 +789,7 @@ struct BaseClassMeta : Meta {
         return this->member(identif, length, type, paramsCount, includeProtocols, /*onlyIfAvailable*/ true, additionalProtocols);
     }
 
-    const MembersCollection members(StringImpl* identifier, MemberType type, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const MembersCollection members(StringImpl* identifier, MemberType type, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         // Assign to a separate variable to ensure the lifetime of the string returned by utf8
         auto identifierUtf8 = identifier->utf8();
         const char* identif = reinterpret_cast<const char*>(identifierUtf8.data());
@@ -797,7 +797,7 @@ struct BaseClassMeta : Meta {
         return this->members(identif, length, type, includeProtocols, /*onlyIfAvailable*/ true, additionalProtocols);
     }
 
-    const MemberMeta* member(const char* identifier, MemberType type, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const MemberMeta* member(const char* identifier, MemberType type, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         return this->member(identifier, strlen(identifier), type, includeProtocols, /*onlyIfAvailable*/ true, additionalProtocols);
     }
 
@@ -811,7 +811,7 @@ struct BaseClassMeta : Meta {
         });
     }
 
-    const MembersCollection getInstanceMethods(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const MembersCollection getInstanceMethods(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         MembersCollection methods = this->members(identifier, MemberType::InstanceMethod, includeProtocols, additionalProtocols);
 
         filterUnavailableMembers<MethodMeta>(methods, klasses, false);
@@ -820,7 +820,7 @@ struct BaseClassMeta : Meta {
     }
 
     /// static methods
-    const MembersCollection getStaticMethods(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const MembersCollection getStaticMethods(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         MembersCollection methods = this->members(identifier, MemberType::StaticMethod, includeProtocols, additionalProtocols);
 
         filterUnavailableMembers<MethodMeta>(methods, klasses, true);
@@ -829,23 +829,23 @@ struct BaseClassMeta : Meta {
     }
 
     /// instance properties
-    const PropertyMeta* instanceProperty(const char* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const PropertyMeta* instanceProperty(const char* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols, additionalProtocols));
         return propMeta && propMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? propMeta : nullptr;
     }
 
-    const PropertyMeta* instanceProperty(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const PropertyMeta* instanceProperty(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols, additionalProtocols));
         return propMeta && propMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? propMeta : nullptr;
     }
 
     /// static properties
-    const PropertyMeta* staticProperty(const char* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const PropertyMeta* staticProperty(const char* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols, additionalProtocols));
         return propMeta && propMeta->isAvailableInClasses(klasses, /*isStatic*/ true) ? propMeta : nullptr;
     }
 
-    const PropertyMeta* staticProperty(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetaVector& additionalProtocols) const {
+    const PropertyMeta* staticProperty(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::StaticProperty, includeProtocols, additionalProtocols));
         return propMeta && propMeta->isAvailableInClasses(klasses, /*isStatic*/ true) ? propMeta : nullptr;
     }
@@ -856,7 +856,7 @@ struct BaseClassMeta : Meta {
         return this->instanceProperties(properties, klasses);
     }
 
-    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const {
+    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
         std::vector<const PropertyMeta*> properties;
         return this->instancePropertiesWithProtocols(properties, klasses, additionalProtocols);
     }
@@ -870,14 +870,14 @@ struct BaseClassMeta : Meta {
         return container;
     }
 
-    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const;
+    std::vector<const PropertyMeta*> instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const;
 
     std::vector<const PropertyMeta*> staticProperties(KnownUnknownClassPair klasses) const {
         std::vector<const PropertyMeta*> properties;
         return this->staticProperties(properties, klasses);
     }
 
-    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const {
+    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
         std::vector<const PropertyMeta*> properties;
         return this->staticPropertiesWithProtocols(properties, klasses, additionalProtocols);
     }
@@ -891,21 +891,21 @@ struct BaseClassMeta : Meta {
         return container;
     }
 
-    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const;
+    std::vector<const PropertyMeta*> staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const;
 
     std::vector<const MethodMeta*> initializers(KnownUnknownClassPair klasses) const {
         std::vector<const MethodMeta*> initializers;
         return this->initializers(initializers, klasses);
     }
 
-    std::vector<const MethodMeta*> initializersWithProtocols(KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const {
+    std::vector<const MethodMeta*> initializersWithProtocols(KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
         std::vector<const MethodMeta*> initializers;
         return this->initializersWithProtocols(initializers, klasses, additionalProtocols);
     }
 
     std::vector<const MethodMeta*> initializers(std::vector<const MethodMeta*>& container, KnownUnknownClassPair klasses) const;
 
-    std::vector<const MethodMeta*> initializersWithProtocols(std::vector<const MethodMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetaVector& additionalProtocols) const;
+    std::vector<const MethodMeta*> initializersWithProtocols(std::vector<const MethodMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const;
 };
 
 struct ProtocolMeta : BaseClassMeta {

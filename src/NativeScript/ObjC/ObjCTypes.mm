@@ -39,7 +39,7 @@ id toObject(ExecState* execState, const JSValue& value) {
 
     if (value.inherits(vm, ObjCConstructorBase::info())) {
         auto klasses = jsCast<ObjCConstructorBase*>(value.asCell())->klasses();
-        return klasses.unknown ? klasses.unknown : klasses.known;
+        return klasses.realClass();
     }
 
     if (value.inherits(vm, AllocatedPlaceholder::info())) {
@@ -112,7 +112,7 @@ id toObject(ExecState* execState, const JSValue& value) {
     return nil;
 }
 
-JSValue toValue(ExecState* execState, id object, Class klass, const Metadata::ProtocolMetaVector& additionalProtocols) {
+JSValue toValue(ExecState* execState, id object, Class fallbackClass, const Metadata::ProtocolMetas& additionalProtocols) {
     if (object == nil) {
         return jsNull();
     }
@@ -121,7 +121,7 @@ JSValue toValue(ExecState* execState, id object, Class klass, const Metadata::Pr
         return jsNull();
     }
 
-    if ([object isKindOfClass:[NSString class]] && klass != [NSMutableString class]) {
+    if ([object isKindOfClass:[NSString class]] && fallbackClass != [NSMutableString class]) {
         return jsString(execState, (CFStringRef)object);
     }
 
@@ -141,11 +141,11 @@ JSValue toValue(ExecState* execState, id object, Class klass, const Metadata::Pr
 
     if (class_isMetaClass(object_getClass(object))) {
         // object is a class -> return its constructor function
-        return globalObject->constructorFor(object, additionalProtocols, klass).get();
+        return globalObject->constructorFor(object, additionalProtocols, fallbackClass).get();
     }
 
     return toValue(execState, object, ^{
-      return globalObject->constructorFor(object_getClass(object), additionalProtocols, klass)->instancesStructure();
+      return globalObject->constructorFor(object_getClass(object), additionalProtocols, fallbackClass)->instancesStructure();
     });
 }
 

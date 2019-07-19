@@ -9,8 +9,8 @@
 #ifndef __NativeScript__ObjCConstructorBase__
 #define __NativeScript__ObjCConstructorBase__
 
+#include "ConstructorKey.h"
 #include "FFIType.h"
-#include "Metadata/KnownUnknownClassPair.h"
 #include <functional>
 
 namespace Metadata {
@@ -29,12 +29,12 @@ public:
 
     DECLARE_INFO;
 
-    Metadata::KnownUnknownClassPair klasses() const {
-        return this->_klasses;
+    const Metadata::KnownUnknownClassPair& klasses() const {
+        return this->_key.klasses;
     }
 
-    const Metadata::ProtocolMetaVector& additionalProtocols() const {
-        return this->_additionalProtocols;
+    const Metadata::ProtocolMetas& additionalProtocols() const {
+        return this->_key.additionalProtocols;
     }
 
     JSC::Structure* instancesStructure() const {
@@ -62,7 +62,7 @@ protected:
         static_cast<ObjCConstructorBase*>(cell)->~ObjCConstructorBase();
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Metadata::KnownUnknownClassPair, const Metadata::ProtocolMetaVector&);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, const ConstructorKey& key);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
@@ -79,13 +79,13 @@ private:
 
     static void write(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell*);
 
+    /// Used when checking if a specific JSValue can be marshalled to native as
+    /// this constructor function's underlying type.
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
     static const char* encode(JSC::VM&, JSC::JSCell*);
 
-    Metadata::KnownUnknownClassPair _klasses;
-
-    Metadata::ProtocolMetaVector _additionalProtocols;
+    ConstructorKey _key;
 
     JSC::WriteBarrier<JSC::JSObject> _prototype;
 
