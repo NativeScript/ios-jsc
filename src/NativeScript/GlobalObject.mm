@@ -60,7 +60,7 @@ using namespace Metadata;
 
 JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
     ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->thisValue().asCell());
-    Class klass = constructor->klass();
+    Class klass = constructor->klasses().realClass();
     id instance = [klass alloc];
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
@@ -89,7 +89,7 @@ JSC::EncodedJSValue JSC_HOST_CALL NSObjectAlloc(JSC::ExecState* execState) {
 
 static Strong<ObjCProtocolWrapper> createProtocolWrapper(GlobalObject* globalObject, const ProtocolMeta* protocolMeta, Protocol* aProtocol) {
     Structure* prototypeStructure = ObjCPrototype::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
-    auto prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta, /*klass*/ nullptr);
+    auto prototype = ObjCPrototype::create(globalObject->vm(), globalObject, prototypeStructure, protocolMeta, ConstructorKey());
     Structure* protocolWrapperStructure = ObjCProtocolWrapper::createStructure(globalObject->vm(), globalObject, globalObject->objectPrototype());
     auto protocolWrapper = ObjCProtocolWrapper::create(globalObject->vm(), protocolWrapperStructure, prototype.get(), protocolMeta, aProtocol);
     prototype->materializeProperties(globalObject->vm(), globalObject);
@@ -338,9 +338,9 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         }
 
         if (klass) {
-            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName());
+            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName(), ProtocolMetas());
             strongSymbolWrapper = constructor;
-            globalObject->_objCConstructors.insert({ klass, constructor });
+            globalObject->_objCConstructors.insert({ ConstructorKey(klass), constructor });
         }
         break;
     }
@@ -449,36 +449,67 @@ void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, P
 }
 #endif
 
-Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, Class fallback, bool searchBaseClasses) {
+Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const ProtocolMetas& protocols, Class fallback, bool searchBaseClasses) {
     ASSERT(klass);
 
-    auto kvp = this->_objCConstructors.find(klass);
+    ConstructorKey constructorKey(klass, protocols);
+    auto kvp = this->_objCConstructors.find(constructorKey);
     if (kvp != this->_objCConstructors.end()) {
         return kvp->second;
     }
 
-    const Meta* meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
+    const InterfaceMeta* meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(klass));
     if (!searchBaseClasses && meta == nullptr) {
         return Strong<ObjCConstructorBase>();
     }
 
-    while (!(meta && meta->type() == MetaType::Interface)) {
-        klass = class_getSuperclass(klass);
-        meta = MetaFile::instance()->globalTable()->findMeta(class_getName(klass));
-    }
+    if (meta) {
+        auto constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, constructorKey, meta);
+        this->_objCConstructors.insert({ constructorKey, constructor });
 
-    if (klass == [NSObject class] && fallback) {
-        return constructorFor(fallback);
-    }
+        if (protocols.size() == 0) {
+            this->putDirect(this->vm(), Identifier::fromString(this->globalExec(), class_getName(klass)), constructor.get());
+        }
 
-    kvp = this->_objCConstructors.find(klass);
+        return constructor;
+    } else {
+        // Search base classes
+        Class firstBaseWithMeta = klass;
+        while (!meta) {
+            firstBaseWithMeta = class_getSuperclass(firstBaseWithMeta);
+            meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(firstBaseWithMeta));
+        }
+
+        ConstructorKey fallbackConstructorKey(firstBaseWithMeta, klass, protocols);
+        // Use the hinted fallback if:
+        //     1) It is more concrete than the first base class with meta; or is unrelated to it
+        // and 2) It has metadata which is available on the current device
+        if (fallback && fallback != klass && fallback != firstBaseWithMeta && ([fallback isSubclassOfClass:firstBaseWithMeta] || ![firstBaseWithMeta isSubclassOfClass:fallback])) {
+            if (auto metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(fallback))) {
+                // We have a hinted fallback class and it has metadata. Treat instances as if they are inheriting from the fallback class.
+                // This way all members known from the metadata will be exposed to JS (if the actual class implements them).
+                fallbackConstructorKey = ConstructorKey(fallback, klass, protocols); // fallback is known (coming from a public header), the actual returned type is unknown (without metadata)
+                meta = metadata;
+            }
+        }
+
+        return this->getOrCreateConstructor(fallbackConstructorKey, meta);
+    }
+}
+
+Strong<ObjCConstructorBase> GlobalObject::getOrCreateConstructor(ConstructorKey constructorKey, const InterfaceMeta* metadata) {
+    auto kvp = this->_objCConstructors.find(constructorKey);
     if (kvp != this->_objCConstructors.end()) {
         return kvp->second;
     }
 
-    auto constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, meta->jsName());
-    this->_objCConstructors.insert({ klass, constructor });
-    this->putDirect(this->vm(), Identifier::fromString(this->globalExec(), class_getName(klass)), constructor.get());
+    auto constructor = this->_typeFactory.get()->getObjCNativeConstructor(this, constructorKey, metadata);
+    this->_objCConstructors.insert({ constructorKey, constructor });
+
+    if (constructorKey.additionalProtocols.size() == 0 && constructorKey.klasses.unknown == nullptr) {
+        this->putDirect(this->vm(), Identifier::fromString(this->globalExec(), class_getName(constructorKey.klasses.known)), constructor.get());
+    }
+
     return constructor;
 }
 

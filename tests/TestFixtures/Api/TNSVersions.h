@@ -108,12 +108,26 @@ __attribute__((availability(ios, introduced = 1.0)))
 @interface TNSInterfaceAlwaysAvailable : NSObject <TNSProtocolNeverAvailable, TNSProtocolAlwaysAvailable>
 @end
 
+#ifdef COMPILING_FOR_LINKING // for linking, i.e. missing when compiling for metadata
+// sentinel for sanity checking that COMPILING_FOR_LINKING macro is properly defined
+@interface TNSInterfaceAlwaysAvailablePrivate : NSObject
+@end
+#endif
+
+#ifndef COMPILING_FOR_LINKING // not for linking, i.e. compiling for metadata -> define entities which are never available
 __attribute__((availability(ios, introduced = MAX_AVAILABILITY)))
 @interface TNSInterfaceNeverAvailable : TNSInterfaceAlwaysAvailable
 @end
+#endif
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability-new"
+
+#ifdef COMPILING_FOR_LINKING
+@interface TNSInterfaceNeverAvailableDescendant : TNSInterfaceAlwaysAvailable
+#else // not for linking, i.e. compiling for metadata -> define entities which are never available
 @interface TNSInterfaceNeverAvailableDescendant : TNSInterfaceNeverAvailable
+#endif
+
 @end
 #pragma clang diagnostic pop

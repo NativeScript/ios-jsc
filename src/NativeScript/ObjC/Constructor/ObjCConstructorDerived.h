@@ -19,7 +19,7 @@ public:
 
     static JSC::Strong<ObjCConstructorDerived> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
         JSC::Strong<ObjCConstructorDerived> cell(vm, new (NotNull, JSC::allocateCell<ObjCConstructorDerived>(vm.heap)) ObjCConstructorDerived(vm, structure));
-        cell->finishCreation(vm, globalObject, prototype, klass);
+        cell->finishCreation(vm, globalObject, prototype, ConstructorKey(klass));
         return cell;
     }
 

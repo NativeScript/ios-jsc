@@ -15,7 +15,11 @@
 #include <objc/runtime.h>
 #include <wtf/Deque.h>
 
+#include "ConstructorKey.h"
+#include "Metadata/Metadata.h"
+
 namespace NativeScript {
+
 class ObjCConstructorBase;
 class ObjCProtocolWrapper;
 class RecordConstructor;
@@ -98,7 +102,10 @@ public:
         return this->_interop.get();
     }
 
-    JSC::Strong<ObjCConstructorBase> constructorFor(Class klass, Class fallback = Nil, bool searchBaseClasses = true);
+    JSC::Strong<ObjCConstructorBase> constructorFor(Class klass,
+                                                    const Metadata::ProtocolMetas& additionalProtocols,
+                                                    Class fallback = Nil,
+                                                    bool searchBaseClasses = true);
 
     JSC::Strong<ObjCProtocolWrapper> protocolWrapperFor(Protocol* aProtocol);
 
@@ -221,6 +228,8 @@ private:
 
     static WTF::String defaultLanguage();
 
+    JSC::Strong<ObjCConstructorBase> getOrCreateConstructor(ConstructorKey constructorKey, const Metadata::InterfaceMeta* metadata);
+
     JSC::Identifier _jsUncaughtErrorCallbackIdentifier;
     JSC::Identifier _jsUncaughtErrorCallbackIdentifierFallback;
     JSC::Identifier _jsDiscardedErrorCallbackIdentifier;
@@ -266,7 +275,7 @@ private:
 
     JSC::WriteBarrier<JSC::Structure> _unmanagedInstanceStructure;
 
-    std::map<Class, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
+    std::map<ConstructorKey, JSC::Strong<ObjCConstructorBase>> _objCConstructors;
 
     std::map<const Protocol*, JSC::Strong<ObjCProtocolWrapper>> _objCProtocolWrappers;
 

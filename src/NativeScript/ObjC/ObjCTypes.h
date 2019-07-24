@@ -9,9 +9,12 @@
 #ifndef __NativeScript__ObjCIdType__
 #define __NativeScript__ObjCIdType__
 
+#include <Metadata.h>
+#include <wtf/Vector.h>
+
 namespace NativeScript {
 id toObject(JSC::ExecState*, const JSC::JSValue&);
-JSC::JSValue toValue(JSC::ExecState*, id, Class klass = nil);
+JSC::JSValue toValue(JSC::ExecState*, id, Class klass = nil, const Metadata::ProtocolMetas& = Metadata::ProtocolMetas());
 JSC::JSValue toValue(JSC::ExecState*, id, JSC::Structure* (^structureResolver)());
 } // namespace NativeScript
 

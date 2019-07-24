@@ -729,7 +729,45 @@ describe(module.id, function () {
             }
         }
     });
+    
+    // Metal is unavailable on iOS Simulator and devices with processors before A7 (arm64 on iPhone 5s)
+    if (!isSimulator && interop.sizeof(interop.types.id) == 8) {
+        it("MetalKit private interface members can be accessed", function() {
+            const device = MTLCreateSystemDefaultDevice();
+            expect(device.toString()).toMatch(/\[object \w*?Device\]/);
+            const queue = device.newCommandQueue();
+            expect(queue.toString()).toMatch(/\[object \w*?CommandQueue\]/);
+            const buffer = queue.commandBuffer();
+            expect(buffer.toString()).toMatch(/\[object \w*?CommandBuffer\]/);
+            const view = MTKView.alloc().initWithFrameDevice(CGRectMake(0,0,100,100), device);
+            expect(view.toString()).toMatch(/<MTKView: \w*; frame = \(0 0; 100 100\); .*>/);
+            const texture = view.currentDrawable.texture;
+            expect(texture.toString()).toMatch(/\[object \w*?Texture\]/);
 
+            buffer.presentDrawable(view.currentDrawable);
+            buffer.commit();
+        });
+    }
+         
+    if (TNSIsConfigurationDebug) {
+        // skip test in release because it requires downloading from the internet
+        it("NSURLSession.sharedSession.downloadTaskWithURLCompletionHandler's ", function(done) {
+           const url = NSURL.URLWithString("http://upload.wikimedia.org/wikipedia/commons/7/7f/Williams_River-27527.jpg");
+           const downloadPhotoTask = NSURLSession.sharedSession.downloadTaskWithURLCompletionHandler(url, () => {
+               expect(downloadPhotoTask.response.toString()).toContain("Williams_River-27527.jpg");
+               expect(downloadPhotoTask.response.statusCode).toBe(200);
+               // execute `done` on main thread, otherwise ApiIterator will be executed on a worker thread.
+               // Generally this shouldn't be an issue but WebKit.framework has classes with static initializers which
+               // require to be run the main thread
+               NSOperationQueue.mainQueue.addOperationWithBlock(done);
+           });
+           downloadPhotoTask.resume();
+        });
+         
+        it("Completion handler doesn't hijack main tests execution in a worker thread", function() {
+           expect(NSThread.isMainThread).toBe(true);
+        });
+    }
     if (TNSIsConfigurationDebug) {
         it("ApiIterator", function () {
             var counter = 0;

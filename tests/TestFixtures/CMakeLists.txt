@@ -58,6 +58,7 @@ set_target_properties(TestFixtures PROPERTIES COMPILE_FLAGS "
     -Werror -Wall -Wextra
     -Wno-error=incomplete-implementation
     -Wno-unused-parameter
+    -DCOMPILING_FOR_LINKING
 ")
 
 set_target_properties(TestFixtures PROPERTIES XCODE_ATTRIBUTE_ENABLE_NS_ASSERTIONS YES)

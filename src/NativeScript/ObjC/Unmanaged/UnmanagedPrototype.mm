@@ -22,7 +22,7 @@ static EncodedJSValue takeValue(ExecState* execState, bool retained) {
     instance->setData(&consumedUnmanagedCheck);
 
     ObjCConstructorBase* returnType = jsCast<ObjCConstructorBase*>(instance->returnType());
-    JSValue retainedValue = NativeScript::toValue(execState, result, returnType->klass());
+    JSValue retainedValue = NativeScript::toValue(execState, result, returnType->klasses().known);
 
     if (retained) {
         [result release];

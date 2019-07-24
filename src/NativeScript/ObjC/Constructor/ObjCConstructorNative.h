@@ -18,10 +18,14 @@ class ObjCConstructorNative : public ObjCConstructorBase {
 public:
     typedef ObjCConstructorBase Base;
 
-    static JSC::Strong<ObjCConstructorNative> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, JSC::JSObject* prototype, Class klass) {
-        ASSERT(klass);
+    static JSC::Strong<ObjCConstructorNative> create(JSC::VM& vm,
+                                                     JSC::JSGlobalObject* globalObject,
+                                                     JSC::Structure* structure,
+                                                     JSC::JSObject* prototype,
+                                                     const ConstructorKey& key) {
+        ASSERT(key.klasses.known != nullptr);
         JSC::Strong<ObjCConstructorNative> cell(vm, new (NotNull, JSC::allocateCell<ObjCConstructorNative>(vm.heap)) ObjCConstructorNative(vm, structure));
-        cell->finishCreation(vm, globalObject, prototype, klass);
+        cell->finishCreation(vm, globalObject, prototype, key);
         return cell;
     }
 
@@ -47,7 +51,7 @@ protected:
         : Base(vm, structure) {
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, const ConstructorKey&);
 
     static void getOwnPropertyNames(JSC::JSObject*, JSC::ExecState*, JSC::PropertyNameArray&, JSC::EnumerationMode);
 

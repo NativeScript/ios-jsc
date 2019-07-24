@@ -9,9 +9,11 @@
 #ifndef __NativeScript__TypeFactory__
 #define __NativeScript__TypeFactory__
 
+#include "ConstructorKey.h"
 #include "ExtVectorTypeInstance.h"
 #include "FFIType.h"
 #include "IndexedRefTypeInstance.h"
+#include "ManualInstrumentation.h"
 #include "Metadata/Metadata.h"
 #include "WeakHandleOwners.h"
 #include <unordered_map>
@@ -52,7 +54,10 @@ public:
 
     const WTF::Vector<JSC::Strong<JSC::JSCell>> parseTypes(GlobalObject*, const Metadata::TypeEncoding*& typeEncodings, int count, bool isStructMember);
 
-    JSC::Strong<ObjCConstructorNative> getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName);
+    JSC::Strong<ObjCConstructorNative> getObjCNativeConstructor(GlobalObject*, const WTF::String& klassName, const Metadata::ProtocolMetas& protocols);
+
+    JSC::Strong<ObjCConstructorNative> getObjCNativeConstructor(GlobalObject*, const ConstructorKey& constructorKey, const Metadata::InterfaceMeta* metadata,
+                                                                const tns::instrumentation::Frame& frame = tns::instrumentation::Frame());
 
     JSC::Strong<RecordConstructor> getStructConstructor(GlobalObject*, const WTF::String& structName);
 
@@ -143,12 +148,14 @@ private:
         static_cast<TypeFactory*>(cell)->~TypeFactory();
     }
 
+    static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
+
+    static Metadata::ProtocolMetas getProtocolMetas(Metadata::PtrTo<Metadata::Array<Metadata::String>> protocolsPtr);
+
     void finishCreation(JSC::VM&, GlobalObject*);
 
     Strong<JSC::JSCell> parsePrimitiveType(JSC::JSGlobalObject* globalOBject, const Metadata::TypeEncoding*& typeEncoding);
     size_t resolveConstArrayTypeSize(const Metadata::TypeEncoding* typeEncoding, const Metadata::TypeEncoding* innerTypeEncoding);
-
-    static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
     WTF::Vector<Strong<RecordField>> createRecordFields(GlobalObject*, const WTF::Vector<Strong<JSCell>>& fieldsTypes, const WTF::Vector<WTF::String>& fieldsNames, ffi_type* ffiType);
 
@@ -157,6 +164,8 @@ private:
     Strong<JSC::JSCell> parseFunctionReferenceType(GlobalObject* globalObject, const Metadata::TypeEncodingsList<uint8_t>& typeEncodings);
 
     JSC::Strong<RecordConstructor> getAnonymousStructConstructor(GlobalObject*, const Metadata::TypeEncodingDetails::AnonymousRecordDetails& details);
+
+    JSC::Strong<ObjCConstructorNative> createConstructorNative(GlobalObject*, const Metadata::InterfaceMeta* metadata, const ConstructorKey& constructorKey);
 
     JSC::WriteBarrier<FFISimpleType> _noopType;
     JSC::WriteBarrier<FFISimpleType> _voidType;
@@ -196,7 +205,7 @@ private:
     WTF::HashMap<WTF::Vector<JSC::WeakImpl*>, JSC::WeakImpl*, WeakImplVectorHashTraits, WeakImplVectorKeyTraits> _cacheObjCBlockType;
     JSC::WeakGCMap<WTF::String, JSC::JSCell> _cacheArray;
     JSC::WeakGCMap<WTF::String, RecordConstructor> _cacheStruct;
-    JSC::WeakGCMap<WTF::String, ObjCConstructorNative> _cacheId;
+    JSC::WeakGCMap<ConstructorKey, ObjCConstructorNative> _cacheId;
 };
 
 #ifdef __OBJC__

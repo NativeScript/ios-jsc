@@ -32,7 +32,7 @@ public:
     }
 
     JSC::ExecState* execState() const {
-        return this->_globalExecState;
+        return this->_globalObject->globalExec();
     }
 
     size_t parametersCount() const {
@@ -58,7 +58,7 @@ protected:
 
     void callFunction(const JSC::JSValue& thisValue, const JSC::ArgList& arguments, void* retValue);
 
-    JSC::ExecState* _globalExecState;
+    JSC::JSGlobalObject* _globalObject;
 
     JSC::WriteBarrier<JSCell> _returnTypeCell;
     FFITypeMethodTable _returnType;

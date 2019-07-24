@@ -12,6 +12,8 @@
 #include <JavaScriptCore/JSObject.h>
 #include <wtf/RetainPtr.h>
 
+#include "KnownUnknownClassPair.h"
+
 namespace Metadata {
 
 struct BaseClassMeta;
@@ -26,8 +28,13 @@ public:
 
     static const unsigned StructureFlags;
 
-    static JSC::Strong<ObjCPrototype> create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure, const Metadata::BaseClassMeta* metadata, Class klass) {
-        JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap)) ObjCPrototype(globalObject->vm(), structure, klass));
+    static JSC::Strong<ObjCPrototype> create(JSC::VM& vm,
+                                             JSC::JSGlobalObject* globalObject,
+                                             JSC::Structure* structure,
+                                             const Metadata::BaseClassMeta* metadata,
+                                             const ConstructorKey& key) {
+        JSC::Strong<ObjCPrototype> prototype(vm, new (NotNull, JSC::allocateCell<ObjCPrototype>(globalObject->vm().heap))
+                                                     ObjCPrototype(globalObject->vm(), structure, key));
         prototype->finishCreation(vm, globalObject, metadata);
         return prototype;
     }
@@ -48,15 +55,19 @@ public:
         return this->_metadata;
     }
 
-    Class klass() const {
-        return this->_klass;
+    Metadata::KnownUnknownClassPair klasses() const {
+        return this->_key.klasses;
+    }
+
+    const Metadata::ProtocolMetas& additionalProtocols() const {
+        return this->_key.additionalProtocols;
     }
 
 private:
-    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, Class klass)
+    ObjCPrototype(JSC::VM& vm, JSC::Structure* structure, const ConstructorKey& key)
         : Base(vm, structure)
         , _definingPropertyName(nullptr)
-        , _klass(klass) {
+        , _key(key) {
     }
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, const Metadata::BaseClassMeta*);
@@ -73,7 +84,7 @@ private:
 
     // Set to the name of the property that is currently being defined and used to avoid endless recursion in getOwnPropertySlot
     JSC::PropertyName _definingPropertyName;
-    Class _klass;
+    ConstructorKey _key;
 };
 } // namespace NativeScript
 

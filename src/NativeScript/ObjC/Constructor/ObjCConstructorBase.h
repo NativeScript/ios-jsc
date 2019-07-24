@@ -9,6 +9,7 @@
 #ifndef __NativeScript__ObjCConstructorBase__
 #define __NativeScript__ObjCConstructorBase__
 
+#include "ConstructorKey.h"
 #include "FFIType.h"
 #include <functional>
 
@@ -28,8 +29,12 @@ public:
 
     DECLARE_INFO;
 
-    Class klass() const {
-        return this->_klass;
+    const Metadata::KnownUnknownClassPair& klasses() const {
+        return this->_key.klasses;
+    }
+
+    const Metadata::ProtocolMetas& additionalProtocols() const {
+        return this->_key.additionalProtocols;
     }
 
     JSC::Structure* instancesStructure() const {
@@ -57,7 +62,7 @@ protected:
         static_cast<ObjCConstructorBase*>(cell)->~ObjCConstructorBase();
     }
 
-    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, Class);
+    void finishCreation(JSC::VM&, JSC::JSGlobalObject*, JSC::JSObject* prototype, const ConstructorKey& key);
 
     static void visitChildren(JSC::JSCell*, JSC::SlotVisitor&);
 
@@ -74,11 +79,13 @@ private:
 
     static void write(JSC::ExecState*, const JSC::JSValue&, void*, JSC::JSCell*);
 
+    /// Used when checking if a specific JSValue can be marshalled to native as
+    /// this constructor function's underlying type.
     static bool canConvert(JSC::ExecState*, const JSC::JSValue&, JSC::JSCell*);
 
     static const char* encode(JSC::VM&, JSC::JSCell*);
 
-    Class _klass;
+    ConstructorKey _key;
 
     JSC::WriteBarrier<JSC::JSObject> _prototype;
 

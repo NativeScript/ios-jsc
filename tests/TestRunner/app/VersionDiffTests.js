@@ -72,6 +72,10 @@ describe(module.id, function() {
             check(value, major, minor);
         });
     });
+         
+    it("TNSInterfaceAlwaysAvailablePrivate has no metadata", function() {
+        expect(global.TNSInterfaceAlwaysAvailablePrivate).toBeUndefined();
+    });
 
     it("Base class which is unavailable should be skipped", function() {
         // Test case inspired from MTLArrayType(8.0) : MTLType(11.0) : NSObject

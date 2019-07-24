@@ -233,11 +233,11 @@ void install_handler(int sig) {
     self->_globalObject->drainMicrotasks();
     if (error) {
         Exception* exception = jsDynamicCast<Exception*>(*self->_vm.get(), error);
-        if (!exception) {
+        if (!exception && error.isObject()) {
             exception = jsDynamicCast<Exception*>(*self->_vm.get(), error.getObject()->getDirect(*self->_vm.get(), self->_vm.get()->propertyNames->builtinNames().nsExceptionIdentifierPrivateName()));
-            if (!exception) {
-                exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
-            }
+        }
+        if (!exception) {
+            exception = Exception::create(*self->_vm.get(), error, Exception::DoNotCaptureStack);
         }
         reportFatalErrorBeforeShutdown(self->_globalObject->globalExec(), exception);
     }

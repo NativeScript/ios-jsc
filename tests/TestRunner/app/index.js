@@ -3,6 +3,7 @@ console.log('Application Start!');
 
 import "./Infrastructure/timers";
 import "./Infrastructure/simulator";
+import "./Infrastructure/utils";
 
 global.UNUSED = function (param) {
 };

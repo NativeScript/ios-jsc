@@ -29,6 +29,7 @@
 #include <string>
 
 namespace NativeScript {
+
 using namespace JSC;
 using namespace Metadata;
 
@@ -238,27 +239,18 @@ WTF::Vector<Strong<RecordField>> TypeFactory::createRecordFields(GlobalObject* g
 
     return fields;
 }
-
-Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const WTF::String& klassName) {
+Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject,
+                                                                    const WTF::String& klassName,
+                                                                    const ProtocolMetas& protocols) {
     tns::instrumentation::Frame frame;
-    if (ObjCConstructorNative* type = this->_cacheId.get(klassName)) {
-        return Strong<ObjCConstructorNative>(globalObject->vm(), type);
-    }
-
-    VM& vm = globalObject->vm();
-
     const InterfaceMeta* metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(klassName.impl());
-    Class klass = Nil;
-
-    if (metadata) {
+    Class klass = objc_getClass(klassName.utf8().data());
+    if (!klass && metadata) {
+        SymbolLoader::instance().ensureModule(metadata->topLevelModule());
         klass = objc_getClass(metadata->name());
-        if (!klass) {
-            SymbolLoader::instance().ensureModule(metadata->topLevelModule());
-            klass = objc_getClass(metadata->name());
-        }
     }
 
-    if (!metadata || !klass) {
+    if (!klass || !metadata) {
         if (klassName == "NSObject") {
             @throw [NSException exceptionWithName:NSGenericException reason:@"fatal error: NativeScript cannot create constructor for NSObject." userInfo:nil];
         }
@@ -266,49 +258,70 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
         NSLog(@"** Can not create constructor for \"%@\". Casting it to \"NSObject\". **", klassName.createCFString().autorelease());
 #endif
         auto nsobjectConstructor = this->NSObjectConstructor(globalObject);
-        this->_cacheId.set(klassName, nsobjectConstructor.get());
+        if (klass) {
+            this->_cacheId.set(ConstructorKey(klass), nsobjectConstructor.get());
+        }
         return nsobjectConstructor;
+    }
+
+    return this->getObjCNativeConstructor(globalObject, ConstructorKey(klass, protocols), metadata, frame);
+}
+
+Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const ConstructorKey& constructorKey, const InterfaceMeta* metadata, const tns::instrumentation::Frame& frame) {
+    assert(constructorKey.klasses.known);
+    if (ObjCConstructorNative* type = this->_cacheId.get(constructorKey)) {
+        return Strong<ObjCConstructorNative>(globalObject->vm(), type);
     }
 
     JSValue parentPrototype;
     JSValue parentConstructor;
 
-    const char* superKlassName = metadata->baseName();
-    if (superKlassName) {
-        parentConstructor = getObjCNativeConstructor(globalObject, superKlassName).get();
+    JSC::Strong<ObjCConstructorNative> constructor = createConstructorNative(globalObject, metadata, constructorKey);
+
+    if (frame.check()) {
+        frame.log([NSString stringWithFormat:@"Expose: %s", class_getName(constructorKey.klasses.known)].UTF8String);
+    }
+
+    return constructor;
+}
+
+JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalObject* globalObject,
+                                                                        const InterfaceMeta* metadata,
+                                                                        const ConstructorKey& constructorKey) {
+    VM& vm = globalObject->vm();
+
+    JSValue parentPrototype;
+    JSValue parentConstructor;
+    auto superClass = class_getSuperclass(constructorKey.klasses.known);
+    if (superClass) {
+        parentConstructor = getObjCNativeConstructor(globalObject, class_getName(superClass), ProtocolMetas()).get();
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
+
+        /// If we have a super class which somehow references us, our constructor will already have been cached
+        /// during the parent constructor's creation.
+        if (ObjCConstructorNative* type = this->_cacheId.get(constructorKey)) {
+            return Strong<ObjCConstructorNative>(globalObject->vm(), type);
+        }
     } else {
         // NSObject and NSProxy don't have a base class and therefore inherit directly from GlobalObject.
         parentPrototype = globalObject->objectPrototype();
         parentConstructor = globalObject->functionPrototype();
     }
 
-    // The parentConstructor may have already initialized our constructor.
-    /// If we have a super class which somehow references us we will already be cached when
-    /// the parent constructor has been created.
-    /// TODO: Move this check in the if (superKlassName) case.
-    if (ObjCConstructorNative* type = this->_cacheId.get(klassName)) {
-        return Strong<ObjCConstructorNative>(globalObject->vm(), type);
-    }
-
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
-    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata, klass);
+    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata, constructorKey);
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
-    auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), klass);
+    auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), constructorKey);
     prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor.get(), PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
-    auto addResult = this->_cacheId.set(klassName, constructor.get());
+    auto addResult = this->_cacheId.set(constructorKey, constructor.get());
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }
+
     prototype->materializeProperties(vm, globalObject);
     constructor->materializeProperties(vm, globalObject);
-
-    if (frame.check()) {
-        NSString* classNameNSStr = (NSString*)klassName.createCFString().get();
-        frame.log([@"Expose: " stringByAppendingString:classNameNSStr].UTF8String);
-    }
 
     return constructor;
 }
@@ -318,7 +331,7 @@ Strong<ObjCConstructorNative> TypeFactory::NSObjectConstructor(GlobalObject* glo
         return Strong<ObjCConstructorNative>(globalObject->vm(), this->_nsObjectConstructor.get());
     }
 
-    auto constructor = getObjCNativeConstructor(globalObject, "NSObject"_s);
+    auto constructor = getObjCNativeConstructor(globalObject, "NSObject"_s, ProtocolMetas());
     this->_nsObjectConstructor.set(globalObject->vm(), this, constructor.get());
     return constructor;
 }
@@ -416,8 +429,10 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
         result = Strong<JSCell>(globalObject->vm(), this->_doubleType.get());
         break;
     case BinaryTypeEncodingType::InterfaceDeclarationReference: {
-        WTF::String declarationName = WTF::String(typeEncoding->details.declarationReference.name.valuePtr());
-        result = getObjCNativeConstructor(globalObject, declarationName);
+        WTF::String declarationName = WTF::String(typeEncoding->details.interfaceDeclarationReference.name.valuePtr());
+        ProtocolMetas additionalProtocols = this->getProtocolMetas(typeEncoding->details.interfaceDeclarationReference._protocols);
+
+        result = getObjCNativeConstructor(globalObject, declarationName, additionalProtocols);
         break;
     }
     case BinaryTypeEncodingType::StructDeclarationReference: {
@@ -455,9 +470,12 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
     case BinaryTypeEncodingType::InstanceTypeEncoding:
         result = Strong<JSCell>(globalObject->vm(), this->_objCInstancetypeType.get());
         break;
-    case BinaryTypeEncodingType::IdEncoding:
-        result = this->NSObjectConstructor(globalObject);
+
+    case BinaryTypeEncodingType::IdEncoding: {
+        auto additionalProtocols = getProtocolMetas(typeEncoding->details.idDetails._protocols);
+        result = getObjCNativeConstructor(globalObject, "NSObject", additionalProtocols);
         break;
+    }
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
         const TypeEncoding* innerTypeEncoding = typeEncoding->details.constantArray.getInnerType();
         size_t arraySize = typeEncoding->details.constantArray.size;
@@ -593,4 +611,20 @@ void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(typeFactory->_nsObjectConstructor);
     visitor.append(typeFactory->_pointerConstructor);
 }
+
+ProtocolMetas TypeFactory::getProtocolMetas(PtrTo<Array<Metadata::String>> protocolsPtr) {
+    ProtocolMetas protocols;
+    for (auto it = protocolsPtr.valuePtr()->begin(); it != protocolsPtr.valuePtr()->end(); it++) {
+        auto protocolName = (*it).valuePtr();
+        if (auto p = MetaFile::instance()->globalTable()->findProtocol(protocolName)) {
+            protocols.append(p);
+        } else {
+            // Protocols that are present in metadata should be discoverable
+            ASSERT(false);
+        }
+    }
+
+    return protocols;
+}
+
 }
