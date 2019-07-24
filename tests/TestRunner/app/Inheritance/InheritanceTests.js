@@ -1975,18 +1975,18 @@ describe(module.id, function () {
         var expected = "";
 
         // the interface is indeed private and has no metadata
-        expect(global.TNSIBaseInterface_Private).toBeUndefined();
+        expect(global.TNSIBaseProtocolImpl_Private).toBeUndefined();
         // instance is from this same private interface
-        expect(inst.class().description).toBe("TNSIBaseInterface_Private");
+        expect(inst.class().description).toBe("TNSIBaseProtocolImpl_Private");
         // the public interface is returned as constructor
-        expect(inst.constructor.toString()).toMatch(/function TNSIBaseInterface_unknown_TNSIBaseInterface_Private\(\) \{/);
+        expect(inst.constructor.toString()).toMatch(/function TNSIBaseInterface_private_TNSIBaseProtocolImpl_Private\(\) \{/);
         // constructor for a { known, unknown } interface pair is different than the default one
         expect(inst.constructor).not.toBe(global.TNSIBaseInterface);
 
         // static properties come from the private class
         expect(inst.constructor.staticBaseImplementedOptionalProperty).toBe(-100);
-        inst.constructor.staticBaseImplementedOptionalProperty = -200;
-        expected += "private setStaticBaseImplementedOptionalProperty: called with -200";
+        inst.constructor.staticBaseImplementedOptionalProperty = -101;
+        expected += "private setStaticBaseImplementedOptionalProperty: called with -101";
 
         // static methods come from the private class
         inst.constructor.staticBaseImplementedOptionalMethod();
@@ -1994,8 +1994,8 @@ describe(module.id, function () {
 
         // instance properties come from the actual private class
         expect(inst.baseImplementedOptionalProperty).toBe(-100);
-        inst.baseImplementedOptionalProperty = -200;
-        expected += "private setBaseImplementedOptionalProperty: called with -200";
+        inst.baseImplementedOptionalProperty = -101;
+        expected += "private setBaseImplementedOptionalProperty: called with -101";
 
         // instance methods come from the actual private class
         inst.baseImplementedOptionalMethod();
@@ -2013,33 +2013,33 @@ describe(module.id, function () {
         // instance is from this same private interface
         expect(inst.class().description).toBe("TNSIBaseInterface_Private");
         // declared base interface is returned as constructor (id => NSObject)
-        expect(inst.constructor.toString()).toMatch(/function NSObject_unknown_TNSIBaseInterface_Private_TNSIBaseProtocol\(\) \{/);
+        expect(inst.constructor.toString()).toMatch(/function TNSIBaseInterface_private_TNSIBaseInterface_Private_protocols_TNSIBaseProtocol\(\) \{/);
         // constructor for a { known, unknown } interface pair is different than the default one
         expect(inst.constructor).not.toBe(global.NSObject);
 
         // static properties come from the private class
-        expect(inst.constructor.staticBaseImplementedOptionalProperty).toBe(-100);
-        inst.constructor.staticBaseImplementedOptionalProperty = -200;
-        expected += "private setStaticBaseImplementedOptionalProperty: called with -200";
+        expect(inst.constructor.staticBaseImplementedOptionalProperty).toBe(-200);
+        inst.constructor.staticBaseImplementedOptionalProperty = -201;
+        expected += "private2 setStaticBaseImplementedOptionalProperty: called with -201";
 
         // static methods come from the private class
         inst.constructor.staticBaseImplementedOptionalMethod();
-        expected += "private staticBaseImplementedOptionalMethod called";
+        expected += "private2 staticBaseImplementedOptionalMethod called";
 
         // instance properties come from the private class
-        expect(inst.baseImplementedOptionalProperty).toBe(-100);
-        inst.baseImplementedOptionalProperty = -200;
-        expected += "private setBaseImplementedOptionalProperty: called with -200";
+        expect(inst.baseImplementedOptionalProperty).toBe(-200);
+        inst.baseImplementedOptionalProperty = -201;
+        expected += "private2 setBaseImplementedOptionalProperty: called with -201";
        
         // instance methods come from the private class
         inst.baseImplementedOptionalMethod();
-        expected += "private baseImplementedOptionalMethod called";
+        expected += "private2 baseImplementedOptionalMethod called";
        
         expect(TNSGetOutput()).toBe(expected);
     });
 
     it("Private class' static members can be dynamically invoked", function() {
-        const privateClass = objc_getClass("TNSIBaseInterface_Private");
+        const privateClass = objc_getClass("TNSIBaseProtocolImpl_Private");
         expect(dynamicallyInvokeSelector(privateClass, "staticBaseImplementedOptionalProperty", interop.types.int32)).toBe(-100);
 
         var expected = "";

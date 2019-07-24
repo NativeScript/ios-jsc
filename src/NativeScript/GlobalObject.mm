@@ -473,24 +473,27 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const Prot
 
         return constructor;
     } else {
-        if (fallback && fallback != klass) {
+        // Search base classes
+        Class firstBaseWithMeta = klass;
+        while (!meta) {
+            firstBaseWithMeta = class_getSuperclass(firstBaseWithMeta);
+            meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(firstBaseWithMeta));
+        }
+
+        ConstructorKey fallbackConstructorKey(firstBaseWithMeta, klass, protocols);
+        // Use the hinted fallback if:
+        //     1) It is more concrete than the first base class with meta; or is unrelated to it
+        // and 2) It has metadata which is available on the current device
+        if (fallback && fallback != klass && fallback != firstBaseWithMeta && ([fallback isSubclassOfClass:firstBaseWithMeta] || ![firstBaseWithMeta isSubclassOfClass:fallback])) {
             if (auto metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(fallback))) {
                 // We have a hinted fallback class and it has metadata. Treat instances as if they are inheriting from the fallback class.
                 // This way all members known from the metadata will be exposed to JS (if the actual class implements them).
-                ConstructorKey fallbackConstructorKey(fallback, klass, protocols); // fallback is known (coming from a public header), the actual returned type is unknown (without metadata)
-                return this->getOrCreateConstructor(fallbackConstructorKey, metadata);
+                fallbackConstructorKey = ConstructorKey(fallback, klass, protocols); // fallback is known (coming from a public header), the actual returned type is unknown (without metadata)
+                meta = metadata;
             }
         }
 
-        // No viable fallback - search base classes
-        Class baseClassIterator = klass;
-        while (!meta) {
-            baseClassIterator = class_getSuperclass(baseClassIterator);
-            meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(baseClassIterator));
-        }
-
-        ConstructorKey knownBaseConstructorKey(baseClassIterator, klass, protocols);
-        return this->getOrCreateConstructor(constructorKey, meta);
+        return this->getOrCreateConstructor(fallbackConstructorKey, meta);
     }
 }
 

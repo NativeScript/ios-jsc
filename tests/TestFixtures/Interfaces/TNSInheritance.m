@@ -100,10 +100,13 @@
 
 @end
 
-@interface TNSIBaseInterface_Private : NSObject <TNSIBaseProtocol>
+/////////////////////////////////////////////////////////////////////////
+/// TNSIBaseProtocolImpl_Private
+
+@interface TNSIBaseProtocolImpl_Private : NSObject <TNSIBaseProtocol>
 @end
 
-@implementation TNSIBaseInterface_Private
+@implementation TNSIBaseProtocolImpl_Private
 
 + (int)staticBaseImplementedOptionalProperty {
     return -100;
@@ -131,10 +134,47 @@
 
 @end
 
+/////////////////////////////////////////////////////////////////////////
+/// TNSIBaseInterface_Private
+
+@interface TNSIBaseInterface_Private : TNSIBaseInterface
+@end
+
+@implementation TNSIBaseInterface_Private
+
++ (int)staticBaseImplementedOptionalProperty {
+    return -200;
+}
+
++ (void)setStaticBaseImplementedOptionalProperty:(int)x {
+    TNSLog([NSString stringWithFormat:@"private2 %@ called with %d", NSStringFromSelector(_cmd), x]);
+}
+
++ (void)staticBaseImplementedOptionalMethod {
+    TNSLog([NSString stringWithFormat:@"private2 %@ called", NSStringFromSelector(_cmd)]);
+}
+
+- (int)baseImplementedOptionalProperty {
+    return -200;
+}
+
+- (void)setBaseImplementedOptionalProperty:(int)x {
+    TNSLog([NSString stringWithFormat:@"private2 %@ called with %d", NSStringFromSelector(_cmd), x]);
+}
+
+- (void)baseImplementedOptionalMethod {
+    TNSLog([NSString stringWithFormat:@"private2 %@ called", NSStringFromSelector(_cmd)]);
+}
+
+@end
+
+/////////////////////////////////////////////////////////////////////////
+/// TNSPrivateInterfaceResults
+
 @implementation TNSPrivateInterfaceResults
 
-+ (TNSIBaseInterface_Private*)instanceFromUnrelatedPrivateType {
-    return [TNSIBaseInterface_Private new];
++ (TNSIBaseInterface*)instanceFromUnrelatedPrivateType {
+    return (TNSIBaseInterface*)[TNSIBaseProtocolImpl_Private new];
 }
 
 + (id<TNSIBaseProtocol>)instanceFromPrivateTypeImplementingProtocol {

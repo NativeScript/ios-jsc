@@ -133,13 +133,16 @@ void ObjCConstructorBase::finishCreation(VM& vm,
     WTF::String functionName(class_getName(key.klasses.known));
 
     if (key.klasses.unknown) {
-        functionName.append("_unknown_");
+        functionName.append("_private_");
         functionName.append(class_getName(key.klasses.unknown));
     }
 
-    for (auto proto : key.additionalProtocols) {
-        functionName.append("_");
-        functionName.append(proto->name());
+    if (key.additionalProtocols.size()) {
+        functionName.append("_protocols");
+        for (auto proto : key.additionalProtocols) {
+            functionName.append("_");
+            functionName.append(proto->name());
+        }
     }
 
     Base::finishCreation(vm, functionName);
