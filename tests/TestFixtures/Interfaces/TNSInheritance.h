@@ -86,8 +86,13 @@
 //- (NSURLSessionDownloadTask *)downloadTaskWithURL:(NSURL *)url completionHandler:(void (^)(NSURL * _Nullable location, NSURLResponse * _Nullable response, NSError * _Nullable error))completionHandler;
 // claim to return TNSIBaseInterface but instances are objects of an unrelated type which implements the methods
 + (TNSIBaseInterface*)instanceFromUnrelatedPrivateType;
+
 // inspired from MTLCreateSystemDefaultDevice
 //MTL_EXTERN id <MTLDevice> __nullable MTLCreateSystemDefaultDevice(void) API_AVAILABLE(macos(10.11), ios(8.0)) NS_RETURNS_RETAINED;
 + (id<TNSIBaseProtocol>)instanceFromPrivateTypeImplementingProtocol;
+
++ (id<TNSIBaseProtocol, TNSIDerivedProtocol>)instanceFromPrivateTypeImplementingTwoProtocols;
+
++ (id<TNSIBaseProtocol>)instanceFromPublicTypeImplementingProtocol;
 
 @end

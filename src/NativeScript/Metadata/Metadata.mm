@@ -169,6 +169,38 @@ bool MethodMeta::isImplementedInClass(Class klass, bool isStatic) const {
 }
 
 // BaseClassMeta
+
+std::set<const ProtocolMeta*> BaseClassMeta::protocolsSet() const {
+    std::set<const ProtocolMeta*> protocols;
+    this->forEachProtocol([&protocols](const ProtocolMeta* protocolMeta) {
+        protocols.insert(protocolMeta);
+    },
+                          /*additionalProtocols*/ nullptr);
+
+    return protocols;
+}
+
+std::set<const ProtocolMeta*> BaseClassMeta::deepProtocolsSet() const {
+    std::set<const ProtocolMeta*> protocols;
+    this->deepProtocolsSet(protocols);
+    return protocols;
+}
+
+void BaseClassMeta::deepProtocolsSet(std::set<const ProtocolMeta*>& protocols) const {
+    if (this->type() == Interface) {
+        auto interfaceMeta = static_cast<const InterfaceMeta*>(this);
+        if (auto baseMeta = interfaceMeta->baseMeta()) {
+            baseMeta->deepProtocolsSet(protocols);
+        }
+    }
+
+    this->forEachProtocol([&protocols](const ProtocolMeta* protocolMeta) {
+        protocolMeta->deepProtocolsSet(protocols);
+        protocols.insert(protocolMeta);
+    },
+                          /*additionalProtocols*/ nullptr);
+}
+
 const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, MemberType type,
                                         bool includeProtocols, bool onlyIfAvailable,
                                         const ProtocolMetas& additionalProtocols) const {
@@ -272,17 +304,11 @@ const MembersCollection BaseClassMeta::members(const char* identifier, size_t le
 
     // search in protocols
     if (includeProtocols) {
-        for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-            const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
-            if (protocolMeta != nullptr) {
-                const MembersCollection members = protocolMeta->members(identifier, length, type, includeProtocols, onlyIfAvailable, ProtocolMetas());
-                result.add(members.begin(), members.end());
-            }
-        }
-        for (const ProtocolMeta* protocolMeta : additionalProtocols) {
+        this->forEachProtocol([&result, identifier, length, type, includeProtocols, onlyIfAvailable](const ProtocolMeta* protocolMeta) {
             const MembersCollection members = protocolMeta->members(identifier, length, type, includeProtocols, onlyIfAvailable, ProtocolMetas());
             result.add(members.begin(), members.end());
-        }
+        },
+                              &additionalProtocols);
     }
 
     return result;
@@ -290,27 +316,19 @@ const MembersCollection BaseClassMeta::members(const char* identifier, size_t le
 
 std::vector<const PropertyMeta*> BaseClassMeta::instancePropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
     this->instanceProperties(container, klasses);
-    for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-        const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
-        if (protocolMeta != nullptr)
-            protocolMeta->instancePropertiesWithProtocols(container, klasses, ProtocolMetas());
-    }
-    for (const ProtocolMeta* protocolMeta : additionalProtocols) {
+    this->forEachProtocol([&container, klasses](const ProtocolMeta* protocolMeta) {
         protocolMeta->instancePropertiesWithProtocols(container, klasses, ProtocolMetas());
-    }
+    },
+                          &additionalProtocols);
     return container;
 }
 
 std::vector<const PropertyMeta*> BaseClassMeta::staticPropertiesWithProtocols(std::vector<const PropertyMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
     this->staticProperties(container, klasses);
-    for (Array<String>::iterator it = protocols->begin(); it != protocols->end(); ++it) {
-        const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
-        if (protocolMeta != nullptr)
-            protocolMeta->staticPropertiesWithProtocols(container, klasses, ProtocolMetas());
-    }
-    for (const ProtocolMeta* protocolMeta : additionalProtocols) {
+    this->forEachProtocol([&container, klasses](const ProtocolMeta* protocolMeta) {
         protocolMeta->staticPropertiesWithProtocols(container, klasses, ProtocolMetas());
-    }
+    },
+                          &additionalProtocols);
     return container;
 }
 

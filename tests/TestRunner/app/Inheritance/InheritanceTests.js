@@ -9,6 +9,7 @@ describe(module.id, function () {
         expect(TNSBaseInterface.hasOwnProperty('baseCategoryMethod')).toBe(true);
 
         expect(Object.getOwnPropertyNames(TNSBaseInterface).sort()).toEqual([
+            '__constructorDescription',
             'baseCategoryMethod',
             'baseCategoryProperty',
             'baseCategoryProtocolMethod1',
@@ -1979,7 +1980,7 @@ describe(module.id, function () {
         // instance is from this same private interface
         expect(inst.class().description).toBe("TNSIBaseProtocolImpl_Private");
         // the public interface is returned as constructor
-        expect(inst.constructor.toString()).toMatch(/function TNSIBaseInterface_private_TNSIBaseProtocolImpl_Private\(\) \{/);
+        expect(inst.constructor.__constructorDescription).toMatch(/TNSIBaseInterface.*Unknown.*TNSIBaseProtocolImpl_Private/);
         // constructor for a { known, unknown } interface pair is different than the default one
         expect(inst.constructor).not.toBe(global.TNSIBaseInterface);
 
@@ -2002,18 +2003,18 @@ describe(module.id, function () {
         expected += "private baseImplementedOptionalMethod called";
         expect(TNSGetOutput()).toBe(expected);
     });
-         
+
     it("Should access protocol members from private interface instances declared as id<Protocol>", function () {
         var inst = TNSPrivateInterfaceResults.instanceFromPrivateTypeImplementingProtocol();
 
         var expected = "";
-       
+
         // the interface is indeed private and has no metadata
         expect(global.TNSIBaseInterface_Private).toBeUndefined();
         // instance is from this same private interface
         expect(inst.class().description).toBe("TNSIBaseInterface_Private");
         // declared base interface is returned as constructor (id => NSObject)
-        expect(inst.constructor.toString()).toMatch(/function TNSIBaseInterface_private_TNSIBaseInterface_Private_protocols_TNSIBaseProtocol\(\) \{/);
+        expect(inst.constructor.__constructorDescription).toMatch(/TNSIBaseInterface.*Unknown.*TNSIBaseInterface_Private/);
         // constructor for a { known, unknown } interface pair is different than the default one
         expect(inst.constructor).not.toBe(global.NSObject);
 
@@ -2030,11 +2031,11 @@ describe(module.id, function () {
         expect(inst.baseImplementedOptionalProperty).toBe(-200);
         inst.baseImplementedOptionalProperty = -201;
         expected += "private2 setBaseImplementedOptionalProperty: called with -201";
-       
+
         // instance methods come from the private class
         inst.baseImplementedOptionalMethod();
         expected += "private2 baseImplementedOptionalMethod called";
-       
+
         expect(TNSGetOutput()).toBe(expected);
     });
 
@@ -2051,4 +2052,44 @@ describe(module.id, function () {
 
         expect(TNSGetOutput()).toBe(expected);
     });
+
+    describe("instanceof", function () {
+        it("TNSIBaseProtocolImpl_Private returned as TNSIBaseInterface*", function () {
+            var inst = TNSPrivateInterfaceResults.instanceFromUnrelatedPrivateType();
+           
+            // Actual class is unrelated and doesn't inherit TNSIBaseInterface, but in order to be
+            // able to call methods from the puclicly declared type we are creating a constructor
+            // that inheriting from this public interface.
+            expect(inst instanceof TNSIBaseInterface).toBe(true, "Constructor should be inheriting from the publicly declared type");
+            expect(inst.superclass).toBe(NSObject, "ObjC direct superclass should be NSObject");
+            expect(inst.constructor).not.toBe(global.TNSIBaseInterface, "The constructor which is wrapping an unknown interface should be different than the pure one");
+        });
+
+        it("TNSIBaseInterface_Private returned as id<TNSIBaseProtocol>", function () {
+            var inst = TNSPrivateInterfaceResults.instanceFromPrivateTypeImplementingProtocol();
+
+            expect(inst instanceof TNSIBaseInterface).toBe(true, "Actual class inherits from TNSIBaseInterface");
+            expect(inst.superclass).toBe(TNSIBaseInterface, "Actual class inherits from TNSIBaseInterface");
+            expect(inst.constructor).not.toBe(global.TNSIBaseInterface, "The constructor which is wrapping an unknown interface should be different than the pure one");
+        });
+
+        it("TNSIBaseInterface_Private returned as id<TNSIBaseProtocol, TNSIDerivedProtocol>", function () {
+            var inst = TNSPrivateInterfaceResults.instanceFromPrivateTypeImplementingTwoProtocols();
+            
+            expect(inst instanceof TNSIBaseInterface).toBe(true, "Actual class inherits from TNSIBaseInterface");
+            expect(inst.constructor.__constructorDescription).toMatch(/TNSIBaseInterface.*Unknown.*TNSIBaseInterface_Private.*protocols.*TNSIDerivedProtocol/);
+            expect(inst.constructor.__constructorDescription).not.toMatch(/TNSIBaseProtocol/, "TNSIBaseProtocol must have been stripped");
+            expect(inst.superclass).toBe(TNSIBaseInterface, "Actual class inherits from TNSIBaseInterface");
+            expect(inst.constructor).not.toBe(global.TNSIBaseInterface, "The constructor which is wrapping an unknown interface should be different than the pure one");
+        });
+         
+        it("TNSIBaseInterface returned as id<TNSIBaseProtocol>", function () {
+            var inst = TNSPrivateInterfaceResults.instanceFromPublicTypeImplementingProtocol();
+
+            expect(inst instanceof TNSIBaseInterface).toBe(true, "Actual class inherits from TNSIBaseInterface");
+            expect(inst.class()).toBe(TNSIBaseInterface, "Actual class is TNSIBaseInterface");
+            expect(inst.constructor).toBe(global.TNSIBaseInterface, "Constructor is global TNSIBaseInterface despite the protocol declaration because TNSIBaseInterface already conforms to it");
+        });
+    });
 });
+

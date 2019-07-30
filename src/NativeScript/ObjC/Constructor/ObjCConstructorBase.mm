@@ -18,6 +18,7 @@
 #include "ObjCTypes.h"
 #include "ObjCWrapperObject.h"
 #include "PointerInstance.h"
+#include <JavaScriptCore/Identifier.h>
 #include <JavaScriptCore/JSArrayBuffer.h>
 #include <JavaScriptCore/JSMap.h>
 #include <wtf/text/StringBuilder.h>
@@ -130,22 +131,23 @@ void ObjCConstructorBase::finishCreation(VM& vm,
                                          JSGlobalObject* globalObject,
                                          JSObject* prototype,
                                          const ConstructorKey& key) {
-    WTF::String functionName(class_getName(key.klasses.known));
+    Base::finishCreation(vm, class_getName(key.klasses.known));
 
+    WTF::String __constructorDescription("Known class: ");
+    __constructorDescription.append(class_getName(key.klasses.known));
     if (key.klasses.unknown) {
-        functionName.append("_private_");
-        functionName.append(class_getName(key.klasses.unknown));
+        __constructorDescription.append(" Unknown class: ");
+        __constructorDescription.append(class_getName(key.klasses.unknown));
     }
 
     if (key.additionalProtocols.size()) {
-        functionName.append("_protocols");
+        __constructorDescription.append(" Additional protocols:");
         for (auto proto : key.additionalProtocols) {
-            functionName.append("_");
-            functionName.append(proto->name());
+            __constructorDescription.append(" ");
+            __constructorDescription.append(proto->name());
         }
     }
-
-    Base::finishCreation(vm, functionName);
+    putDirect(vm, Identifier::fromString(&vm, "__constructorDescription"), jsString(&vm, __constructorDescription), PropertyAttribute::ReadOnly | PropertyAttribute::DontEnum);
 
     this->_prototype.set(vm, this, prototype);
     this->_instancesStructure.set(vm, this, ObjCWrapperObject::createStructure(vm, globalObject, prototype));
