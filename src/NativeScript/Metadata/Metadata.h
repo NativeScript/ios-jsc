@@ -9,6 +9,7 @@
 #ifndef __NativeScript__Metadata__
 #define __NativeScript__Metadata__
 
+#include <set>
 #include <stack>
 #include <string>
 #include <type_traits>
@@ -766,6 +767,27 @@ struct BaseClassMeta : Meta {
     PtrTo<ArrayOfPtrTo<PropertyMeta>> staticProps;
     PtrTo<Array<String>> protocols;
     int16_t initializersStartIndex;
+
+    template <typename T>
+    void forEachProtocol(const T& fun, const ProtocolMetas* additionalProtocols) const {
+        for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); ++it) {
+            if (const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr())) {
+                fun(protocolMeta);
+            }
+        }
+
+        if (additionalProtocols) {
+            for (const ProtocolMeta* protocolMeta : *additionalProtocols) {
+                fun(protocolMeta);
+            }
+        }
+    }
+
+    std::set<const ProtocolMeta*> protocolsSet() const;
+
+    std::set<const ProtocolMeta*> deepProtocolsSet() const;
+
+    void deepProtocolsSet(std::set<const ProtocolMeta*>& protocols) const;
 
     const MemberMeta* member(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetas& additionalProtocols) const;
 

@@ -269,14 +269,24 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
 
 Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const ConstructorKey& constructorKey, const InterfaceMeta* metadata, const tns::instrumentation::Frame& frame) {
     assert(constructorKey.klasses.known);
-    if (ObjCConstructorNative* type = this->_cacheId.get(constructorKey)) {
+
+    // remove unnecessary protocols which the actual interface already conforms to
+    ConstructorKey dedupedKey(constructorKey.klasses);
+    auto protocolsSet = metadata->deepProtocolsSet();
+    for (auto p : constructorKey.additionalProtocols) {
+        if (protocolsSet.count(p) == 0) {
+            dedupedKey.additionalProtocols.append(p);
+        }
+    }
+
+    if (ObjCConstructorNative* type = this->_cacheId.get(dedupedKey)) {
         return Strong<ObjCConstructorNative>(globalObject->vm(), type);
     }
 
     JSValue parentPrototype;
     JSValue parentConstructor;
 
-    JSC::Strong<ObjCConstructorNative> constructor = createConstructorNative(globalObject, metadata, constructorKey);
+    JSC::Strong<ObjCConstructorNative> constructor = createConstructorNative(globalObject, metadata, dedupedKey);
 
     if (frame.check()) {
         frame.log([NSString stringWithFormat:@"Expose: %s", class_getName(constructorKey.klasses.known)].UTF8String);
@@ -287,19 +297,23 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
 
 JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalObject* globalObject,
                                                                         const InterfaceMeta* metadata,
-                                                                        const ConstructorKey& constructorKey) {
+                                                                        const ConstructorKey& dedupedKey) {
     VM& vm = globalObject->vm();
 
     JSValue parentPrototype;
     JSValue parentConstructor;
-    auto superClass = class_getSuperclass(constructorKey.klasses.known);
+    // parent constructor should be the one for the pure class if there are additional protocols or an unknown class
+    auto superClass = (dedupedKey.additionalProtocols.size() || dedupedKey.klasses.unknown)
+                          ? dedupedKey.klasses.known
+                          : class_getSuperclass(dedupedKey.klasses.known);
+
     if (superClass) {
         parentConstructor = getObjCNativeConstructor(globalObject, class_getName(superClass), ProtocolMetas()).get();
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
 
         /// If we have a super class which somehow references us, our constructor will already have been cached
         /// during the parent constructor's creation.
-        if (ObjCConstructorNative* type = this->_cacheId.get(constructorKey)) {
+        if (ObjCConstructorNative* type = this->_cacheId.get(dedupedKey)) {
             return Strong<ObjCConstructorNative>(globalObject->vm(), type);
         }
     } else {
@@ -309,13 +323,13 @@ JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalOb
     }
 
     Structure* prototypeStructure = ObjCPrototype::createStructure(vm, globalObject, parentPrototype);
-    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata, constructorKey);
+    auto prototype = ObjCPrototype::create(vm, globalObject, prototypeStructure, metadata, dedupedKey);
 
     Structure* constructorStructure = ObjCConstructorNative::createStructure(vm, globalObject, parentConstructor);
-    auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), constructorKey);
+    auto constructor = ObjCConstructorNative::create(vm, globalObject, constructorStructure, prototype.get(), dedupedKey);
     prototype->putDirectWithoutTransition(vm, vm.propertyNames->constructor, constructor.get(), PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly);
 
-    auto addResult = this->_cacheId.set(constructorKey, constructor.get());
+    auto addResult = this->_cacheId.set(dedupedKey, constructor.get());
     if (!addResult.isNewEntry) {
         ASSERT_NOT_REACHED();
     }

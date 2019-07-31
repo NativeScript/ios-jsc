@@ -181,4 +181,12 @@
     return [TNSIBaseInterface_Private new];
 }
 
++ (id<TNSIBaseProtocol, TNSIDerivedProtocol>)instanceFromPrivateTypeImplementingTwoProtocols {
+    return (id<TNSIBaseProtocol, TNSIDerivedProtocol>)[TNSIBaseInterface_Private new];
+}
+
++ (id<TNSIBaseProtocol>)instanceFromPublicTypeImplementingProtocol {
+    return [TNSIBaseInterface new];
+}
+
 @end

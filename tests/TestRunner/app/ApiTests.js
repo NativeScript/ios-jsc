@@ -734,15 +734,15 @@ describe(module.id, function () {
     if (!isSimulator && interop.sizeof(interop.types.id) == 8) {
         it("MetalKit private interface members can be accessed", function() {
             const device = MTLCreateSystemDefaultDevice();
-            expect(device.toString()).toMatch(/\[object \w*?Device\]/);
+            expect(device.toString()).toMatch(/^<\w*?Device: 0x/);
             const queue = device.newCommandQueue();
-            expect(queue.toString()).toMatch(/\[object \w*?CommandQueue\]/);
+            expect(queue.toString()).toMatch(/^<\w*?CommandQueue: 0x/);
             const buffer = queue.commandBuffer();
-            expect(buffer.toString()).toMatch(/\[object \w*?CommandBuffer\]/);
+            expect(buffer.toString()).toMatch(/^<\w*?CommandBuffer: 0x/);
             const view = MTKView.alloc().initWithFrameDevice(CGRectMake(0,0,100,100), device);
-            expect(view.toString()).toMatch(/<MTKView: \w*; frame = \(0 0; 100 100\); .*>/);
+            expect(view.toString()).toMatch(/^<MTKView: 0x\w*; frame = \(0 0; 100 100\); .*>/);
             const texture = view.currentDrawable.texture;
-            expect(texture.toString()).toMatch(/\[object \w*?Texture\]/);
+            expect(texture.toString()).toMatch(/^<\w*?Texture: 0x/);
 
             buffer.presentDrawable(view.currentDrawable);
             buffer.commit();

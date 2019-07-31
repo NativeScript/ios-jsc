@@ -417,6 +417,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
 
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
         IMP imp = imp_implementationWithBlock(^NSUInteger(id self, NSFastEnumerationState* state, id buffer[], NSUInteger length) {
+          JSLockHolder lock(globalObject->vm());
           return TNSFastEnumerationAdapter(self, state, buffer, length, globalObject);
         });
 
