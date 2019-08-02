@@ -328,7 +328,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     if (symbolName == nullptr)
         return false;
 
-    const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTable()->findMeta(symbolName, false);
+    const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTable()->findMeta(symbolName);
     if (symbolMeta == nullptr)
         return false;
 
