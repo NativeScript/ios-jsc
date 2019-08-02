@@ -31,13 +31,13 @@ mkdir -p "$DIST_DIR" && pushd "$_"
 
 SRC_SIMULATOR="$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphonesimulator/NativeScript.framework"
 SRC_IPHONEOS="$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-iphoneos/NativeScript.framework"
-SRC_MACOS="$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-uikitformac/NativeScript.framework"
+SRC_MACOS="$WORKSPACE/cmake-build/src/NativeScript/$CONFIGURATION-maccatalyst/NativeScript.framework"
 XCFRAMEWORK_PATH="$DIST_DIR/NativeScript.xcframework"
 IOS_DSYM="$DIST_DIR/NativeScript.ios.framework.dSYM"
 MACOS_DSYM="$DIST_DIR/NativeScript.macos.framework.dSYM"
 
 # Strip debug information, dSYM package must be used for debugging and symbolicating
-strip -S "$SRC_SIMULATOR/NativeScript" "$SRC_IPHONEOS/NativeScript" # "$SRC_MACOS/NativeScript" # don't strip macos binary for now 
+strip -S "$SRC_SIMULATOR/NativeScript" "$SRC_IPHONEOS/NativeScript" # "$SRC_MACOS/NativeScript" # don't strip macos binary for now
 
 rm -rf $XCFRAMEWORK_PATH
 xcodebuild -create-xcframework -framework "$SRC_IPHONEOS" -framework "$SRC_SIMULATOR" -framework "$SRC_MACOS" -output "$XCFRAMEWORK_PATH"

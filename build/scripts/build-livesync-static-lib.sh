@@ -12,6 +12,8 @@ rm -rf "build"
 
 pod install
 
+export OTHER_CFLAGS='$(inherited) -Wno-implicit-retain-self -Wno-strict-prototypes'
+
 echo "Building TKLiveSync for iphonesimulator"
 xcodebuild \
     -workspace "./TKLiveSync.xcworkspace" \
@@ -34,12 +36,12 @@ xcodebuild \
     ARCHS="armv7 arm64" VALID_ARCHS="armv7 arm64" \
     -quiet
 
-echo "Building TKLiveSync for UIKit for Mac"
+echo "Building TKLiveSync for Catalyst"
 xcodebuild \
     -workspace "./TKLiveSync.xcworkspace" \
     -scheme "TKLiveSync" \
     -configuration "Release" \
-    -destination "variant=UIKit for Mac,arch=x86_64" -UseModernBuildSystem=YES \
+    -destination "variant=Mac Catalyst,arch=x86_64" -UseModernBuildSystem=YES \
     build \
     BUILD_DIR="$(pwd)/build" \
     -quiet
@@ -47,10 +49,11 @@ xcodebuild \
 checkpoint "Packaging TKLiveSync.xcframework"
 
 rm -rf "$WORKSPACE/dist/TKLiveSync.xcframework"
+# suppress GCDWebServer
 xcodebuild -create-xcframework -output "$WORKSPACE/dist/TKLiveSync.xcframework" \
     -framework "build/Release-iphonesimulator/TKLiveSync.framework" \
     -framework "build/Release-iphoneos/TKLiveSync.framework" \
-    -framework "build/Release-uikitformac/TKLiveSync.framework" 
+    -framework "build/Release-maccatalyst/TKLiveSync.framework"
 
 popd
 checkpoint "Finished building TKLiveSync - $WORKSPACE/dist/TKLiveSync"

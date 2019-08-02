@@ -10,11 +10,11 @@
 		</data>
 		<key>Headers/config.h</key>
 		<data>
-		HXGpy5HcjU//WX6WYuZJeiH7t8Q=
+		2kTU2a5N1JaXk+nEc+ben/mVngg=
 		</data>
 		<key>Headers/zip.h</key>
 		<data>
-		tH1+k65cQJQLcpHWEdKbJvH6ZYI=
+		0mJRUdMKUDhzc2/aQhBciPUw2Ec=
 		</data>
 		<key>Headers/zip_crypto.h</key>
 		<data>
@@ -42,11 +42,11 @@
 		</data>
 		<key>Headers/zipconf.h</key>
 		<data>
-		EPhAxzRZqbZKVon0JVkHwProwYk=
+		9pU7cViazuak6a91kc/mWuvR3bQ=
 		</data>
 		<key>Headers/zipint.h</key>
 		<data>
-		+pNvSoteudFZz2Grs0rOBUtO6hs=
+		rrUV277k9B8zrw/uY4woEoCuJxo=
 		</data>
 		<key>Headers/zipwin32.h</key>
 		<data>
@@ -54,7 +54,7 @@
 		</data>
 		<key>Info.plist</key>
 		<data>
-		dVW848yz9Hl8RwEtqCpbbJjXquQ=
+		2IKF81OL9R+1X1JZKEde1ELIAlU=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -74,22 +74,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			HXGpy5HcjU//WX6WYuZJeiH7t8Q=
+			2kTU2a5N1JaXk+nEc+ben/mVngg=
 			</data>
 			<key>hash2</key>
 			<data>
-			AZnFYjeLCPQMyx+vnAyv/nABBL54Xi8h73Bohftfpqs=
+			39YslxY54izgajEzuLaEQ/YbtGfvmC+xn1HclXfcnZ8=
 			</data>
 		</dict>
 		<key>Headers/zip.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			tH1+k65cQJQLcpHWEdKbJvH6ZYI=
+			0mJRUdMKUDhzc2/aQhBciPUw2Ec=
 			</data>
 			<key>hash2</key>
 			<data>
-			o7BpU8dz6czIxtCU5mdHAIjOCUa9qEJMYTHCggNUbnM=
+			t9+4bHr5nZJJehMXz339B3gi5Dwb+GsflCF0FAGY9d8=
 			</data>
 		</dict>
 		<key>Headers/zip_crypto.h</key>
@@ -162,22 +162,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			EPhAxzRZqbZKVon0JVkHwProwYk=
+			9pU7cViazuak6a91kc/mWuvR3bQ=
 			</data>
 			<key>hash2</key>
 			<data>
-			PaeWGuxBkIZ4bj16W/jON8zH2VQozKY5FVUczU5LMD4=
+			TiIBkoknuKrnu7MNZFbtkR86b1bCJszqOlQVxVV+HY0=
 			</data>
 		</dict>
 		<key>Headers/zipint.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			+pNvSoteudFZz2Grs0rOBUtO6hs=
+			rrUV277k9B8zrw/uY4woEoCuJxo=
 			</data>
 			<key>hash2</key>
 			<data>
-			Fj6fgOLnnpzz7sTAd8Dewow5iTWMYufnLvxw8yNpKGM=
+			M9aCgHZxcSXqM8NyYbMW7IibHSz+III5oC6MtBEk6Io=
 			</data>
 		</dict>
 		<key>Headers/zipwin32.h</key>

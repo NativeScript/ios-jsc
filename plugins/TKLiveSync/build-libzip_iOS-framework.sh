@@ -33,5 +33,5 @@ rm -rf ../../libzip_iOS.xcframework
 xcodebuild -create-xcframework \
     -framework "xcframework-build/Release-iphoneos/libzip_iOS.framework" \
     -framework "xcframework-build/Release-iphonesimulator/libzip_iOS.framework" \
-    -framework "xcframework-build/Release-uikitformac/libzip_iOS.framework" \
+    -framework "xcframework-build/Release-maccatalyst/libzip_iOS.framework" \
     -output "../../libzip_iOS.xcframework" \
