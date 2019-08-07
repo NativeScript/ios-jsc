@@ -7,6 +7,13 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.0.2 (2019-08-07)
+=====
+
+### Bug Fixes
+
+* **metadata-generator:** Preserve headers' relative order when sorting ([#1182](https://github.com/NativeScript/ios-runtime/pull/1182))
+
 6.0.1 (2019-07-17)
 =====
 
