@@ -1620,6 +1620,17 @@ describe(module.id, function () {
         TNSClearOutput();
     });
 
+    it('PropertyOverrides: errors', function () {
+        expect(() => TNSIDerivedInterface.extend({
+                get derivedImplementedOptionalProperty() {
+                }
+        })).toThrowError('Property "derivedImplementedOptionalProperty" requires a setter function.');
+        expect(() => TNSIDerivedInterface.extend({
+            derivedImplementedOptionalProperty: function() {
+            } 
+        })).toThrowError('Cannot override native property "derivedImplementedOptionalProperty" with a function, define it as a JS property instead.');
+    });
+         
     it('ConstructorOverrideAndVirtualCall: prototype', function () {
         var JSObject = TNSIConstructorVirtualCalls.extend({
             initWithXAndY: function initWithXAndY(x, y) {
