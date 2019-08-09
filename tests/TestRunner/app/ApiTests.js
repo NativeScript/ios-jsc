@@ -578,7 +578,7 @@ describe(module.id, function () {
                 .catch(error => {
                     expect(NSThread.currentThread.isMainThread).toBe(true);
                     expect(error.toString()).toMatch("index 2 beyond bounds");
-                    expect(error.stack).toEqual("objectAtIndex@[native code]\n[native code]");
+                    expect(error.stack).toEqual("objectAtIndex([native code])\nat [native code]");
                     done();
                 });
              });
@@ -729,7 +729,7 @@ describe(module.id, function () {
             }
         }
     });
-    
+
     // Metal is unavailable on iOS Simulator and devices with processors before A7 (arm64 on iPhone 5s)
     if (!isSimulator && interop.sizeof(interop.types.id) == 8) {
         it("MetalKit private interface members can be accessed", function() {
@@ -748,7 +748,7 @@ describe(module.id, function () {
             buffer.commit();
         });
     }
-         
+
     if (TNSIsConfigurationDebug) {
         // skip test in release because it requires downloading from the internet
         it("NSURLSession.sharedSession.downloadTaskWithURLCompletionHandler's ", function(done) {
@@ -763,7 +763,7 @@ describe(module.id, function () {
            });
            downloadPhotoTask.resume();
         });
-         
+
         it("Completion handler doesn't hijack main tests execution in a worker thread", function() {
            expect(NSThread.isMainThread).toBe(true);
         });

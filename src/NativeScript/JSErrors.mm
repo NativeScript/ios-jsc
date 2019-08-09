@@ -23,6 +23,7 @@
 #include <JavaScriptCore/ScriptCallStack.h>
 #include <JavaScriptCore/ScriptCallStackFactory.h>
 #include <JavaScriptCore/interpreter/Interpreter.h>
+#include <JavaScriptCore/runtime/StackFrame.h>
 
 static TNSUncaughtErrorHandler uncaughtErrorHandler;
 void TNSSetUncaughtErrorHandler(TNSUncaughtErrorHandler handler) {
@@ -137,7 +138,7 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
 
     JSWorkerGlobalObject* workerGlobalObject = jsDynamicCast<JSWorkerGlobalObject*>(globalObject->vm(), globalObject);
     bool isWorker = workerGlobalObject != nullptr;
-    // The CLI depends on `Fatal JavaScript exception - application has been terminated` in order to handle app crashed. 
+    // The CLI depends on `Fatal JavaScript exception - application has been terminated` in order to handle app crashed.
     // If we update this message, we also have to update it in the CLI.
     WTF::ASCIILiteral closingMessage(isWorker ? "Fatal JavaScript exception on worker thread - worker thread has been terminated."_s : "Fatal JavaScript exception - application has been terminated."_s);
 
@@ -203,10 +204,8 @@ std::string getCallStack(const Inspector::ScriptCallStack& frames) {
     std::stringstream resultCallstack;
     for (size_t i = 0; i < frames.size(); ++i) {
         Inspector::ScriptCallFrame frame = frames.at(i);
-        resultCallstack << std::setw(4) << std::left << std::setfill(' ') << (i + 1) << frame.functionName().utf8().data() << "@" << frame.sourceURL().utf8().data();
-        if (frame.lineNumber() && frame.columnNumber()) {
-            resultCallstack << ":" << frame.lineNumber() << ":" << frame.columnNumber();
-        }
+        auto frameString = StackFrame::formatStackFrame(frame.functionName(), frame.sourceURL(), frame.lineNumber(), frame.columnNumber());
+        resultCallstack << (i > 0 ? "at " : "") << frameString.utf8().data();
         resultCallstack << std::endl;
     }
 
