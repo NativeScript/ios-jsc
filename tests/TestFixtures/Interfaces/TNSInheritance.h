@@ -36,6 +36,7 @@
 @end
 
 @interface TNSIBaseInterface : NSObject <TNSIBaseProtocol>
+- (TNSIBaseInterface*)baseHiddenMethod;
 @end
 
 @interface TNSIBaseInterface (TNSIBaseCategory)
@@ -63,6 +64,7 @@
 @end
 
 @interface TNSIDerivedInterface : TNSIBaseInterface <TNSIDerivedProtocol>
+- (TNSIDerivedInterface*)baseHiddenMethod;
 @end
 
 @interface TNSIDerivedInterface (TNSIDerivedCategory)

@@ -24,11 +24,7 @@ static UInt8 getSystemVersion() {
         return iosVersion;
     }
 
-#if TARGET_OS_UIKITFORMAC
-    NSString* version = @"13.0";
-#else
     NSString* version = [[UIDevice currentDevice] systemVersion];
-#endif
     NSArray* versionTokens = [version componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"."]];
     UInt8 majorVersion = (UInt8)[versionTokens[0] intValue];
     UInt8 minorVersion = (UInt8)[versionTokens[1] intValue];
@@ -124,7 +120,7 @@ const Meta* GlobalTable::findMeta(const char* identifierString, size_t length, u
     for (ArrayOfPtrTo<Meta>::iterator it = bucketContent.begin(); it != bucketContent.end(); it++) {
         const Meta* meta = (*it).valuePtr();
         if (compareIdentifiers(meta->jsName(), identifierString, length) == 0) {
-            return onlyIfAvailable ? (meta->isAvailable() ? meta : nullptr) : meta;
+            return (!onlyIfAvailable || meta->isAvailable()) ? meta : nullptr;
         }
     }
     return nullptr;

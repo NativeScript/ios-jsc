@@ -4,9 +4,7 @@ describe(module.id, function() {
     });
 
     function SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(version) {
-        // TODO: remove uikitformac check when currentDevice.systemVersion starts returning a valid iOS version
-        // when running on macOS
-        var systemVersion = NSString.stringWithString(__uikitformac ? "13.0" : UIDevice.currentDevice.systemVersion);
+        const systemVersion = NSString.stringWithString(UIDevice.currentDevice.systemVersion);
         return systemVersion.compareOptions(version, NSStringCompareOptions.NSNumericSearch) !== NSComparisonResult.NSOrderedAscending;
     };
 

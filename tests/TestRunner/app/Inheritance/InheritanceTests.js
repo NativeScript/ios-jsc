@@ -1908,6 +1908,21 @@ describe(module.id, function () {
         checkMethodsAvailability(TNSIDerivedInterfaceImpl, true);
     });
 
+    it("Hidden base method", function() {
+        expect(Object.getOwnPropertyDescriptor(TNSIBaseInterface.prototype, "baseHiddenMethod")).toBeDefined();
+        expect(Object.getOwnPropertyDescriptor(TNSIDerivedInterface.prototype, "baseHiddenMethod")).toBeDefined();
+
+        {
+            var base = new TNSIBaseInterface();
+            expect(base.baseHiddenMethod()).toBe(base);
+        }
+
+        {
+            var derived = new TNSIDerivedInterface();
+            expect(derived.baseHiddenMethod()).toBe(derived);
+        }
+    });
+         
     it('AddedNewProperty', function () {
         var MyObject = NSObject.extend({
             property: 1,

@@ -45,6 +45,12 @@
 - (void)baseImplementedOptionalMethod {
     TNSLog([NSString stringWithFormat:@"%@ called", NSStringFromSelector(_cmd)]);
 }
+
+- (TNSIBaseInterface*)baseHiddenMethod {
+    TNSLog([NSString stringWithFormat:@"base %@ called", NSStringFromSelector(_cmd)]);
+    return self;
+}
+
 @end
 
 #pragma clang diagnostic push
@@ -60,6 +66,12 @@
 @end
 
 @implementation TNSIDerivedInterface
+
+- (TNSIDerivedInterface*)baseHiddenMethod {
+    TNSLog([NSString stringWithFormat:@"derived %@ called", NSStringFromSelector(_cmd)]);
+    return self;
+}
+
 + (int)staticDerivedImplementedOptionalProperty {
     return -1;
 }

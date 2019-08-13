@@ -91,10 +91,11 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
                     JSObject* basePrototype = prototype->getPrototype(execState->vm(), execState).toObject(execState);
                     PropertySlot tempPropSlot(JSValue(basePrototype), PropertySlot::InternalMethodType::GetOwnProperty);
 
-                    if (basePrototype->methodTable(execState->vm())->getOwnPropertySlot(basePrototype, execState, propertyName, tempPropSlot)) {
-                        // basePrototype has the property defined return false and let the prototype chain handle it
-                        return false;
-                    }
+                    //
+                    //if (basePrototype->methodTable(execState->vm())->getOwnPropertySlot(basePrototype, execState, propertyName, tempPropSlot)) {
+                    //    // basePrototype has the property defined return false and let the prototype chain handle it
+                    //    return false;
+                    //}
 
                     prototype->_definingPropertyName = propertyName;
                     prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
