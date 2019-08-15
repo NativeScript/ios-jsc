@@ -81,7 +81,7 @@ Boolean setStackTrace(JSC::ExecState* execState, JSC::Exception* exception) {
 
     std::string nativeStackTrace = getNativeStackTrace(execState, exception);
 
-    return setStackTraceProperty(execState, exception, "JS: " + jsStackTrace + "\nNative:" + nativeStackTrace);
+    return setStackTraceProperty(execState, exception, "JS:\n" + jsStackTrace + "\nNative:\n" + nativeStackTrace);
 }
 
 void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
