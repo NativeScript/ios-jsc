@@ -55,6 +55,7 @@ import "./VersionDiffTests";
 import "./ObjCConstructors";
 
 import "./MetadataTests";
+import "./StackTraceTests";
 
 import "./ApiTests";
 import "./DeclarationConflicts";
