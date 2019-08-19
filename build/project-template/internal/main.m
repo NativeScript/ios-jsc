@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
         TNSRuntime* runtime = [TNSRuntimeInstrumentation
               profile:@"main"
             withBlock:^{
-              __block NSString* applicationPath = [NSBundle mainBundle].bundlePath;
+              __block NSString* applicationPath = [NSString stringWithUTF8String:[NSBundle mainBundle].resourceURL.fileSystemRepresentation];
 
 #if DEBUG
               [TNSRuntimeInstrumentation
