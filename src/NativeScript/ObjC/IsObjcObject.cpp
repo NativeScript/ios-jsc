@@ -44,7 +44,7 @@
 
 #if OBJC_MSB_TAGGED_POINTERS
 #if TARGET_OS_UIKITFORMAC
-#define _OBJC_TAG_MASK (-1ULL >> (64 - 53))
+#define _OBJC_TAG_MASK ~(-1ULL >> (64 - 53))
 #else
 #define _OBJC_TAG_MASK (1ULL << 63)
 #endif // TARGET_OS_UIKITFORMAC
@@ -308,11 +308,11 @@ bool IsObjcObject(const void* inPtr) {
     // You can filter out some false positives by checking malloc_size(obj) >= class_getInstanceSize(cls).
     //
 
-// TODO: Enable for UIKit for Mac after official release if it works.
+// TODO: Enable for Mac Catalyst after official release if it works.
 // Right now the following check gives a false-negative result for instances of type NSCTFontDescriptor
-// on UIKit for Mac. Treating them as non-ObjC objects, because class_getInstanceSize(ptrClass) returns 104
+// on Mac Catalyst. Treating them as non-ObjC objects, because class_getInstanceSize(ptrClass) returns 104
 // while mallocsize is smaller - 96.
-#if !TARGET_OS_UIKITFORMAC
+#if !TARGET_OS_UIKITFORMAC || true
     size_t pointerSize = malloc_size(inPtr);
     if (pointerSize > 0 && pointerSize < class_getInstanceSize(ptrClass)) {
         return false;
