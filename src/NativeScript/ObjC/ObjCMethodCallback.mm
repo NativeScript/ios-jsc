@@ -61,7 +61,7 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
             auto throwScope = DECLARE_THROW_SCOPE(vm);
             WTF::String message = WTF::String::format("Cannot override native property \"%s\" with a function, define it as a JS property instead.",
                                                       propertyName.publicName()->utf8().data());
-            throwException(execState, throwScope, JSC::createError(execState, message));
+            throwException(execState, throwScope, JSC::createError(execState, message, defaultSourceAppender));
             return;
         }
 

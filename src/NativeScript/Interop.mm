@@ -165,13 +165,12 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
 
     if (!pointerValue.inherits(vm, PointerInstance::info())) {
         const char* className = PointerInstance::info()->className;
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("Argument must be a %s.", className))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, pointerValue, WTF::String::format("must be a %s.", className), defaultSourceAppender)));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(pointerValue);
     if (pointer->isAdopted()) {
-        const char* className = PointerInstance::info()->className;
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("%s is adopted.", className))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, pointer, "is adopted."_s, defaultSourceAppender)));
     }
 
     free(pointer->data());
@@ -205,7 +204,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
     if (!hasHandle) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, "Unknown type"_s)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, value, "Unknown type"_s, defaultSourceAppender)));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
@@ -221,7 +220,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
     if (size == 0) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, "Unknown type"_s)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, value, "Unknown type"_s, defaultSourceAppender)));
     }
 
     return JSValue::encode(jsNumber(size));

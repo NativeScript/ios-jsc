@@ -127,12 +127,12 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     CallData callData;
     if (method->methodTable(vm)->getCallData(method, callData) == CallType::None) {
         WTF::String message = WTF::String::format("Method %s is not a function.", sel_getName(methodName));
-        scope.throwException(execState, createError(execState, message));
+        scope.throwException(execState, createError(execState, method, message, defaultSourceAppender));
         return;
     }
     if (!typeEncoding.isObject()) {
-        WTF::String message = WTF::String::format("Method %s has invalid type encoding", sel_getName(methodName));
-        scope.throwException(execState, createError(execState, message));
+        WTF::String message = WTF::String::format("Method %s has an invalid type encoding", sel_getName(methodName));
+        scope.throwException(execState, createError(execState, method, message, defaultSourceAppender));
         return;
     }
 
@@ -140,7 +140,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     PropertyName returnsProp = Identifier::fromString(execState, "returns");
     if (!typeEncodingObj->hasOwnProperty(execState, returnsProp)) {
         WTF::String message = WTF::String::format("Method %s is missing its return type encoding", sel_getName(methodName));
-        scope.throwException(execState, createError(execState, message));
+        scope.throwException(execState, createError(execState, typeEncodingObj, message, defaultSourceAppender));
         return;
     }
 
@@ -186,7 +186,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     if (!baseConstructor.inherits(vm, ObjCConstructorNative::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        scope.throwException(execState, createError(execState, "Extends is supported only for native classes."_s));
+        scope.throwException(execState, createError(execState, "Extends is supported only for native classes."_s, defaultSourceAppender));
         return;
     }
 
@@ -220,8 +220,7 @@ void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolW
     if (!protocolWrapper.inherits(vm, ObjCProtocolWrapper::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        WTF::String errorMessage = WTF::String::format("Protocol \"%s\" is not a protocol object.", protocolWrapper.toWTFString(execState).utf8().data());
-        scope.throwException(execState, createError(execState, errorMessage));
+        scope.throwException(execState, createError(execState, protocolWrapper, "is not a protocol object."_s, defaultSourceAppender));
         return;
     }
 
@@ -250,7 +249,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (!protocolsArray.inherits(vm, JSArray::info())) {
-        scope.throwException(execState, createError(execState, "The protocols property must be an array"_s));
+        scope.throwException(execState, createError(execState, protocolsArray, "the 'protocols' property is not an array"_s, defaultSourceAppender));
         return;
     }
 

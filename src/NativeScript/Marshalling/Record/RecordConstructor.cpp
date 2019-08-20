@@ -77,7 +77,7 @@ static EncodedJSValue JSC_HOST_CALL recordConstructorFuncEquals(ExecState* execS
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() != 2) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, "Two arguments required."_s)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "Two arguments required."_s, defaultSourceAppender)));
     }
 
     RecordConstructor* recordConstructor = jsCast<RecordConstructor*>(execState->thisValue());
@@ -92,6 +92,7 @@ JSValue RecordConstructor::read(ExecState* execState, const void* buffer, JSCell
     const size_t size = constructor->_ffiTypeMethodTable.ffiType->size;
 
     void* data = malloc(size);
+    ASSERT(buffer);
     memcpy(data, buffer, size);
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data));
     pointer->setAdopted(true);
@@ -212,13 +213,13 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (execState->argumentCount() != 1) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, "One argument required."_s)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "One argument required."_s, defaultSourceAppender)));
     }
 
     const JSValue value = execState->argument(0);
     if (!value.inherits(vm, PointerInstance::info())) {
         const WTF::String message = WTF::String::format("Argument must be a %s.", PointerInstance::info()->className);
-        return JSValue::encode(scope.throwException(execState, createError(execState, message)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, message, defaultSourceAppender)));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(value);

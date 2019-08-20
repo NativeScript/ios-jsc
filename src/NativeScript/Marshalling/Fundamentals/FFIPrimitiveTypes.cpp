@@ -23,14 +23,14 @@ static JSValue noopType_read(ExecState* execState, const void* buffer, JSCell* s
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    JSValue exception = createError(execState, "Can not read from noop type."_s);
+    JSValue exception = createError(execState, "Can not read from noop type."_s, defaultSourceAppender);
     return scope.throwException(execState, exception);
 }
 static void noopType_write(ExecState* execState, const JSValue& value, void* buffer, JSCell* self) {
     JSC::VM& vm = execState->vm();
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    JSValue exception = createError(execState, "Can not write to noop type."_s);
+    JSValue exception = createError(execState, "Can not write to noop type."_s, defaultSourceAppender);
     scope.throwException(execState, exception);
 }
 static bool noopType_canConvert(ExecState* execState, const JSValue& value, JSCell* self) {
@@ -95,7 +95,7 @@ static void unicharType_write(ExecState* execState, const JSValue& value, void* 
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSValue exception = createError(execState, "Only one character string can be converted to unichar."_s);
+        JSValue exception = createError(execState, "Only one character strings can be converted to unichar."_s, defaultSourceAppender);
         scope.throwException(execState, exception);
         return;
     }
@@ -153,7 +153,7 @@ static void cStringType_write(ExecState* execState, const JSValue& value, void* 
 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
-    JSValue exception = createError(execState, "Value is not a string."_s);
+    JSValue exception = createError(execState, value, "is not a string."_s, defaultSourceAppender);
     scope.throwException(execState, exception);
     return;
 }

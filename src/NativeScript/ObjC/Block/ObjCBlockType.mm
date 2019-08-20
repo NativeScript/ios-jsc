@@ -120,7 +120,7 @@ void ObjCBlockType::write(ExecState* execState, const JSValue& value, void* buff
     } else {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSValue exception = createError(execState, "Value is not a function."_s);
+        JSValue exception = createError(execState, value, "is not a function", defaultSourceAppender);
         scope.throwException(execState, exception);
         return;
     }
