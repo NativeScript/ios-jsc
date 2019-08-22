@@ -23,6 +23,8 @@
 // Parsing regex is 'NativeScript debugger has opened inspector socket on port (\d+) for (.*)\.'
 // It's defined in 'ios-log-parser-service.ts'
 #define LOG_DEBUGGER_PORT NSLog(@"NativeScript debugger has opened inspector socket on port %d for %@.", currentInspectorPort, [[NSBundle mainBundle] bundleIdentifier])
+#define LOG_SUCCESSFULL_REFRESH NSLog(@"Successfully refreshed the application with RefreshRequest.")
+#define LOG_FAILED_REFRESH NSLog(@"Failed to refresh the application with RefreshRequest.")
 
 // Synchronization object for serializing access to inspector variable and data socket
 
@@ -428,6 +430,36 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
           });
           CFRunLoopWakeUp(CFRunLoopGetMain());
         });
+   
+    int refreshRequestSubscription;
+    notify_register_dispatch(
+        NOTIFICATION("RefreshRequest"), &refreshRequestSubscription,
+        dispatch_get_main_queue(), ^(int token) {
+            @try
+            {
+                JSGlobalContextRef context = runtime.globalContext;
+                JSObjectRef globalObject = JSContextGetGlobalObject(context);
+                JSStringRef liveSyncMethodName = JSStringCreateWithUTF8CString("__onLiveSync");
+                JSValueRef liveSyncMethod = JSObjectGetProperty(context, globalObject, liveSyncMethodName, NULL);
+                JSStringRelease(liveSyncMethodName);
+                if (JSValueIsUndefined(context, liveSyncMethod))
+                {
+                    LOG_FAILED_REFRESH;
+                }
+                
+                JSValueRef result = JSObjectCallAsFunction(context, (JSObjectRef)liveSyncMethod, NULL, 0, NULL, NULL);
+                if (JSValueIsNull(context, result))
+                {
+                    LOG_FAILED_REFRESH;
+                }
+                
+                LOG_SUCCESSFULL_REFRESH;
+            }
+            @catch (NSException *exception)
+            {
+                LOG_FAILED_REFRESH;
+            }
+    });   
 
     int attachRequestSubscription;
     notify_register_dispatch(
