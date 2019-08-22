@@ -312,7 +312,7 @@ bool IsObjcObject(const void* inPtr) {
 // Right now the following check gives a false-negative result for instances of type NSCTFontDescriptor
 // on Mac Catalyst. Treating them as non-ObjC objects, because class_getInstanceSize(ptrClass) returns 104
 // while mallocsize is smaller - 96.
-#if !TARGET_OS_UIKITFORMAC || true
+#if !TARGET_OS_UIKITFORMAC
     size_t pointerSize = malloc_size(inPtr);
     if (pointerSize > 0 && pointerSize < class_getInstanceSize(ptrClass)) {
         return false;
