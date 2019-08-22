@@ -26,7 +26,7 @@ var JSDetailViewController = UIViewController.extend({
         this.toggleTopBarVisibility();
     },
 
-    prefersStatusBarHidden: function () {
+    get prefersStatusBarHidden() {
         var navigationController = this.navigationController;
         var navigationBarHidden = navigationController.navigationBarHidden;
         return navigationBarHidden;
