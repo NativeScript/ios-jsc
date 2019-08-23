@@ -50,7 +50,7 @@ private:
 };
 
 void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyName propertyName, JSCell* method, const Metadata::BaseClassMeta* meta, Metadata::MemberType memberType, Class klass,
-                             std::vector<const Metadata::ProtocolMeta*>* protocols);
+                             const Metadata::ProtocolMetas& protocols);
 
 } // namespace NativeScript
 

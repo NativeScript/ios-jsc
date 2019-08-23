@@ -216,6 +216,22 @@ const MemberMeta* BaseClassMeta::member(const char* identifier, size_t length, M
     return members.size() > 0 ? *members.begin() : nullptr;
 }
 
+const MemberMeta* BaseClassMeta::deepMember(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetas& additionalProtocols) const {
+    const MemberMeta* memberMeta = nullptr;
+
+    ProtocolMetas emptyProtocols;
+    const ProtocolMetas* protocols = &additionalProtocols;
+    for (auto currentClass = this; currentClass != nullptr; currentClass = (currentClass->type() == MetaType::Interface) ? static_cast<const InterfaceMeta*>(currentClass)->baseMeta() : nullptr) {
+        if ((memberMeta = currentClass->member(identifier, length, type, includeProtocols, onlyIfAvailable, *protocols))) {
+            break;
+        }
+        // Do not recheck protocols when visiting base classes
+        protocols = &emptyProtocols;
+    }
+
+    return memberMeta;
+}
+
 void collectInheritanceChainMembers(const char* identifier, size_t length, MemberType type, bool onlyIfAvailable, const BaseClassMeta* meta, std::function<void(const MemberMeta*)> collectMember) {
 
     const ArrayOfPtrTo<MemberMeta>* members = nullptr;

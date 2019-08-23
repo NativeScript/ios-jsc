@@ -52,22 +52,8 @@ void overrideObjcMethodCall(ExecState* execState, Class klass, JSCell* method, O
 }
 
 void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyName propertyName, JSCell* method, const Metadata::BaseClassMeta* meta, Metadata::MemberType memberType, Class klass,
-                             std::vector<const Metadata::ProtocolMeta*>* protocols) {
-    JSValue methodValue = jsUndefined();
-    PropertySlot slot(object, PropertySlot::InternalMethodType::Get);
-    if (object->getPropertySlot(execState, propertyName, slot)) {
-        if (slot.isAccessor()) {
-            JSC::VM& vm = execState->vm();
-            auto throwScope = DECLARE_THROW_SCOPE(vm);
-            WTF::String message = WTF::String::format("Cannot override native property \"%s\" with a function, define it as a JS property instead.",
-                                                      propertyName.publicName()->utf8().data());
-            throwException(execState, throwScope, JSC::createError(execState, message, defaultSourceAppender));
-            return;
-        }
-
-        methodValue = slot.getValue(execState, propertyName);
-    }
-
+                             const ProtocolMetas& protocols) {
+    JSValue methodValue = object->get(execState, propertyName);
     ObjCMethodWrapper* wrapper = jsDynamicCast<ObjCMethodWrapper*>(execState->vm(), methodValue);
     Strong<ObjCMethodWrapper> strongWrapper;
     if (!wrapper) {
@@ -84,8 +70,8 @@ void overrideObjcMethodCalls(ExecState* execState, JSObject* object, PropertyNam
 
         } while (methodMetas.size() == 0 && currentClass);
 
-        if (methodMetas.size() == 0 && protocols && !protocols->empty()) {
-            for (auto aProtocol : *protocols) {
+        if (methodMetas.size() == 0) {
+            for (auto aProtocol : protocols) {
                 if ((methodMetas = aProtocol->members(propertyName.publicName(), memberType, /*includeProtocols*/ true, ProtocolMetas())).size() > 0) {
                     break;
                 }
