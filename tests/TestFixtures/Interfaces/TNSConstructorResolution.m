@@ -49,4 +49,12 @@
     return [super init];
 }
 
+- (id)initWithConflict1:(NSString*)x conflict2:(NSString*)y conflict3:(NSString*)z {
+    return [super init];
+}
+
+- (id)initWithConflict1_:(NSString*)x conflict2_:(NSString*)y conflict3_:(NSString*)z {
+    return [super init];
+}
+
 @end

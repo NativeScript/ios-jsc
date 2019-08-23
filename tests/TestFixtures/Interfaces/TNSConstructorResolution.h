@@ -31,4 +31,6 @@ typedef struct TNSCStructure {
 - (id)initWithStructure:(TNSCStructure)x;
 - (id)initWithString:(NSString*)x;
 - (id)initWithParameter1:(NSString*)x parameter2:(NSString*)y error:(NSError**)error;
+- (id)initWithConflict1:(NSString*)x conflict2:(NSString*)y conflict3:(NSString*)z;
+- (id)initWithConflict1_:(NSString*)x conflict2_:(NSString*)y conflict3_:(NSString*)z;
 @end
