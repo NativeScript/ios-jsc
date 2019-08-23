@@ -110,10 +110,8 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
 static bool isValidType(ExecState* execState, JSValue& value) {
     JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
     const FFITypeMethodTable* table;
     if (!tryGetFFITypeMethodTable(vm, value, &table)) {
-        scope.throwException(execState, createError(execState, "Invalid type"_s));
         return false;
     }
     return true;
@@ -147,7 +145,11 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     std::stringstream compilerEncoding;
 
     JSValue returnTypeValue = typeEncodingObj->get(execState, returnsProp);
-    if (scope.exception() || !isValidType(execState, returnTypeValue)) {
+    if (scope.exception()) {
+        return;
+    } else if (!isValidType(execState, returnTypeValue)) {
+        WTF::String message = WTF::String::format("Method %s has an invalid return type encoding", sel_getName(methodName));
+        scope.throwException(execState, createError(execState, returnTypeValue, message, defaultSourceAppender));
         return;
     }
 
@@ -161,10 +163,20 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 
     WTF::Vector<Strong<JSCell>> parameterTypesCells;
     JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(vm, parameterTypesValue);
+    if (parameterTypesArr == nullptr && !parameterTypesValue.isUndefinedOrNull()) {
+        WTF::String message = WTF::String::format("The 'params' property of method %s is not an array", sel_getName(methodName));
+        scope.throwException(execState, createError(execState, parameterTypesValue, message, defaultSourceAppender));
+        return;
+    }
+
     if (parameterTypesArr) {
         for (unsigned int i = 0; i < parameterTypesArr->length(); ++i) {
             JSValue parameterType = parameterTypesArr->get(execState, i);
-            if (scope.exception() || !isValidType(execState, parameterType)) {
+            if (scope.exception()) {
+                return;
+            } else if (!isValidType(execState, parameterType)) {
+                WTF::String message = WTF::String::format("Method %s has an invalid type encoding for argument %d", sel_getName(methodName), i + 1);
+                scope.throwException(execState, createError(execState, parameterType, message, defaultSourceAppender));
                 return;
             }
 
