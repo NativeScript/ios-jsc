@@ -452,6 +452,7 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                 long messageLength = JSStringGetLength(exMessage) + 1;
                 char* buffer = (char *)calloc(messageLength, sizeof(char));
                 JSStringGetUTF8CString(exMessage, buffer, messageLength);
+                JSStringRelease(exMessage);
                 
                 NSString *reason = [NSString stringWithFormat:@"__onLiveSync failed with: %s", buffer];
                 LOG_FAILED_REFRESH(reason);
