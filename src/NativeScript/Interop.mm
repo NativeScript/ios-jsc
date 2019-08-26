@@ -174,6 +174,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
     }
 
     free(pointer->data());
+    pointer->reset();
 
     return JSValue::encode(jsUndefined());
 }
@@ -350,7 +351,11 @@ JSValue Interop::pointerInstanceForPointer(ExecState* execState, void* value) {
     }
 
     if (PointerInstance* pointerInstance = this->_pointerToInstance.get(value)) {
-        return pointerInstance;
+        // Pointer instance could have been freed, reuse it from cache only if it is still alive
+        ASSERT(pointerInstance->data() == value || pointerInstance->data() == nullptr);
+        if (pointerInstance->data()) {
+            return pointerInstance;
+        }
     }
 
     auto pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
