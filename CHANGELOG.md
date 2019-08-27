@@ -7,6 +7,25 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.1.0 (2019-09-04)
+=====
+
+### Features
+
+* `Error.prepareStackTrace` method support and change the format of the stack trace to be the same as in Android ([#1135](https://github.com/NativeScript/ios-runtime/issues/1135))
+* Expose internal interfaces' members to JS ([#1127](https://github.com/NativeScript/ios-runtime/issues/1127))
+* Support app refresh through the notifications service ([#1191](https://github.com/NativeScript/ios-runtime/pull/1191))
+
+### Bug Fixes
+
+* **runtime:** Change the format of the stack trace to be the same as in Android([#1180](https://github.com/NativeScript/ios-runtime/pull/1180))
+* **runtime:** Native properties provided by internal classes are not available ([#1149](https://github.com/NativeScript/ios-runtime/issues/1149))
+* **runtime:** Improve error messages thrown by iOS runtime ([#1193](https://github.com/NativeScript/ios-runtime/pull/1193))
+* **interop:** Reset pointer after free ([2ac4f84](https://github.com/NativeScript/ios-runtime/commit/2ac4f84))
+* **metadata-generator:** Improve detection of static frameworks ([#1177](https://github.com/NativeScript/ios-runtime/pull/1177))
+* **project-template:** Correctly get architecture in `nsld` with Xcode 11 ([#1179](https://github.com/NativeScript/ios-runtime/pull/1179))
+* **runtime:** Improve error handling in overriding properties and methods ([943948d](https://github.com/NativeScript/ios-runtime/commit/943948d))
+
 6.0.2 (2019-08-07)
 =====
 
