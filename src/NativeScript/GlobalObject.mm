@@ -128,16 +128,16 @@ static EncodedJSValue JSC_HOST_CALL time(ExecState* execState) {
 static EncodedJSValue JSC_HOST_CALL releaseNativeCounterpart(ExecState* execState) {
     if (execState->argumentCount() != 1) {
         auto scope = DECLARE_THROW_SCOPE(execState->vm());
-        WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\". ", execState->argumentCount(), 1);
-        return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message)));
+        WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\".", execState->argumentCount(), 1);
+        return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message, defaultSourceAppender)));
     }
 
     auto arg0 = execState->argument(0);
     auto wrapper = jsDynamicCast<ObjCWrapperObject*>(execState->vm(), arg0);
     if (!wrapper) {
         auto scope = DECLARE_THROW_SCOPE(execState->vm());
-        WTF::String message("Argument is an object which is not a native wrapper.");
-        return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message)));
+        JSValue error = JSC::createError(execState, arg0, "is an object which is not a native wrapper."_s, defaultSourceAppender);
+        return JSValue::encode(throwException(execState, scope, error));
     }
 
     wrapper->setWrappedObject(nil);

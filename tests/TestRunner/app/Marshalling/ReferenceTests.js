@@ -125,6 +125,9 @@ describe(module.id, function () {
         expect(TNSSimpleStruct.equals(strRef.value, {x: 2, y: 3}));
     });
 
+    it("Wrong type of argument passed as pointer", function () {
+        expect(() => functionWith_VoidPtr(1)).toThrowError(/1 is not a pointer. \(evaluating 'functionWith_VoidPtr\(1\)'\)/);
+    });
     it("CString marshalling from JS string", function () {
         functionWithUCharPtr('test');
         expect(TNSGetOutput()).toBe('test');

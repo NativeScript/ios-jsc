@@ -54,7 +54,7 @@ private:
 
     JSC::Strong<ObjCConstructorNative> _baseConstructor;
 
-    std::vector<const Metadata::ProtocolMeta*> _protocols;
+    Metadata::ProtocolMetas _protocols;
 };
 } // namespace NativeScript
 

@@ -823,7 +823,40 @@ struct BaseClassMeta : Meta {
         return this->member(identifier, strlen(identifier), type, includeProtocols, /*onlyIfAvailable*/ true, additionalProtocols);
     }
 
+    const MemberMeta* deepMember(const char* identifier, size_t length, MemberType type, bool includeProtocols, bool onlyIfAvailable, const ProtocolMetas& additionalProtocols) const;
+
+    const MemberMeta* deepMember(StringImpl* identifier, MemberType type, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        // Assign to a separate variable to ensure the lifetime of the string returned by utf8
+        auto identifierUtf8 = identifier->utf8();
+        const char* identif = reinterpret_cast<const char*>(identifierUtf8.data());
+        size_t length = (size_t)identifier->length();
+        return this->deepMember(identif, length, type, includeProtocols, /*onlyIfAvailable*/ true, additionalProtocols);
+    }
+
+    const MemberMeta* deepMember(const char* identifier, MemberType type, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        return this->deepMember(identifier, strlen(identifier), type, includeProtocols, /*onlyIfAvailable*/ true, additionalProtocols);
+    }
+
     /// instance methods
+    const MethodMeta* instanceMethod(const char* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        auto methodMeta = static_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols, additionalProtocols));
+        return methodMeta && methodMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? methodMeta : nullptr;
+    }
+
+    const MethodMeta* instanceMethod(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        auto methodMeta = static_cast<const MethodMeta*>(this->member(identifier, MemberType::InstanceMethod, includeProtocols, additionalProtocols));
+        return methodMeta && methodMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? methodMeta : nullptr;
+    }
+
+    const MethodMeta* deepInstanceMethod(const char* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        auto methodMeta = static_cast<const MethodMeta*>(this->deepMember(identifier, MemberType::InstanceMethod, includeProtocols, additionalProtocols));
+        return methodMeta && methodMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? methodMeta : nullptr;
+    }
+
+    const MethodMeta* deepInstanceMethod(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        auto methodMeta = static_cast<const MethodMeta*>(this->deepMember(identifier, MemberType::InstanceMethod, includeProtocols, additionalProtocols));
+        return methodMeta && methodMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? methodMeta : nullptr;
+    }
 
     // Remove all optional methods/properties which are not implemented in the class
     template <typename TMemberMeta>
@@ -858,6 +891,16 @@ struct BaseClassMeta : Meta {
 
     const PropertyMeta* instanceProperty(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
         auto propMeta = static_cast<const PropertyMeta*>(this->member(identifier, MemberType::InstanceProperty, includeProtocols, additionalProtocols));
+        return propMeta && propMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? propMeta : nullptr;
+    }
+
+    const PropertyMeta* deepInstanceProperty(const char* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        auto propMeta = static_cast<const PropertyMeta*>(this->deepMember(identifier, MemberType::InstanceProperty, includeProtocols, additionalProtocols));
+        return propMeta && propMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? propMeta : nullptr;
+    }
+
+    const PropertyMeta* deepInstanceProperty(StringImpl* identifier, KnownUnknownClassPair klasses, bool includeProtocols, const ProtocolMetas& additionalProtocols) const {
+        auto propMeta = static_cast<const PropertyMeta*>(this->deepMember(identifier, MemberType::InstanceProperty, includeProtocols, additionalProtocols));
         return propMeta && propMeta->isAvailableInClasses(klasses, /*isStatic*/ false) ? propMeta : nullptr;
     }
 

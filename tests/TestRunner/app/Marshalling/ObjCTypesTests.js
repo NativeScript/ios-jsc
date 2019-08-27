@@ -275,4 +275,8 @@ describe(module.id, function () {
         expect(typeof array.firstObject).toEqual("boolean");
         expect(array.firstObject).toEqual(bool);
     });
+         
+    it("Wrong type of argument passed as block", function () {
+        expect(() => new TNSObjCTypes().methodWithSimpleBlock({})).toThrowError(/Object is not a function \(evaluating 'new TNSObjCTypes\(\).methodWithSimpleBlock\({}\)'\)/);
+    });
 });

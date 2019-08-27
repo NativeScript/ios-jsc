@@ -112,7 +112,7 @@ describe(module.id, function () {
         var reference = new interop.Reference();
         expect(function () {
             interop.handleof(reference);
-        }).toThrowError();
+        }).toThrowError(/Reference Unknown type \(evaluating 'interop.handleof\(reference\)'\)/);
         functionWithIntPtr(reference);
         expect(interop.handleof(reference) instanceof interop.Pointer).toBe(true);
 
@@ -120,7 +120,7 @@ describe(module.id, function () {
         });
         expect(function () {
             interop.handleof(functionReference);
-        }).toThrowError();
+        }).toThrowError(/function Unknown type \(evaluating 'interop.handleof\(functionReference\)'\)/);
         functionWithSimpleFunctionPointer(functionReference);
         expect(interop.handleof(functionReference) instanceof interop.Pointer).toBe(true);
 
@@ -150,5 +150,16 @@ describe(module.id, function () {
 
         expect(interop.sizeof(TNSSimpleStruct)).toBeGreaterThan(0);
         expect(interop.sizeof(new TNSSimpleStruct())).toBeGreaterThan(0);
+    });
+    it("free", function () {
+        const p = malloc(1);
+        expect(p.toNumber()).not.toBe(0);
+        expect(() => interop.free(p)).not.toThrow();
+        expect(p.toNumber()).toBe(0);
+
+        const adoptedPointer = interop.alloc(1);
+        expect(() => interop.free(adoptedPointer)).toThrowError(/Pointer is adopted. \(evaluating 'interop.free\(adoptedPointer\)'\)/);
+
+       expect(() => interop.free("s")).toThrowError(/"s" must be a Pointer. \(evaluating 'interop.free\("s"\)'\)/);
     });
 });

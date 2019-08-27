@@ -63,8 +63,12 @@ describe("Constructing Objective-C classes with new operator", function () {
     });
 
     it("initAWithIntNotImplemented:andInt:andInt and initZWithIntNotImplemented:andInt:andInt from protocol should be missing", function () {
-        expect(() => new TNSCInterface(1, 2, 3)).toThrowError("No initializer found that matches constructor invocation.");
-        expect(() => new (TNSCInterface.extend({}))(1, 2, 3)).toThrowError("No initializer found that matches constructor invocation.");
+        expect(() => new TNSCInterface(1, 2, 3)).toThrowError("No initializer found that matches constructor invocation. (evaluating 'new TNSCInterface(1, 2, 3)')");
+        expect(() => new (TNSCInterface.extend({}))(1, 2, 3)).toThrowError("No initializer found that matches constructor invocation. (evaluating 'new (TNSCInterface.extend({}))(1, 2, 3)')");
+    });
+
+    it("withConflict1:conflict2:conflict3", function () {
+        expect(() => new TNSCInterface("1", "2", "3")).toThrowError("More than one initializer found that matches constructor invocation: initWithConflict1:conflict2:conflict3: initWithConflict1_:conflict2_:conflict3_: (evaluating 'new TNSCInterface(\"1\", \"2\", \"3\")')");
     });
 
     it("NSArray with JS array constructor", function () {

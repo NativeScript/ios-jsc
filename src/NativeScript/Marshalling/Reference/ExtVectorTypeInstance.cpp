@@ -24,13 +24,14 @@ const ClassInfo ExtVectorTypeInstance::s_info = { "ExtVectorTypeInstance", &Base
 JSValue ExtVectorTypeInstance::read(ExecState* execState, const void* buffer, JSCell* self) {
     ExtVectorTypeInstance* vectorInstance = jsCast<ExtVectorTypeInstance*>(self);
     const size_t size = vectorInstance->_ffiTypeMethodTable.ffiType->size;
-    void* data = malloc(size);
 
-    memcpy(data, buffer, size);
-
-    if (!data) {
+    if (!size) {
         return jsNull();
     }
+
+    void* data = malloc(size);
+    ASSERT(buffer);
+    memcpy(data, buffer, size);
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
     ExtVectorTypeInstance* referenceType = jsCast<ExtVectorTypeInstance*>(self);
@@ -62,7 +63,7 @@ void ExtVectorTypeInstance::write(ExecState* execState, const JSValue& value, vo
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        JSValue exception = createError(execState, "Value is not a reference."_s);
+        JSValue exception = createError(execState, value, "is not a reference."_s, defaultSourceAppender);
         scope.throwException(execState, exception);
         return;
     }

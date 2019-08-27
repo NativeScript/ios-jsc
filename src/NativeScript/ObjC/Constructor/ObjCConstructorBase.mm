@@ -324,7 +324,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (candidateInitializers.size() == 0) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, "No initializer found that matches constructor invocation."_s)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "No initializer found that matches constructor invocation."_s, defaultSourceAppender)));
     } else if (candidateInitializers.size() > 1) {
         WTF::StringBuilder errorMessage;
         errorMessage.append("More than one initializer found that matches constructor invocation:");
@@ -332,7 +332,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
             errorMessage.append(" ");
             errorMessage.append(sel_getName(static_cast<ObjCConstructorCall*>(initializer->onlyFuncInContainer())->selector()));
         }
-        return JSValue::encode(scope.throwException(execState, createError(execState, errorMessage.toString())));
+        return JSValue::encode(scope.throwException(execState, createError(execState, errorMessage.toString(), defaultSourceAppender)));
     } else {
         ObjCConstructorWrapper* initializer = candidateInitializers[0];
 

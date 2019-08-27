@@ -28,7 +28,7 @@ EncodedJSValue JSC_HOST_CALL FunctionReferenceConstructor::constructFunctionRefe
     if (!(execState->argumentCount() == 1 && JSC::getCallData(vm, execState->uncheckedArgument(0), callData) != CallType::None)) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, "Function required."_s)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, "Exactly 1 argument which must be a function required."_s, defaultSourceAppender)));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
