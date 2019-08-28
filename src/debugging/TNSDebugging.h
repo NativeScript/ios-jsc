@@ -21,7 +21,6 @@
 
 // {N} CLI is relying on these messages. Please do not change them!
 #define LOG_DEBUGGER_PORT NSLog(@"NativeScript debugger has opened inspector socket on port %d for %@.", currentInspectorPort, [[NSBundle mainBundle] bundleIdentifier])
-#define LOG_SUCCESSFULL_REFRESH NSLog(@"Successfully refreshed the application with RefreshRequest."); notify_post(NOTIFICATION("AppRefreshSucceeded"))
 #define LOG_FAILED_REFRESH(reason) NSLog(@"Failed to refresh the application with RefreshRequest. Reason: %@", reason); notify_post(NOTIFICATION("AppRefreshFailed"))
 
 // Synchronization object for serializing access to inspector variable and data socket
@@ -433,6 +432,8 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
     notify_register_dispatch(
         NOTIFICATION("RefreshRequest"), &refreshRequestSubscription,
         dispatch_get_main_queue(), ^(int token) {
+            notify_post(NOTIFICATION("AppRefreshStarted"));
+
             JSGlobalContextRef context = runtime.globalContext;
             JSObjectRef globalObject = JSContextGetGlobalObject(context);
             JSStringRef liveSyncMethodName = JSStringCreateWithUTF8CString("__onLiveSync");
@@ -460,8 +461,8 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
                 return;
             }
             
-            LOG_SUCCESSFULL_REFRESH;
-    });   
+            notify_post(NOTIFICATION("AppRefreshSucceeded"));
+    });
 
     int attachRequestSubscription;
     notify_register_dispatch(
