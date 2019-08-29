@@ -106,9 +106,12 @@ void sig_handler(int sig) {
     NSLog(@"NativeScript caught signal %d.", sig);
     NSLog(@"Native Stack: ");
     WTFReportBacktrace();
-    NSLog(@"JS Stack: ");
-    dumpExecJsCallStack([TNSRuntime current] -> _globalObject -> globalExec());
-
+    if (auto currentRuntime = [TNSRuntime current]) {
+        NSLog(@"JS Stack: ");
+        dumpExecJsCallStack(currentRuntime->_globalObject->globalExec());
+    } else {
+        NSLog(@"JS Stack unavailable. Current thread hasn't initialized a {N} runtime.");
+    }
     if (oldHandlers[sig]) {
         oldHandlers[sig](sig);
     }
