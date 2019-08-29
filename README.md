@@ -27,6 +27,7 @@ git clone --recursive git@github.com:NativeScript/ios-runtime.git
  - [llvm 7.0](http://releases.llvm.org/download.html#7.0.0) - used to build the [metadata generator](https://github.com/NativeScript/ios-metadata-generator) submodule. Be sure to have the folder containing `llvm-config` in `PATH` or make a symlink to in `/usr/local/bin/`.
  - [Automake](https://www.gnu.org/software/automake/) - available in [Homebrew](http://brew.sh) as `automake`.
  - [GNU Libtool](http://www.gnu.org/software/libtool/) - available in [Homebrew](http://brew.sh) as `libtool`.
+ - [Perl (installed on macOS by default but deprecated since macOS X 10.15)](https://www.perl.org/get.html#osx)
  - Checkout all git submodules using `git submodule update --init`.
 
 ## Architecture Diagram

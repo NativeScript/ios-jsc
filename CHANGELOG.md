@@ -25,6 +25,8 @@ previous_url: /Changelogs/iOS Runtime
 * **metadata-generator:** Improve detection of static frameworks ([#1177](https://github.com/NativeScript/ios-runtime/pull/1177))
 * **project-template:** Correctly get architecture in `nsld` with Xcode 11 ([#1179](https://github.com/NativeScript/ios-runtime/pull/1179))
 * **runtime:** Improve error handling in overriding properties and methods ([943948d](https://github.com/NativeScript/ios-runtime/commit/943948d))
+* **metadata-generator:** Metadata generation failed with `tns-ios@6.0.2` ([#1197](https://github.com/NativeScript/ios-runtime/pull/1197))
+* **runtime:** null pointer dereference in signal and unhandled exception handlers ([#1199](https://github.com/NativeScript/ios-runtime/pulls/1199))
 
 6.0.2 (2019-08-07)
 =====
