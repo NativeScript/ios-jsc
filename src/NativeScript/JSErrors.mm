@@ -142,53 +142,53 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
     // If we update this message, we also have to update it in the CLI.
     WTF::ASCIILiteral closingMessage(isWorker ? "Fatal JavaScript exception on worker thread - worker thread has been terminated."_s : "Fatal JavaScript exception - application has been terminated."_s);
 
-    if (globalObject->debugger()) {
-        warn(execState, closingMessage);
+    NSLog(@"***** %s *****\n", closingMessage.operator const char*());
 
-        ASSERT(!globalObject->inspectorController().includesNativeCallStackWhenReportingExceptions());
-        globalObject->inspectorController().reportAPIException(execState, exception);
+    NSLog(@"Native stack trace:");
+    WTFReportBacktrace();
 
-        while (true) {
-            CFRunLoopRunInMode((CFStringRef)TNSInspectorRunLoopMode, 0.1, false);
+    Ref<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
+    NSLog(@"JavaScript stack trace:");
+    std::string jsCallstack = dumpJsCallStack(callStack.get());
+
+    logJsException(execState, globalObject, @"JavaScript error:", exception);
+
+    if (isWorker) {
+        if (!errorCallbackResult) {
+            const Inspector::ScriptCallFrame* frame = callStack->firstNonNativeCallFrame();
+            String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
+            if (frame != nullptr) {
+                workerGlobalObject->uncaughtErrorReported(message, frame->sourceURL(), frame->lineNumber(), frame->columnNumber());
+            } else {
+                workerGlobalObject->uncaughtErrorReported(message);
+            }
+            if (errorCallbackException) {
+                reportFatalErrorBeforeShutdown(execState, errorCallbackException, false);
+            }
         }
     } else {
-        NSLog(@"***** %s *****\n", closingMessage.operator const char*());
-
-        NSLog(@"Native stack trace:");
-        WTFReportBacktrace();
-
-        Ref<Inspector::ScriptCallStack> callStack = Inspector::createScriptCallStackFromException(execState, exception, Inspector::ScriptCallStack::maxCallStackSizeToCapture);
-        NSLog(@"JavaScript stack trace:");
-        std::string jsCallstack = dumpJsCallStack(callStack.get());
-
-        logJsException(execState, globalObject, @"JavaScript error:", exception);
-
-        if (isWorker) {
-            if (!errorCallbackResult) {
-                const Inspector::ScriptCallFrame* frame = callStack->firstNonNativeCallFrame();
-                String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
-                if (frame != nullptr) {
-                    workerGlobalObject->uncaughtErrorReported(message, frame->sourceURL(), frame->lineNumber(), frame->columnNumber());
-                } else {
-                    workerGlobalObject->uncaughtErrorReported(message);
-                }
-                if (errorCallbackException) {
-                    reportFatalErrorBeforeShutdown(execState, errorCallbackException, false);
-                }
-            }
-        } else {
-            if (errorCallbackException) {
-                // log first any error coming from execution of UncaughtErrorCallback
-                logJsException(execState, globalObject, @"Error executing __onUncaughtError callback:", errorCallbackException);
-            }
-            String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
-            NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
-                                                                                                   message.utf8().data(),
-                                                                                                   jsCallstack.c_str()]
-                                                                 reason:nil
-                                                               userInfo:@{ @"sender": @"reportFatalErrorBeforeShutdown" }];
-            @throw objcException;
+        if (errorCallbackException) {
+            // log first any error coming from execution of UncaughtErrorCallback
+            logJsException(execState, globalObject, @"Error executing __onUncaughtError callback:", errorCallbackException);
         }
+
+        if (globalObject->debugger()) {
+            warn(execState, closingMessage);
+
+            warn(execState, "Active debugger session detected. Blocking app to keep the session alive.");
+            JSLock::DropAllLocks dropAllLocks(execState);
+            while (globalObject->debugger()) {
+                CFRunLoopRunInMode((CFStringRef)TNSInspectorRunLoopMode, 0.1, false);
+            }
+        }
+
+        String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
+        NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
+                                                                                               message.utf8().data(),
+                                                                                               jsCallstack.c_str()]
+                                                             reason:nil
+                                                           userInfo:@{ @"sender": @"reportFatalErrorBeforeShutdown" }];
+        @throw objcException;
     }
 }
 
