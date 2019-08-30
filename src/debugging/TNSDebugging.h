@@ -376,16 +376,18 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
       }
       return ^(NSString* message, NSError* error) {
         if (message) {
-            // Keep a working copy for calling into the VM after releasing inspectorLock
-            TNSRuntimeInspector* tempInspector = nil;
-            @synchronized(inspectorLock()) {
-                tempInspector = inspector;
-            }
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+              // Keep a working copy for calling into the VM after releasing inspectorLock
+              TNSRuntimeInspector* tempInspector = nil;
+              @synchronized(inspectorLock()) {
+                  tempInspector = inspector;
+              }
 
-            if (tempInspector) {
-                // NSLog(@"NativeScript Debugger receiving: %@", message);
-                [tempInspector dispatchMessage:message];
-            }
+              if (tempInspector) {
+                  // NSLog(@"NativeScript Debugger receiving: %@", message);
+                  [tempInspector dispatchMessage:message];
+              }
+            });
         } else {
             clearInspector();
 
