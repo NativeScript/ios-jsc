@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		42C751E7232B769100186695 /* nativescript-pre-link in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E2232B769100186695 /* nativescript-pre-link */; };
+		42C751E8232B769100186695 /* strip-dynamic-framework-architectures.sh in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E3232B769100186695 /* strip-dynamic-framework-architectures.sh */; };
+		42C751E9232B769100186695 /* nsld.sh in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E4232B769100186695 /* nsld.sh */; };
+		42C751EA232B769100186695 /* nativescript-post-build in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E5232B769100186695 /* nativescript-post-build */; };
+		42C751EB232B769100186695 /* nativescript-pre-build in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E6232B769100186695 /* nativescript-pre-build */; };
 		858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 858B833A18CA111C00AB12DE /* InfoPlist.strings */; };
 		CD45EE7C18DC2D5800FB50C0 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CD45EE7A18DC2D5800FB50C0 /* app */; };
 		CD62955D1BB2678900AE3A93 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CD62955C1BB2678900AE3A93 /* main.m */; };
@@ -31,6 +36,11 @@
 		391174B521F1D7BF00BA2583 /* nativescript-build.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "nativescript-build.xcconfig"; path = "internal/nativescript-build.xcconfig"; sourceTree = SOURCE_ROOT; };
 		391174B721F1D99900BA2583 /* plugins-release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "plugins-release.xcconfig"; sourceTree = SOURCE_ROOT; };
 		391174B821F1D99900BA2583 /* plugins-debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "plugins-debug.xcconfig"; sourceTree = SOURCE_ROOT; };
+		42C751E2232B769100186695 /* nativescript-pre-link */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "nativescript-pre-link"; path = "internal/nativescript-pre-link"; sourceTree = SOURCE_ROOT; };
+		42C751E3232B769100186695 /* strip-dynamic-framework-architectures.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "strip-dynamic-framework-architectures.sh"; path = "internal/strip-dynamic-framework-architectures.sh"; sourceTree = SOURCE_ROOT; };
+		42C751E4232B769100186695 /* nsld.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = nsld.sh; path = internal/nsld.sh; sourceTree = SOURCE_ROOT; };
+		42C751E5232B769100186695 /* nativescript-post-build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "nativescript-post-build"; path = "internal/nativescript-post-build"; sourceTree = SOURCE_ROOT; };
+		42C751E6232B769100186695 /* nativescript-pre-build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "nativescript-pre-build"; path = "internal/nativescript-pre-build"; sourceTree = SOURCE_ROOT; };
 		858B832E18CA111C00AB12DE /* __PROJECT_NAME__.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = __PROJECT_NAME__.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		858B833918CA111C00AB12DE /* __PROJECT_NAME__-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "__PROJECT_NAME__-Info.plist"; sourceTree = "<group>"; };
 		858B833B18CA111C00AB12DE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -55,6 +65,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		42C751E1232B767700186695 /* Build Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				42C751E5232B769100186695 /* nativescript-post-build */,
+				42C751E6232B769100186695 /* nativescript-pre-build */,
+				42C751E2232B769100186695 /* nativescript-pre-link */,
+				42C751E4232B769100186695 /* nsld.sh */,
+				42C751E3232B769100186695 /* strip-dynamic-framework-architectures.sh */,
+			);
+			name = "Build Scripts";
+			sourceTree = "<group>";
+		};
 		858B832518CA111C00AB12DE = {
 			isa = PBXGroup;
 			children = (
@@ -93,6 +115,7 @@
 		858B833818CA111C00AB12DE /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				42C751E1232B767700186695 /* Build Scripts */,
 				391174B821F1D99900BA2583 /* plugins-debug.xcconfig */,
 				391174B721F1D99900BA2583 /* plugins-release.xcconfig */,
 				391174B321F1CBD300BA2583 /* TNSDebugging.h */,
@@ -156,6 +179,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 858B832518CA111C00AB12DE;
@@ -174,7 +198,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD45EE7C18DC2D5800FB50C0 /* app in Resources */,
+				42C751EB232B769100186695 /* nativescript-pre-build in Resources */,
+				42C751EA232B769100186695 /* nativescript-post-build in Resources */,
 				858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */,
+				42C751E7232B769100186695 /* nativescript-pre-link in Resources */,
+				42C751E8232B769100186695 /* strip-dynamic-framework-architectures.sh in Resources */,
+				42C751E9232B769100186695 /* nsld.sh in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
