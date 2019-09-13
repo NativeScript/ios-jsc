@@ -71,6 +71,7 @@ describe(module.id, function () {
             'initBaseProtocolMethod1Optional',
             'initBaseProtocolMethod2',
             'initBaseProtocolMethod2Optional',
+            'initThrowingException',
             'methodWithParam'
         ]);
     });
@@ -193,6 +194,12 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance baseMethod called');
     });
+
+    if(!isSimulator) {
+        it("Throwing constructor", function () {
+           expect(() => TNSBaseInterface.alloc().initThrowingException()).toThrowError("Custom Reason");
+        });
+    }
 
     it("ConstructorCalls", function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({});
