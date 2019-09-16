@@ -132,7 +132,9 @@
 - (void)methodWithParam:(NSNumber*)p2 {
     TNSLog([NSString stringWithFormat:@"instance %@ called with 1 param", NSStringFromSelector(_cmd)]);
 }
-
+- (instancetype)initThrowingException {
+    @throw [NSException exceptionWithName:@"Custom Exception" reason:@"Custom Reason" userInfo:nil];
+}
 - (instancetype)initBaseMethod {
     TNSLog([NSString stringWithFormat:@"constructor %@ called", NSStringFromSelector(_cmd)]);
     return self;

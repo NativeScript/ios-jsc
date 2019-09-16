@@ -41,6 +41,7 @@
 @property(class) int baseProperty;
 + (void)baseMethod;
 + (void)baseMethod:(NSNumber*)param;
+- (instancetype)initThrowingException;
 - (instancetype)initBaseMethod;
 - (void)baseMethod:(NSNumber*)param;
 - (void)baseMethod;
