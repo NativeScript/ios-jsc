@@ -7,6 +7,17 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.1.1 (2019-09-18)
+=====
+
+### Features
+
+* Add build scripts to the template project ([cc9425e84b35746e](https://github.com/NativeScript/ios-runtime/pull/1205/commits/cc9425e84b35746e539a9434019858d7143b7d45))
+
+### Bug Fixes
+
+* Sporadically native exceptions cannot be caught in JS try/catch ([#1207](https://github.com/NativeScript/ios-runtime/pull/1207))
+
 6.1.0 (2019-09-04)
 =====
 
