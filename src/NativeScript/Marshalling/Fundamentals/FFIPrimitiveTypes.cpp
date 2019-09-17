@@ -126,7 +126,7 @@ static JSValue cStringType_read(ExecState* execState, const void* buffer, JSCell
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSCell* type = globalObject->typeFactory()->int8Type();
+    JSCell* type = globalObject->typeFactory()->uint8Type();
     PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, const_cast<char*>(string)));
     return ReferenceInstance::create(execState->vm(), globalObject, globalObject->interop()->referenceInstanceStructure(), type, pointer).get();
 }
