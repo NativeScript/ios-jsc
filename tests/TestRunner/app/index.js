@@ -5,6 +5,8 @@ import "./Infrastructure/timers";
 import "./Infrastructure/simulator";
 import "./Infrastructure/utils";
 
+global.utf8 = require("./Infrastructure/utf8")
+
 global.UNUSED = function (param) {
 };
 

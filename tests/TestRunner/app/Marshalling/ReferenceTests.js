@@ -128,15 +128,16 @@ describe(module.id, function () {
     it("Wrong type of argument passed as pointer", function () {
         expect(() => functionWith_VoidPtr(1)).toThrowError(/1 is not a pointer. \(evaluating 'functionWith_VoidPtr\(1\)'\)/);
     });
+    
     it("CString marshalling from JS string", function () {
         functionWithUCharPtr('test');
         expect(TNSGetOutput()).toBe('test');
     });
 
     it("CString as arg/return value", function () {
-        const ptr = interop.alloc(5 * interop.sizeof(interop.types.uint8));
-        var reference = new interop.Reference(interop.types.uint8, ptr);
         const str = "test";
+        const ptr = interop.alloc((str.length + 1) * interop.sizeof(interop.types.uint8));
+        var reference = new interop.Reference(interop.types.uint8, ptr);
         for (ii in str) {
             const i = parseInt(ii);
             reference[i] = str.charCodeAt(i);
@@ -145,9 +146,23 @@ describe(module.id, function () {
 
         const result = functionWithCharPtr(ptr);
 
-        expect(TNSGetOutput()).toBe('test');
+        expect(TNSGetOutput()).toBe(str);
         expect(interop.handleof(result).toNumber() == interop.handleof(ptr).toNumber());
-        expect(NSString.stringWithUTF8String(result).toString()).toBe('test');
+        expect(NSString.stringWithUTF8String(result).toString()).toBe(str);
+    });
+
+    it("CString should be passed as its UTF8 encoding and returned as a reference to unsigned characters", function () {
+        const str = "test АБВГ";
+        const result = functionWithUCharPtr(str);
+
+        expect(TNSGetOutput()).toBe(str);
+
+        const strUtf8 = utf8.encode(str);
+        for (i in strUtf8) {
+            const actual = strUtf8.charCodeAt(i);
+            const expected = result[i];
+            expect(actual).toBe(expected, `Char code difference at index ${i} ("${actual}" vs "${expected}")`);
+        }
     });
 
     // TODO: Create array type and constructor
