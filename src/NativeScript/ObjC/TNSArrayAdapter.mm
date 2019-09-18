@@ -24,7 +24,9 @@ using namespace JSC;
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_globalObject = execState->lexicalGlobalObject();
         VM& vm = execState->vm();
-        [TNSRuntime runtimeForVM:&vm] -> _objectMap.get()->set(self, jsObject);
+        auto runtime = [TNSRuntime runtimeForVM:&vm];
+        RELEASE_ASSERT_WITH_MESSAGE(runtime, "The runtime is deallocated.");
+        runtime->_objectMap.get()->set(self, jsObject);
     }
 
     return self;

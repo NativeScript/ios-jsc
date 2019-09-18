@@ -19,7 +19,8 @@ const ClassInfo ObjCWrapperObject::s_info = { "ObjCWrapperObject", &Base::s_info
 
 void ObjCWrapperObject::finishCreation(VM& vm, id wrappedObject, GlobalObject* globalObject) {
     Base::finishCreation(vm);
-    this->_objectMap = [TNSRuntime runtimeForVM:&globalObject->vm()] -> _objectMap.get();
+    auto runtime = [TNSRuntime runtimeForVM:&globalObject->vm()];
+    this->_objectMap = runtime != nullptr ? runtime->_objectMap.get() : nullptr;
     this->setWrappedObject(wrappedObject);
     this->_canSetObjectAtIndexedSubscript = [wrappedObject respondsToSelector:@selector(setObject:
                                                                                   atIndexedSubscript:)];
@@ -49,12 +50,16 @@ bool ObjCWrapperObject::putByIndex(JSCell* cell, ExecState* execState, unsigned 
 }
 
 void ObjCWrapperObject::removeFromCache() {
-    this->_objectMap->remove(this->_wrappedObject.get());
+    if (this->_objectMap) {
+        this->_objectMap->remove(this->_wrappedObject.get());
+    }
 }
 
 void ObjCWrapperObject::setWrappedObject(id wrappedObject) {
     if (this->_wrappedObject) {
-        this->_objectMap->remove(this->_wrappedObject.get());
+        if (this->_objectMap) {
+            this->_objectMap->remove(this->_wrappedObject.get());
+        }
 
         if ([this->_wrappedObject.get() conformsToProtocol:@protocol(TNSDerivedClass)] && [this->_wrappedObject retainCount] > 1) {
             // Derived classes have additional logic for protecting JS counterparts in their retain/release methods when the retention
@@ -71,7 +76,9 @@ void ObjCWrapperObject::setWrappedObject(id wrappedObject) {
     this->_wrappedObject = wrappedObject;
 
     if (wrappedObject) {
-        this->_objectMap->set(wrappedObject, this);
+        if (this->_objectMap) {
+            this->_objectMap->set(wrappedObject, this);
+        }
 
         if ([wrappedObject conformsToProtocol:@protocol(TNSDerivedClass)] && [wrappedObject retainCount] > 1) {
             // Derived classes have additional logic for protecting JS counterparts in their retain/release methods when the retention

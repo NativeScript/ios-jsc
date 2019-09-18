@@ -114,7 +114,9 @@ using namespace NativeScript;
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_globalObject = execState->lexicalGlobalObject();
         self->_vm = &execState->vm();
-        [TNSRuntime runtimeForVM:self->_vm] -> _objectMap.get()->set(self, jsObject);
+        auto runtime = [TNSRuntime runtimeForVM:self->_vm];
+        RELEASE_ASSERT_WITH_MESSAGE(runtime, "The runtime is deallocated.");
+        runtime->_objectMap.get()->set(self, jsObject);
     }
 
     return self;

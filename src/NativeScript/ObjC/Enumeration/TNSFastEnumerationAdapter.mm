@@ -25,7 +25,9 @@ NSUInteger TNSFastEnumerationAdapter(id self, NSFastEnumerationState* state, id 
 
     if (state->state == State::Uninitialized) {
         ExecState* execState = globalObject->globalExec();
-        JSObject* wrapper = [TNSRuntime runtimeForVM:&globalObject->vm()] -> _objectMap.get()->get(self);
+        auto runtime = [TNSRuntime runtimeForVM:&globalObject->vm()];
+        RELEASE_ASSERT_WITH_MESSAGE(runtime, "The runtime is deallocated.");
+        JSObject* wrapper = runtime->_objectMap.get()->get(self);
         RELEASE_ASSERT(wrapper);
 
         JSC::VM& vm = execState->vm();
