@@ -75,7 +75,7 @@ bool ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName
                                 constructor->_metadata,
                                 MemberType::StaticMethod,
                                 klass,
-                                nullptr);
+                                ProtocolMetas());
     }
 
     return Base::put(cell, execState, propertyName, value, propertySlot);

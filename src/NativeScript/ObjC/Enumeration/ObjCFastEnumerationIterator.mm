@@ -35,7 +35,7 @@ bool ObjCFastEnumerationIterator::next(ExecState* execState, JSValue& value) {
             JSC::VM& vm = execState->vm();
             auto scope = DECLARE_THROW_SCOPE(vm);
 
-            scope.throwException(execState, createError(execState, "The iterable was changed during enumeration."_s));
+            scope.throwException(execState, createError(execState, "The iterable was changed during enumeration."_s, defaultSourceAppender));
             return false;
         }
 

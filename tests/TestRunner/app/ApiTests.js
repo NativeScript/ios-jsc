@@ -508,16 +508,6 @@ describe(module.id, function () {
             expect(output).toBe("TNSAllocLog initTNSAllocLog dealloc");
         });
 
-        it("throws when object is not a native wrapper", function () {
-            const expectedError = /argument.*not a native wrapper/i;
-            expect(() => __releaseNativeCounterpart(0)).toThrowError(expectedError);
-            expect(() => __releaseNativeCounterpart("")).toThrowError(expectedError);
-            expect(() => __releaseNativeCounterpart([])).toThrowError(expectedError);
-            expect(() => __releaseNativeCounterpart({})).toThrowError(expectedError);
-            expect(() => __releaseNativeCounterpart(null)).toThrowError(expectedError);
-            expect(() => __releaseNativeCounterpart(undefined)).toThrowError(expectedError);
-        });
-
         it("sets object to nil", function () {
             var arr = NSArray.arrayWithArray([1,2,3]);
             expect(arr.count).toBe(3);
@@ -532,7 +522,19 @@ describe(module.id, function () {
             // structures have all members initialized to zero.
             expect(arr.count).toBe(0);
         });
-
+        
+        it("exceptions", function () {
+            expect(() => __releaseNativeCounterpart(1, 2, 3)).toThrowError(/Actual arguments count: "3". Expected: "1". \(evaluating '__releaseNativeCounterpart\(1, 2, 3\)'\)/);
+            const getNotANativeWrapperRegex2 = (obj, objParam) => new RegExp(`${obj} is an object which is not a native wrapper. \\(evaluating '__releaseNativeCounterpart\\(${objParam}\\)'\\)`);
+            const getNotANativeWrapperRegex = obj => getNotANativeWrapperRegex2(obj, JSON.stringify(obj));
+           
+            expect(() => __releaseNativeCounterpart(0)).toThrowError(getNotANativeWrapperRegex(0));
+            expect(() => __releaseNativeCounterpart("")).toThrowError(getNotANativeWrapperRegex(""));
+            expect(() => __releaseNativeCounterpart([])).toThrowError(getNotANativeWrapperRegex2("Array", "\\[\\]"));
+            expect(() => __releaseNativeCounterpart({})).toThrowError(getNotANativeWrapperRegex({}));
+            expect(() => __releaseNativeCounterpart(null)).toThrowError(getNotANativeWrapperRegex(null));
+            expect(() => __releaseNativeCounterpart(undefined)).toThrowError(getNotANativeWrapperRegex(undefined));
+        });
     });
     describe("async", function () {
         it("should work", function (done) {

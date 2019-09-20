@@ -7,6 +7,7 @@ FRAMEWORK_SEARCH_PATHS[sdk=*] = $(inherited) "$(SRCROOT)/internal/" "$(CONFIGURA
 
 // Launch custom linker script in order to generate metadata binary file and link it in the executable
 LD = $SRCROOT/internal/nsld.sh
+LDPLUSPLUS = $SRCROOT/internal/nsld.sh
 
 // * Uncomment this setting to generate TypeScript declarations for the iOS SDK and all linked libraries.
 // * They will be generated on each build, so you can find them after running "tns build ios" in "YOUR_APP/platforms/ios".

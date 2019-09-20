@@ -1,3 +1,6 @@
+include(ProcessorCount)
+ProcessorCount(NUM_CORES)
+
 include(ExternalProject)
 ExternalProject_Add(MetadataGenerator
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/src/metadata-generator"
@@ -10,6 +13,7 @@ ExternalProject_Add(MetadataGenerator
         --build .
         --target install
         --use-stderr
+        --parallel ${NUM_CORES}
     INSTALL_COMMAND ""
 )
 

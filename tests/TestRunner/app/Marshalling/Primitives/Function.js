@@ -224,4 +224,12 @@ describe(module.id, function () {
             functionWithUnichar('iPhone');
         }).toThrowError();
     });
+         
+    it("Wrong number of arguments", function() {
+        expect(() => functionWithProtocol(NSObjectProtocol, 1, 2)).toThrowError(/Actual arguments count: "3". Expected: "1". \(evaluating 'functionWithProtocol\(NSObjectProtocol, 1, 2\)'\)/);
+    });
+
+    it("Wrong type of argument as protocol", function() {
+        expect(() => functionWithProtocol(1)).toThrowError(/1 is not a protocol \(evaluating 'functionWithProtocol\(1\)'\)/);
+    });
 });

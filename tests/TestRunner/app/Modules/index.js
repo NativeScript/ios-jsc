@@ -33,4 +33,8 @@ describe(module.id, function () {
         let requireFunc = () => require("./strict-violation-use-strict");
         expect(requireFunc).toThrowError("Cannot delete unqualified property 'x' in strict mode.");
      });
+         
+     it("require non-existent module throws", function () {
+        expect(()=> require("./non-existent")).toThrowError(/Could not find module '.\/non-existent'. Computed path '.*non-existent'. \(evaluating 'require\(".\/non-existent"\)'/);
+     });
 });

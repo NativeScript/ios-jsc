@@ -18,7 +18,7 @@ static EncodedJSValue JSC_HOST_CALL construct(ExecState* execState) {
     if (!argument.isObject()) {
         VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
-        return JSValue::encode(scope.throwException(execState, createTypeError(execState, "Argument must be an object."_s)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, argument, "must be an object"_s, defaultSourceAppender)));
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());

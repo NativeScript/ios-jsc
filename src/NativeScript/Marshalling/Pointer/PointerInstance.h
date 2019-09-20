@@ -37,6 +37,10 @@ public:
         return this->_data;
     }
 
+    void reset() {
+        this->_data = nullptr;
+    }
+
     bool isAdopted() const {
         return this->_isAdopted;
     }

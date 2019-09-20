@@ -84,7 +84,7 @@ static void objCProtocol_write(ExecState* execState, const JSValue& value, void*
     } else if (value.isUndefinedOrNull()) {
         *static_cast<Protocol**>(buffer) = nullptr;
     } else {
-        JSValue exception = createError(execState, "Value is not a protocol."_s);
+        JSValue exception = createError(execState, value, "is not a protocol"_s, defaultSourceAppender);
         auto scope = DECLARE_THROW_SCOPE(vm);
         scope.throwException(execState, exception);
         return;
@@ -134,7 +134,7 @@ static void objCClass_write(ExecState* execState, const JSValue& value, void* bu
         if (NSStringFromClass(wrappedObject) != nullptr) {
             *static_cast<Class*>(buffer) = wrappedObject;
         } else {
-            JSValue exception = createError(execState, "Wrapped native value is not a class."_s);
+            JSValue exception = createError(execState, "Wrapped native value is not a class."_s, defaultSourceAppender);
             auto scope = DECLARE_THROW_SCOPE(vm);
             scope.throwException(execState, exception);
             return;
@@ -142,7 +142,7 @@ static void objCClass_write(ExecState* execState, const JSValue& value, void* bu
     } else if (value.isUndefinedOrNull()) {
         *static_cast<Class*>(buffer) = nullptr;
     } else {
-        JSValue exception = createError(execState, "Value is not a class."_s);
+        JSValue exception = createError(execState, value, "is not a class."_s, defaultSourceAppender);
         auto scope = DECLARE_THROW_SCOPE(vm);
         scope.throwException(execState, exception);
         return;
@@ -177,7 +177,7 @@ static void objCSelector_write(ExecState* execState, const JSValue& value, void*
     } else {
         VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
-        JSValue exception = createError(execState, "Value is not a selector."_s);
+        JSValue exception = createError(execState, value, "is not a selector."_s, defaultSourceAppender);
         scope.throwException(execState, exception);
         return;
     }

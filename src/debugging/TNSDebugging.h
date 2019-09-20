@@ -19,10 +19,11 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-// {N} CLI is relying on this message in order to receive the inspector port number. Please do not change it!
-// Parsing regex is 'NativeScript debugger has opened inspector socket on port (\d+) for (.*)\.'
-// It's defined in 'ios-log-parser-service.ts'
+// {N} CLI is relying on these messages. Please do not change them!
 #define LOG_DEBUGGER_PORT NSLog(@"NativeScript debugger has opened inspector socket on port %d for %@.", currentInspectorPort, [[NSBundle mainBundle] bundleIdentifier])
+#define LOG_FAILED_REFRESH(reason)                                                       \
+    NSLog(@"Failed to refresh the application with RefreshRequest. Reason: %@", reason); \
+    notify_post(NOTIFICATION("AppRefreshFailed"))
 
 // Synchronization object for serializing access to inspector variable and data socket
 
@@ -375,16 +376,18 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
       }
       return ^(NSString* message, NSError* error) {
         if (message) {
-            // Keep a working copy for calling into the VM after releasing inspectorLock
-            TNSRuntimeInspector* tempInspector = nil;
-            @synchronized(inspectorLock()) {
-                tempInspector = inspector;
-            }
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+              // Keep a working copy for calling into the VM after releasing inspectorLock
+              TNSRuntimeInspector* tempInspector = nil;
+              @synchronized(inspectorLock()) {
+                  tempInspector = inspector;
+              }
 
-            if (tempInspector) {
-                // NSLog(@"NativeScript Debugger receiving: %@", message);
-                [tempInspector dispatchMessage:message];
-            }
+              if (tempInspector) {
+                  // NSLog(@"NativeScript Debugger receiving: %@", message);
+                  [tempInspector dispatchMessage:message];
+              }
+            });
         } else {
             clearInspector();
 
@@ -427,6 +430,40 @@ static void TNSEnableRemoteInspector(int argc, char** argv,
             } while (isWaitingForDebugger);
           });
           CFRunLoopWakeUp(CFRunLoopGetMain());
+        });
+
+    int refreshRequestSubscription;
+    notify_register_dispatch(
+        NOTIFICATION("RefreshRequest"), &refreshRequestSubscription,
+        dispatch_get_main_queue(), ^(int token) {
+          notify_post(NOTIFICATION("AppRefreshStarted"));
+
+          JSGlobalContextRef context = runtime.globalContext;
+          JSObjectRef globalObject = JSContextGetGlobalObject(context);
+          JSStringRef liveSyncMethodName = JSStringCreateWithUTF8CString("__onLiveSync");
+          JSValueRef liveSyncMethod = JSObjectGetProperty(context, globalObject, liveSyncMethodName, NULL);
+          JSStringRelease(liveSyncMethodName);
+          if (JSValueIsUndefined(context, liveSyncMethod)) {
+              LOG_FAILED_REFRESH(@"__onLiveSync method not found.");
+              return;
+          }
+
+          JSValueRef exception = NULL;
+          JSObjectCallAsFunction(context, (JSObjectRef)liveSyncMethod, NULL, 0, NULL, &exception);
+          if (!JSValueIsNull(context, exception)) {
+              JSStringRef exMessage = JSValueToStringCopy(context, exception, NULL);
+              long messageLength = JSStringGetLength(exMessage) + 1;
+              char* buffer = (char*)calloc(messageLength, sizeof(char));
+              JSStringGetUTF8CString(exMessage, buffer, messageLength);
+              JSStringRelease(exMessage);
+
+              NSString* reason = [NSString stringWithFormat:@"__onLiveSync failed with: %s", buffer];
+              LOG_FAILED_REFRESH(reason);
+              free(buffer);
+              return;
+          }
+
+          notify_post(NOTIFICATION("AppRefreshSucceeded"));
         });
 
     int attachRequestSubscription;

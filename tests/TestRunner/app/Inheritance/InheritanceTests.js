@@ -71,6 +71,7 @@ describe(module.id, function () {
             'initBaseProtocolMethod1Optional',
             'initBaseProtocolMethod2',
             'initBaseProtocolMethod2Optional',
+            'initThrowingException',
             'methodWithParam'
         ]);
     });
@@ -193,6 +194,14 @@ describe(module.id, function () {
         var actual = TNSGetOutput();
         expect(actual).toBe('instance baseMethod called');
     });
+
+    if(!isSimulator) {
+        it("Throwing constructor", function () {
+           for (var i = 0; i < 20; i++) {
+                expect(() => TNSBaseInterface.alloc().initThrowingException()).toThrowError("Custom Reason");
+           }
+        });
+    }
 
     it("ConstructorCalls", function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({});
@@ -649,6 +658,17 @@ describe(module.id, function () {
         actual = TNSGetOutput();
         expect(actual).toBe(expected);
         TNSClearOutput();
+    });
+
+    it("MethodOverrides: errors", function () {
+        expect(() => NSObject.extend({
+               get isEqual() {
+               }
+        })).toThrowError(/Cannot override native method "isEqual" with a property, define it as a JS function instead. \(evaluating 'NSObject.extend\({[^$]*}\)'\)/m);
+
+        expect(() => NSObject.extend({
+                isEqual: true
+         })).toThrowError(/true cannot override native method "isEqual". \(evaluating 'NSObject.extend\({[^$]*}\)'\)/m);
     });
 
     it('ConstructorOverrides: prototype', function () {
@@ -1627,10 +1647,10 @@ describe(module.id, function () {
         })).toThrowError('Property "derivedImplementedOptionalProperty" requires a setter function.');
         expect(() => TNSIDerivedInterface.extend({
             derivedImplementedOptionalProperty: function() {
-            } 
-        })).toThrowError('Cannot override native property "derivedImplementedOptionalProperty" with a function, define it as a JS property instead.');
+            }
+        })).toThrowError(/function cannot override native property "derivedImplementedOptionalProperty", define it as a JS property instead. \(evaluating 'TNSIDerivedInterface.extend\({[^$]*}\)'\)/m);
     });
-         
+
     it('ConstructorOverrideAndVirtualCall: prototype', function () {
         var JSObject = TNSIConstructorVirtualCalls.extend({
             initWithXAndY: function initWithXAndY(x, y) {
@@ -1764,9 +1784,11 @@ describe(module.id, function () {
             }
         };
         NSObject.extend(overrides);
-        expect(function () {
-            NSObject.extend(overrides);
-        }).toThrowError();
+        expect(() => NSObject.extend(overrides)).toThrowError("The override object is used by another derived class (evaluating 'NSObject.extend(overrides)')");
+    });
+
+    it("extends with wrong parameter type", function () {
+        expect(() => NSObject.extend(0)).toThrowError("0 must be an object (evaluating 'NSObject.extend(0)')");
     });
 
     it('ExposeWithoutImplementation', function () {
@@ -1775,6 +1797,24 @@ describe(module.id, function () {
                 'nonExistingSelector': { returns: interop.types.void, params: [interop.types.selector] }
             }
         });
+    });
+
+    it('ExposeWithWrongParams', function () {
+        expect(() => NSObject.extend({ wrongRet: function() {} }, {
+            exposedMethods: {
+                'wrongRet': { returns: "a string", params: [interop.types.selector] }
+            }
+        })).toThrowError("\"a string\" Method wrongRet has an invalid return type encoding (evaluating 'NSObject.extend')");
+        expect(() => NSObject.extend({ wrongArg: function() {} }, {
+            exposedMethods: {
+                'wrongArg': { returns: interop.types.selector, params: [3] }
+            }
+        })).toThrowError("3 Method wrongArg has an invalid type encoding for argument 1 (evaluating 'NSObject.extend')");
+        expect(() => NSObject.extend({ wrongArg: function() {} }, {
+            exposedMethods: {
+                'wrongArg': { returns: interop.types.void, params: { notArray: true } }
+            }
+        })).toThrowError("Object The 'params' property of method wrongArg is not an array (evaluating 'NSObject.extend')");
     });
 
     it('ClassName', function () {
@@ -1792,7 +1832,7 @@ describe(module.id, function () {
     it('ExtendDerivedClass', function () {
         expect(function () {
             NSObject.extend({}).extend({});
-        }).toThrowError();
+        }).toThrowError("Extends is supported only for native classes. (evaluating 'NSObject.extend({}).extend({})')");
     });
 
     it('OptionalProtocolMethodsAndCategories', function () {
@@ -1992,6 +2032,11 @@ describe(module.id, function () {
         expect(result).toBe(true);
     });
 
+    it("Incorrect protocols", function () {
+        expect(() => NSObject.extend({}, { protocols : [ NSString ] })).toThrowError("function is not a protocol object. (evaluating 'NSObject.extend({}, { protocols : [ NSString ] })')");
+        expect(() => NSObject.extend({}, { protocols : "notAnArray"})).toThrowError("\"notAnArray\" the 'protocols' property is not an array (evaluating 'NSObject.extend({}, { protocols : \"notAnArray\"})')");
+    });
+
     it("Should not have base class property slot", function () {
         // baseMethod: is declared in the base class (TNSBaseInterface)
         expect(TNSDerivedInterface.prototype.hasOwnProperty('baseMethod')).toBe(false);
@@ -2082,7 +2127,7 @@ describe(module.id, function () {
     describe("instanceof", function () {
         it("TNSIBaseProtocolImpl_Private returned as TNSIBaseInterface*", function () {
             var inst = TNSPrivateInterfaceResults.instanceFromUnrelatedPrivateType();
-           
+
             // Actual class is unrelated and doesn't inherit TNSIBaseInterface, but in order to be
             // able to call methods from the puclicly declared type we are creating a constructor
             // that inheriting from this public interface.
@@ -2101,14 +2146,14 @@ describe(module.id, function () {
 
         it("TNSIBaseInterface_Private returned as id<TNSIBaseProtocol, TNSIDerivedProtocol>", function () {
             var inst = TNSPrivateInterfaceResults.instanceFromPrivateTypeImplementingTwoProtocols();
-            
+
             expect(inst instanceof TNSIBaseInterface).toBe(true, "Actual class inherits from TNSIBaseInterface");
             expect(inst.constructor.__constructorDescription).toMatch(/TNSIBaseInterface.*Unknown.*TNSIBaseInterface_Private.*protocols.*TNSIDerivedProtocol/);
             expect(inst.constructor.__constructorDescription).not.toMatch(/TNSIBaseProtocol/, "TNSIBaseProtocol must have been stripped");
             expect(inst.superclass).toBe(TNSIBaseInterface, "Actual class inherits from TNSIBaseInterface");
             expect(inst.constructor).not.toBe(global.TNSIBaseInterface, "The constructor which is wrapping an unknown interface should be different than the pure one");
         });
-         
+
         it("TNSIBaseInterface returned as id<TNSIBaseProtocol>", function () {
             var inst = TNSPrivateInterfaceResults.instanceFromPublicTypeImplementingProtocol();
 

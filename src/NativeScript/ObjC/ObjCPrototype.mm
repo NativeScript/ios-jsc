@@ -139,7 +139,7 @@ bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propert
                                 prototype->_metadata,
                                 MemberType::InstanceMethod,
                                 klass,
-                                nullptr);
+                                ProtocolMetas());
     }
 
     return Base::put(cell, execState, propertyName, value, propertySlot);

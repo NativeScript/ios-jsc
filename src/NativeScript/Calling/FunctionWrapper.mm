@@ -98,16 +98,16 @@ EncodedJSValue JSC_HOST_CALL FunctionWrapper::call(ExecState* execState) {
         }
 
         if (scope.exception()) {
+            // in the ffi call the native method could reach javascript code throwing an error we don't need the code below to execute
             return JSValue::encode(scope.exception());
         }
 
         JSValue result = callee->returnType().read(execState, invocation._buffer + callee->returnOffset(), callee->returnTypeCell().get());
 
+        callee->postCall(execState, invocation);
         return JSValue::encode(result);
     } @catch (NSException* exception) {
         return throwVMError(execState, scope, createErrorFromNSException([TNSRuntime current], execState, exception));
-    } @finally {
-        callee->postCall(execState, invocation);
     }
 }
 
@@ -181,9 +181,8 @@ JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const 
           // The result is invalid and could crash on read when an exception has been thrown.
           if (!scope.exception()) {
               result = call->returnType().read(fakeExecState, invocation->_buffer + call->returnOffset(), call->returnTypeCell().get());
+              call->postCall(fakeExecState, *invocation);
           }
-
-          call->postCall(fakeExecState, *invocation);
       }
 
       if (Exception* ex = scope.exception()) {

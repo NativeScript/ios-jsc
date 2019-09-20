@@ -55,4 +55,8 @@ describe(module.id, function () {
         functionWithComplexFunctionPointer(f);
         expect(TNSGetOutput()).toBe('5 6 7 8');
     });
+    
+    it("Wrong argument type", function () {
+        expect(() => new interop.FunctionReference({})).toThrowError(/Exactly 1 argument which must be a function.*evaluating 'new interop.FunctionReference\({}\)'/i);
+    });
 });

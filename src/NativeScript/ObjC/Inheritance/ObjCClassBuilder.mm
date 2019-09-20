@@ -110,10 +110,8 @@ static void attachDerivedMachinery(GlobalObject* globalObject, Class newKlass, J
 
 static bool isValidType(ExecState* execState, JSValue& value) {
     JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
     const FFITypeMethodTable* table;
     if (!tryGetFFITypeMethodTable(vm, value, &table)) {
-        scope.throwException(execState, createError(execState, "Invalid type"_s));
         return false;
     }
     return true;
@@ -127,12 +125,12 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     CallData callData;
     if (method->methodTable(vm)->getCallData(method, callData) == CallType::None) {
         WTF::String message = WTF::String::format("Method %s is not a function.", sel_getName(methodName));
-        scope.throwException(execState, createError(execState, message));
+        scope.throwException(execState, createError(execState, method, message, defaultSourceAppender));
         return;
     }
     if (!typeEncoding.isObject()) {
-        WTF::String message = WTF::String::format("Method %s has invalid type encoding", sel_getName(methodName));
-        scope.throwException(execState, createError(execState, message));
+        WTF::String message = WTF::String::format("Method %s has an invalid type encoding", sel_getName(methodName));
+        scope.throwException(execState, createError(execState, method, message, defaultSourceAppender));
         return;
     }
 
@@ -140,14 +138,18 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     PropertyName returnsProp = Identifier::fromString(execState, "returns");
     if (!typeEncodingObj->hasOwnProperty(execState, returnsProp)) {
         WTF::String message = WTF::String::format("Method %s is missing its return type encoding", sel_getName(methodName));
-        scope.throwException(execState, createError(execState, message));
+        scope.throwException(execState, createError(execState, typeEncodingObj, message, defaultSourceAppender));
         return;
     }
 
     std::stringstream compilerEncoding;
 
     JSValue returnTypeValue = typeEncodingObj->get(execState, returnsProp);
-    if (scope.exception() || !isValidType(execState, returnTypeValue)) {
+    if (scope.exception()) {
+        return;
+    } else if (!isValidType(execState, returnTypeValue)) {
+        WTF::String message = WTF::String::format("Method %s has an invalid return type encoding", sel_getName(methodName));
+        scope.throwException(execState, createError(execState, returnTypeValue, message, defaultSourceAppender));
         return;
     }
 
@@ -161,10 +163,20 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 
     WTF::Vector<Strong<JSCell>> parameterTypesCells;
     JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(vm, parameterTypesValue);
+    if (parameterTypesArr == nullptr && !parameterTypesValue.isUndefinedOrNull()) {
+        WTF::String message = WTF::String::format("The 'params' property of method %s is not an array", sel_getName(methodName));
+        scope.throwException(execState, createError(execState, parameterTypesValue, message, defaultSourceAppender));
+        return;
+    }
+
     if (parameterTypesArr) {
         for (unsigned int i = 0; i < parameterTypesArr->length(); ++i) {
             JSValue parameterType = parameterTypesArr->get(execState, i);
-            if (scope.exception() || !isValidType(execState, parameterType)) {
+            if (scope.exception()) {
+                return;
+            } else if (!isValidType(execState, parameterType)) {
+                WTF::String message = WTF::String::format("Method %s has an invalid type encoding for argument %d", sel_getName(methodName), i + 1);
+                scope.throwException(execState, createError(execState, parameterType, message, defaultSourceAppender));
                 return;
             }
 
@@ -186,7 +198,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     if (!baseConstructor.inherits(vm, ObjCConstructorNative::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        scope.throwException(execState, createError(execState, "Extends is supported only for native classes."_s));
+        scope.throwException(execState, createError(execState, "Extends is supported only for native classes."_s, defaultSourceAppender));
         return;
     }
 
@@ -220,14 +232,13 @@ void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolW
     if (!protocolWrapper.inherits(vm, ObjCProtocolWrapper::info())) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        WTF::String errorMessage = WTF::String::format("Protocol \"%s\" is not a protocol object.", protocolWrapper.toWTFString(execState).utf8().data());
-        scope.throwException(execState, createError(execState, errorMessage));
+        scope.throwException(execState, createError(execState, protocolWrapper, "is not a protocol object."_s, defaultSourceAppender));
         return;
     }
 
     ObjCProtocolWrapper* protocolWrapperObject = jsCast<ObjCProtocolWrapper*>(protocolWrapper);
 
-    this->_protocols.push_back(protocolWrapperObject->metadata());
+    this->_protocols.append(protocolWrapperObject->metadata());
 
     if (Protocol* aProtocol = protocolWrapperObject->protocol()) {
         Class klass = this->klass();
@@ -250,7 +261,7 @@ void ObjCClassBuilder::implementProtocols(ExecState* execState, JSValue protocol
     auto scope = DECLARE_THROW_SCOPE(vm);
 
     if (!protocolsArray.inherits(vm, JSArray::info())) {
-        scope.throwException(execState, createError(execState, "The protocols property must be an array"_s));
+        scope.throwException(execState, createError(execState, protocolsArray, "the 'protocols' property is not an array"_s, defaultSourceAppender));
         return;
     }
 
@@ -277,7 +288,7 @@ void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier&
                             this->_constructor->metadata(),
                             MemberType::InstanceMethod,
                             this->klass(),
-                            &this->_protocols);
+                            this->_protocols);
 }
 
 void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {
@@ -286,32 +297,29 @@ void ObjCClassBuilder::addInstanceMethod(ExecState* execState, const Identifier&
 }
 
 void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name, const PropertyDescriptor& propertyDescriptor) {
-    if (!propertyDescriptor.isAccessorDescriptor()) {
-        WTFCrash();
-    }
+    RELEASE_ASSERT(propertyDescriptor.isAccessorDescriptor());
 
     WTF::StringImpl* propertyName = name.impl();
-    const InterfaceMeta* currentClass = this->_baseConstructor->metadata();
-    const PropertyMeta* propertyMeta = nullptr;
-    do {
-        // Do not pass a `Class` instance, we need to override the property and must not check whether it's implemented or not
-        propertyMeta = currentClass->instanceProperty(propertyName, KnownUnknownClassPair(), /*includeProtocols*/ true, ProtocolMetas());
-        currentClass = currentClass->baseMeta();
-    } while (!propertyMeta && currentClass);
+    const PropertyMeta* propertyMeta = this->_baseConstructor->metadata()->deepInstanceProperty(propertyName, KnownUnknownClassPair(), /*includeProtocols*/ true, this->_protocols);
 
-    if (!propertyMeta && !this->_protocols.empty()) {
-        for (const ProtocolMeta* aProtocol : this->_protocols) {
-            // Do not pass a `Class` instance, we need to override the property and must not check whether it's implemented or not
-            if ((propertyMeta = aProtocol->instanceProperty(propertyName, KnownUnknownClassPair(), /*includeProtocols*/ true, ProtocolMetas()))) {
-                break;
-            }
+    VM& vm = execState->vm();
+    if (!propertyMeta) {
+        JSValue basePrototype = this->_constructor->get(execState, execState->vm().propertyNames->prototype)
+                                    .toObject(execState)
+                                    ->getPrototypeDirect(execState->vm());
+        PropertySlot baseSlot(basePrototype, PropertySlot::InternalMethodType::Get);
+        bool hasBaseSlot = basePrototype.getPropertySlot(execState, name, baseSlot);
+
+        if (hasBaseSlot && !baseSlot.isAccessor()) {
+            auto throwScope = DECLARE_THROW_SCOPE(vm);
+            WTF::String message = WTF::String::format("Cannot override native method \"%s\" with a property, define it as a JS function instead.",
+                                                      propertyName->utf8().data());
+            throwException(execState, throwScope, JSC::createError(execState, message, defaultSourceAppender));
+            return;
         }
-    }
-
-    if (propertyMeta) {
+    } else {
         Class klass = this->klass();
         GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-        VM& vm = globalObject->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         if (const MethodMeta* getter = propertyMeta->getter()) {
@@ -359,6 +367,9 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
     JSC::VM& vm = execState->vm();
     instanceMethods->methodTable(vm)->getOwnPropertyNames(instanceMethods, execState, prototypeKeys, EnumerationMode());
 
+    JSValue basePrototype = this->_constructor->get(execState, execState->vm().propertyNames->prototype)
+                                .toObject(execState)
+                                ->getPrototypeDirect(execState->vm());
     for (Identifier key : prototypeKeys) {
         PropertySlot propertySlot(instanceMethods, PropertySlot::InternalMethodType::GetOwnProperty);
 
@@ -368,6 +379,8 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
             continue;
         }
 
+        PropertySlot baseSlot(basePrototype, PropertySlot::InternalMethodType::Get);
+        bool hasBaseSlot = basePrototype.getPropertySlot(execState, key, baseSlot);
         if (propertySlot.isAccessor()) {
             PropertyDescriptor propertyDescriptor;
             propertyDescriptor.setAccessorDescriptor(propertySlot.getterSetter(), propertySlot.attributes());
@@ -375,6 +388,23 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
             this->addProperty(execState, key, propertyDescriptor);
         } else if (propertySlot.isValue()) {
             JSValue method = propertySlot.getValue(execState, key);
+
+            if (hasBaseSlot) {
+                if (baseSlot.isAccessor()) {
+                    WTF::String message = WTF::String::format("cannot override native property \"%s\", define it as a JS property instead.",
+                                                              key.utf8().data());
+                    throwException(execState, scope, JSC::createError(execState, method, message, defaultSourceAppender));
+                    return;
+                }
+
+                if (!method.isCell()) {
+                    WTF::String message = WTF::String::format("cannot override native method \"%s\".",
+                                                              key.utf8().data());
+                    throwException(execState, scope, JSC::createError(execState, method, message, defaultSourceAppender));
+                    return;
+                }
+            }
+
             if (method.isCell()) {
                 JSValue encodingValue = jsUndefined();
                 /// We check here if we have an exposed method for the current instance method.
@@ -436,7 +466,7 @@ void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& j
                             this->_constructor->metadata(),
                             MemberType::StaticMethod,
                             klass,
-                            &this->_protocols);
+                            this->_protocols);
 }
 
 void ObjCClassBuilder::addStaticMethod(ExecState* execState, const Identifier& jsName, JSCell* method, JSC::JSValue& typeEncoding) {

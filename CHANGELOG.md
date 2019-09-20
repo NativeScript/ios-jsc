@@ -7,6 +7,41 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.1.1 (2019-09-18)
+=====
+
+### Features
+
+* Add build scripts to the template project ([cc9425e84b35746e](https://github.com/NativeScript/ios-runtime/pull/1205/commits/cc9425e84b35746e539a9434019858d7143b7d45))
+
+### Bug Fixes
+
+* Sporadically native exceptions cannot be caught in JS try/catch ([#1207](https://github.com/NativeScript/ios-runtime/pull/1207))
+
+6.1.0 (2019-09-04)
+=====
+
+### Features
+
+* `Error.prepareStackTrace` method support and change the format of the stack trace to be the same as in Android ([#1135](https://github.com/NativeScript/ios-runtime/issues/1135))
+* Expose internal interfaces' members to JS ([#1127](https://github.com/NativeScript/ios-runtime/issues/1127))
+* Support app refresh through the notifications service ([#1191](https://github.com/NativeScript/ios-runtime/pull/1191))
+
+### Bug Fixes
+
+* **debugging:** Dispatch messages to global GCD queue ([18a526e](https://github.com/NativeScript/ios-runtime/commit/18a526e))
+* **debugging:** Improve user experience when app crashes in debugger ([c09819f](https://github.com/NativeScript/ios-runtime/commit/c09819f))
+* **interop:** Reset pointer after free ([2ac4f84](https://github.com/NativeScript/ios-runtime/commit/2ac4f84))
+* **metadata-generator:** Improve detection of static frameworks ([#1177](https://github.com/NativeScript/ios-runtime/pull/1177))
+* **metadata-generator:** Metadata generation failed with `tns-ios@6.0.2` ([#1197](https://github.com/NativeScript/ios-runtime/pull/1197))
+* **project-template:** Add LDPLUSPLUS variable ([#1203](https://github.com/NativeScript/ios-runtime/issues/1203))
+* **project-template:** Correctly get architecture in `nsld` with Xcode 11 ([#1179](https://github.com/NativeScript/ios-runtime/pull/1179))
+* **runtime:** Change the format of the stack trace to be the same as in Android([#1180](https://github.com/NativeScript/ios-runtime/pull/1180))
+* **runtime:** Improve error messages thrown by iOS runtime ([#1193](https://github.com/NativeScript/ios-runtime/pull/1193))
+* **runtime:** Improve error handling in overriding properties and methods ([943948d](https://github.com/NativeScript/ios-runtime/commit/943948d))
+* **runtime:** Native properties provided by internal classes are not available ([#1149](https://github.com/NativeScript/ios-runtime/issues/1149))
+* **runtime:** null pointer dereference in signal and unhandled exception handlers ([#1199](https://github.com/NativeScript/ios-runtime/pulls/1199))
+
 6.0.2 (2019-08-07)
 =====
 

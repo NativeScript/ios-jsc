@@ -48,7 +48,9 @@ void PointerInstance::finishCreation(ExecState* execState, void* value) {
 PointerInstance::~PointerInstance() {
     if (this->_isAdopted) {
         free(this->_data);
-        this->_data = nullptr;
     }
+
+    this->reset();
 }
+
 }; // namespace NativeScript
