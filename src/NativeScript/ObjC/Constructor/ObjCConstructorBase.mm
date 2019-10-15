@@ -280,6 +280,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
         }
 
         if (initializer && initializer.isCell()) {
+            auto scope = DECLARE_CATCH_SCOPE(vm);
             CallData callData;
             CallType callType = JSC::getCallData(execState->vm(), initializer, callData);
             ASSERT(callType != CallType::None);
@@ -294,8 +295,13 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* 
 
             ObjCConstructorBase* newTarget = jsCast<ObjCConstructorBase*>(execState->newTarget());
             id instance = [newTarget->klasses().known alloc];
-            JSValue thisValue;
+            if (scope.exception()) {
+                // When allocating a JS Derived native instance, it is possible to throw a JS exception.
+                // Discard the native instance and do not call an initializer for it.
+                return JSValue::encode(jsUndefined());
+            }
 
+            JSValue thisValue;
             Strong<AllocatedPlaceholder> allocatedPlaceHolder;
             if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(vm, constructor)) {
                 allocatedPlaceHolder = AllocatedPlaceholder::create(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());

@@ -153,14 +153,17 @@ describe(module.id, function () {
 
     it("CString should be passed as its UTF8 encoding and returned as a reference to unsigned characters", function () {
         const str = "test АБВГ";
-        const result = functionWithUCharPtr(str);
+        const ptr = interop.alloc(str.length*2 + 1); // alloc 2 bytes per character (although some of them are 1-byte chars)
+        strcpy(ptr, str);
+
+        const result = functionWithUCharPtr(ptr);
 
         expect(TNSGetOutput()).toBe(str);
 
         const strUtf8 = utf8.encode(str);
         for (i in strUtf8) {
-            const actual = strUtf8.charCodeAt(i);
-            const expected = result[i];
+            const actual = result[i];
+            const expected = strUtf8.charCodeAt(i);
             expect(actual).toBe(expected, `Char code difference at index ${i} ("${actual}" vs "${expected}")`);
         }
     });
