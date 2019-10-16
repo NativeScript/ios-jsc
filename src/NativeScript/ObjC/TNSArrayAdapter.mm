@@ -17,14 +17,15 @@ using namespace JSC;
 @implementation TNSArrayAdapter {
     Strong<JSObject> _object;
     JSGlobalObject* _globalObject;
+    RefPtr<VM> _vm;
 }
 
 - (instancetype)initWithJSObject:(JSObject*)jsObject execState:(ExecState*)execState {
     if (self) {
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_globalObject = execState->lexicalGlobalObject();
-        VM& vm = execState->vm();
-        auto runtime = [TNSRuntime runtimeForVM:&vm];
+        self->_vm = &execState->vm();
+        auto runtime = [TNSRuntime runtimeForVM:self->_vm.get()];
         RELEASE_ASSERT_WITH_MESSAGE(runtime, "The runtime is deallocated.");
         runtime->_objectMap.get()->set(self, jsObject);
     }
@@ -33,7 +34,7 @@ using namespace JSC;
 }
 
 - (NSUInteger)count {
-    VM& vm = self->_globalObject->vm();
+    VM& vm = *self->_vm.get();
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
     JSLockHolder lock(vm);
 
@@ -46,7 +47,7 @@ using namespace JSC;
 }
 
 - (id)objectAtIndex:(NSUInteger)index {
-    VM& vm = self->_globalObject->vm();
+    VM& vm = *self->_vm.get();
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
     if (!(index < [self count])) {
         @throw [NSException exceptionWithName:NSRangeException reason:[NSString stringWithFormat:@"Index (%tu) out of bounds", index] userInfo:nil];
@@ -58,7 +59,7 @@ using namespace JSC;
 }
 
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState*)state objects:(id[])buffer count:(NSUInteger)len {
-    VM& vm = self->_globalObject->vm();
+    VM& vm = *self->_vm.get();
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
 
     JSLockHolder lock(vm);
@@ -89,7 +90,7 @@ using namespace JSC;
 
 - (void)dealloc {
     {
-        VM& vm = self->_globalObject->vm();
+        VM& vm = *self->_vm.get();
         JSLockHolder lock(vm);
         if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:&vm]) {
             runtime->_objectMap.get()->remove(self);
