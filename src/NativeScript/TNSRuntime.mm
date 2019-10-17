@@ -82,6 +82,10 @@ JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleNa
 static WTF::Lock _runtimesLock;
 static NSPointerArray* _runtimes;
 
++ (NSPointerArray*)runtimes {
+    return _runtimes;
+}
+
 + (TNSRuntime*)current {
     WTF::LockHolder lock(_runtimesLock);
     Thread* currentThread = &WTF::Thread::current();
