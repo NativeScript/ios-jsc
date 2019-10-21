@@ -199,20 +199,36 @@ void WorkerMessagingProxy::workerThreadInitialize(std::shared_ptr<WorkerMessagin
             });
     }
 
+    RefPtr<VM> vm;
     @autoreleasepool {
         _workerData = std::make_unique<WorkerThreadData>(&WTF::Thread::current(), applicationPath, entryModuleId, referrer);
         _workerData->runtime = [[TNSWorkerRuntime alloc] initWithApplicationPath:_workerData->applicationPath];
         _workerData->globalObject()->setWorkerMessagingProxy(messagingProxy);
         [_workerData->runtime scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
         _workerData->onCloseIdentifier = Identifier::fromString(&_workerData->globalObject()->vm(), "onclose");
+        vm = &_workerData->globalObject()->vm();
 
         CFRunLoopRun();
-        workerThreadExited();
+
+        [_workerData->runtime removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+        [_workerData->runtime release];
+        Thread::current().detach();
     }
 
-    [_workerData->runtime removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
-    [_workerData->runtime release];
-    Thread::current().detach();
+    @autoreleasepool {
+        // Keep thread alive as long as the VM is in use. Otherwise, its `atomicStringTable`
+        // will be destroyed and sporadic crashes could occur
+        while (vm->refCount() > 1) {
+            sleep(1);
+        }
+        // Destroy VM by dropping the last reference
+        {
+            JSLockHolder lock(vm.get());
+            vm = nullptr;
+        }
+
+        workerThreadExited();
+    }
 }
 
 void WorkerMessagingProxy::workerPostMessageToParent(WTF::String& message) {
