@@ -1,5 +1,9 @@
 // TODO: Use TypeScript definitions when they get ready
 
+declare function afterEach(param);
+declare function describe(name, func);
+declare function expect(param);
+declare function it(name, func);
 declare function TNSClearOutput();
 declare function TNSLog(message);
 declare function TNSGetOutput();
@@ -10,8 +14,16 @@ declare var module;
 declare function NSStringFromClass(klass);
 declare function NSClassFromString(klassName);
 
+declare function ObjCClass(param);
+declare function ObjCMethod(name?, param?);
+declare function ObjCParam(param);
+
 declare var interop;
-declare var jasmine;
+
+declare var global;
+
+declare var NSString: any;
+
 
 declare class NSObject {
     public static alloc();
@@ -297,6 +309,52 @@ describe(module.id, function () {
         );
     });
 
+    it("MethodOverrides: errors", function () {
+        expect(() => {
+            class TSObjectErr1 extends NSObject {
+                get isEqual() { return false; }
+            }
+            return TSObjectErr1.alloc();
+        }).toThrowError(/Cannot override native method "isEqual" with a property, define it as a JS function instead./);
+
+        expect(() => {
+            class TSObjectErr2 extends TNSDerivedInterface {
+            }
+            (TSObjectErr2.prototype as any).isEqual = true;
+            return TSObjectErr2.alloc();
+         }).toThrowError(/true cannot override native method "isEqual"./);
+    });
+
+    it('ExposeWithWrongParams', function () {
+        expect(() => {
+            class ExposeWithWrongParams extends NSObject {
+                wrongRet() {}
+                public static ObjCExposedMethods = {
+                    'wrongRet': { returns: "a string", params: [interop.types.selector] }
+                };
+            }
+            return ExposeWithWrongParams.alloc();
+        }).toThrowError("\"a string\" Method wrongRet has an invalid return type encoding");
+        expect(() => {
+            class ExposeWithWrongParams2 extends NSObject {
+                wrongArg() {}
+                public static ObjCExposedMethods = {
+                    'wrongArg': { returns: interop.types.selector, params: [3] }
+                };
+            }
+            return ExposeWithWrongParams2.alloc();
+        }).toThrowError("3 Method wrongArg has an invalid type encoding for argument 1");
+        expect(() => {
+            class ExposeWithWrongParams3 extends NSObject {
+                wrongArg() {}
+                public static ObjCExposedMethods = {
+                    'wrongArg': { returns: interop.types.void, params: { notArray: true } }
+                };
+            }
+            return ExposeWithWrongParams3.alloc();
+        }).toThrowError("Object The 'params' property of method wrongArg is not an array");
+    });
+
     it('AddedNewProperty', function () {
         var object = TSObject.alloc().init();
 
@@ -345,7 +403,7 @@ describe(module.id, function () {
    it('TypeScriptDecoratedShim', function () {
        expect(global.__decorate).toBeDefined();
        expect(global.__param).toBeDefined();
-    });    
+    });
 
     it('TypeScriptDecoratedProtocolImplementation', function () {
         var object = TSDecoratedObject1.alloc().init();
@@ -368,7 +426,7 @@ describe(module.id, function () {
             'variadicSelector:native x:9 called'
         );
     });
-    
+
     it('TypeScriptDecoratedExposedMethodsCalledFromJs', function () {
         var object = TSDecoratedObject.alloc().init();
 
@@ -382,5 +440,4 @@ describe(module.id, function () {
             'staticFunc:9 called'
         );
     });
-
 });

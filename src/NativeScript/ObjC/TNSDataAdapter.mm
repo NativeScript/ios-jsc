@@ -18,14 +18,17 @@ using namespace JSC;
 @implementation TNSDataAdapter {
     Strong<JSObject> _object;
     JSGlobalObject* _globalObject;
+    RefPtr<VM> _vm;
 }
 
 - (instancetype)initWithJSObject:(JSObject*)jsObject execState:(ExecState*)execState {
     if (self) {
-        VM& vm = execState->vm();
-        self->_object.set(vm, jsObject);
+        self->_vm = &execState->vm();
+        self->_object.set(*self->_vm.get(), jsObject);
         self->_globalObject = execState->lexicalGlobalObject();
-        [TNSRuntime runtimeForVM:&vm] -> _objectMap.get()->set(self, jsObject);
+        auto runtime = [TNSRuntime runtimeForVM:self->_vm.get()];
+        RELEASE_ASSERT_WITH_MESSAGE(runtime, "The runtime is deallocated.");
+        runtime->_objectMap.get()->set(self, jsObject);
     }
 
     return self;
@@ -36,7 +39,7 @@ using namespace JSC;
 }
 
 - (void*)mutableBytes {
-    VM& vm = self->_globalObject->vm();
+    VM& vm = *self->_vm.get();
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
     JSLockHolder lock(vm);
 
@@ -53,7 +56,7 @@ using namespace JSC;
 }
 
 - (NSUInteger)length {
-    VM& vm = self->_globalObject->vm();
+    VM& vm = *self->_vm.get();
     ExecState* execState = self->_globalObject->globalExec();
     RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:&vm], "The runtime is deallocated.");
     JSLockHolder lock(vm);

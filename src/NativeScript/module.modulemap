@@ -1,0 +1,5 @@
+module TNSRuntimeForTests {
+  umbrella header "TNSRuntime+Private.h"
+  export *
+  module * { export * }
+}

@@ -37,6 +37,7 @@ typedef struct JSBlock {
     int32_t reserved;
     const void* invoke;
     JSBlockDescriptor* descriptor;
+    Ref<VM> vm;
 
     Strong<ObjCBlockCallback> callback;
 
@@ -55,6 +56,7 @@ typedef struct JSBlock {
             .reserved = 0,
             .invoke = blockCallback->functionPointer(),
             .descriptor = &kJSBlockDescriptor,
+            .vm = execState->vm(),
         };
 
         blockPointer->callback.set(execState->vm(), blockCallback.get());
@@ -70,7 +72,7 @@ typedef struct JSBlock {
 
     static void disposeBlock(JSBlock* block) {
         JSLockHolder locker(block->callback->vm());
-        block->callback.clear();
+        block->~JSBlock();
     }
 
     static JSC::JSCell* getJSFunction(id block) {

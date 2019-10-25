@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Jason Zhekov. All rights reserved.
 //
 
+#import "../../../src/NativeScript/TNSRuntime+Private.h"
+
 typedef NS_ENUM(NSInteger, TNSEnums) {
     TNSEnum1 = -1,
     TNSEnum2,

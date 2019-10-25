@@ -106,7 +106,7 @@ using namespace NativeScript;
 @implementation TNSDictionaryAdapter {
     Strong<JSObject> _object;
     JSGlobalObject* _globalObject;
-    VM* _vm;
+    RefPtr<VM> _vm;
 }
 
 - (instancetype)initWithJSObject:(JSObject*)jsObject execState:(ExecState*)execState {
@@ -114,31 +114,33 @@ using namespace NativeScript;
         self->_object = Strong<JSObject>(execState->vm(), jsObject);
         self->_globalObject = execState->lexicalGlobalObject();
         self->_vm = &execState->vm();
-        [TNSRuntime runtimeForVM:self->_vm] -> _objectMap.get()->set(self, jsObject);
+        auto runtime = [TNSRuntime runtimeForVM:self->_vm.get()];
+        RELEASE_ASSERT_WITH_MESSAGE(runtime, "The runtime is deallocated.");
+        runtime->_objectMap.get()->set(self, jsObject);
     }
 
     return self;
 }
 
 - (NSUInteger)count {
-    JSLockHolder lock(self->_vm);
+    JSLockHolder lock(self->_vm.get());
 
     JSObject* object = self->_object.get();
     if (JSMap* map = jsDynamicCast<JSMap*>(*self->_vm, object)) {
         return map->size();
     }
 
-    PropertyNameArray properties(self->_vm, PropertyNameMode::Strings, PrivateSymbolMode::Include);
+    PropertyNameArray properties(self->_vm.get(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
     object->methodTable(*self->_vm)->getOwnPropertyNames(object, self->_globalObject->globalExec(), properties, EnumerationMode());
     return properties.size();
 }
 
 - (id)objectForKey:(id)aKey {
-    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
-    JSLockHolder lock(self->_vm);
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm.get()], "The runtime is deallocated.");
+    JSLockHolder lock(self->_vm.get());
 
     JSObject* object = self->_object.get();
-    if (JSMap* map = jsDynamicCast<JSMap*>(*self->_vm, object)) {
+    if (JSMap* map = jsDynamicCast<JSMap*>(*self->_vm.get(), object)) {
         JSValue key = toValue(self->_globalObject->globalExec(), aKey);
         return toObject(self->_globalObject->globalExec(), map->get(self->_globalObject->globalExec(), key));
     } else if ([aKey isKindOfClass:[NSString class]]) {
@@ -153,23 +155,23 @@ using namespace NativeScript;
 }
 
 - (NSEnumerator*)keyEnumerator {
-    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm], "The runtime is deallocated.");
+    RELEASE_ASSERT_WITH_MESSAGE([TNSRuntime runtimeForVM:self->_vm.get()], "The runtime is deallocated.");
     JSLockHolder lock(self->_globalObject->globalExec());
 
     JSObject* object = self->_object.get();
-    if (JSMap* map = jsDynamicCast<JSMap*>(*self->_vm, object)) {
+    if (JSMap* map = jsDynamicCast<JSMap*>(*self->_vm.get(), object)) {
         return [[[TNSDictionaryAdapterMapKeysEnumerator alloc] initWithMap:map execState:self->_globalObject->globalExec()] autorelease];
     }
 
-    PropertyNameArray properties(self->_vm, PropertyNameMode::Strings, PrivateSymbolMode::Include);
-    object->methodTable(*self->_vm)->getOwnPropertyNames(object, self->_globalObject->globalExec(), properties, EnumerationMode());
+    PropertyNameArray properties(self->_vm.get(), PropertyNameMode::Strings, PrivateSymbolMode::Include);
+    object->methodTable(*self->_vm.get())->getOwnPropertyNames(object, self->_globalObject->globalExec(), properties, EnumerationMode());
     return [[[TNSDictionaryAdapterObjectKeysEnumerator alloc] initWithProperties:properties.releaseData()] autorelease];
 }
 
 - (void)dealloc {
     {
-        JSLockHolder lock(self->_vm);
-        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:self->_vm]) {
+        JSLockHolder lock(self->_vm.get());
+        if (TNSRuntime* runtime = [TNSRuntime runtimeForVM:self->_vm.get()]) {
             runtime->_objectMap.get()->remove(self);
         }
         // Clear Strong reference inside the locked section. Otherwise it would be done when the

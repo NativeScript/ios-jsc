@@ -7,6 +7,14 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.2.0 (2019-10-30)
+=====
+
+### Bug Fixes
+
+* **marshalling:** Objective-C functions returning `unsigned char *` are not correctly interpreted in {N} ([1196](https://github.com/NativeScript/ios-runtime/issues/1196))
+* **runtime:** Do not lose exception in TS extends ([#1211](https://github.com/NativeScript/ios-runtime/pull/1211))
+
 6.1.1 (2019-09-18)
 =====
 

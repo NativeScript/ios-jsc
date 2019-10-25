@@ -23,6 +23,8 @@ function build {
 
     if [ ! -e ./configure ]; then
         autoreconf -i
+    else
+        echo "info: ./configure exists. Skipping autoreconf."
     fi
 
     mkdir -p "$BINARY_DIR" && pushd "$_"
@@ -46,6 +48,8 @@ function build {
 
         if [ ! -e Makefile ]; then
             ./../configure --disable-shared --host="$TRIPLE"
+        else
+            echo "info: Makefile exists. Skipping configure."
         fi
 
         make

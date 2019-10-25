@@ -121,7 +121,7 @@ set(SOURCE_FILES
     Calling/FFICall.cpp
     Calling/FFICallPrototype.cpp
     Calling/CFunctionWrapper.mm
-    Calling/FFIFunctionCallback.cpp
+    Calling/FFIFunctionCallback.mm
     Calling/FunctionWrapper.mm
     ConstructorKey.cpp
     GlobalObject.mm
@@ -172,7 +172,7 @@ set(SOURCE_FILES
     Metadata/KnownUnknownClassPair.cpp
     ObjC/AllocatedPlaceholder.mm
     ObjC/Block/ObjCBlockCall.mm
-    ObjC/Block/ObjCBlockCallback.cpp
+    ObjC/Block/ObjCBlockCallback.mm
     ObjC/Block/ObjCBlockType.mm
     ObjC/Block/ObjCBlockTypeConstructor.cpp
     ObjC/Constructor/ObjCConstructorBase.mm
