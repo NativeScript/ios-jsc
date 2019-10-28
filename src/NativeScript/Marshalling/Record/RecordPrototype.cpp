@@ -11,10 +11,12 @@
 #include "RecordField.h"
 #include "RecordInstance.h"
 #include "RecordPrototypeFunctions.h"
+#include "WTF/HexNumber.h"
 #include <JavaScriptCore/ObjectConstructor.h>
 
 namespace NativeScript {
 using namespace JSC;
+using namespace WTF;
 
 const ClassInfo RecordPrototype::s_info = { "record", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(RecordPrototype) };
 
@@ -24,9 +26,8 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToString(ExecState* execState
 
     const RecordType type = recordConstructor->recordType();
     const char* typeName = type == RecordType::Struct ? "struct" : type == RecordType::Union ? "union" : "record";
-    CString name = recordConstructor->name().utf8();
 
-    return JSValue::encode(jsString(execState, WTF::String::format("<%s %s: %p>", typeName, name.data(), record->data())));
+    return JSValue::encode(jsString(execState, makeString("<", typeName, " ", recordConstructor->name(), ": 0x", hex(reinterpret_cast<intptr_t>(record->data()), HexConversionMode::Uppercase), ">")));
 }
 
 static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) {

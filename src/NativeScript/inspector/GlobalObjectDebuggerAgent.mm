@@ -156,7 +156,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         }
     }
 
-    error = String::format("Could not find script with ID: '%s'", scriptIdStr.utf8().data());
+    error = makeString("Could not find script with ID: '", scriptIdStr, "'");
 }
 
 InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& error, const int* executionContextId) {

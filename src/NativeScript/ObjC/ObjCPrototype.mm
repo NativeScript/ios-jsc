@@ -164,7 +164,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
             std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
             IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
-            SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
+            SEL nativeSelector = sel_registerName(makeString("__", meta->selectorAsString()).utf8().data());
             class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
             if (ObjCMethodWrapper* nativeMethod = jsDynamicCast<ObjCMethodWrapper*>(vm, nativeProperty.getter())) {
@@ -177,7 +177,7 @@ bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, Pr
             std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
             IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
-            SEL nativeSelector = sel_registerName(WTF::String::format("__%s", meta->selectorAsString()).utf8().data());
+            SEL nativeSelector = sel_registerName(makeString("__", meta->selectorAsString()).utf8().data());
             class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
             if (ObjCMethodWrapper* nativeMethod = jsDynamicCast<ObjCMethodWrapper*>(vm, nativeProperty.setter())) {

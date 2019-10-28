@@ -8,9 +8,11 @@
 
 #include "ReferencePrototype.h"
 #include "ReferenceInstance.h"
+#include "WTF/HexNumber.h"
 
 namespace NativeScript {
 using namespace JSC;
+using namespace WTF;
 
 const ClassInfo ReferencePrototype::s_info = { "Reference", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(ReferencePrototype) };
 
@@ -32,7 +34,7 @@ static EncodedJSValue JSC_HOST_CALL referenceProtoFuncSetValue(ExecState* execSt
 
 static EncodedJSValue JSC_HOST_CALL referenceProtoFuncToString(ExecState* execState) {
     ReferenceInstance* reference = jsCast<ReferenceInstance*>(execState->thisValue());
-    WTF::String toString = WTF::String::format("<%s: %p>", ReferenceInstance::info()->className, reference->data());
+    WTF::String toString = makeString("<", ReferenceInstance::info()->className, ": 0x", hex(reinterpret_cast<intptr_t>(reference->data()), HexConversionMode::Uppercase), ">");
     return JSValue::encode(jsString(execState, toString));
 }
 

@@ -32,7 +32,7 @@ static WTF::CString computeRuntimeAvailableClassName(const char* userDesiredName
     WTF::CString runtimeAvailableName(userDesiredName);
 
     for (int i = 1; objc_getClass(runtimeAvailableName.data()); ++i) {
-        runtimeAvailableName = WTF::String::format("%s%d", userDesiredName, i).utf8();
+        runtimeAvailableName = makeString(userDesiredName, i).utf8();
     }
 
     return runtimeAvailableName;
@@ -128,12 +128,12 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
 
     CallData callData;
     if (method->methodTable(vm)->getCallData(method, callData) == CallType::None) {
-        WTF::String message = WTF::String::format("Method %s is not a function.", sel_getName(methodName));
+        WTF::String message = makeString("Method ", sel_getName(methodName), " is not a function.");
         scope.throwException(execState, createError(execState, method, message, defaultSourceAppender));
         return;
     }
     if (!typeEncoding.isObject()) {
-        WTF::String message = WTF::String::format("Method %s has an invalid type encoding", sel_getName(methodName));
+        WTF::String message = makeString("Method ", sel_getName(methodName), " has an invalid type encoding");
         scope.throwException(execState, createError(execState, method, message, defaultSourceAppender));
         return;
     }
@@ -141,7 +141,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     JSObject* typeEncodingObj = asObject(typeEncoding);
     PropertyName returnsProp = Identifier::fromString(execState, "returns");
     if (!typeEncodingObj->hasOwnProperty(execState, returnsProp)) {
-        WTF::String message = WTF::String::format("Method %s is missing its return type encoding", sel_getName(methodName));
+        WTF::String message = makeString("Method ", sel_getName(methodName), " is missing its return type encoding");
         scope.throwException(execState, createError(execState, typeEncodingObj, message, defaultSourceAppender));
         return;
     }
@@ -152,7 +152,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     if (scope.exception()) {
         return;
     } else if (!isValidType(execState, returnTypeValue)) {
-        WTF::String message = WTF::String::format("Method %s has an invalid return type encoding", sel_getName(methodName));
+        WTF::String message = makeString("Method ", sel_getName(methodName), " has an invalid return type encoding");
         scope.throwException(execState, createError(execState, returnTypeValue, message, defaultSourceAppender));
         return;
     }
@@ -168,7 +168,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
     WTF::Vector<Strong<JSCell>> parameterTypesCells;
     JSArray* parameterTypesArr = jsDynamicCast<JSArray*>(vm, parameterTypesValue);
     if (parameterTypesArr == nullptr && !parameterTypesValue.isUndefinedOrNull()) {
-        WTF::String message = WTF::String::format("The 'params' property of method %s is not an array", sel_getName(methodName));
+        WTF::String message = makeString("The 'params' property of method ", sel_getName(methodName), " is not an array");
         scope.throwException(execState, createError(execState, parameterTypesValue, message, defaultSourceAppender));
         return;
     }
@@ -179,7 +179,7 @@ static void addMethodToClass(ExecState* execState, Class klass, JSCell* method, 
             if (scope.exception()) {
                 return;
             } else if (!isValidType(execState, parameterType)) {
-                WTF::String message = WTF::String::format("Method %s has an invalid type encoding for argument %d", sel_getName(methodName), i + 1);
+                WTF::String message = makeString("Method ", sel_getName(methodName), " has an invalid type encoding for argument ", i + 1);
                 scope.throwException(execState, createError(execState, parameterType, message, defaultSourceAppender));
                 return;
             }
@@ -213,7 +213,7 @@ ObjCClassBuilder::ObjCClassBuilder(ExecState* execState, JSValue baseConstructor
     objc_registerClassPair(klass);
 
     if (!className.isEmpty() && runtimeName != className.utf8()) {
-        warn(execState, WTF::String::format("Objective-C class name \"%s\" is already in use - using \"%s\" instead.", className.utf8().data(), runtimeName.data()));
+        warn(execState, makeString("Objective-C class name \"", className, "\" is already in use - using \"", runtimeName.data(), "\" instead."));
     }
 
     class_addProtocol(klass, @protocol(TNSDerivedClass));
@@ -247,7 +247,7 @@ void ObjCClassBuilder::implementProtocol(ExecState* execState, JSValue protocolW
     if (Protocol* aProtocol = protocolWrapperObject->protocol()) {
         Class klass = this->klass();
         if ([klass conformsToProtocol:aProtocol]) {
-            WTF::String errorMessage = WTF::String::format("Class \"%s\" already implements the \"%s\" protocol.", class_getName(klass), protocol_getName(aProtocol));
+            WTF::String errorMessage = makeString("Class \"", class_getName(klass), "\" already implements the \"", protocol_getName(aProtocol), "\" protocol.");
             warn(execState, errorMessage);
         } else {
             class_addProtocol(klass, aProtocol);
@@ -316,8 +316,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
         if (hasBaseSlot && !baseSlot.isAccessor()) {
             auto throwScope = DECLARE_THROW_SCOPE(vm);
-            WTF::String message = WTF::String::format("Cannot override native method \"%s\" with a property, define it as a JS function instead.",
-                                                      propertyName->utf8().data());
+            WTF::String message = makeString("Cannot override native method \"", propertyName->utf8().data(), "\" with a property, define it as a JS function instead.");
             throwException(execState, throwScope, JSC::createError(execState, message, defaultSourceAppender));
             return;
         }
@@ -328,7 +327,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
         if (const MethodMeta* getter = propertyMeta->getter()) {
             if (propertyDescriptor.getter().isUndefined()) {
-                throwVMError(execState, scope, createError(execState, WTF::String::format("Property \"%s\" requires a getter function.", propertyName->utf8().data())));
+                throwVMError(execState, scope, createError(execState, makeString("Property \"", propertyName->utf8().data(), "\" requires a getter function.")));
                 return;
             }
 
@@ -346,7 +345,7 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
 
         if (const MethodMeta* setter = propertyMeta->setter()) {
             if (propertyDescriptor.setter().isUndefined()) {
-                throwVMError(execState, scope, createError(execState, WTF::String::format("Property \"%s\" requires a setter function.", propertyName->utf8().data())));
+                throwVMError(execState, scope, createError(execState, makeString("Property \"", propertyName->utf8().data(), "\" requires a setter function.")));
                 return;
             }
 
@@ -395,15 +394,13 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
 
             if (hasBaseSlot) {
                 if (baseSlot.isAccessor()) {
-                    WTF::String message = WTF::String::format("cannot override native property \"%s\", define it as a JS property instead.",
-                                                              key.utf8().data());
+                    WTF::String message = makeString("cannot override native property \"", key.utf8().data(), "\", define it as a JS property instead.");
                     throwException(execState, scope, JSC::createError(execState, method, message, defaultSourceAppender));
                     return;
                 }
 
                 if (!method.isCell()) {
-                    WTF::String message = WTF::String::format("cannot override native method \"%s\".",
-                                                              key.utf8().data());
+                    WTF::String message = makeString("cannot override native method \"", key.utf8().data(), "\".");
                     throwException(execState, scope, JSC::createError(execState, method, message, defaultSourceAppender));
                     return;
                 }
@@ -438,7 +435,7 @@ void ObjCClassBuilder::addInstanceMembers(ExecState* execState, JSObject* instan
 
         for (Identifier key : exposedMethodsKeys) {
             if (!instanceMethods->hasOwnProperty(execState, key)) {
-                WTF::String errorMessage = WTF::String::format("No implementation found for exposed method \"%s\".", key.string().utf8().data());
+                WTF::String errorMessage = makeString("No implementation found for exposed method \"", key.string(), "\".");
                 warn(execState, errorMessage);
             }
         }

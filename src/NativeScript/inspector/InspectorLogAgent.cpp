@@ -14,7 +14,7 @@ static Inspector::Protocol::Log::LogEntry::Source messageSourceValue(MessageSour
     case MessageSource::XML:
         return Inspector::Protocol::Log::LogEntry::Source::XML;
     case MessageSource::JS:
-            return Inspector::Protocol::Log::LogEntry::Source::JavaScript;
+        return Inspector::Protocol::Log::LogEntry::Source::JavaScript;
     case MessageSource::Network:
         return Inspector::Protocol::Log::LogEntry::Source::Network;
     case MessageSource::Storage:
@@ -85,7 +85,7 @@ void InspectorLogAgent::enable(ErrorString&) {
     m_enabled = true;
 
     if (m_expiredConsoleMessageCount) {
-        ConsoleMessage expiredMessage(MessageSource::Other, MessageType::Log, MessageLevel::Warning, String::format("%d console messages are not shown.", m_expiredConsoleMessageCount));
+        ConsoleMessage expiredMessage(MessageSource::Other, MessageType::Log, MessageLevel::Warning, makeString(m_expiredConsoleMessageCount, " console messages are not shown."));
         addMessageToFrontend(&expiredMessage);
     }
 

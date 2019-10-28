@@ -9,9 +9,11 @@
 #include "PointerPrototype.h"
 #include "Interop.h"
 #include "PointerInstance.h"
+#include "WTF/HexNumber.h"
 
 namespace NativeScript {
 using namespace JSC;
+using namespace WTF;
 
 const ClassInfo PointerPrototype::s_info = { "Pointer", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(PointerPrototype) };
 
@@ -37,22 +39,22 @@ static EncodedJSValue JSC_HOST_CALL pointerProtoFuncSubtract(ExecState* execStat
 
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToString(ExecState* execState) {
     PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
-    const void* value = pointer->data();
-    JSValue result = jsString(execState, WTF::String::format("<%s: %p>", PointerInstance::info()->className, value));
+    auto value = reinterpret_cast<intptr_t>(pointer->data());
+    JSValue result = jsString(execState, makeString("<", PointerInstance::info()->className, ": 0x", hex(value, HexConversionMode::Uppercase), ">"));
     return JSValue::encode(result);
 }
 
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToHexString(ExecState* execState) {
     PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
-    const void* value = pointer->data();
-    JSValue result = jsString(execState, WTF::String::format("%p", value));
+    auto value = reinterpret_cast<intptr_t>(pointer->data());
+    JSValue result = jsString(execState, makeString("0x", hex(value, HexConversionMode::Uppercase)));
     return JSValue::encode(result);
 }
 
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToDecimalString(ExecState* execState) {
     PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
     const void* value = pointer->data();
-    JSValue result = jsString(execState, WTF::String::format("%ld", static_cast<intptr_t>(reinterpret_cast<size_t>(value))));
+    JSValue result = jsString(execState, makeString(static_cast<intptr_t>(reinterpret_cast<size_t>(value))));
     return JSValue::encode(result);
 }
 

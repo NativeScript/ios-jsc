@@ -165,7 +165,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncFree(ExecState* execState) {
 
     if (!pointerValue.inherits(vm, PointerInstance::info())) {
         const char* className = PointerInstance::info()->className;
-        return JSValue::encode(scope.throwException(execState, createError(execState, pointerValue, WTF::String::format("must be a %s.", className), defaultSourceAppender)));
+        return JSValue::encode(scope.throwException(execState, createError(execState, pointerValue, makeString("must be a ", className, "."), defaultSourceAppender)));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(pointerValue);
@@ -187,7 +187,7 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAdopt(ExecState* execState) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         const char* className = PointerInstance::info()->className;
-        return JSValue::encode(scope.throwException(execState, createError(execState, WTF::String::format("Argument must be a %s", className))));
+        return JSValue::encode(scope.throwException(execState, createError(execState, makeString("Argument must be a ", className, "."))));
     }
 
     PointerInstance* pointer = jsCast<PointerInstance*>(pointerValue);
