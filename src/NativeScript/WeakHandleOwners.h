@@ -79,6 +79,7 @@ struct WeakImplVectorKeyTraits {
 
     static const bool emptyValueIsZero = false;
     static const bool hasIsEmptyValueFunction = false;
+    static const bool hasIsReleasedWeakValueFunction = false;
     static const int minimumTableSize = 8;
 };
 

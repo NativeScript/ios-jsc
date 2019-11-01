@@ -52,7 +52,7 @@ void DomainBackendDispatcher::dispatch(long callId, const String& method, Ref<JS
             return;
         }
 
-        m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::InvalidRequest, makeString("No implementation for method ", method, " found");
+        m_backendDispatcher->reportProtocolError(Inspector::BackendDispatcher::InvalidRequest, makeString("No implementation for method ", method, " found"));
         return;
     }
 

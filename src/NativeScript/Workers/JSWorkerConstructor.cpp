@@ -36,7 +36,7 @@ EncodedJSValue JSC_HOST_CALL JSWorkerConstructor::constructJSWorker(ExecState* e
     while (frame->codeBlock() == nullptr) {
         frame = frame->callerFrame();
     }
-    const WTF::String& currentSourceUrl = frame->codeBlock()->ownerScriptExecutable()->sourceURL();
+    const WTF::String& currentSourceUrl = frame->codeBlock()->ownerExecutable()->sourceURL();
     ASSERT(currentSourceUrl.startsWith("file:///"));
     const WTF::String relativeFilePath = currentSourceUrl.substring(7);
     WTF::String referrer = applicationPath;

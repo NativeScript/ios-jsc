@@ -108,8 +108,12 @@ void GlobalObjectConsoleClient::messageWithTypeAndLevel(MessageType type, Messag
     this->addMessageToAgentsConsole(WTFMove(consoleMessage), WTFMove(arguments), exec);
 }
 
-void GlobalObjectConsoleClient::count(JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {
-    m_consoleAgent->count(exec, WTFMove(arguments));
+void GlobalObjectConsoleClient::count(JSC::ExecState* exec, const String& label) {
+    m_consoleAgent->count(exec, label);
+}
+
+void GlobalObjectConsoleClient::countReset(JSC::ExecState* exec, const String& label) {
+    m_consoleAgent->countReset(exec, label);
 }
 
 void GlobalObjectConsoleClient::profile(JSC::ExecState* execState, const String& title) {
@@ -133,7 +137,7 @@ void GlobalObjectConsoleClient::takeHeapSnapshot(JSC::ExecState*, const String& 
 }
 
 void GlobalObjectConsoleClient::time(JSC::ExecState* exec, const String& title) {
-    std::unique_ptr<Inspector::ConsoleMessage> startMsg = m_consoleAgent->startTiming(title);
+    std::unique_ptr<Inspector::ConsoleMessage> startMsg = m_consoleAgent->startTiming(exec, title);
     if (startMsg) {
         ConsoleClient::printConsoleMessage(startMsg->source(), startMsg->type(), startMsg->level(), startMsg->message(), startMsg->url(), startMsg->line(), startMsg->column());
 
@@ -141,9 +145,16 @@ void GlobalObjectConsoleClient::time(JSC::ExecState* exec, const String& title) 
     }
 }
 
+void GlobalObjectConsoleClient::timeLog(ExecState* exec, const String& label, Ref<Inspector::ScriptArguments>&& args) {
+    std::unique_ptr<Inspector::ConsoleMessage> logMsg = m_consoleAgent->logTiming(exec, label, WTFMove(args));
+    if (logMsg) {
+        ConsoleClient::printConsoleMessage(logMsg->source(), logMsg->type(), logMsg->level(), logMsg->message(), logMsg->url(), logMsg->line(), logMsg->column());
+        this->addMessageToAgentsConsole(WTFMove(logMsg));
+    }
+}
+
 void GlobalObjectConsoleClient::timeEnd(JSC::ExecState* exec, const String& title) {
-    Ref<Inspector::ScriptCallStack> callStack(Inspector::createScriptCallStackForConsole(exec, 1));
-    std::unique_ptr<Inspector::ConsoleMessage> stopMsg = m_consoleAgent->stopTiming(title, WTFMove(callStack));
+    std::unique_ptr<Inspector::ConsoleMessage> stopMsg = m_consoleAgent->stopTiming(exec, title);
     if (stopMsg) {
         ConsoleClient::printConsoleMessage(stopMsg->source(), stopMsg->type(), stopMsg->level(), stopMsg->message(), stopMsg->url(), stopMsg->line(), stopMsg->column());
         this->addMessageToAgentsConsole(WTFMove(stopMsg));
@@ -182,6 +193,9 @@ void GlobalObjectConsoleClient::record(ExecState*, Ref<Inspector::ScriptArgument
 }
 
 void GlobalObjectConsoleClient::recordEnd(ExecState*, Ref<Inspector::ScriptArguments>&&) {
+}
+
+void GlobalObjectConsoleClient::screenshot(ExecState*, Ref<Inspector::ScriptArguments>&&) {
 }
 
 WTF::String GlobalObjectConsoleClient::createMessageFromArguments(MessageType type, JSC::ExecState* exec, Ref<Inspector::ScriptArguments>&& arguments) {

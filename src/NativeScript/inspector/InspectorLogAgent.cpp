@@ -31,6 +31,7 @@ static Inspector::Protocol::Log::LogEntry::Source messageSourceValue(MessageSour
     case MessageSource::WebRTC:
     case MessageSource::Media:
     case MessageSource::Other:
+    case MessageSource::MediaSource:
         return Inspector::Protocol::Log::LogEntry::Source::Other;
     }
     return Inspector::Protocol::Log::LogEntry::Source::Other;

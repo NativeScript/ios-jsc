@@ -36,7 +36,7 @@ using namespace NativeScript;
 
 JSInternalPromise* loadAndEvaluateModule(ExecState* exec, const String& moduleName, const String& referrer, JSValue initiator = jsUndefined()) {
     JSLockHolder lock(exec);
-    RELEASE_ASSERT(exec->vm().atomicStringTable() == Thread::current().atomicStringTable());
+    RELEASE_ASSERT(exec->vm().atomStringTable() == Thread::current().atomStringTable());
     RELEASE_ASSERT(!exec->vm().isCollectorBusyOnCurrentThread());
 
     JSGlobalObject* globalObject = exec->wasmAwareLexicalGlobalObject(exec->vm());

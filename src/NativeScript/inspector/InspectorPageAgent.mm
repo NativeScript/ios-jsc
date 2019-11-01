@@ -179,7 +179,15 @@ void InspectorPageAgent::archive(ErrorString&, String* out_data) {
 void InspectorPageAgent::setForcedAppearance(ErrorString&, const String& in_appearance) {
     ASSERT_NOT_REACHED();
 }
-    
+
+void InspectorPageAgent::overrideUserAgent(ErrorString&, const String* opt_in_value) {
+    ASSERT_NOT_REACHED();
+}
+
+void InspectorPageAgent::overrideSetting(ErrorString&, const String& in_setting, const bool* opt_in_value) {
+    ASSERT_NOT_REACHED();
+}
+
 void InspectorPageAgent::getResourceContent(ErrorString& errorString, const String& in_frameId, const String& in_url, String* out_content, bool* out_base64Encoded) {
     if (in_url == m_frameUrl) {
         *out_base64Encoded = false;

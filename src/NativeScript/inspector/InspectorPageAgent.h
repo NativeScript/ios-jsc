@@ -43,6 +43,9 @@ public:
 
     virtual void setForcedAppearance(ErrorString&, const String& in_appearance) override;
 
+    virtual void overrideUserAgent(ErrorString&, const String* opt_in_value) override;
+    virtual void overrideSetting(ErrorString&, const String& in_setting, const bool* opt_in_value) override;
+
 private:
     const WTF::String m_frameIdentifier;
     const WTF::String m_frameUrl;
