@@ -13,6 +13,7 @@ set(HEADER_FILES
     Interfaces/TNSConstructorResolution.h
     Interfaces/TNSInheritance.h
     Interfaces/TNSMethodCalls.h
+    Interfaces/TNSSwiftLike.h
     Marshalling/TNSAllocLog.h
     Marshalling/TNSFunctionPointers.h
     Marshalling/TNSObjCTypes.h
@@ -35,6 +36,7 @@ set(SOURCE_FILES
     Interfaces/TNSConstructorResolution.m
     Interfaces/TNSInheritance.m
     Interfaces/TNSMethodCalls.m
+    Interfaces/TNSSwiftLike.m
     Marshalling/TNSAllocLog.m
     Marshalling/TNSFunctionPointers.m
     Marshalling/TNSObjCTypes.m

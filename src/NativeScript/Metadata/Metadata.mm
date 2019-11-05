@@ -39,93 +39,6 @@ std::unordered_map<std::string, MembersCollection> getMetasByJSNames(MembersColl
     return result;
 }
 
-static int compareIdentifiers(const char* nullTerminated, const char* notNullTerminated, size_t length) {
-    int result = strncmp(nullTerminated, notNullTerminated, length);
-    return (result == 0) ? strlen(nullTerminated) - length : result;
-}
-
-const InterfaceMeta* GlobalTable::findInterfaceMeta(WTF::StringImpl* identifier) const {
-    return this->findInterfaceMeta(reinterpret_cast<const char*>(identifier->utf8().data()), identifier->length(), identifier->hash());
-}
-
-const InterfaceMeta* GlobalTable::findInterfaceMeta(const char* identifierString) const {
-    unsigned hash = WTF::StringHasher::computeHashAndMaskTop8Bits<LChar>(reinterpret_cast<const LChar*>(identifierString));
-    return this->findInterfaceMeta(identifierString, strlen(identifierString), hash);
-}
-
-const InterfaceMeta* GlobalTable::findInterfaceMeta(const char* identifierString, size_t length, unsigned hash) const {
-    const Meta* meta = MetaFile::instance()->globalTable()->findMeta(identifierString, length, hash, /*onlyIfAvailable*/ false);
-    if (meta == nullptr) {
-        return nullptr;
-    }
-
-    // Meta should be an interface, but it could also be a protocol in case of a
-    // private interface having the same name as a public protocol
-    assert(meta->type() == MetaType::Interface || (meta->type() == MetaType::ProtocolType && objc_getClass(meta->name()) != nullptr && objc_getProtocol(meta->name()) != nullptr));
-
-    if (meta->type() != MetaType::Interface) {
-        return nullptr;
-    }
-
-    const InterfaceMeta* interfaceMeta = static_cast<const InterfaceMeta*>(meta);
-    if (interfaceMeta->isAvailable()) {
-        return interfaceMeta;
-    } else {
-        const char* baseName = interfaceMeta->baseName();
-
-        NSLog(@"** \"%s\" introduced in iOS SDK %d.%d is currently unavailable, attempting to load its base: \"%s\". **",
-              std::string(identifierString, length).c_str(),
-              getMajorVersion(interfaceMeta->introducedIn()),
-              getMinorVersion(interfaceMeta->introducedIn()),
-              baseName);
-
-        return this->findInterfaceMeta(baseName);
-    }
-}
-
-const ProtocolMeta* GlobalTable::findProtocol(WTF::StringImpl* identifier) const {
-    return this->findProtocol(reinterpret_cast<const char*>(identifier->utf8().data()), identifier->length(), identifier->hash());
-}
-
-const ProtocolMeta* GlobalTable::findProtocol(const char* identifierString) const {
-    unsigned hash = WTF::StringHasher::computeHashAndMaskTop8Bits<LChar>(reinterpret_cast<const LChar*>(identifierString));
-    return this->findProtocol(identifierString, strlen(identifierString), hash);
-}
-
-const ProtocolMeta* GlobalTable::findProtocol(const char* identifierString, size_t length, unsigned hash) const {
-    // Do not check for availability when returning a protocol. Apple regularly create new protocols and move
-    // existing interface members there (e.g. iOS 12.0 introduced the UIFocusItemScrollableContainer protocol
-    // in UIKit which contained members that have existed in UIScrollView since iOS 2.0)
-
-    auto meta = this->findMeta(identifierString, length, hash, /*onlyIfAvailable*/ false);
-    ASSERT(!meta || meta->type() == ProtocolType);
-    return static_cast<const ProtocolMeta*>(meta);
-}
-
-const Meta* GlobalTable::findMeta(WTF::StringImpl* identifier, bool onlyIfAvailable) const {
-    return this->findMeta(reinterpret_cast<const char*>(identifier->utf8().data()), identifier->length(), identifier->hash(), onlyIfAvailable);
-}
-
-const Meta* GlobalTable::findMeta(const char* identifierString, bool onlyIfAvailable) const {
-    unsigned hash = WTF::StringHasher::computeHashAndMaskTop8Bits<LChar>(reinterpret_cast<const LChar*>(identifierString));
-    return this->findMeta(identifierString, strlen(identifierString), hash, onlyIfAvailable);
-}
-
-const Meta* GlobalTable::findMeta(const char* identifierString, size_t length, unsigned hash, bool onlyIfAvailable) const {
-    int bucketIndex = hash % buckets.count;
-    if (this->buckets[bucketIndex].isNull()) {
-        return nullptr;
-    }
-    const ArrayOfPtrTo<Meta>& bucketContent = buckets[bucketIndex].value();
-    for (ArrayOfPtrTo<Meta>::iterator it = bucketContent.begin(); it != bucketContent.end(); it++) {
-        const Meta* meta = (*it).valuePtr();
-        if (compareIdentifiers(meta->jsName(), identifierString, length) == 0) {
-            return onlyIfAvailable ? (meta->isAvailable() ? meta : nullptr) : meta;
-        }
-    }
-    return nullptr;
-}
-
 // Meta
 bool Meta::isAvailable() const {
     UInt8 introducedIn = this->introducedIn();
@@ -369,7 +282,7 @@ vector<const MethodMeta*> BaseClassMeta::initializers(vector<const MethodMeta*>&
 vector<const MethodMeta*> BaseClassMeta::initializersWithProtocols(vector<const MethodMeta*>& container, KnownUnknownClassPair klasses, const ProtocolMetas& additionalProtocols) const {
     this->initializers(container, klasses);
     for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); it++) {
-        const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
+        const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTableJs()->findProtocol((*it).valuePtr());
         if (protocolMeta != nullptr)
             protocolMeta->initializersWithProtocols(container, klasses, ProtocolMetas());
     }
@@ -377,48 +290,6 @@ vector<const MethodMeta*> BaseClassMeta::initializersWithProtocols(vector<const 
         protocolMeta->initializersWithProtocols(container, klasses, ProtocolMetas());
     }
     return container;
-}
-
-const Meta* GlobalTable::iterator::getCurrent() {
-    return this->_globalTable->buckets[_topLevelIndex].value()[_bucketIndex].valuePtr();
-}
-
-GlobalTable::iterator& GlobalTable::iterator::operator++() {
-    this->_bucketIndex++;
-    this->findNext();
-    return *this;
-}
-
-const Meta* GlobalTable::iterator::operator*() {
-    return this->getCurrent();
-}
-
-bool GlobalTable::iterator::operator==(const iterator& other) const {
-    return _globalTable == other._globalTable && _topLevelIndex == other._topLevelIndex && _bucketIndex == other._bucketIndex;
-}
-
-bool GlobalTable::iterator::operator!=(const iterator& other) const {
-    return !(*this == other);
-}
-
-void GlobalTable::iterator::findNext() {
-    if (this->_topLevelIndex == this->_globalTable->buckets.count) {
-        return;
-    }
-
-    do {
-        if (!this->_globalTable->buckets[_topLevelIndex].isNull()) {
-            int bucketLength = this->_globalTable->buckets[_topLevelIndex].value().count;
-            while (this->_bucketIndex < bucketLength) {
-                if (this->getCurrent() != nullptr) {
-                    return;
-                }
-                this->_bucketIndex++;
-            }
-        }
-        this->_bucketIndex = 0;
-        this->_topLevelIndex++;
-    } while (this->_topLevelIndex < this->_globalTable->buckets.count);
 }
 
 static MetaFile* metaFileInstance(nullptr);
