@@ -211,7 +211,7 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
         }
 
         for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
-            const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr());
+            const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTableJs()->findProtocol((*it).valuePtr());
             if (protocolMeta != nullptr)
                 baseClassMetaStack.push_back(protocolMeta);
         }
