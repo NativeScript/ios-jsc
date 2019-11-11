@@ -50,6 +50,7 @@ class InspectorConsoleAgent;
 class InspectorLogAgent;
 class InspectorDebuggerAgent;
 class InspectorTimelineAgent;
+class JSGlobalObjectRuntimeAgent;
 class JSGlobalObjectConsoleClient;
 class ScriptCallStack;
 } // namespace Inspector
@@ -120,6 +121,10 @@ public:
         return m_timelineAgent;
     }
 
+    Inspector::JSGlobalObjectRuntimeAgent* runtimeAgent() const {
+        return m_runtimeAgent;
+    }
+
     void setTimelineAgent(Inspector::InspectorTimelineAgent* timelineAgent) {
         m_timelineAgent = timelineAgent;
     }
@@ -166,6 +171,7 @@ private:
     Inspector::InspectorLogAgent* m_logAgent{ nullptr };
     Inspector::InspectorDebuggerAgent* m_debuggerAgent{ nullptr };
     Inspector::InspectorTimelineAgent* m_timelineAgent{ nullptr };
+    Inspector::JSGlobalObjectRuntimeAgent* m_runtimeAgent{ nullptr };
 
     Ref<Inspector::FrontendRouter> m_frontendRouter;
     Ref<Inspector::BackendDispatcher> m_backendDispatcher;
