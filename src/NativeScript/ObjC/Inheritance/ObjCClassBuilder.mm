@@ -306,6 +306,15 @@ void ObjCClassBuilder::addProperty(ExecState* execState, const Identifier& name,
     WTF::StringImpl* propertyName = name.impl();
     const PropertyMeta* propertyMeta = this->_baseConstructor->metadata()->deepInstanceProperty(propertyName, KnownUnknownClassPair(), /*includeProtocols*/ true, this->_protocols);
 
+    if (propertyMeta != nullptr && (!propertyMeta->hasGetter() || !propertyMeta->hasSetter())) {
+        // property found but it's missing a getter or setter. Check whether its hiding a base class with both
+        const PropertyMeta* propertyMetaNoProtocols = this->_baseConstructor->metadata()->deepInstanceProperty(propertyName, KnownUnknownClassPair(), /*includeProtocols*/ false, this->_protocols);
+        if (propertyMetaNoProtocols && propertyMetaNoProtocols->hasGetter() && propertyMetaNoProtocols->hasSetter()) {
+            // Take base class property meta which contains both getter and setter
+            propertyMeta = propertyMetaNoProtocols;
+        }
+    }
+
     VM& vm = execState->vm();
     if (!propertyMeta) {
         JSValue basePrototype = this->_constructor->get(execState, execState->vm().propertyNames->prototype)
