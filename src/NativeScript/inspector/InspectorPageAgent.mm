@@ -32,6 +32,7 @@ void InspectorPageAgent::enable(ErrorString&) {
                                                                       .setIsPageContext(true)
                                                                       .setName(m_frameUrl)
                                                                       .setFrameId(m_frameIdentifier)
+                                                                      .setOrigin(m_frameUrl)
                                                                       .release();
 
     m_globalObject.inspectorController().runtimeAgent()->frontendDispatcher()->executionContextCreated(desc);
