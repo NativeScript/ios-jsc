@@ -126,6 +126,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     m_consoleAgent = consoleAgent.get();
     m_logAgent = logAgent.get();
     m_consoleClient = std::make_unique<GlobalObjectConsoleClient>(m_consoleAgent, m_logAgent);
+    m_runtimeAgent = runtimeAgent.get();
 
     m_agents.append(WTFMove(inspectorAgent));
     m_agents.append(WTFMove(pageAgent));

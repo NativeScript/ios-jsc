@@ -4,6 +4,7 @@
 #include <JavaScriptCore/Completion.h>
 #include <JavaScriptCore/Exception.h>
 #include <JavaScriptCore/inspector/ContentSearchUtilities.h>
+#include <JavaScriptCore/inspector/agents/JSGlobalObjectRuntimeAgent.h>
 #include <JavaScriptCore/yarr/RegularExpression.h>
 #include <map>
 #include <vector>
@@ -26,6 +27,15 @@ void InspectorPageAgent::willDestroyFrontendAndBackend(DisconnectReason) {
 }
 
 void InspectorPageAgent::enable(ErrorString&) {
+    RefPtr<Protocol::Runtime::ExecutionContextDescription> desc = Protocol::Runtime::ExecutionContextDescription::create()
+                                                                      .setId(1)
+                                                                      .setIsPageContext(true)
+                                                                      .setName(m_frameUrl)
+                                                                      .setFrameId(m_frameIdentifier)
+                                                                      .setOrigin(m_frameUrl)
+                                                                      .release();
+
+    m_globalObject.inspectorController().runtimeAgent()->frontendDispatcher()->executionContextCreated(desc);
 }
 
 void InspectorPageAgent::disable(ErrorString&) {
