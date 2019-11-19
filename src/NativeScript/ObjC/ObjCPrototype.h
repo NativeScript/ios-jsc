@@ -72,6 +72,8 @@ private:
 
     void finishCreation(JSC::VM&, JSC::JSGlobalObject*, const Metadata::BaseClassMeta*);
 
+    bool shouldSkipOwnProperty(JSC::ExecState* execState, JSC::PropertyName propertyName, const Metadata::PropertyMeta* propertyMeta);
+
     static bool getOwnPropertySlot(JSC::JSObject*, JSC::ExecState*, JSC::PropertyName, JSC::PropertySlot&);
 
     static bool put(JSC::JSCell*, JSC::ExecState*, JSC::PropertyName, JSC::JSValue, JSC::PutPropertySlot&);
