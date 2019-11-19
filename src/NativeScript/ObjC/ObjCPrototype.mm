@@ -55,6 +55,27 @@ void ObjCPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject, const B
     }
 }
 
+bool ObjCPrototype::shouldSkipOwnProperty(ExecState* execState, PropertyName propertyName, const PropertyMeta* propertyMeta) {
+    JSValue basePrototype = this->getPrototypeDirect(execState->vm());
+    PropertySlot baseSlot(basePrototype, PropertySlot::InternalMethodType::Get);
+    if (basePrototype.getPropertySlot(execState, propertyName, baseSlot)) {
+        if (baseSlot.isAccessor()) {
+            auto thisGetter = propertyMeta->hasGetter();
+            auto thisSetter = propertyMeta->hasSetter();
+            auto baseGetter = !baseSlot.getterSetter()->isGetterNull();
+            auto baseSetter = !baseSlot.getterSetter()->isSetterNull();
+
+            if ((!thisGetter || baseGetter) && (!thisSetter || baseSetter)) {
+                // condition is equivalent to (thisGetter => baseGetter) && (thisSetter => baseSetter), where '=>' means 'logically implies'
+                // I.e., If base class provides the same or more accessors than what we've found, return false and use its property via the prototype chain
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 //const char StopwatchLabel_getOwnPropertySlot[] = "ObjCPrototype::getOwnPropertySlot";
 bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
     //StopwatchLogger<StopwatchLabel_getOwnPropertySlot> stopwatch("(unset)");
@@ -76,23 +97,9 @@ bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, P
     GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
     // Check for property
     if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols())) {
-        JSValue basePrototype = prototype->getPrototypeDirect(execState->vm());
-        PropertySlot baseSlot(basePrototype, PropertySlot::InternalMethodType::Get);
-        if (basePrototype.getPropertySlot(execState, propertyName, baseSlot)) {
-            if (baseSlot.isAccessor()) {
-                auto thisGetter = propertyMeta->hasGetter();
-                auto thisSetter = propertyMeta->hasSetter();
-                auto baseGetter = !baseSlot.getterSetter()->isGetterNull();
-                auto baseSetter = !baseSlot.getterSetter()->isSetterNull();
-
-                if ((!thisGetter || baseGetter) && (!thisSetter || baseSetter)) {
-                    // condition is equivalent to (thisGetter => baseGetter) && (thisSetter => baseSetter), where '=>' means 'logically implies'
-                    // I.e., If base class provides the same or more accessors than what we've found, return false and use its property via the prototype chain
-                    return false;
-                }
-            }
+        if (prototype->shouldSkipOwnProperty(execState, propertyName, propertyMeta)) {
+            return false;
         }
-
         prototype->_definingPropertyName = propertyName;
         prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
         prototype->_definingPropertyName = PropertyName(nullptr);
@@ -224,8 +231,9 @@ void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, 
         }
 
         for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->instanceProps->begin(); it != baseClassMeta->instanceProps->end(); it++) {
-            if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false))
-                propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
+            auto propertyName = Identifier::fromString(execState, (*it)->jsName());
+            if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false) && !prototype->shouldSkipOwnProperty(execState, propertyName, (*it).valuePtr()))
+                propertyNames.add(propertyName);
         }
 
         for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
