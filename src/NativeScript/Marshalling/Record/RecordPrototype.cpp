@@ -27,7 +27,7 @@ static EncodedJSValue JSC_HOST_CALL recordProtoFuncToString(ExecState* execState
     const RecordType type = recordConstructor->recordType();
     const char* typeName = type == RecordType::Struct ? "struct" : type == RecordType::Union ? "union" : "record";
 
-    return JSValue::encode(jsString(execState, makeString("<", typeName, " ", recordConstructor->name(), ": 0x", hex(reinterpret_cast<intptr_t>(record->data()), HexConversionMode::Uppercase), ">")));
+    return JSValue::encode(jsString(execState, makeString("<", typeName, " ", recordConstructor->name(), ": 0x", hex(reinterpret_cast<intptr_t>(record->data()), HexConversionMode::Lowercase), ">")));
 }
 
 static EncodedJSValue JSC_HOST_CALL recordProtoFuncToJSON(ExecState* execState) {

@@ -40,14 +40,14 @@ static EncodedJSValue JSC_HOST_CALL pointerProtoFuncSubtract(ExecState* execStat
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToString(ExecState* execState) {
     PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
     auto value = reinterpret_cast<intptr_t>(pointer->data());
-    JSValue result = jsString(execState, makeString("<", PointerInstance::info()->className, ": 0x", hex(value, HexConversionMode::Uppercase), ">"));
+    JSValue result = jsString(execState, makeString("<", PointerInstance::info()->className, ": 0x", hex(value, HexConversionMode::Lowercase), ">"));
     return JSValue::encode(result);
 }
 
 static EncodedJSValue JSC_HOST_CALL pointerProtoFuncToHexString(ExecState* execState) {
     PointerInstance* pointer = jsCast<PointerInstance*>(execState->thisValue());
     auto value = reinterpret_cast<intptr_t>(pointer->data());
-    JSValue result = jsString(execState, makeString("0x", hex(value, HexConversionMode::Uppercase)));
+    JSValue result = jsString(execState, makeString("0x", hex(value, HexConversionMode::Lowercase)));
     return JSValue::encode(result);
 }
 

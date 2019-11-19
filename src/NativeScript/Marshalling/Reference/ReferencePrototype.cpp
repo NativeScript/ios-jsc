@@ -34,7 +34,7 @@ static EncodedJSValue JSC_HOST_CALL referenceProtoFuncSetValue(ExecState* execSt
 
 static EncodedJSValue JSC_HOST_CALL referenceProtoFuncToString(ExecState* execState) {
     ReferenceInstance* reference = jsCast<ReferenceInstance*>(execState->thisValue());
-    WTF::String toString = makeString("<", ReferenceInstance::info()->className, ": 0x", hex(reinterpret_cast<intptr_t>(reference->data()), HexConversionMode::Uppercase), ">");
+    WTF::String toString = makeString("<", ReferenceInstance::info()->className, ": 0x", hex(reinterpret_cast<intptr_t>(reference->data()), HexConversionMode::Lowercase), ">");
     return JSValue::encode(jsString(execState, toString));
 }
 
