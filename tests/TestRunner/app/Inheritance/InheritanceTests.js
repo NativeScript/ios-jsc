@@ -59,6 +59,7 @@ describe(module.id, function () {
             'baseProtocolProperty1Optional',
             'baseProtocolProperty2',
             'baseProtocolProperty2Optional',
+            'baseReadOnlyProperty',
             'callBaseMethod',
             'constructor',
             'initBaseCategoryMethod',
@@ -251,7 +252,60 @@ describe(module.id, function () {
         );
     });
 
-    it("PropertiesCalls", function () {
+    it("PropertiesCallsBase", function () {
+        "use strict";
+        var object = TNSBaseInterface.alloc().init();
+
+        object.baseProtocolProperty1 = 0;
+        UNUSED(object.baseProtocolProperty1);
+        object.baseProtocolProperty1Optional = 0;
+        UNUSED(object.baseProtocolProperty1Optional);
+        object.baseProtocolProperty2 = 0;
+        UNUSED(object.baseProtocolProperty2);
+        object.baseProtocolProperty2Optional = 0;
+        UNUSED(object.baseProtocolProperty2Optional);
+        object.baseProperty = 0;
+        UNUSED(object.baseProperty);
+        expect(() => object.baseReadOnlyProperty = 0).toThrowError("Attempted to assign to readonly property.");
+        UNUSED(object.baseReadOnlyProperty);
+        object.baseCategoryProtocolProperty1 = 0;
+        UNUSED(object.baseCategoryProtocolProperty1);
+        object.baseCategoryProtocolProperty1Optional = 0;
+        UNUSED(object.baseCategoryProtocolProperty1Optional);
+        object.baseCategoryProtocolProperty2 = 0;
+        UNUSED(object.baseCategoryProtocolProperty2);
+        object.baseCategoryProtocolProperty2Optional = 0;
+        UNUSED(object.baseCategoryProtocolProperty2Optional);
+        object.baseCategoryProperty = 0;
+        UNUSED(object.baseCategoryProperty);
+
+        var actual = TNSGetOutput();
+        expect(actual).toBe(
+            'instance setBaseProtocolProperty1: called' +
+            'instance baseProtocolProperty1 called' +
+            'instance setBaseProtocolProperty1Optional: called' +
+            'instance baseProtocolProperty1Optional called' +
+            'instance setBaseProtocolProperty2: called' +
+            'instance baseProtocolProperty2 called' +
+            'instance setBaseProtocolProperty2Optional: called' +
+            'instance baseProtocolProperty2Optional called' +
+            'instance setBaseProperty: called' +
+            'instance baseProperty called' +
+            'instance baseReadOnlyProperty called' +
+            'instance setBaseCategoryProtocolProperty1: called' +
+            'instance baseCategoryProtocolProperty1 called' +
+            'instance setBaseCategoryProtocolProperty1Optional: called' +
+            'instance baseCategoryProtocolProperty1Optional called' +
+            'instance setBaseCategoryProtocolProperty2: called' +
+            'instance baseCategoryProtocolProperty2 called' +
+            'instance setBaseCategoryProtocolProperty2Optional: called' +
+            'instance baseCategoryProtocolProperty2Optional called' +
+            'instance setBaseCategoryProperty: called' +
+            'instance baseCategoryProperty called'
+        );
+    });
+
+    it("PropertiesCallsDerived", function () {
         var JSDerivedInterface = TNSDerivedInterface.extend({});
         var object = JSDerivedInterface.alloc().init();
         object.baseProtocolProperty1 = 0;
@@ -264,6 +318,8 @@ describe(module.id, function () {
         UNUSED(object.baseProtocolProperty2Optional);
         object.baseProperty = 0;
         UNUSED(object.baseProperty);
+        object.baseReadOnlyProperty = 0;
+        UNUSED(object.baseReadOnlyProperty);
         object.baseCategoryProtocolProperty1 = 0;
         UNUSED(object.baseCategoryProtocolProperty1);
         object.baseCategoryProtocolProperty1Optional = 0;
@@ -307,6 +363,8 @@ describe(module.id, function () {
             'instance baseProtocolProperty2Optional called' +
             'instance setBaseProperty: called' +
             'instance baseProperty called' +
+            'instance setBaseReadOnlyProperty: called' +
+            'instance baseReadOnlyProperty called' +
             'instance setBaseCategoryProtocolProperty1: called' +
             'instance baseCategoryProtocolProperty1 called' +
             'instance setBaseCategoryProtocolProperty1Optional: called' +

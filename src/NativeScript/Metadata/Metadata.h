@@ -242,10 +242,16 @@ template <typename T>
 using ArrayOfPtrTo = Array<PtrTo<T>>;
 using String = PtrTo<char>;
 
+enum GlobalTableType {
+    ByJsName,
+    ByNativeName,
+};
+
+template <GlobalTableType TYPE>
 struct GlobalTable {
     class iterator {
     private:
-        const GlobalTable* _globalTable;
+        const GlobalTable<TYPE>* _globalTable;
         int _topLevelIndex;
         int _bucketIndex;
 
@@ -254,12 +260,12 @@ struct GlobalTable {
         const Meta* getCurrent();
 
     public:
-        iterator(const GlobalTable* globalTable)
+        iterator(const GlobalTable<TYPE>* globalTable)
             : iterator(globalTable, 0, 0) {
             findNext();
         }
 
-        iterator(const GlobalTable* globalTable, int32_t topLevelIndex, int32_t bucketIndex)
+        iterator(const GlobalTable<TYPE>* globalTable, int32_t topLevelIndex, int32_t bucketIndex)
             : _globalTable(globalTable)
             , _topLevelIndex(topLevelIndex)
             , _bucketIndex(bucketIndex) {
@@ -312,6 +318,8 @@ struct GlobalTable {
     int sizeInBytes() const {
         return buckets.sizeInBytes();
     }
+
+    static const char* getName(const Meta& meta);
 };
 
 struct ModuleTable {
@@ -324,19 +332,29 @@ struct ModuleTable {
 
 struct MetaFile {
 private:
-    GlobalTable _globalTable;
+    GlobalTable<GlobalTableType::ByJsName> _globalTableJs;
 
 public:
     static MetaFile* instance();
 
     static MetaFile* setInstance(void* metadataPtr);
 
-    const GlobalTable* globalTable() const {
-        return &this->_globalTable;
+    const GlobalTable<GlobalTableType::ByJsName>* globalTableJs() const {
+        return &this->_globalTableJs;
+    }
+
+    const GlobalTable<GlobalTableType::ByNativeName>* globalTableNativeProtocols() const {
+        const GlobalTable<GlobalTableType::ByJsName>* gt = this->globalTableJs();
+        return reinterpret_cast<const GlobalTable<GlobalTableType::ByNativeName>*>(offset(gt, gt->sizeInBytes()));
+    }
+
+    const GlobalTable<GlobalTableType::ByNativeName>* globalTableNativeInterfaces() const {
+        const GlobalTable<GlobalTableType::ByNativeName>* gt = this->globalTableNativeProtocols();
+        return reinterpret_cast<const GlobalTable<GlobalTableType::ByNativeName>*>(offset(gt, gt->sizeInBytes()));
     }
 
     const ModuleTable* topLevelModulesTable() const {
-        const GlobalTable* gt = this->globalTable();
+        const GlobalTable<GlobalTableType::ByNativeName>* gt = this->globalTableNativeInterfaces();
         return reinterpret_cast<const ModuleTable*>(offset(gt, gt->sizeInBytes()));
     }
 
@@ -771,7 +789,7 @@ struct BaseClassMeta : Meta {
     template <typename T>
     void forEachProtocol(const T& fun, const ProtocolMetas* additionalProtocols) const {
         for (Array<String>::iterator it = this->protocols->begin(); it != this->protocols->end(); ++it) {
-            if (const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTable()->findProtocol((*it).valuePtr())) {
+            if (const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTableJs()->findProtocol((*it).valuePtr())) {
                 fun(protocolMeta);
             }
         }
@@ -988,7 +1006,7 @@ public:
 
     const InterfaceMeta* baseMeta() const {
         if (this->baseName() != nullptr) {
-            const InterfaceMeta* baseMeta = MetaFile::instance()->globalTable()->findInterfaceMeta(this->baseName());
+            const InterfaceMeta* baseMeta = MetaFile::instance()->globalTableJs()->findInterfaceMeta(this->baseName());
             return baseMeta;
         }
 
@@ -999,5 +1017,7 @@ public:
 #pragma pack(pop)
 
 } // namespace Metadata
+
+#include "MetadataInlines.h"
 
 #endif /* defined(__NativeScript__Metadata__) */

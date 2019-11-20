@@ -328,7 +328,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     if (symbolName == nullptr)
         return false;
 
-    const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTable()->findMeta(symbolName);
+    const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTableJs()->findMeta(symbolName);
     if (symbolMeta == nullptr)
         return false;
 
@@ -337,6 +337,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 
     switch (symbolMeta->type()) {
     case Interface: {
+        auto interfaceMeta = static_cast<const InterfaceMeta*>(symbolMeta);
         Class klass = objc_getClass(symbolMeta->name());
         if (!klass) {
             SymbolLoader::instance().ensureModule(symbolMeta->topLevelModule());
@@ -344,7 +345,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         }
 
         if (klass) {
-            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, symbolMeta->jsName(), ProtocolMetas());
+            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, ConstructorKey(klass), interfaceMeta);
             strongSymbolWrapper = constructor;
             globalObject->_objCConstructors.insert({ ConstructorKey(klass), constructor });
         }
@@ -443,8 +444,8 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 // Once we start grouping declarations by modules, this can be safely restored.
 void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
     if (!jsCast<GlobalObject*>(object)->hasDebugger()) {
-        const GlobalTable* globalTable = MetaFile::instance()->globalTable();
-        for (const Meta* meta : *globalTable) {
+        auto globalTableJs = MetaFile::instance()->globalTableJs();
+        for (const Meta* meta : *globalTableJs) {
             if (meta->isAvailable()) {
                 propertyNames.add(Identifier::fromString(execState, meta->jsName()));
             }
@@ -464,7 +465,7 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const Prot
         return kvp->second;
     }
 
-    const InterfaceMeta* meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(klass));
+    const InterfaceMeta* meta = MetaFile::instance()->globalTableNativeInterfaces()->findInterfaceMeta(class_getName(klass));
     if (!searchBaseClasses && meta == nullptr) {
         return Strong<ObjCConstructorBase>();
     }
@@ -483,7 +484,7 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const Prot
         Class firstBaseWithMeta = klass;
         while (!meta) {
             firstBaseWithMeta = class_getSuperclass(firstBaseWithMeta);
-            meta = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(firstBaseWithMeta));
+            meta = MetaFile::instance()->globalTableNativeInterfaces()->findInterfaceMeta(class_getName(firstBaseWithMeta));
         }
 
         ConstructorKey fallbackConstructorKey(firstBaseWithMeta, klass, protocols);
@@ -491,7 +492,7 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const Prot
         //     1) It is more concrete than the first base class with meta; or is unrelated to it
         // and 2) It has metadata which is available on the current device
         if (fallback && fallback != klass && fallback != firstBaseWithMeta && ([fallback isSubclassOfClass:firstBaseWithMeta] || ![firstBaseWithMeta isSubclassOfClass:fallback])) {
-            if (auto metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(class_getName(fallback))) {
+            if (auto metadata = MetaFile::instance()->globalTableNativeInterfaces()->findInterfaceMeta(class_getName(fallback))) {
                 // We have a hinted fallback class and it has metadata. Treat instances as if they are inheriting from the fallback class.
                 // This way all members known from the metadata will be exposed to JS (if the actual class implements them).
                 fallbackConstructorKey = ConstructorKey(fallback, klass, protocols); // fallback is known (coming from a public header), the actual returned type is unknown (without metadata)
@@ -528,17 +529,7 @@ Strong<ObjCProtocolWrapper> GlobalObject::protocolWrapperFor(Protocol* aProtocol
     }
 
     CString protocolName = protocol_getName(aProtocol);
-    const Meta* meta = MetaFile::instance()->globalTable()->findMeta(protocolName.data());
-    if (meta && meta->type() != MetaType::ProtocolType) {
-        WTF::String newProtocolname = WTF::String::format("%sProtocol", protocolName.data());
-
-        size_t protocolIndex = 2;
-        while (objc_getProtocol(newProtocolname.utf8().data())) {
-            newProtocolname = WTF::String::format("%sProtocol%d", protocolName.data(), protocolIndex++);
-        }
-
-        meta = MetaFile::instance()->globalTable()->findMeta(newProtocolname.utf8().data());
-    }
+    const Meta* meta = MetaFile::instance()->globalTableNativeProtocols()->findMeta(protocolName.data());
     ASSERT(meta && meta->type() == MetaType::ProtocolType);
 
     auto protocolWrapper = createProtocolWrapper(this, static_cast<const ProtocolMeta*>(meta), aProtocol);
@@ -597,7 +588,7 @@ bool GlobalObject::callJsUncaughtErrorCallback(ExecState* execState, Exception* 
 const Meta* getUIApplicationMainMeta() {
     static const Meta* meta = nullptr;
     if (!meta) {
-        meta = Metadata::MetaFile::instance()->globalTable()->findMeta("UIApplicationMain");
+        meta = Metadata::MetaFile::instance()->globalTableJs()->findMeta("UIApplicationMain");
     }
 
     return meta;

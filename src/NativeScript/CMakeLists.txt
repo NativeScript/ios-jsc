@@ -57,6 +57,7 @@ set(HEADER_FILES
     Marshalling/Reference/IndexedRefPrototype.h
     Marshalling/Reference/ExtVectorTypeInstance.h
     Metadata/Metadata.h
+    Metadata/MetadataInlines.h
     Metadata/KnownUnknownClassPair.h
     NativeScript-Prefix.h
     NativeScript.h

@@ -7,11 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		42C751E7232B769100186695 /* nativescript-pre-link in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E2232B769100186695 /* nativescript-pre-link */; };
-		42C751E8232B769100186695 /* strip-dynamic-framework-architectures.sh in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E3232B769100186695 /* strip-dynamic-framework-architectures.sh */; };
-		42C751E9232B769100186695 /* nsld.sh in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E4232B769100186695 /* nsld.sh */; };
-		42C751EA232B769100186695 /* nativescript-post-build in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E5232B769100186695 /* nativescript-post-build */; };
-		42C751EB232B769100186695 /* nativescript-pre-build in Resources */ = {isa = PBXBuildFile; fileRef = 42C751E6232B769100186695 /* nativescript-pre-build */; };
 		39940D9122C4EF600050DDE1 /* NativeScript.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 39940D8C22C4EAAA0050DDE1 /* NativeScript.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		39940E1C22C5DFFF0050DDE1 /* TKLiveSync.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 39940E1B22C5DFFF0050DDE1 /* TKLiveSync.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 858B833A18CA111C00AB12DE /* InfoPlist.strings */; };

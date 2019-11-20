@@ -38,6 +38,7 @@
 
 @interface TNSBaseInterface : NSObject <TNSBaseProtocol2>
 @property int baseProperty;
+@property(readonly) int baseReadOnlyProperty;
 @property(class) int baseProperty;
 + (void)baseMethod;
 + (void)baseMethod:(NSNumber*)param;
@@ -103,6 +104,10 @@
 @end
 
 @protocol TNSDerivedProtocol2 <TNSDerivedProtocol1>
+// declare base writable property as readonly
+@property(readonly) int baseProperty;
+// declare base readonly property as writable
+@property int baseReadOnlyProperty;
 @property int derivedProtocolProperty2;
 @property(class) int derivedProtocolProperty2;
 + (void)derivedProtocolMethod2;
