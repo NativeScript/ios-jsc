@@ -181,6 +181,12 @@
 @end
 
 /////////////////////////////////////////////////////////////////////////
+/// TNSIDerivedInterfacePrivate
+
+@implementation TNSIDerivedInterfacePrivate : TNSIBaseInterface
+@end
+
+/////////////////////////////////////////////////////////////////////////
 /// TNSPrivateInterfaceResults
 
 @implementation TNSPrivateInterfaceResults
@@ -199,6 +205,10 @@
 
 + (id<TNSIBaseProtocol>)instanceFromPublicTypeImplementingProtocol {
     return [TNSIBaseInterface new];
+}
+
++ (TNSIDerivedInterface*)instanceFromPublicTypeInheritingFromPrivate {
+    return [TNSIDerivedInterface new];
 }
 
 @end

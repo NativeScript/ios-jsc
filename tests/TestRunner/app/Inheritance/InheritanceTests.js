@@ -1969,9 +1969,10 @@ describe(module.id, function () {
             const jsImplementedClassMembersContainer = isStatic
                 ? TNSIDerivedInterfaceImpl /* static properties are provided by the constructor function (and it's prototype chain)*/
                 : TNSIDerivedInterfaceImpl.prototype /* instance properties are provided by the object's prototype and it's chain */;
-            const firstBase = Object.getPrototypeOf(jsImplementedClassMembersContainer);
-            const secondBase = Object.getPrototypeOf(firstBase);
-            const scopes = [firstBase, secondBase];
+            const derivedInterface = Object.getPrototypeOf(jsImplementedClassMembersContainer);
+            const derivedInterfacePrivate = Object.getPrototypeOf(derivedInterface);
+            const baseInterface = Object.getPrototypeOf(derivedInterfacePrivate);
+            const scopes = [derivedInterface, baseInterface];
             const prefixes = isStatic ? ["staticDerived", "staticBase"] : ["derived", "base"];
 
             for (i in prefixes) {
@@ -2218,6 +2219,16 @@ describe(module.id, function () {
             expect(inst instanceof TNSIBaseInterface).toBe(true, "Actual class inherits from TNSIBaseInterface");
             expect(inst.class()).toBe(TNSIBaseInterface, "Actual class is TNSIBaseInterface");
             expect(inst.constructor).toBe(global.TNSIBaseInterface, "Constructor is global TNSIBaseInterface despite the protocol declaration because TNSIBaseInterface already conforms to it");
+        });
+
+        it("TNSIDerivedInterface which inherits from private class", function () {
+            var inst = TNSPrivateInterfaceResults.instanceFromPublicTypeInheritingFromPrivate();
+
+            expect(inst instanceof TNSIDerivedInterface).toBe(true, "Actual class inherits from TNSIDerivedInterface");
+            expect(inst.class()).toBe(TNSIDerivedInterface, "Actual class is TNSIDerivedInterface");
+            expect(inst.constructor).toBe(global.TNSIDerivedInterface, "Constructor is global TNSIDerivedInterface");
+            expect(inst.constructor.__proto__).not.toBe(global.TNSIBaseInterface, "Base class is unknown private class TNSIDerivedInterfacePrivate");
+            expect(inst.constructor.__proto__.__constructorDescription).toBe("Known class: TNSIBaseInterface Unknown class: TNSIDerivedInterfacePrivate");
         });
     });
 });

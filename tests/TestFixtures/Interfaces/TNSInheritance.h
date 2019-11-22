@@ -63,7 +63,14 @@
 @property int derivedNotImplementedOptionalProperty;
 @end
 
+#ifdef COMPILING_FOR_LINKING // for linking, i.e. inherit from private class
+@interface TNSIDerivedInterfacePrivate : TNSIBaseInterface
+@end
+@interface TNSIDerivedInterface : TNSIDerivedInterfacePrivate <TNSIDerivedProtocol>
+#else // not for linking, i.e. compiling for metadata -> inherit from real class
 @interface TNSIDerivedInterface : TNSIBaseInterface <TNSIDerivedProtocol>
+#endif
+
 - (TNSIDerivedInterface*)baseHiddenMethod;
 @end
 
@@ -96,5 +103,7 @@
 + (id<TNSIBaseProtocol, TNSIDerivedProtocol>)instanceFromPrivateTypeImplementingTwoProtocols;
 
 + (id<TNSIBaseProtocol>)instanceFromPublicTypeImplementingProtocol;
+
++ (TNSIDerivedInterface*)instanceFromPublicTypeInheritingFromPrivate;
 
 @end

@@ -322,7 +322,7 @@ JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalOb
                           : class_getSuperclass(dedupedKey.klasses.known);
 
     if (superClass) {
-        parentConstructor = getObjCNativeConstructorByNativeName(globalObject, class_getName(superClass), ProtocolMetas()).get();
+        parentConstructor = globalObject->constructorFor(superClass, ProtocolMetas()).get();
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
 
         /// If we have a super class which somehow references us, our constructor will already have been cached
