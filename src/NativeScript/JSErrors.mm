@@ -181,14 +181,20 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                 CFRunLoopRunInMode((CFStringRef)TNSInspectorRunLoopMode, 0.1, false);
             }
         }
-
-        String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
-        NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
-                                                                                               message.utf8().data(),
-                                                                                               jsCallstack.c_str()]
-                                                             reason:nil
-                                                           userInfo:@{ @"sender": @"reportFatalErrorBeforeShutdown" }];
-        @throw objcException;
+        
+        id discardExceptionsValue = [[TNSRuntime current] appPackageJson][@"discardUncaughtJsExceptions"];
+        bool discardExceptions = [discardExceptionsValue boolValue];
+        if (discardExceptions) {
+            exit(0);
+        } else {
+            String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
+            NSException* objcException = [NSException exceptionWithName:[NSString stringWithFormat:@"NativeScript encountered a fatal error: %s\n at \n%s",
+                                                                                                   message.utf8().data(),
+                                                                                                   jsCallstack.c_str()]
+                                                                 reason:nil
+                                                               userInfo:@{ @"sender": @"reportFatalErrorBeforeShutdown" }];
+            @throw objcException;
+        }
     }
 }
 
