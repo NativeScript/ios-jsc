@@ -320,7 +320,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     VM& vm = execState->vm();
 
     if (propertyName == globalObject->_interopIdentifier) {
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly), globalObject->interop());
+        propertySlot.setValue(globalObject, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly), globalObject->interop());
         return true;
     }
 
@@ -424,11 +424,12 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         throwVMError(execState, scope, createReferenceError(execState, errorMessage));
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), jsUndefined());
+        propertySlot.setValue(globalObject, static_cast<unsigned>(PropertyAttribute::None), jsUndefined());
         return true;
     }
 
-    object->putDirectWithoutTransition(vm, propertyName, symbolWrapper);
+    globalObject->putDirect(vm, propertyName, symbolWrapper);
+
     propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), symbolWrapper);
     return true;
 }
