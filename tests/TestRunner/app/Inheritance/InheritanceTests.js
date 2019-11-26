@@ -77,6 +77,49 @@ describe(module.id, function () {
         ]);
     });
 
+    it("InstancePropertyNames Derived", function () {
+        expect('derivedMethod' in TNSDerivedInterface.prototype).toBe(true);
+        expect(TNSDerivedInterface.prototype.hasOwnProperty('derivedCategoryMethod')).toBe(true);
+
+        expect(Object.getOwnPropertyNames(TNSDerivedInterface.prototype).sort()).toEqual([
+            'baseReadOnlyProperty', // exposed here as well because it has become read-write
+            'constructor',
+            'derivedCategoryMethod',
+            'derivedCategoryProperty',
+            'derivedCategoryProtocolMethod1',
+            'derivedCategoryProtocolMethod1Optional',
+            'derivedCategoryProtocolMethod2',
+            'derivedCategoryProtocolMethod2Optional',
+            'derivedCategoryProtocolProperty1',
+            'derivedCategoryProtocolProperty1Optional',
+            'derivedCategoryProtocolProperty2',
+            'derivedCategoryProtocolProperty2Optional',
+            'derivedMethod',
+            'derivedProperty',
+            'derivedPropertyReadOnly',
+            'derivedPropertyReadOnlyMadeWritable',
+            'derivedProtocolMethod1',
+            'derivedProtocolMethod1Optional',
+            'derivedProtocolMethod2',
+            'derivedProtocolMethod2Optional',
+            'derivedProtocolProperty1',
+            'derivedProtocolProperty1Optional',
+            'derivedProtocolProperty2',
+            'derivedProtocolProperty2Optional',
+            'initDerivedCategoryMethod',
+            'initDerivedCategoryProtocolMethod1',
+            'initDerivedCategoryProtocolMethod1Optional',
+            'initDerivedCategoryProtocolMethod2',
+            'initDerivedCategoryProtocolMethod2Optional',
+            'initDerivedMethod',
+            'initDerivedProtocolMethod1',
+            'initDerivedProtocolMethod1Optional',
+            'initDerivedProtocolMethod2',
+            'initDerivedProtocolMethod2Optional',
+            'methodWithParam' // exposed here as well because there's an overload in Derived (methodWith:Param:)
+        ]);
+    });
+
     it("SimpleInheritance", function () {
         var JSObject = NSObject.extend({});
         var object = new JSObject();
