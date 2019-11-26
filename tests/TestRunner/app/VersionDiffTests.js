@@ -4,15 +4,15 @@ describe(module.id, function() {
     });
 
     function SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(version) {
-        const systemVersion = NSString.stringWithString(UIDevice.currentDevice.systemVersion);
+        const systemVersion = __uikitformac ? NSString.stringWithString("13.2") : NSString.stringWithString(UIDevice.currentDevice.systemVersion);
         return systemVersion.compareOptions(version, NSStringCompareOptions.NSNumericSearch) !== NSComparisonResult.NSOrderedAscending;
     };
 
-    function check(value, major, minor) {
+    function check(value, major, minor, valueDescription) {
         if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(`${major}.${minor}`)) {
-            expect(value).toBeDefined(`must be available after version ${major}.${minor}`);
+            expect(value).toBeDefined(`${valueDescription} must be available after version ${major}.${minor}`);
         } else {
-            expect(value).toBeUndefined(`must be unavailable before version ${major}.${minor}`);
+            expect(value).toBeUndefined(`${valueDescription} must be unavailable before version ${major}.${minor}`);
         }
     }
 
@@ -24,52 +24,76 @@ describe(module.id, function() {
         }
     }
 
+         
+    it("UIDevice.systemVersion to return macOS Version", function() {
+        const macOSVersionRegEx = /^10\.1[\d]/;
+        if (__uikitformac) {
+            // If this version becomes the correct iOS version again, remove the hardcoded "13.2" values from Metadata.mm and SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO
+            expect(UIDevice.currentDevice.systemVersion).toMatch(macOSVersionRegEx);
+        } else {
+       // If this version becomes the correct iOS version again, remove the hardcoded "13.2" values from Metadata.mm and SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO
+            expect(UIDevice.currentDevice.systemVersion).not.toMatch(macOSVersionRegEx);
+        }
+    });
+
+
+    it("SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO compares against iOS (not macOS!) version", function() {
+        expect(SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO("10.10") && !SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO("11.0")).toBe(false, `Invalid iOS version ${UIDevice.currentDevice.systemVersion} which is inside [10.10 and 11.0)`);
+    });
+
     it("Version interfaces", function() {
         forEachVersion((major, minor) => {
-            var value = global[`TNSInterface${major}_${minor}Plus`];
-            check(value, major, minor);
+            const className = `TNSInterface${major}_${minor}Plus`;
+            var value = global[className];
+            check(value, major, minor, className);
         });
     });
 
     it("Version function", function() {
         forEachVersion((major, minor) => {
-            var value = global[`TNSFunction${major}_${minor}Plus`];
-            check(value, major, minor);
+            const functionName = `TNSFunction${major}_${minor}Plus`;
+            var value = global[functionName];
+            check(value, major, minor, functionName);
         });
     });
 
     it("Version constant", function() {
         forEachVersion((major, minor) => {
-            var value = global[`TNSConstant${major}_${minor}Plus`];
-            check(value, major, minor);
+            const constName = `TNSConstant${major}_${minor}Plus`;
+            var value = global[constName];
+            check(value, major, minor, constName);
         });
     });
 
     it("Version enum", function() {
         forEachVersion((major, minor) => {
-            var value = global[`TNSEnum${major}_${minor}Plus`];
-            check(value, major, minor);
+            const enumName = `TNSEnum${major}_${minor}Plus`;
+            var value = global[enumName];
+            check(value, major, minor, enumName);
         });
     });
 
     it("Version static method", function() {
         forEachVersion((major, minor) => {
-            var value = global[`TNSInterfaceMembers${major}_${minor}`].staticMethod;
-            check(value, major, minor);
+            const className = `TNSInterfaceMembers${major}_${minor}`;
+            var value = global[className].staticMethod;
+            check(value, major, minor, `${className}.staticMethod`);
         });
     });
 
     it("Version instance method", function() {
         forEachVersion((major, minor) => {
-            var value = global[`TNSInterfaceMembers${major}_${minor}`].prototype.instanceMethod;
-            check(value, major, minor);
+            const className = `TNSInterfaceMembers${major}_${minor}`;
+            var value = global[className].prototype.instanceMethod;
+            check(value, major, minor, `${className}.instanceMethod`);
         });
     });
 
     it("Version property", function() {
         forEachVersion((major, minor) => {
-            var value = Object.getOwnPropertyDescriptor(global[`TNSInterfaceMembers${major}_${minor}`].prototype, 'property');
-            check(value, major, minor);
+            const className = `TNSInterfaceMembers${major}_${minor}`;
+            var value = Object.getOwnPropertyDescriptor(global[className].prototype, 'property');
+            check(value, major, minor, `${className}.property`);
         });
     });
          
