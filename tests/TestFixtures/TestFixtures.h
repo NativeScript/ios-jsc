@@ -21,6 +21,7 @@
 #import "Interfaces/TNSConstructorResolution.h"
 #import "Interfaces/TNSInheritance.h"
 #import "Interfaces/TNSMethodCalls.h"
+#import "Interfaces/TNSSwiftLike.h"
 
 #import "Marshalling/TNSAllocLog.h"
 #import "Marshalling/TNSFunctionPointers.h"

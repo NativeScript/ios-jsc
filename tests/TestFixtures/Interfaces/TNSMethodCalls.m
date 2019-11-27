@@ -73,6 +73,10 @@
 - (void)setBaseProperty:(int)value {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
 }
+- (int)baseReadOnlyProperty {
+    TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+    return 0;
+}
 + (int)baseProperty {
     TNSLog([NSString stringWithFormat:@"static %@ called", NSStringFromSelector(_cmd)]);
     return 0;
@@ -290,6 +294,10 @@
 @end
 
 @implementation TNSDerivedInterface
+
+- (void)setBaseReadOnlyProperty:(int)value {
+    TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);
+}
 
 - (int)derivedProtocolProperty1 {
     TNSLog([NSString stringWithFormat:@"instance %@ called", NSStringFromSelector(_cmd)]);

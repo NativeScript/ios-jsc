@@ -10,12 +10,18 @@
 
 @interface TNSRuntime () {
 @package
+#ifdef __cplusplus
     WTF::RefPtr<JSC::VM> _vm;
     JSC::Strong<NativeScript::GlobalObject> _globalObject;
     std::unique_ptr<JSC::WeakGCMap<id, JSC::JSObject>> _objectMap;
+#endif //__cplusplus
+
     NSString* _applicationPath;
 }
 
+#ifdef __cplusplus
 + (TNSRuntime*)runtimeForVM:(JSC::VM*)vm;
+#endif //__cplusplus
++ (NSPointerArray*)runtimes;
 
 @end

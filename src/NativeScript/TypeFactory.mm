@@ -117,7 +117,7 @@ Strong<RecordConstructor> TypeFactory::getStructConstructor(GlobalObject* global
     WTF::Vector<Strong<JSCell>> fieldsTypes;
     WTF::Vector<WTF::String> fieldsNames;
 
-    const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTable()->findMeta(structName.impl()));
+    const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTableJs()->findMeta(structName.impl()));
     ASSERT(structInfo && structInfo->type() == MetaType::Struct);
 
     const TypeEncoding* encodingsPtr = structInfo->fieldsEncodings()->first();
@@ -239,23 +239,37 @@ WTF::Vector<Strong<RecordField>> TypeFactory::createRecordFields(GlobalObject* g
 
     return fields;
 }
+
+Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructorByNativeName(GlobalObject* globalObject,
+                                                                                const WTF::String& klassName,
+                                                                                const ProtocolMetas& protocols) {
+    const InterfaceMeta* metadata = MetaFile::instance()->globalTableNativeInterfaces()->findInterfaceMeta(klassName.impl());
+    return this->getObjCNativeConstructor(globalObject, metadata, protocols);
+}
+
+Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructorByJsName(GlobalObject* globalObject,
+                                                                            const WTF::String& klassName,
+                                                                            const ProtocolMetas& protocols) {
+    const InterfaceMeta* metadata = MetaFile::instance()->globalTableJs()->findInterfaceMeta(klassName.impl());
+    return this->getObjCNativeConstructor(globalObject, metadata, protocols);
+}
+
 Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject,
-                                                                    const WTF::String& klassName,
+                                                                    const InterfaceMeta* metadata,
                                                                     const ProtocolMetas& protocols) {
     tns::instrumentation::Frame frame;
-    const InterfaceMeta* metadata = MetaFile::instance()->globalTable()->findInterfaceMeta(klassName.impl());
-    Class klass = objc_getClass(klassName.utf8().data());
+    Class klass = objc_getClass(metadata->name());
     if (!klass && metadata) {
         SymbolLoader::instance().ensureModule(metadata->topLevelModule());
         klass = objc_getClass(metadata->name());
     }
 
     if (!klass || !metadata) {
-        if (klassName == "NSObject") {
+        if (strcmp(metadata->name(), "NSObject") == 0) {
             @throw [NSException exceptionWithName:NSGenericException reason:@"fatal error: NativeScript cannot create constructor for NSObject." userInfo:nil];
         }
 #ifdef DEBUG
-        NSLog(@"** Can not create constructor for \"%@\". Casting it to \"NSObject\". **", klassName.createCFString().autorelease());
+        NSLog(@"** Can not create constructor for \"%s\". Casting it to \"NSObject\". **", metadata->name());
 #endif
         auto nsobjectConstructor = this->NSObjectConstructor(globalObject);
         if (klass) {
@@ -308,7 +322,7 @@ JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalOb
                           : class_getSuperclass(dedupedKey.klasses.known);
 
     if (superClass) {
-        parentConstructor = getObjCNativeConstructor(globalObject, class_getName(superClass), ProtocolMetas()).get();
+        parentConstructor = getObjCNativeConstructorByNativeName(globalObject, class_getName(superClass), ProtocolMetas()).get();
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
 
         /// If we have a super class which somehow references us, our constructor will already have been cached
@@ -345,7 +359,7 @@ Strong<ObjCConstructorNative> TypeFactory::NSObjectConstructor(GlobalObject* glo
         return Strong<ObjCConstructorNative>(globalObject->vm(), this->_nsObjectConstructor.get());
     }
 
-    auto constructor = getObjCNativeConstructor(globalObject, "NSObject"_s, ProtocolMetas());
+    auto constructor = getObjCNativeConstructorByNativeName(globalObject, "NSObject"_s, ProtocolMetas());
     this->_nsObjectConstructor.set(globalObject->vm(), this, constructor.get());
     return constructor;
 }
@@ -446,7 +460,7 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
         WTF::String declarationName = WTF::String(typeEncoding->details.interfaceDeclarationReference.name.valuePtr());
         ProtocolMetas additionalProtocols = this->getProtocolMetas(typeEncoding->details.interfaceDeclarationReference._protocols);
 
-        result = getObjCNativeConstructor(globalObject, declarationName, additionalProtocols);
+        result = getObjCNativeConstructorByJsName(globalObject, declarationName, additionalProtocols);
         break;
     }
     case BinaryTypeEncodingType::StructDeclarationReference: {
@@ -487,7 +501,7 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
 
     case BinaryTypeEncodingType::IdEncoding: {
         auto additionalProtocols = getProtocolMetas(typeEncoding->details.idDetails._protocols);
-        result = getObjCNativeConstructor(globalObject, "NSObject", additionalProtocols);
+        result = getObjCNativeConstructorByNativeName(globalObject, "NSObject", additionalProtocols);
         break;
     }
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
@@ -630,7 +644,7 @@ ProtocolMetas TypeFactory::getProtocolMetas(PtrTo<Array<Metadata::String>> proto
     ProtocolMetas protocols;
     for (auto it = protocolsPtr.valuePtr()->begin(); it != protocolsPtr.valuePtr()->end(); it++) {
         auto protocolName = (*it).valuePtr();
-        if (auto p = MetaFile::instance()->globalTable()->findProtocol(protocolName)) {
+        if (auto p = MetaFile::instance()->globalTableJs()->findProtocol(protocolName)) {
             protocols.append(p);
         } else {
             // Protocols that are present in metadata should be discoverable
