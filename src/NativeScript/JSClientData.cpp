@@ -33,7 +33,6 @@
 #include <heap/MarkingConstraint.h>
 #include <heap/SubspaceInlines.h>
 #include <runtime/JSDestructibleObjectHeapCellType.h>
-#include <runtime/JSSegmentedVariableObjectHeapCellType.h>
 #include <runtime/VM.h>
 #include <wtf/MainThread.h>
 

@@ -134,7 +134,7 @@ public:
         auto scope = DECLARE_THROW_SCOPE(vm);
 
         if (!this->_argumentCountValidator(this, execState)) {
-            WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\".", execState->argumentCount(), this->parametersCount());
+            WTF::String message = makeString("Actual arguments count: \"", execState->argumentCount(), "\". Expected: \"", this->parametersCount(), "\".");
             throwException(execState, scope, JSC::createError(execState, message, defaultSourceAppender));
             return;
         }

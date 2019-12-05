@@ -22,15 +22,18 @@ public:
     virtual void messageWithTypeAndLevel(MessageType, MessageLevel, JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
 
 protected:
-    virtual void count(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
+    virtual void count(JSC::ExecState*, const String&) override;
+    virtual void countReset(JSC::ExecState*, const String& label) override;
     virtual void profile(JSC::ExecState*, const String& title) override;
     virtual void profileEnd(JSC::ExecState*, const String& title) override;
     virtual void takeHeapSnapshot(JSC::ExecState*, const String& title) override;
     virtual void time(JSC::ExecState*, const String& title) override;
+    virtual void timeLog(JSC::ExecState*, const String& label, Ref<Inspector::ScriptArguments>&&) override;
     virtual void timeEnd(JSC::ExecState*, const String& title) override;
     virtual void timeStamp(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
     virtual void record(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
     virtual void recordEnd(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
+    virtual void screenshot(JSC::ExecState*, Ref<Inspector::ScriptArguments>&&) override;
 
 private:
     void warnUnimplemented(const String& method);

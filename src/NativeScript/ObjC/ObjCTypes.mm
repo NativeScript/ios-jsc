@@ -108,7 +108,7 @@ id toObject(ExecState* execState, const JSValue& value) {
     }
 
     auto scope = DECLARE_THROW_SCOPE(vm);
-    throwVMError(execState, scope, createError(execState, WTF::String::format("Could not marshall \"%s\" to id.", value.toWTFString(execState).utf8().data())));
+    throwVMError(execState, scope, createError(execState, makeString("Could not marshall \"", value.toWTFString(execState), "\" to id.")));
     return nil;
 }
 

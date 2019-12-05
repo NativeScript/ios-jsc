@@ -29,7 +29,7 @@ using namespace NativeScript;
     if (self) {
         self->_globalObject = execState->lexicalGlobalObject();
         VM& vm = execState->vm();
-        _iterator.set(vm, JSMapIterator::create(vm, vm.mapIteratorStructure.get(), map, JSC::IterateKey));
+        _iterator.set(vm, JSMapIterator::create(vm, vm.mapIteratorStructure(), map, JSC::IterateKey));
     }
 
     return self;

@@ -23,7 +23,7 @@ describe(module.id, function () {
         var pointer = new interop.Pointer(new Number(number));
         expect(pointer instanceof interop.Pointer).toBe(true);
         expect(pointer.toNumber()).toBe(number);
-        expect(pointer.toString()).toBe(`<Pointer: 0x${number.toString(16)}>`);
+        expect(pointer.toString()).toBe(`<Pointer: 0x${number.toString(16).toLowerCase()}>`);
         expect(pointer.toDecimalString()).toBe(number.toString());
     });
 
@@ -65,8 +65,8 @@ describe(module.id, function () {
                         expect(pointer.toDecimalString()).toBe(expectedDecimal.toString(10), "Decimal string mismatch");
                         if (number > 0) {
                             expect(pointer.toNumber()).toBe(number, "Number mismatch");
-                            expect(pointer.toString()).toBe(`<Pointer: 0x${number.toString(16)}>`, "String mismatch");
-                            expect(pointer.toHexString()).toBe(`0x${number.toString(16)}`, "Hex string mismatch");
+                            expect(pointer.toString()).toBe(`<Pointer: 0x${number.toString(16).toLowerCase()}>`, "String mismatch");
+                            expect(pointer.toHexString()).toBe(`0x${number.toString(16).toLowerCase()}`, "Hex string mismatch");
                         }
                     }
                 }

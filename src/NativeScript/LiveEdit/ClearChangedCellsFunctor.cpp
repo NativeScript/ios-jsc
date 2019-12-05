@@ -55,8 +55,7 @@ void ClearChangedCellsFunctor::visit(JSC::HeapCell* heapCell) const {
             if (JSC::FunctionCodeBlock* functionCodeBlock = executable->codeBlockForCall()) {
                 functionCodeBlock->unlinkIncomingCalls();
             }
-            executable->clearNumParametersForCall();
-            auto& subspace = JSC::VM::ScriptExecutableSpaceAndSet::clearableCodeSetFor(*executable->subspace());
+            auto& subspace = JSC::VM::SpaceAndSet::setFor(*executable->subspace());
             executable->clearCode(subspace);
             executable->unlinkedExecutable()->clearCode(m_vm);
         }

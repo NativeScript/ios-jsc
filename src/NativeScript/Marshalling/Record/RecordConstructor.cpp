@@ -134,7 +134,7 @@ void RecordConstructor::write(ExecState* execState, const JSValue& value, void* 
                 }
             }
         } else if (!value.isUndefinedOrNull()) {
-            JSValue exception = createError(execState, WTF::String::format("Could not marshall \"%s\" to \"%s\" type.", value.toWTFString(execState).utf8().data(), constructor->name().utf8().data()));
+            JSValue exception = createError(execState, makeString("Could not marshall \"", value.toWTFString(execState), "\" to \"", constructor->name(), "\" type."));
             throwVMError(execState, scope, exception);
             return;
         }
@@ -218,7 +218,7 @@ EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* 
 
     const JSValue value = execState->argument(0);
     if (!value.inherits(vm, PointerInstance::info())) {
-        const WTF::String message = WTF::String::format("Argument must be a %s.", PointerInstance::info()->className);
+        const WTF::String message = makeString("Argument must be a ", PointerInstance::info()->className, ".");
         return JSValue::encode(scope.throwException(execState, createError(execState, message, defaultSourceAppender)));
     }
 
