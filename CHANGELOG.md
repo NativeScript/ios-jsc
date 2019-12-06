@@ -7,12 +7,26 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.3.0 (2019-12-11)
+====
+
+### Bug Fixes
+
+* **debugger:** Chrome DevTools console evaluation doesn't work with `tns debug --start` ([#905](https://github.com/NativeScript/ios-runtime/issues/905))
+* **inspector:** Conditional breakpoints by Chrome DevTools frontend ([#1215](https://github.com/NativeScript/ios-runtime/pull/1215), fixes [#1181](https://github.com/NativeScript/ios-runtime/issues/1181))
+* **project-template:** Remove build scripts from target ([#1224](https://github.com/NativeScript/ios-runtime/pull/1224))
+* **runtime:** Crashes after destroying a worker runtime ([#1213](https://github.com/NativeScript/ios-runtime/pull/1213), fixes [#1163](https://github.com/NativeScript/ios-runtime/issues/1163) and [#1139](https://github.com/NativeScript/ios-runtime/issues/1139))
+* **runtime:** Do not hide property with more accessors ([#1226](https://github.com/NativeScript/ios-runtime/pull/1226), fixes [#1223](https://github.com/NativeScript/ios-runtime/issues/1223))
+* **runtime:** Don't crash app if `discardUncaughtJsExceptions` flag is present ([#1230](https://github.com/NativeScript/ios-runtime/pull/1230))
+* **runtime:** Lookup into native MD tables when searching by name ([#1218](https://github.com/NativeScript/ios-runtime/pull/1218), fixes [#712](https://github.com/NativeScript/ios-runtime/issues/712) and [#1223](https://github.com/NativeScript/ios-runtime/issues/1223))
+* **webkit:** Update WebKit to [iOS tag 13.2](https://trac.webkit.org/browser/webkit/releases/Apple/iOS%2013.2?rev=253203) ([#1220](https://github.com/NativeScript/ios-runtime/pull/1220))
+
 6.2.0 (2019-10-30)
 =====
 
 ### Bug Fixes
 
-* **marshalling:** Objective-C functions returning `unsigned char *` are not correctly interpreted in {N} ([1196](https://github.com/NativeScript/ios-runtime/issues/1196))
+* **marshalling:** Objective-C functions returning `unsigned char *` are not correctly interpreted in {N} ([#1196](https://github.com/NativeScript/ios-runtime/issues/1196))
 * **runtime:** Do not lose exception in TS extends ([#1211](https://github.com/NativeScript/ios-runtime/pull/1211))
 
 6.1.1 (2019-09-18)
