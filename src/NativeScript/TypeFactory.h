@@ -54,7 +54,7 @@ public:
 
     const WTF::Vector<JSC::Strong<JSC::JSCell>> parseTypes(GlobalObject*, const Metadata::TypeEncoding*& typeEncodings, int count, bool isStructMember);
 
-    JSC::Strong<ObjCConstructorNative> getObjCNativeConstructorByNativeName(GlobalObject* globalObject, const WTF::String& klassName, const Metadata::ProtocolMetas& protocols);
+    JSC::Strong<ObjCConstructorNative> getObjCNativeConstructorByNativeName(GlobalObject* globalObject, Class klass, const Metadata::ProtocolMetas& protocols);
     JSC::Strong<ObjCConstructorNative> getObjCNativeConstructorByJsName(GlobalObject* globalObject, const WTF::String& klassName, const Metadata::ProtocolMetas& protocols);
     JSC::Strong<ObjCConstructorNative> getObjCNativeConstructor(GlobalObject*, const Metadata::InterfaceMeta* metadata, const Metadata::ProtocolMetas& protocols);
 

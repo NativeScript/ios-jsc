@@ -586,7 +586,7 @@ public:
     }
 
     const char* name() const {
-        return (this->hasName()) ? this->_names.names->name.valuePtr() : this->jsName();
+        return (this->hasName()) ? this->_names.names->name.valuePtr() : this->_names.name.valuePtr();
     }
 
     /**
