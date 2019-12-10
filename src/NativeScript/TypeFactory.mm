@@ -241,9 +241,14 @@ WTF::Vector<Strong<RecordField>> TypeFactory::createRecordFields(GlobalObject* g
 }
 
 Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructorByNativeName(GlobalObject* globalObject,
-                                                                                const WTF::String& klassName,
+                                                                                Class klass,
                                                                                 const ProtocolMetas& protocols) {
-    const InterfaceMeta* metadata = MetaFile::instance()->globalTableNativeInterfaces()->findInterfaceMeta(klassName.impl());
+
+    if (ObjCConstructorNative* type = this->_cacheId.get(ConstructorKey(klass, protocols))) {
+        return Strong<ObjCConstructorNative>(globalObject->vm(), type);
+    }
+
+    const InterfaceMeta* metadata = MetaFile::instance()->globalTableNativeInterfaces()->findInterfaceMeta(class_getName(klass));
     return this->getObjCNativeConstructor(globalObject, metadata, protocols);
 }
 
@@ -284,12 +289,15 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
 Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject* globalObject, const ConstructorKey& constructorKey, const InterfaceMeta* metadata, const tns::instrumentation::Frame& frame) {
     assert(constructorKey.klasses.known);
 
-    // remove unnecessary protocols which the actual interface already conforms to
     ConstructorKey dedupedKey(constructorKey.klasses);
-    auto protocolsSet = metadata->deepProtocolsSet();
-    for (auto p : constructorKey.additionalProtocols) {
-        if (protocolsSet.count(p) == 0) {
-            dedupedKey.additionalProtocols.append(p);
+
+    // remove unnecessary protocols which the actual interface already conforms to
+    if (constructorKey.additionalProtocols.size()) {
+        auto protocolsSet = metadata->deepProtocolsSet();
+        for (auto p : constructorKey.additionalProtocols) {
+            if (protocolsSet.count(p) == 0) {
+                dedupedKey.additionalProtocols.append(p);
+            }
         }
     }
 
@@ -322,7 +330,7 @@ JSC::Strong<ObjCConstructorNative> TypeFactory::createConstructorNative(GlobalOb
                           : class_getSuperclass(dedupedKey.klasses.known);
 
     if (superClass) {
-        parentConstructor = getObjCNativeConstructorByNativeName(globalObject, class_getName(superClass), ProtocolMetas()).get();
+        parentConstructor = getObjCNativeConstructorByNativeName(globalObject, superClass, ProtocolMetas()).get();
         parentPrototype = parentConstructor.get(globalObject->globalExec(), vm.propertyNames->prototype);
 
         /// If we have a super class which somehow references us, our constructor will already have been cached
@@ -359,7 +367,7 @@ Strong<ObjCConstructorNative> TypeFactory::NSObjectConstructor(GlobalObject* glo
         return Strong<ObjCConstructorNative>(globalObject->vm(), this->_nsObjectConstructor.get());
     }
 
-    auto constructor = getObjCNativeConstructorByNativeName(globalObject, "NSObject"_s, ProtocolMetas());
+    auto constructor = getObjCNativeConstructorByNativeName(globalObject, [NSObject class], ProtocolMetas());
     this->_nsObjectConstructor.set(globalObject->vm(), this, constructor.get());
     return constructor;
 }
@@ -501,7 +509,7 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
 
     case BinaryTypeEncodingType::IdEncoding: {
         auto additionalProtocols = getProtocolMetas(typeEncoding->details.idDetails._protocols);
-        result = getObjCNativeConstructorByNativeName(globalObject, "NSObject", additionalProtocols);
+        result = getObjCNativeConstructorByNativeName(globalObject, [NSObject class], additionalProtocols);
         break;
     }
     case BinaryTypeEncodingType::ConstantArrayEncoding: {
