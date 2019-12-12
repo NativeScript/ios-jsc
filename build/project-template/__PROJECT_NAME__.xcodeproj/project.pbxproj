@@ -3,10 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		39940D9122C4EF600050DDE1 /* NativeScript.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 39940D8C22C4EAAA0050DDE1 /* NativeScript.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		39940E1C22C5DFFF0050DDE1 /* TKLiveSync.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 39940E1B22C5DFFF0050DDE1 /* TKLiveSync.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		858B842D18CA22B800AB12DE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 858B833A18CA111C00AB12DE /* InfoPlist.strings */; };
 		CD45EE7C18DC2D5800FB50C0 /* app in Resources */ = {isa = PBXBuildFile; fileRef = CD45EE7A18DC2D5800FB50C0 /* app */; };
 		CD62955D1BB2678900AE3A93 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CD62955C1BB2678900AE3A93 /* main.m */; };
@@ -19,6 +21,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				39940D9122C4EF600050DDE1 /* NativeScript.xcframework in Embed Frameworks */,
+				39940E1C22C5DFFF0050DDE1 /* TKLiveSync.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -36,6 +40,9 @@
 		42C751E4232B769100186695 /* nsld.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = nsld.sh; path = internal/nsld.sh; sourceTree = SOURCE_ROOT; };
 		42C751E5232B769100186695 /* nativescript-post-build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "nativescript-post-build"; path = "internal/nativescript-post-build"; sourceTree = SOURCE_ROOT; };
 		42C751E6232B769100186695 /* nativescript-pre-build */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "nativescript-pre-build"; path = "internal/nativescript-pre-build"; sourceTree = SOURCE_ROOT; };
+		39940D8122C4E84C0050DDE1 /* __PROJECT_NAME__.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = __PROJECT_NAME__.entitlements; sourceTree = "<group>"; };
+		39940D8C22C4EAAA0050DDE1 /* NativeScript.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = NativeScript.xcframework; path = internal/NativeScript.xcframework; sourceTree = "<group>"; };
+		39940E1B22C5DFFF0050DDE1 /* TKLiveSync.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TKLiveSync.xcframework; path = internal/TKLiveSync.xcframework; sourceTree = "<group>"; };
 		858B832E18CA111C00AB12DE /* __PROJECT_NAME__.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = __PROJECT_NAME__.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		858B833918CA111C00AB12DE /* __PROJECT_NAME__-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "__PROJECT_NAME__-Info.plist"; sourceTree = "<group>"; };
 		858B833B18CA111C00AB12DE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -72,6 +79,17 @@
 			name = "Build Scripts";
 			sourceTree = "<group>";
 		};
+		39940D8E22C4EBCC0050DDE1 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				391174B321F1CBD300BA2583 /* TNSDebugging.h */,
+				391174B421F1CBD300BA2583 /* TNSExceptionHandler.h */,
+				CD62955C1BB2678900AE3A93 /* main.m */,
+				858B833F18CA111C00AB12DE /* __PROJECT_NAME__-Prefix.pch */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
 		858B832518CA111C00AB12DE = {
 			isa = PBXGroup;
 			children = (
@@ -94,6 +112,8 @@
 		858B833018CA111C00AB12DE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				39940E1B22C5DFFF0050DDE1 /* TKLiveSync.xcframework */,
+				39940D8C22C4EAAA0050DDE1 /* NativeScript.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -101,6 +121,8 @@
 		858B833718CA111C00AB12DE /* __PROJECT_NAME__ */ = {
 			isa = PBXGroup;
 			children = (
+				39940D8E22C4EBCC0050DDE1 /* Sources */,
+				39940D8122C4E84C0050DDE1 /* __PROJECT_NAME__.entitlements */,
 				CD45EE7A18DC2D5800FB50C0 /* app */,
 				858B833818CA111C00AB12DE /* Supporting Files */,
 			);
@@ -113,16 +135,12 @@
 				42C751E1232B767700186695 /* Build Scripts */,
 				391174B821F1D99900BA2583 /* plugins-debug.xcconfig */,
 				391174B721F1D99900BA2583 /* plugins-release.xcconfig */,
-				391174B321F1CBD300BA2583 /* TNSDebugging.h */,
-				391174B421F1CBD300BA2583 /* TNSExceptionHandler.h */,
 				CDF4743E1BA4855C0087EA85 /* build.xcconfig */,
 				CDD59A261BB43B5D00EC2671 /* build-debug.xcconfig */,
 				CDD59A271BB43B5D00EC2671 /* build-release.xcconfig */,
 				391174B521F1D7BF00BA2583 /* nativescript-build.xcconfig */,
 				858B833918CA111C00AB12DE /* __PROJECT_NAME__-Info.plist */,
 				858B833A18CA111C00AB12DE /* InfoPlist.strings */,
-				CD62955C1BB2678900AE3A93 /* main.m */,
-				858B833F18CA111C00AB12DE /* __PROJECT_NAME__-Prefix.pch */,
 				930F05DB22671AE300D269DC /* Swift-ObjC-Bridging-Header.h */,
 			);
 			name = "Supporting Files";
@@ -227,7 +245,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"$SRCROOT/internal/nativescript-post-build\"";
+			shellScript = "\"$SRCROOT/internal/nativescript-post-build\"\n";
 			showEnvVarsInLog = 0;
 		};
 		CD62955B1BB2651D00AE3A93 /* NativeScript PreLink */ = {
@@ -289,6 +307,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				DERIVE_UIKITFORMAC_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -303,6 +322,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				STRIP_SWIFT_SYMBOLS = NO;
+				SUPPORTS_UIKITFORMAC = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "$SRCROOT/internal/Swift-ObjC-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -328,6 +348,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				DERIVE_UIKITFORMAC_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -339,6 +360,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				SDKROOT = iphoneos;
 				STRIP_SWIFT_SYMBOLS = NO;
+				SUPPORTS_UIKITFORMAC = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "$SRCROOT/internal/Swift-ObjC-Bridging-Header.h";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -351,7 +373,9 @@
 			baseConfigurationReference = CDD59A261BB43B5D00EC2671 /* build-debug.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
+				CODE_SIGN_ENTITLEMENTS = __PROJECT_NAME__/__PROJECT_NAME__.entitlements;
 				ENABLE_BITCODE = NO;
+				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "__PROJECT_NAME__/__PROJECT_NAME__-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -364,8 +388,12 @@
 					"\"$(SRCROOT)/internal\"",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_NAME = __PROJECT_NAME__;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -375,7 +403,9 @@
 			baseConfigurationReference = CDD59A271BB43B5D00EC2671 /* build-release.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
+				CODE_SIGN_ENTITLEMENTS = __PROJECT_NAME__/__PROJECT_NAME__.entitlements;
 				ENABLE_BITCODE = NO;
+				"ENABLE_HARDENED_RUNTIME[sdk=macosx*]" = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "__PROJECT_NAME__/__PROJECT_NAME__-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -384,8 +414,12 @@
 					"$(SRCROOT)/internal",
 				);
 				INFOPLIST_FILE = "$(SRCROOT)/__PROJECT_NAME__/__PROJECT_NAME__-Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				PRODUCT_NAME = __PROJECT_NAME__;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

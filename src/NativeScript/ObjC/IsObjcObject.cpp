@@ -43,7 +43,11 @@
 #define _OBJC_TAG_EXT_INDEX_MASK 0xff
 
 #if OBJC_MSB_TAGGED_POINTERS
+#if TARGET_OS_UIKITFORMAC
+#define _OBJC_TAG_MASK ~(-1ULL >> (64 - 53))
+#else
 #define _OBJC_TAG_MASK (1ULL << 63)
+#endif // TARGET_OS_UIKITFORMAC
 #define _OBJC_TAG_INDEX_SHIFT 60
 #define _OBJC_TAG_EXT_INDEX_SHIFT 52
 #else
@@ -90,7 +94,7 @@ typedef enum {
 } objc_tag_index_t;
 
 static inline bool _objc_isTaggedPointer(const void* ptr) {
-    return ((intptr_t)ptr & _OBJC_TAG_MASK) == _OBJC_TAG_MASK;
+    return ((intptr_t)ptr & _OBJC_TAG_MASK) != 0;
 }
 
 static inline objc_tag_index_t _objc_getTaggedPointerTag(const void* ptr) {
@@ -303,10 +307,17 @@ bool IsObjcObject(const void* inPtr) {
     // https://twitter.com/gparker/status/801894068502433792
     // You can filter out some false positives by checking malloc_size(obj) >= class_getInstanceSize(cls).
     //
+
+// TODO: Enable for Mac Catalyst after official release if it works.
+// Right now the following check gives a false-negative result for instances of type NSCTFontDescriptor
+// on Mac Catalyst. Treating them as non-ObjC objects, because class_getInstanceSize(ptrClass) returns 104
+// while mallocsize is smaller - 96.
+#if !TARGET_OS_UIKITFORMAC
     size_t pointerSize = malloc_size(inPtr);
     if (pointerSize > 0 && pointerSize < class_getInstanceSize(ptrClass)) {
         return false;
     }
+#endif // !TARGET_OS_UIKITFORMAC
 #endif // !defined SKIP_OBJECTIVE_C_CHECKS || !SKIP_OBJECTIVE_C_CHECKS
 
     return true;

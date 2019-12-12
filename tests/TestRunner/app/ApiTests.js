@@ -773,21 +773,21 @@ describe(module.id, function () {
     if (TNSIsConfigurationDebug) {
         it("ApiIterator", function () {
             var counter = 0;
-
-            Object.getOwnPropertyNames(global).forEach(function (name) {
-//                console.debug(`Symbol global.${name}`);
-
+            Object.getOwnPropertyNames(global).forEach(function (globalName) {
+//                console.debug(`Symbol global.${globalName}`);
+                                                       
                 // according to SDK headers kCFAllocatorUseContext is of type id, but in fact it is not
-                if (name == "kCFAllocatorUseContext" ||
-                    name == "JSExport" ||
-                    name == "kSCNetworkInterfaceIPv4") {
+                if (globalName == "kCFAllocatorUseContext"
+                    || globalName == "JSExport"
+                    || globalName == "kSCNetworkInterfaceIPv4"
+                    ) {
                     return;
                 }
 
                 counter++;
 
                 try {
-                    var symbol = global[name];
+                    var symbol = global[globalName];
                 } catch (e) {
                     if (e instanceof ReferenceError) {
                         return;
@@ -798,21 +798,24 @@ describe(module.id, function () {
 
                 if (NSObject.isPrototypeOf(symbol) || symbol === NSObject) {
                     var klass = symbol;
-                    expect(klass).toBeDefined(`Class ${name} should be defined.`);
+                    expect(klass).toBeDefined(`Class ${globalName} should be defined.`);
 
 //                    console.debug(`Entering class ${klass}`);
 
                     Object.getOwnPropertyNames(klass).forEach(function (y) {
                         if (klass.respondsToSelector(y)) {
-//                            console.debug(`Checking class member ${name} . ${y}`);
+//                            console.debug(`Checking class member ${globalName} . ${y}`);
 
                             // supportedVideoFormats is a property and it's getter is being called the value is read below.
                             // We skip it because it will throw "Supported video formats should be called on individual configuration class."
-                            if (y == "supportedVideoFormats") {
+                            if (y == "supportedVideoFormats"
+                                || (globalName == "MPMusicPlayerController" &&
+                                     (y == "applicationQueuePlayer") || (y == "applicationMusicPlayer")) // Blocking calls in Catalyst
+                                ) {
                                 return;
                             }
                             var method = klass[y];
-                            expect(method).toBeDefined(`Static method ${name} . ${y} should be defined.`);
+                            expect(method).toBeDefined(`Static method ${globalName} . ${y} should be defined.`);
 
                             counter++;
                         }
@@ -820,13 +823,13 @@ describe(module.id, function () {
 
                     Object.getOwnPropertyNames(klass.prototype).forEach(function (y) {
                         if (klass.instancesRespondToSelector(y)) {
-//                            console.debug(`Checking instance member ${name} . ${y}`);
-
+//                            console.debug(`Checking instance member ${globalName} . ${y}`);
+                            
                             var property = Object.getOwnPropertyDescriptor(klass.prototype, y);
 
                             if (!property) {
                                 var method = klass.prototype[y];
-                                expect(method).toBeDefined(`Instance method -[${name} ${y}] should be defined.`);
+                                expect(method).toBeDefined(`Instance method -[${globalName} ${y}] should be defined.`);
                             }
 
                             counter++;

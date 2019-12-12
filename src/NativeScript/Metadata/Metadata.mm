@@ -24,7 +24,12 @@ static UInt8 getSystemVersion() {
         return iosVersion;
     }
 
+#if TARGET_OS_UIKITFORMAC
+    NSString* version = @"13.2";
+#else
     NSString* version = [[UIDevice currentDevice] systemVersion];
+#endif
+
     NSArray* versionTokens = [version componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"."]];
     UInt8 majorVersion = (UInt8)[versionTokens[0] intValue];
     UInt8 minorVersion = (UInt8)[versionTokens[1] intValue];

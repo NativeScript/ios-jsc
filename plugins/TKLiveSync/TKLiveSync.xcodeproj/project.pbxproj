@@ -3,13 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		39940E1822C525B50050DDE1 /* libzip_iOS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 39940E1722C525B50050DDE1 /* libzip_iOS.xcframework */; };
+		39940E6F22C63BF40050DDE1 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 39940E6E22C63BEA0050DDE1 /* libbz2.tbd */; };
 		39B710ED215E11050086A3A0 /* libGCDWebServer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39B710EC215E11050086A3A0 /* libGCDWebServer.a */; };
 		71699D914198EFE42C45AB83 /* libPods-TKLiveSync.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39838D144633636813BC3093 /* libPods-TKLiveSync.a */; };
-		C93EC6F71E9FEF2C009644C0 /* libzip_iOS in Frameworks */ = {isa = PBXBuildFile; fileRef = C93EC6F61E9FEF2C009644C0 /* libzip_iOS */; };
 		CD0F75AB1D4B7DB20095538D /* unzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD0F75A91D4B7DB20095538D /* unzip.cpp */; };
 		CD0F75AC1D4B7DB20095538D /* unzip.h in Headers */ = {isa = PBXBuildFile; fileRef = CD0F75AA1D4B7DB20095538D /* unzip.h */; };
 		CD56430F1D181F240083EF6A /* TKLiveSync.h in Headers */ = {isa = PBXBuildFile; fileRef = CD56430E1D181F240083EF6A /* TKLiveSync.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -19,8 +20,9 @@
 /* Begin PBXFileReference section */
 		27E6A05AEDCAAF1D55FCA431 /* Pods-TKLiveSync.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TKLiveSync.release.xcconfig"; path = "Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync.release.xcconfig"; sourceTree = "<group>"; };
 		39838D144633636813BC3093 /* libPods-TKLiveSync.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TKLiveSync.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		39B710EC215E11050086A3A0 /* libGCDWebServer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGCDWebServer.a; path = libGCDWebServer.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		C93EC6F61E9FEF2C009644C0 /* libzip_iOS */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzip_iOS; path = libzip_iOS.framework/libzip_iOS; sourceTree = "<group>"; };
+		39940E1722C525B50050DDE1 /* libzip_iOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = libzip_iOS.xcframework; sourceTree = "<group>"; };
+		39940E6E22C63BEA0050DDE1 /* libbz2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.tbd; path = usr/lib/libbz2.tbd; sourceTree = SDKROOT; };
+		39B710EC215E11050086A3A0 /* libGCDWebServer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libGCDWebServer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD0F75A91D4B7DB20095538D /* unzip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = unzip.cpp; sourceTree = "<group>"; };
 		CD0F75AA1D4B7DB20095538D /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unzip.h; sourceTree = "<group>"; };
 		CD56430B1D181F240083EF6A /* TKLiveSync.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework.static; includeInIndex = 0; path = TKLiveSync.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -28,7 +30,6 @@
 		CD5643101D181F240083EF6A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CD56432B1D1820330083EF6A /* TKLiveSync.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TKLiveSync.m; sourceTree = "<group>"; };
 		CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = libzip_iOS.framework; sourceTree = "<group>"; };
-		CD5C75801D489DF000BD4EFA /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		DA4701457EEE40CC2EE59163 /* Pods-TKLiveSync.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TKLiveSync.debug.xcconfig"; path = "Pods/Target Support Files/Pods-TKLiveSync/Pods-TKLiveSync.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -37,9 +38,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C93EC6F71E9FEF2C009644C0 /* libzip_iOS in Frameworks */,
 				39B710ED215E11050086A3A0 /* libGCDWebServer.a in Frameworks */,
+				39940E1822C525B50050DDE1 /* libzip_iOS.xcframework in Frameworks */,
 				71699D914198EFE42C45AB83 /* libPods-TKLiveSync.a in Frameworks */,
+				39940E6F22C63BF40050DDE1 /* libbz2.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,9 +90,9 @@
 		CD5C757F1D489DC200BD4EFA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				39940E6E22C63BEA0050DDE1 /* libbz2.tbd */,
+				39940E1722C525B50050DDE1 /* libzip_iOS.xcframework */,
 				39B710EC215E11050086A3A0 /* libGCDWebServer.a */,
-				C93EC6F61E9FEF2C009644C0 /* libzip_iOS */,
-				CD5C75801D489DF000BD4EFA /* libz.tbd */,
 				CD5C757D1D489D8600BD4EFA /* libzip_iOS.framework */,
 				39838D144633636813BC3093 /* libPods-TKLiveSync.a */,
 			);
@@ -150,6 +152,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = CD5643011D181F240083EF6A;
@@ -308,14 +311,23 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/TKLiveSync/libzip_iOS",
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/GCDWebServer\"",
+				);
 				INFOPLIST_FILE = TKLiveSync/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
+				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/libzip_iOS.framework",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
+				LD_DYLIB_INSTALL_NAME = "@rpath/TKLiveSync.framework/TKLiveSync";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MACH_O_TYPE = mh_dylib;
 				PRODUCT_BUNDLE_IDENTIFIER = org.nativescript.TKLiveSync;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -336,14 +348,23 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/TKLiveSync/libzip_iOS",
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/GCDWebServer\"",
+				);
 				INFOPLIST_FILE = TKLiveSync/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				LIBRARY_SEARCH_PATHS = (
+				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/libzip_iOS.framework",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
+				LD_DYLIB_INSTALL_NAME = "@rpath/TKLiveSync.framework/TKLiveSync";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MACH_O_TYPE = mh_dylib;
 				PRODUCT_BUNDLE_IDENTIFIER = org.nativescript.TKLiveSync;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
