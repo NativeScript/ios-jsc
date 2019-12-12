@@ -60,7 +60,7 @@ void GlobalObjectDebuggerAgent::enable() {
     InspectorDebuggerAgent::enable();
 
     JSValue registry = this->m_globalObject->moduleLoader()->get(this->m_globalObject->globalExec(), Identifier::fromString(&this->m_globalObject->vm(), "registry"));
-    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->vm().mapIteratorStructure.get(), jsCast<JSMap*>(registry), IterateKeyValue);
+    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->vm().mapIteratorStructure(), jsCast<JSMap*>(registry), IterateKeyValue);
 
     JSValue moduleKey, moduleEntry;
     VM& vm = this->m_globalObject->vm();
@@ -87,7 +87,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
     ExecState* exec = this->m_globalObject->globalExec();
 
     JSValue registry = this->m_globalObject->moduleLoader()->get(exec, Identifier::fromString(&this->m_globalObject->vm(), "registry"));
-    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->vm().mapIteratorStructure.get(), jsCast<JSMap*>(registry), IterateKeyValue);
+    JSMapIterator* registryIterator = JSMapIterator::create(this->m_globalObject->vm(), this->m_globalObject->vm().mapIteratorStructure(), jsCast<JSMap*>(registry), IterateKeyValue);
     JSValue moduleKey, moduleEntry;
     Identifier moduleIdentifier = Identifier::fromString(&vm, "module");
 
@@ -156,7 +156,7 @@ void GlobalObjectDebuggerAgent::setScriptSource(Inspector::ErrorString& error, c
         }
     }
 
-    error = String::format("Could not find script with ID: '%s'", scriptIdStr.utf8().data());
+    error = makeString("Could not find script with ID: '", scriptIdStr, "'");
 }
 
 InjectedScript GlobalObjectDebuggerAgent::injectedScriptForEval(ErrorString& error, const int* executionContextId) {

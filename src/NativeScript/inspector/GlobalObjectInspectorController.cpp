@@ -113,7 +113,7 @@ GlobalObjectInspectorController::GlobalObjectInspectorController(GlobalObject& g
     auto inspectorAgent = std::make_unique<InspectorAgent>(m_jsAgentContext);
     auto runtimeAgent = std::make_unique<JSGlobalObjectRuntimeAgent>(m_jsAgentContext);
     auto heapAgent = std::make_unique<InspectorHeapAgent>(m_jsAgentContext);
-    auto consoleAgent = std::make_unique<InspectorConsoleAgent>(m_jsAgentContext, heapAgent.get()); // TODO Add InspectorHeapAgent
+    auto consoleAgent = std::make_unique<InspectorConsoleAgent>(m_jsAgentContext); // TODO Add InspectorHeapAgent
     auto debuggerAgent = std::make_unique<GlobalObjectDebuggerAgent>(m_jsAgentContext, consoleAgent.get());
     auto pageAgent = std::make_unique<InspectorPageAgent>(m_jsAgentContext);
     auto scriptProfilerAgent = std::make_unique<InspectorScriptProfilerAgent>(m_jsAgentContext);

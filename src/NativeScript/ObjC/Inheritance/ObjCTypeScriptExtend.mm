@@ -57,7 +57,7 @@ EncodedJSValue ObjCTypeScriptExtendFunction(ExecState* execState) {
 
     JSFunction* typeScriptConstructor = jsCast<JSFunction*>(execState->argument(0));
     if (!isPlainTypeScriptConstructor(typeScriptConstructor)) {
-        WTF::String message = WTF::String::format("The TypeScript constructor \"%s\" will not be executed.", typeScriptConstructor->name(vm).utf8().data());
+        WTF::String message = makeString("The TypeScript constructor \"", typeScriptConstructor->name(vm), "\" will not be executed.");
         warn(execState, message);
     }
 

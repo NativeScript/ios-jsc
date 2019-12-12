@@ -7,6 +7,8 @@ import sys
 
 print("Python version: " + sys.version)
 
+def str2bool(v):
+  return v.lower() in ("yes", "y", "true", "t", "1")
 
 def env(env_name):
     return os.environ[env_name]
@@ -22,6 +24,8 @@ def env_or_empty(env_name):
         return ""
     return result
 
+def env_bool(env_name):
+    return str2bool(env_or_empty(env_name))
 
 def map_and_list(func, iterable):
     result = map(func, iterable)
@@ -44,6 +48,7 @@ system_framework_search_paths = env_or_empty("SYSTEM_FRAMEWORK_SEARCH_PATHS")
 system_framework_search_paths_parsed = map_and_list((lambda s: "-F" + s), shlex.split(system_framework_search_paths))
 other_cflags = env_or_empty("OTHER_CFLAGS")
 other_cflags_parsed = shlex.split(other_cflags)
+enable_modules = env_bool("CLANG_ENABLE_MODULES")
 preprocessor_defs = env_or_empty("GCC_PREPROCESSOR_DEFINITIONS")
 preprocessor_defs_parsed = map_and_list((lambda s: "-D" + s), shlex.split(preprocessor_defs, '\''))
 typescript_output_folder = env_or_none("TNS_TYPESCRIPT_DECLARATIONS_PATH")
@@ -110,6 +115,10 @@ def generate_metadata(arch):
     generator_call.extend(system_framework_search_paths_parsed)  # SYSTEM_FRAMEWORK_SEARCH_PATHS
     generator_call.extend(other_cflags_parsed)  # OTHER_CFLAGS
     generator_call.extend(preprocessor_defs_parsed)  # GCC_PREPROCESSOR_DEFINITIONS
+
+    if enable_modules:
+        # -I. is needed for includes coming from clang's lib/clang/<version>/include/ directory when parsing modules
+        generator_call.extend(["-I.", "-fmodules"])
 
     child_process = subprocess.Popen(generator_call, stderr=subprocess.PIPE, universal_newlines=True)
     sys.stdout.flush()

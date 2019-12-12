@@ -298,7 +298,7 @@ Identifier GlobalObject::moduleLoaderResolve(JSGlobalObject* globalObject, ExecS
     }
 
     if (!absoluteFilePath) {
-        WTF::String errorMessage = WTF::String::format("Could not find module '%s'. Computed path '%s'.", keyValue.toWTFString(execState).utf8().data(), absolutePath.UTF8String);
+        WTF::String errorMessage = makeString("Could not find module '", keyValue.toWTFString(execState), "'. Computed path '", absolutePath.UTF8String, "'.");
         throwException(execState, scope, createError(execState, errorMessage, defaultSourceAppender));
         return Identifier();
     }
@@ -328,7 +328,7 @@ JSInternalPromise* GlobalObject::moduleLoaderFetch(JSGlobalObject* globalObject,
 
     String moduleContentStr = WTF::String::fromUTF8((const LChar*)moduleContent.bytes, moduleContent.length);
     if (moduleContentStr.isNull() && moduleContent.length > 0) {
-        return deferred->reject(execState, createTypeError(execState, WTF::String::format("Only UTF-8 character encoding is supported: %s", keyValue.toWTFString(execState).utf8().data())));
+        return deferred->reject(execState, createTypeError(execState, makeString("Only UTF-8 character encoding is supported: ", keyValue.toWTFString(execState))));
     }
 
     WTF::StringBuilder moduleUrl;

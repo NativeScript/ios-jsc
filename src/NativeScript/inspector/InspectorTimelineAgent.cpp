@@ -84,9 +84,6 @@ void InspectorTimelineAgent::setAutoCaptureEnabled(ErrorString&, bool enabled) {
 }
 
 void InspectorTimelineAgent::startFromConsole(JSC::ExecState* exec, const String& title) {
-    if (!m_enabledFromFrontend) {
-        m_scriptProfilerAgent->programmaticCaptureStarted();
-    }
     // Allow duplicate unnamed profiles. Disallow duplicate named profiles.
     if (!title.isEmpty()) {
         for (const TimelineRecordEntry& record : m_pendingConsoleProfileRecords) {
@@ -133,10 +130,6 @@ void InspectorTimelineAgent::stopFromConsole(JSC::ExecState*, const String& titl
         String warning = title.isEmpty() ? "No profiles exist"_s : makeString("Profile \"", title, "\" does not exist");
         consoleAgent->addMessageToConsole(std::make_unique<ConsoleMessage>(MessageSource::ConsoleAPI, MessageType::ProfileEnd, MessageLevel::Warning, warning));
     }
-
-    if (!m_enabledFromFrontend) {
-        m_scriptProfilerAgent->programmaticCaptureStopped();
-    }
 }
 
 void InspectorTimelineAgent::startProgrammaticCapture() {
@@ -153,8 +146,6 @@ void InspectorTimelineAgent::startProgrammaticCapture() {
         m_programmaticCaptureRestoreBreakpointActiveValue = false;
 
     if (!m_enabledFromFrontend) {
-        m_frontendDispatcher->programmaticCaptureStarted();
-
         toggleScriptProfilerInstrument(InstrumentState::Start); // Ensure JavaScript samping data.
         toggleTimelineInstrument(InstrumentState::Start); // Ensure Console Profile event records.
         toggleInstruments(InstrumentState::Start); // Any other instruments the frontend wants us to record.
@@ -175,8 +166,6 @@ void InspectorTimelineAgent::stopProgrammaticCapture() {
             debuggerAgent->setBreakpointsActive(unused, true);
         }
     }
-
-    m_frontendDispatcher->programmaticCaptureStopped();
 }
 
 void InspectorTimelineAgent::toggleInstruments(InstrumentState state) {
@@ -187,11 +176,15 @@ void InspectorTimelineAgent::toggleInstruments(InstrumentState state) {
             break;
         }
         case Inspector::Protocol::Timeline::Instrument::Heap: {
-            //                toggleHeapInstrument(state);
+            // toggleHeapInstrument(state);
+            break;
+        }
+        case Inspector::Protocol::Timeline::Instrument::CPU: {
+            // toggleCPUInstrument(state);
             break;
         }
         case Inspector::Protocol::Timeline::Instrument::Memory: {
-            //                toggleMemoryInstrument(state);
+            // toggleMemoryInstrument(state);
             break;
         }
         case Inspector::Protocol::Timeline::Instrument::Timeline:

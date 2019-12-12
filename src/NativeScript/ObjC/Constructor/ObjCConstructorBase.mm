@@ -357,7 +357,7 @@ EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::createObjCClass(ExecState* exe
     if (!handle) {
         auto scope = DECLARE_THROW_SCOPE(vm);
 
-        WTF::String message = WTF::String::format("Value must be a %s.", PointerInstance::info()->className);
+        WTF::String message = makeString("Value must be a ", PointerInstance::info()->className, ".");
         return throwVMError(execState, scope, createError(execState, message));
     }
 

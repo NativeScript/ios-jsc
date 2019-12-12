@@ -45,7 +45,7 @@ void overrideObjcMethodCall(ExecState* execState, Class klass, JSCell* method, O
     std::string compilerEncoding = getCompilerEncoding(globalObject, call->meta);
     IMP nativeImp = class_replaceMethod(klass, call->meta->selector(), reinterpret_cast<IMP>(callback->functionPointer()), compilerEncoding.c_str());
     if (nativeImp) {
-        SEL nativeSelector = sel_registerName(WTF::String::format("__%s", call->meta->selectorAsString()).utf8().data());
+        SEL nativeSelector = sel_registerName(makeString("__", call->meta->selectorAsString()).utf8().data());
         class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
         call->setSelector(nativeSelector);
     }
@@ -112,9 +112,7 @@ void overrideObjcMethodWrapperCalls(ExecState* execState, Class klass, JSCell* m
     }
 
     if (warnForMultipleOverrides) {
-        WTF::String message = WTF::String::format("More than one native methods overriden! Assigning to \"%s\" will override native methods with the following selectors: %s.",
-                                                  jsName.c_str(),
-                                                  metaNames.toString().utf8().data());
+        WTF::String message = makeString("More than one native methods overriden! Assigning to \"", jsName.c_str(), "\" will override native methods with the following selectors: ", metaNames.toString(), ".");
         warn(execState, message);
     }
 }

@@ -30,7 +30,7 @@ public:
 
     DECLARE_INFO;
 
-    template <typename CellType>
+    template <typename CellType, JSC::SubspaceAccess mode>
     static JSC::IsoSubspace* subspaceFor(JSC::VM& vm) {
         return &vm.tnsObjCConstructorWrapperSpace;
     }

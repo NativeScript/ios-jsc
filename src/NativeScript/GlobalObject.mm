@@ -128,7 +128,7 @@ static EncodedJSValue JSC_HOST_CALL time(ExecState* execState) {
 static EncodedJSValue JSC_HOST_CALL releaseNativeCounterpart(ExecState* execState) {
     if (execState->argumentCount() != 1) {
         auto scope = DECLARE_THROW_SCOPE(execState->vm());
-        WTF::String message = WTF::String::format("Actual arguments count: \"%lu\". Expected: \"%lu\".", execState->argumentCount(), 1);
+        WTF::String message = makeString("Actual arguments count: \"", execState->argumentCount(), "\". Expected: \"", 1, "\".");
         return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message, defaultSourceAppender)));
     }
 
@@ -418,8 +418,7 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
     }
 
     if (!symbolWrapper) {
-        WTF::String errorMessage = WTF::String::format("Metadata for \"%s.%s\" found but symbol not available at runtime.",
-                                                       symbolMeta->topLevelModule()->getName(), symbolMeta->name(), symbolMeta->name());
+        WTF::String errorMessage = makeString("Metadata for \"", symbolMeta->topLevelModule()->getName(), ".", symbolMeta->name(), "\" found but symbol not available at runtime.");
         JSC::VM& vm = execState->vm();
         auto scope = DECLARE_THROW_SCOPE(vm);
 
