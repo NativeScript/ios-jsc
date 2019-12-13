@@ -32,7 +32,7 @@ PacketStream.prototype._transform = function(packet, encoding, done) {
 };
 
 var server = new ws.Server({
-    port: 8080
+    port: 41000
 });
 server.on("connection", function(webSocket) {
     console.info("Frontend client connected.");
