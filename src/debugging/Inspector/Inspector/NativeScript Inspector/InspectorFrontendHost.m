@@ -87,4 +87,14 @@
     return @"ltr";
 }
 
+- (void)reset {
+}
+
+- (void)setSheetRect {
+}
+
+- (bool)isRemote {
+    return false;
+}
+
 @end

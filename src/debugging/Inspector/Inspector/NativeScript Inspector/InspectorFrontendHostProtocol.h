@@ -18,5 +18,8 @@
 - (void)showContextMenu;
 - (void)openInNewTab;
 - (NSString*)userInterfaceLayoutDirection;
+- (void)reset;
+- (void)setSheetRect;
+- (bool)isRemote;
 
 @end
