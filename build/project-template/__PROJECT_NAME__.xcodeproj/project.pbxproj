@@ -356,7 +356,6 @@
 			baseConfigurationReference = CDD59A261BB43B5D00EC2671 /* build-debug.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
-				CODE_SIGN_STYLE = Automatic;
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "__PROJECT_NAME__/__PROJECT_NAME__-Prefix.pch";
@@ -381,7 +380,6 @@
 			baseConfigurationReference = CDD59A271BB43B5D00EC2671 /* build-release.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
-				CODE_SIGN_STYLE = Automatic;
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "__PROJECT_NAME__/__PROJECT_NAME__-Prefix.pch";
