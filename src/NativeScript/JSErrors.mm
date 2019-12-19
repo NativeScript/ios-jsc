@@ -96,7 +96,7 @@ void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope) {
                                          || globalObject->isUIApplicationMainAtTopOfCallstack();
 
         if (treatExceptionsAsUncaught) {
-            id discardExceptionsValue = [[TNSRuntime current] appPackageJson][@"discardUncaughtJsExceptions"];
+            id discardExceptionsValue = [[TNSRuntime runtimeForVM:&execState->vm()] appPackageJson][@"discardUncaughtJsExceptions"];
             bool discardExceptions = [discardExceptionsValue boolValue];
             scope.clearException();
             if (discardExceptions) {
@@ -181,8 +181,8 @@ void reportFatalErrorBeforeShutdown(ExecState* execState, Exception* exception, 
                 CFRunLoopRunInMode((CFStringRef)TNSInspectorRunLoopMode, 0.1, false);
             }
         }
-        
-        id discardExceptionsValue = [[TNSRuntime current] appPackageJson][@"discardUncaughtJsExceptions"];
+
+        id discardExceptionsValue = [[TNSRuntime runtimeForVM:&execState->vm()] appPackageJson][@"discardUncaughtJsExceptions"];
         bool discardExceptions = [discardExceptionsValue boolValue];
         if (!discardExceptions) {
             String message = exception->value().toString(globalObject->globalExec())->value(globalObject->globalExec());
