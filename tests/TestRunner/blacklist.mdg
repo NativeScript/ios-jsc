@@ -1,0 +1,26 @@
+# Metadata Generator filtering tests. Strip well-known symbols to perform checks at runtime with TestRunner.
+
+# should exclude everything from HealthKit.HKClinicalType:
+# HKClinicalTypeIdentifierAllergyRecord HKClinicalTypeIdentifierConditionRecord
+# HKClinicalTypeIdentifierImmunizationRecord HKClinicalTypeIdentifierLabResultRecord
+# HKClinicalTypeIdentifierMedicationRecord HKClinicalTypeIdentifierProcedureRecord
+# HKClinicalTypeIdentifierVitalSignRecord ClinicalType HKClinicalType
+HealthKit.HKClinicalType
+
+# should exclude everything from HealthKit.HKSampleQuery:
+# HKObjectQueryNoLimit HKSampleQuery
+HealthKit.HKSampleQuery:
+
+# should exclude everything from CloudKit.CKReference
+# CKReferenceAction CKReferenceActionNone CKReferenceActionDeleteSelf CKReference
+CloudKit.CKReference:*
+
+# should exclude rusage_info_v0 to _v4 from Darwin.POSIX.sys.resource
+# but should leave task_power_info_v2 from Darwin.Mach.task_info
+Darwin.POSIX.*:*_info_v*
+
+# should exclude kCFCharacterSetNewline from CoreFoundation.CFCharacterSet
+CoreFoundation.CFCh*:k*SetNe?line
+
+# shouldn't exclude kCFCharacterSetWhitespaceAndNewline because it resides in the CoreFoundation.CFCharacterSet submodule
+CoreFoundation:kCFCharacterSetWhitespaceAndNewline
