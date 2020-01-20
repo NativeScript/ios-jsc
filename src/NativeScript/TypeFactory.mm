@@ -11,6 +11,7 @@
 #include "FFIPrimitiveTypes.h"
 #include "FFISimpleType.h"
 #include "FunctionReferenceTypeInstance.h"
+#include "JSErrors.h"
 #include "ManualInstrumentation.h"
 #include "Metadata.h"
 #include "ObjCBlockType.h"
@@ -98,6 +99,11 @@ Strong<RecordConstructor> TypeFactory::getStructConstructor(GlobalObject* global
         return Strong<RecordConstructor>(globalObject->vm(), constructor);
     }
 
+    const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTableJs()->findMeta(structName.impl()));
+    if (!structInfo) {
+        @throw [NSException exceptionWithName:NSGenericException reason:[NSString stringWithFormat:@"Struct \"%s\" is missing from metadata. It may have been blacklisted.", structName.utf8().data()] userInfo:nil];
+    }
+
     ffi_type* ffiType = new ffi_type({ .size = 0,
                                        .alignment = 0,
                                        .type = FFI_TYPE_STRUCT });
@@ -117,7 +123,6 @@ Strong<RecordConstructor> TypeFactory::getStructConstructor(GlobalObject* global
     WTF::Vector<Strong<JSCell>> fieldsTypes;
     WTF::Vector<WTF::String> fieldsNames;
 
-    const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTableJs()->findMeta(structName.impl()));
     ASSERT(structInfo && structInfo->type() == MetaType::Struct);
 
     const TypeEncoding* encodingsPtr = structInfo->fieldsEncodings()->first();
@@ -130,9 +135,10 @@ Strong<RecordConstructor> TypeFactory::getStructConstructor(GlobalObject* global
     WTF::Vector<Strong<RecordField>> fields = createRecordFields(globalObject, fieldsTypes, fieldsNames, ffiType);
     recordPrototype->setFields(vm, globalObject, fields);
 
-    // This could already be initialized at this point.
-    if (RecordConstructor* constructor = this->_cacheStruct.get(structName)) {
-        return Strong<RecordConstructor>(globalObject->vm(), constructor);
+    // This could already have been initialized at this point.
+    if (RecordConstructor* cachedConstructor = this->_cacheStruct.get(structName)) {
+        ASSERT(constructor.get() == cachedConstructor);
+        return Strong<RecordConstructor>(globalObject->vm(), cachedConstructor);
     }
 
     addResult = this->_cacheStruct.set(structName, constructor.get());
@@ -465,10 +471,18 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
         result = Strong<JSCell>(globalObject->vm(), this->_doubleType.get());
         break;
     case BinaryTypeEncodingType::InterfaceDeclarationReference: {
+        auto execState = globalObject->globalExec();
         WTF::String declarationName = WTF::String(typeEncoding->details.interfaceDeclarationReference.name.valuePtr());
-        ProtocolMetas additionalProtocols = this->getProtocolMetas(typeEncoding->details.interfaceDeclarationReference._protocols);
+        ProtocolMetas additionalProtocols = this->getProtocolMetas(execState, typeEncoding->details.interfaceDeclarationReference._protocols);
 
-        result = getObjCNativeConstructorByJsName(globalObject, declarationName, additionalProtocols);
+        if (Class klass = objc_getClass(declarationName.utf8().data())) {
+            result = globalObject->constructorFor(klass, additionalProtocols);
+        } else {
+            auto scope = DECLARE_THROW_SCOPE(execState->vm());
+            WTF::String message = makeString("Class \"", declarationName, "\" referenced by type encoding not found at runtime.");
+            throwException(execState, scope, JSC::createError(execState, message, defaultSourceAppender));
+        }
+
         break;
     }
     case BinaryTypeEncodingType::StructDeclarationReference: {
@@ -508,7 +522,8 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
         break;
 
     case BinaryTypeEncodingType::IdEncoding: {
-        auto additionalProtocols = getProtocolMetas(typeEncoding->details.idDetails._protocols);
+        auto execState = globalObject->globalExec();
+        auto additionalProtocols = getProtocolMetas(execState, typeEncoding->details.idDetails._protocols);
         result = getObjCNativeConstructorByNativeName(globalObject, [NSObject class], additionalProtocols);
         break;
     }
@@ -648,15 +663,14 @@ void TypeFactory::visitChildren(JSCell* cell, SlotVisitor& visitor) {
     visitor.append(typeFactory->_pointerConstructor);
 }
 
-ProtocolMetas TypeFactory::getProtocolMetas(PtrTo<Array<Metadata::String>> protocolsPtr) {
+ProtocolMetas TypeFactory::getProtocolMetas(ExecState* execState, PtrTo<Array<Metadata::String>> protocolsPtr) {
     ProtocolMetas protocols;
     for (auto it = protocolsPtr.valuePtr()->begin(); it != protocolsPtr.valuePtr()->end(); it++) {
         auto protocolName = (*it).valuePtr();
-        if (auto p = MetaFile::instance()->globalTableJs()->findProtocol(protocolName)) {
+        if (auto p = MetaFile::instance()->globalTableNativeProtocols()->findProtocol(protocolName)) {
             protocols.append(p);
         } else {
-            // Protocols that are present in metadata should be discoverable
-            ASSERT(false);
+            warn(execState, makeString("Skipping protocol \"", protocolName, "\" which is missing from metadata. It may have been blacklisted."));
         }
     }
 

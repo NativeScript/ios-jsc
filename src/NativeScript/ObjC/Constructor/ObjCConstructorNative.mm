@@ -9,6 +9,7 @@
 #include "ObjCConstructorNative.h"
 #include "AllocatedPlaceholder.h"
 #include "Interop.h"
+#include "JSErrors.h"
 #include "Metadata.h"
 #include "ObjCConstructorCall.h"
 #include "ObjCMethodCall.h"
@@ -28,91 +29,102 @@ void ObjCConstructorNative::finishCreation(VM& vm, JSGlobalObject* globalObject,
 }
 
 bool ObjCConstructorNative::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
-    if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
-        return true;
-    }
-
-    if (UNLIKELY(!propertyName.publicName())) {
-        return false;
-    }
-
-    ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
-
-    MembersCollection methods = constructor->_metadata->getStaticMethods(propertyName.publicName(), constructor->klasses(), /*includeProtocols*/ true, constructor->additionalProtocols());
-
-    if (methods.size() > 0) {
-        std::unordered_map<std::string, MembersCollection> metasByJsName = Metadata::getMetasByJSNames(methods);
-
-        for (auto& methodNameAndMetas : metasByJsName) {
-            MembersCollection& metas = methodNameAndMetas.second;
-            ASSERT(metas.size() > 0);
-
-            SymbolLoader::instance().ensureModule((*metas.begin())->topLevelModule());
-
-            GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-            auto wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
-            object->putDirectWithoutTransition(execState->vm(), propertyName, wrapper.get());
-            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper.get());
+    NS_TRY {
+        if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
             return true;
         }
 
-        return true;
+        if (UNLIKELY(!propertyName.publicName())) {
+            return false;
+        }
+
+        ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
+
+        MembersCollection methods = constructor->_metadata->getStaticMethods(propertyName.publicName(), constructor->klasses(), /*includeProtocols*/ true, constructor->additionalProtocols());
+
+        if (methods.size() > 0) {
+            std::unordered_map<std::string, MembersCollection> metasByJsName = Metadata::getMetasByJSNames(methods);
+
+            for (auto& methodNameAndMetas : metasByJsName) {
+                MembersCollection& metas = methodNameAndMetas.second;
+                ASSERT(metas.size() > 0);
+
+                SymbolLoader::instance().ensureModule((*metas.begin())->topLevelModule());
+
+                GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+                auto wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
+                object->putDirectWithoutTransition(execState->vm(), propertyName, wrapper.get());
+                propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper.get());
+                return true;
+            }
+
+            return true;
+        }
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
     return false;
 }
 
 bool ObjCConstructorNative::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
-    if (value.isCell()) {
-        auto method = value.asCell();
-        ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
-        Class klass = object_getClass(constructor->klasses().known);
+    NS_TRY {
+        if (value.isCell()) {
+            auto method = value.asCell();
+            ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(cell);
+            Class klass = object_getClass(constructor->klasses().known);
 
-        overrideObjcMethodCalls(execState,
-                                constructor,
-                                propertyName,
-                                method,
-                                constructor->_metadata,
-                                MemberType::StaticMethod,
-                                klass,
-                                ProtocolMetas());
+            overrideObjcMethodCalls(execState,
+                                    constructor,
+                                    propertyName,
+                                    method,
+                                    constructor->_metadata,
+                                    MemberType::StaticMethod,
+                                    klass,
+                                    ProtocolMetas());
+        }
+
+        return Base::put(cell, execState, propertyName, value, propertySlot);
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    return Base::put(cell, execState, propertyName, value, propertySlot);
+    return false;
 }
 
 void ObjCConstructorNative::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
-    ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
+    NS_TRY {
+        ObjCConstructorNative* constructor = jsCast<ObjCConstructorNative*>(object);
 
-    std::vector<const BaseClassMeta*> baseClassMetaStack;
-    baseClassMetaStack.push_back(constructor->metadata());
+        std::vector<const BaseClassMeta*> baseClassMetaStack;
+        baseClassMetaStack.push_back(constructor->metadata());
 
-    while (!baseClassMetaStack.empty()) {
-        const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
-        baseClassMetaStack.pop_back();
+        while (!baseClassMetaStack.empty()) {
+            const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
+            baseClassMetaStack.pop_back();
 
-        for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->staticMethods->begin(); it != baseClassMeta->staticMethods->end(); it++) {
-            const MethodMeta* meta = (*it).valuePtr();
-            if (meta->isAvailableInClasses(constructor->klasses(), /*isStatic*/ true)) {
-                propertyNames.add(Identifier::fromString(execState, meta->jsName()));
+            for (ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->staticMethods->begin(); it != baseClassMeta->staticMethods->end(); it++) {
+                const MethodMeta* meta = (*it).valuePtr();
+                if (meta->isAvailableInClasses(constructor->klasses(), /*isStatic*/ true)) {
+                    propertyNames.add(Identifier::fromString(execState, meta->jsName()));
+                }
+            }
+
+            for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->staticProps->begin(); it != baseClassMeta->staticProps->end(); it++) {
+                if ((*it)->isAvailableInClasses(constructor->klasses(), /*isStatic*/ true)) {
+                    propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
+                }
+            }
+
+            for (Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
+                const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTableJs()->findProtocol((*it).valuePtr());
+                if (protocolMeta != nullptr) {
+                    baseClassMetaStack.push_back(protocolMeta);
+                }
             }
         }
 
-        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->staticProps->begin(); it != baseClassMeta->staticProps->end(); it++) {
-            if ((*it)->isAvailableInClasses(constructor->klasses(), /*isStatic*/ true)) {
-                propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
-            }
-        }
-
-        for (Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
-            const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTableJs()->findProtocol((*it).valuePtr());
-            if (protocolMeta != nullptr) {
-                baseClassMetaStack.push_back(protocolMeta);
-            }
-        }
+        Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
     }
-
-    Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
+    NS_CATCH_THROW_TO_JS(execState)
 }
 
 void ObjCConstructorNative::materializeProperties(VM& vm, GlobalObject* globalObject) {

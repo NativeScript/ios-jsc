@@ -8,6 +8,7 @@
 
 #include "ObjCPrototype.h"
 #include "Interop.h"
+#include "JSErrors.h"
 #include "Metadata.h"
 #include "ObjCConstructorBase.h"
 #include "ObjCFastEnumerationIterator.h"
@@ -78,172 +79,189 @@ bool ObjCPrototype::shouldSkipOwnProperty(ExecState* execState, PropertyName pro
 
 //const char StopwatchLabel_getOwnPropertySlot[] = "ObjCPrototype::getOwnPropertySlot";
 bool ObjCPrototype::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
-    //StopwatchLogger<StopwatchLabel_getOwnPropertySlot> stopwatch("(unset)");
+    NS_TRY {
+        //StopwatchLogger<StopwatchLabel_getOwnPropertySlot> stopwatch("(unset)");
 
-    if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
-        return true;
-    }
+        if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
+            return true;
+        }
 
-    if (UNLIKELY(!propertyName.publicName())) {
-        return false;
-    }
-
-    ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
-    if (UNLIKELY(propertyName == prototype->_definingPropertyName)) {
-        // We're currently defining it, it's still not defined
-        return false;
-    }
-
-    GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
-    // Check for property
-    if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols())) {
-        if (prototype->shouldSkipOwnProperty(execState, propertyName, propertyMeta)) {
+        if (UNLIKELY(!propertyName.publicName())) {
             return false;
         }
-        prototype->_definingPropertyName = propertyName;
-        prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
-        prototype->_definingPropertyName = PropertyName(nullptr);
 
-        //stopwatch.message << "(prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
+        ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
+        if (UNLIKELY(propertyName == prototype->_definingPropertyName)) {
+            // We're currently defining it, it's still not defined
+            return false;
+        }
 
-        return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
-    } else {
-        // Check for base class property which is implemented in inheritor as a workaround
-        // to inaccurate header information in iOS SDKs (https://github.com/NativeScript/ios-runtime/pull/1092)
-        if (prototype->metadata()->type() == MetaType::Interface) {
-            if (auto baseMeta = static_cast<const InterfaceMeta*>(prototype->metadata())->baseMeta()) {
-                if (auto propertyMeta = baseMeta->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols())) {
-                    JSObject* basePrototype = prototype->getPrototype(execState->vm(), execState).toObject(execState);
-                    PropertySlot tempPropSlot(JSValue(basePrototype), PropertySlot::InternalMethodType::GetOwnProperty);
+        GlobalObject* globalObject = jsCast<GlobalObject*>(prototype->globalObject());
+        // Check for property
+        if (auto propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols())) {
+            if (prototype->shouldSkipOwnProperty(execState, propertyName, propertyMeta)) {
+                return false;
+            }
+            prototype->_definingPropertyName = propertyName;
+            prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
+            prototype->_definingPropertyName = PropertyName(nullptr);
 
-                    if (basePrototype->methodTable(execState->vm())->getOwnPropertySlot(basePrototype, execState, propertyName, tempPropSlot)) {
-                        // basePrototype has the property defined return false and let the prototype chain handle it
-                        return false;
+            //stopwatch.message << "(prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
+
+            return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
+        } else {
+            // Check for base class property which is implemented in inheritor as a workaround
+            // to inaccurate header information in iOS SDKs (https://github.com/NativeScript/ios-runtime/pull/1092)
+            if (prototype->metadata()->type() == MetaType::Interface) {
+                if (auto baseMeta = static_cast<const InterfaceMeta*>(prototype->metadata())->baseMeta()) {
+                    if (auto propertyMeta = baseMeta->instanceProperty(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols())) {
+                        JSObject* basePrototype = prototype->getPrototype(execState->vm(), execState).toObject(execState);
+                        PropertySlot tempPropSlot(JSValue(basePrototype), PropertySlot::InternalMethodType::GetOwnProperty);
+
+                        if (basePrototype->methodTable(execState->vm())->getOwnPropertySlot(basePrototype, execState, propertyName, tempPropSlot)) {
+                            // basePrototype has the property defined return false and let the prototype chain handle it
+                            return false;
+                        }
+
+                        prototype->_definingPropertyName = propertyName;
+                        prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
+                        prototype->_definingPropertyName = PropertyName(nullptr);
+
+                        //stopwatch.message << "(base prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
+                        return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
                     }
-
-                    prototype->_definingPropertyName = propertyName;
-                    prototype->defineNativeProperty(execState->vm(), globalObject, propertyMeta);
-                    prototype->_definingPropertyName = PropertyName(nullptr);
-
-                    //stopwatch.message << "(base prop) " << prototype->metadata()->jsName() << "." << propertyMeta->jsName();
-                    return Base::getOwnPropertySlot(object, execState, propertyName, propertySlot);
                 }
+            }
+
+            MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols());
+
+            if (methods.size() > 0) {
+                SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
+
+                auto method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), methods);
+                object->putDirect(execState->vm(), propertyName, method.get());
+                propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
+
+                //stopwatch.message << "(method) " << prototype->metadata()->jsName() << "." << (*methods.begin())->jsName();
+                return true;
             }
         }
 
-        MembersCollection methods = prototype->_metadata->getInstanceMethods(propertyName.publicName(), prototype->klasses(), true, prototype->additionalProtocols());
-
-        if (methods.size() > 0) {
-            SymbolLoader::instance().ensureModule((*methods.begin())->topLevelModule());
-
-            auto method = ObjCMethodWrapper::create(globalObject->vm(), globalObject, globalObject->objCMethodWrapperStructure(), methods);
-            object->putDirect(execState->vm(), propertyName, method.get());
-            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), method.get());
-
-            //stopwatch.message << "(method) " << prototype->metadata()->jsName() << "." << (*methods.begin())->jsName();
-            return true;
-        }
+        //stopwatch.message << "(not found) " << prototype->metadata()->jsName() << "." << propertyName.publicName()->utf8().data();
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    //stopwatch.message << "(not found) " << prototype->metadata()->jsName() << "." << propertyName.publicName()->utf8().data();
     return false;
 }
 
 bool ObjCPrototype::put(JSCell* cell, ExecState* execState, PropertyName propertyName, JSValue value, PutPropertySlot& propertySlot) {
-    ObjCPrototype* prototype = jsCast<ObjCPrototype*>(cell);
+    NS_TRY {
+        ObjCPrototype* prototype = jsCast<ObjCPrototype*>(cell);
 
-    if (value.isCell()) {
-        auto method = value.asCell();
+        if (value.isCell()) {
+            auto method = value.asCell();
 
-        Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klasses().realClass();
-        overrideObjcMethodCalls(execState,
-                                prototype,
-                                propertyName,
-                                method,
-                                prototype->_metadata,
-                                MemberType::InstanceMethod,
-                                klass,
-                                ProtocolMetas());
+            Class klass = jsCast<ObjCConstructorBase*>(prototype->get(execState, execState->vm().propertyNames->constructor))->klasses().realClass();
+            overrideObjcMethodCalls(execState,
+                                    prototype,
+                                    propertyName,
+                                    method,
+                                    prototype->_metadata,
+                                    MemberType::InstanceMethod,
+                                    klass,
+                                    ProtocolMetas());
+        }
+
+        return Base::put(cell, execState, propertyName, value, propertySlot);
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    return Base::put(cell, execState, propertyName, value, propertySlot);
+    return false;
 }
 
 bool ObjCPrototype::defineOwnProperty(JSObject* object, ExecState* execState, PropertyName propertyName, const PropertyDescriptor& propertyDescriptor, bool shouldThrow) {
-    ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
-    VM& vm = execState->vm();
-    const auto& klasses = prototype->klasses();
-    // Unknown (if present) is the actual object type - swizzle its selector instead of the public class' one
-    const auto& klass = klasses.realClass();
+    NS_TRY {
+        ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
+        VM& vm = execState->vm();
+        const auto& klasses = prototype->klasses();
+        // Unknown (if present) is the actual object type - swizzle its selector instead of the public class' one
+        const auto& klass = klasses.realClass();
 
-    if (const PropertyMeta* propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), klasses, true, prototype->additionalProtocols())) {
-        if (!propertyDescriptor.isAccessorDescriptor()) {
-            WTFCrash();
-        }
+        if (const PropertyMeta* propertyMeta = prototype->_metadata->instanceProperty(propertyName.publicName(), klasses, true, prototype->additionalProtocols())) {
+            if (!propertyDescriptor.isAccessorDescriptor()) {
+                WTFCrash();
+            }
 
-        PropertyDescriptor nativeProperty;
-        prototype->getOwnPropertyDescriptor(execState, propertyName, nativeProperty);
+            PropertyDescriptor nativeProperty;
+            prototype->getOwnPropertyDescriptor(execState, propertyName, nativeProperty);
 
-        if (const MethodMeta* meta = propertyMeta->getter()) {
-            ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.getter().asCell(), meta);
-            std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
-            IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
+            if (const MethodMeta* meta = propertyMeta->getter()) {
+                ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.getter().asCell(), meta);
+                std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
+                IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
 
-            SEL nativeSelector = sel_registerName(makeString("__", meta->selectorAsString()).utf8().data());
-            class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
+                SEL nativeSelector = sel_registerName(makeString("__", meta->selectorAsString()).utf8().data());
+                class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
 
-            if (ObjCMethodWrapper* nativeMethod = jsDynamicCast<ObjCMethodWrapper*>(vm, nativeProperty.getter())) {
-                static_cast<ObjCMethodCall*>(nativeMethod->onlyFuncInContainer())->setSelector(nativeSelector);
+                if (ObjCMethodWrapper* nativeMethod = jsDynamicCast<ObjCMethodWrapper*>(vm, nativeProperty.getter())) {
+                    static_cast<ObjCMethodCall*>(nativeMethod->onlyFuncInContainer())->setSelector(nativeSelector);
+                }
+            }
+
+            if (const MethodMeta* meta = propertyMeta->setter()) {
+                ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.setter().asCell(), meta);
+                std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
+                IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
+
+                SEL nativeSelector = sel_registerName(makeString("__", meta->selectorAsString()).utf8().data());
+                class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
+
+                if (ObjCMethodWrapper* nativeMethod = jsDynamicCast<ObjCMethodWrapper*>(vm, nativeProperty.setter())) {
+                    static_cast<ObjCMethodCall*>(nativeMethod->onlyFuncInContainer())->setSelector(nativeSelector);
+                }
             }
         }
 
-        if (const MethodMeta* meta = propertyMeta->setter()) {
-            ObjCMethodCallback* methodCallback = createProtectedMethodCallback(execState, propertyDescriptor.setter().asCell(), meta);
-            std::string compilerEncoding = getCompilerEncoding(execState->lexicalGlobalObject(), meta);
-            IMP nativeImp = class_replaceMethod(klass, meta->selector(), reinterpret_cast<IMP>(methodCallback->functionPointer()), compilerEncoding.c_str());
-
-            SEL nativeSelector = sel_registerName(makeString("__", meta->selectorAsString()).utf8().data());
-            class_addMethod(klass, nativeSelector, nativeImp, compilerEncoding.c_str());
-
-            if (ObjCMethodWrapper* nativeMethod = jsDynamicCast<ObjCMethodWrapper*>(vm, nativeProperty.setter())) {
-                static_cast<ObjCMethodCall*>(nativeMethod->onlyFuncInContainer())->setSelector(nativeSelector);
-            }
-        }
+        return Base::defineOwnProperty(object, execState, propertyName, propertyDescriptor, shouldThrow);
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    return Base::defineOwnProperty(object, execState, propertyName, propertyDescriptor, shouldThrow);
+    return false;
 }
 
 void ObjCPrototype::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
-    ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
-    const auto& klasses = prototype->klasses();
+    NS_TRY {
+        ObjCPrototype* prototype = jsCast<ObjCPrototype*>(object);
+        const auto& klasses = prototype->klasses();
 
-    std::vector<const BaseClassMeta*> baseClassMetaStack;
-    baseClassMetaStack.push_back(prototype->_metadata);
+        std::vector<const BaseClassMeta*> baseClassMetaStack;
+        baseClassMetaStack.push_back(prototype->_metadata);
 
-    while (!baseClassMetaStack.empty()) {
-        const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
-        baseClassMetaStack.pop_back();
+        while (!baseClassMetaStack.empty()) {
+            const BaseClassMeta* baseClassMeta = baseClassMetaStack.back();
+            baseClassMetaStack.pop_back();
 
-        for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->instanceMethods->begin(); it != baseClassMeta->instanceMethods->end(); it++) {
-            if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false))
-                propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
+            for (Metadata::ArrayOfPtrTo<MethodMeta>::iterator it = baseClassMeta->instanceMethods->begin(); it != baseClassMeta->instanceMethods->end(); it++) {
+                if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false))
+                    propertyNames.add(Identifier::fromString(execState, (*it)->jsName()));
+            }
+
+            for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->instanceProps->begin(); it != baseClassMeta->instanceProps->end(); it++) {
+                auto propertyName = Identifier::fromString(execState, (*it)->jsName());
+                if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false) && !prototype->shouldSkipOwnProperty(execState, propertyName, (*it).valuePtr()))
+                    propertyNames.add(propertyName);
+            }
+
+            for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
+                const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTableJs()->findProtocol((*it).valuePtr());
+                if (protocolMeta != nullptr)
+                    baseClassMetaStack.push_back(protocolMeta);
+            }
         }
 
-        for (Metadata::ArrayOfPtrTo<PropertyMeta>::iterator it = baseClassMeta->instanceProps->begin(); it != baseClassMeta->instanceProps->end(); it++) {
-            auto propertyName = Identifier::fromString(execState, (*it)->jsName());
-            if ((*it)->isAvailableInClasses(klasses, /*isStatic*/ false) && !prototype->shouldSkipOwnProperty(execState, propertyName, (*it).valuePtr()))
-                propertyNames.add(propertyName);
-        }
-
-        for (Metadata::Array<Metadata::String>::iterator it = baseClassMeta->protocols->begin(); it != baseClassMeta->protocols->end(); it++) {
-            const ProtocolMeta* protocolMeta = MetaFile::instance()->globalTableJs()->findProtocol((*it).valuePtr());
-            if (protocolMeta != nullptr)
-                baseClassMetaStack.push_back(protocolMeta);
-        }
+        Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
     }
-
-    Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
+    NS_CATCH_THROW_TO_JS(execState)
 }
 
 void ObjCPrototype::defineNativeProperty(VM& vm, GlobalObject* globalObject, const PropertyMeta* propertyMeta) {

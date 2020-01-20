@@ -24,3 +24,6 @@ CoreFoundation.CFCh*:k*SetNe?line
 
 # shouldn't exclude kCFCharacterSetWhitespaceAndNewline because it resides in the CoreFoundation.CFCharacterSet submodule
 CoreFoundation:kCFCharacterSetWhitespaceAndNewline
+
+# should exclude TNSBlacklistedInterface from NativeScriptTests.Interfaces.TNSInheritance
+:TNSBlacklisted*

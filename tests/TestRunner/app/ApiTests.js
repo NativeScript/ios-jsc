@@ -739,6 +739,7 @@ describe(module.id, function () {
             "CloudKit.CKReference:*": ["CKReferenceAction", "CKReferenceActionNone", "CKReferenceActionDeleteSelf", "CKReference"],
             "Darwin.POSIX.*:*_info_v*": ["rusage_info_v0", "rusage_info_v1", "rusage_info_v2", "rusage_info_v3", "rusage_info_v4"],
             "CoreFoundation.CFCh*:k*SetNe?line": ["kCFCharacterSetNewline"],
+            ":TNSBlacklisted*": ["TNSBlacklistedInterface"],
         };
         const symbolsRemainingAfterBlacklisting = {
             "Darwin.POSIX.*:*_info_v*": ["task_power_info_v2"],
@@ -756,6 +757,16 @@ describe(module.id, function () {
                 expect(global[symbol]).toBeDefined(`Rule ${rule} should have removed symbol ${symbol}`);
             }
         }
+    });
+         
+    it("Using a blacklisted struct will throw", function() {
+        expect(() => getBlacklistedRusage_info_v0()).toThrowError(/Struct "rusage_info_v0" is missing from metadata/);
+    });
+
+    it("Using a blacklisted @interface will wrap it in a constructor function with 'unknown class' like it is done for private APIs without metadata", function() {
+        const res = getTNSBlacklisted();
+        expect(res.constructor.__constructorDescription).toMatch(/Unknown class: TNSBlacklistedInterface/);
+        expect(funcWithTNSBlacklisted(res)).toBe(true);
     });
 
     // Metal is unavailable on iOS Simulator and devices with processors before A7 (arm64 on iPhone 5s)

@@ -16,6 +16,14 @@
 
 #define NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY @"__nsExceptionScopeZeroRecursion"
 
+#define NS_TRY @try
+
+#define NS_CATCH_THROW_TO_JS(execState)                                                                  \
+    @catch (NSException * ex) {                                                                          \
+        auto scope = DECLARE_THROW_SCOPE(execState->vm());                                               \
+        throwException(execState, scope, JSC::createError(execState, ex.reason, defaultSourceAppender)); \
+    }
+
 namespace NativeScript {
 
 void reportErrorIfAny(JSC::ExecState* execState, JSC::CatchScope& scope);

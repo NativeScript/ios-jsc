@@ -152,7 +152,7 @@ private:
 
     static void visitChildren(JSC::JSCell* cell, JSC::SlotVisitor& visitor);
 
-    static Metadata::ProtocolMetas getProtocolMetas(Metadata::PtrTo<Metadata::Array<Metadata::String>> protocolsPtr);
+    static Metadata::ProtocolMetas getProtocolMetas(JSC::ExecState* execState, Metadata::PtrTo<Metadata::Array<Metadata::String>> protocolsPtr);
 
     void finishCreation(JSC::VM&, GlobalObject*);
 

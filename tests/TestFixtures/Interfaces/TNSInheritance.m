@@ -190,3 +190,6 @@
 }
 
 @end
+
+@implementation TNSBlacklistedInterface
+@end

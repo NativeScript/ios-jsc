@@ -8,6 +8,7 @@
 
 #include "ReferenceInstance.h"
 #include "Interop.h"
+#include "JSErrors.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -60,31 +61,41 @@ void ReferenceInstance::setType(VM& vm, JSCell* innerType) {
 }
 
 bool ReferenceInstance::getOwnPropertySlotByIndex(JSObject* object, ExecState* execState, unsigned propertyName, PropertySlot& propertySlot) {
-    ReferenceInstance* reference = jsCast<ReferenceInstance*>(object);
-    if (!reference->innerType()) {
-        if (propertyName == 0) {
-            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), reference->get(execState, execState->vm().propertyNames->value));
-            return true;
+    NS_TRY {
+        ReferenceInstance* reference = jsCast<ReferenceInstance*>(object);
+        if (!reference->innerType()) {
+            if (propertyName == 0) {
+                propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), reference->get(execState, execState->vm().propertyNames->value));
+                return true;
+            }
+            return false;
         }
-        return false;
-    }
 
-    const void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
-    JSValue value = reference->_ffiTypeMethodTable.read(execState, element, reference->_innerTypeCell.get());
-    propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), value);
-    return true;
+        const void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
+        JSValue value = reference->_ffiTypeMethodTable.read(execState, element, reference->_innerTypeCell.get());
+        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), value);
+        return true;
+    }
+    NS_CATCH_THROW_TO_JS(execState)
+
+    return false;
 }
 
 bool ReferenceInstance::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
-    ReferenceInstance* reference = jsCast<ReferenceInstance*>(cell);
+    NS_TRY {
+        ReferenceInstance* reference = jsCast<ReferenceInstance*>(cell);
 
-    void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
-    reference->_ffiTypeMethodTable.write(execState, value, element, reference->_innerTypeCell.get());
+        void* element = static_cast<void*>(reinterpret_cast<char*>(reference->data()) + propertyName * reference->_ffiTypeMethodTable.ffiType->size);
+        reference->_ffiTypeMethodTable.write(execState, value, element, reference->_innerTypeCell.get());
 
-    if (value.isCell()) {
-        reference->assignedValues[propertyName].set(execState->vm(), reference, value.asCell());
+        if (value.isCell()) {
+            reference->assignedValues[propertyName].set(execState->vm(), reference, value.asCell());
+        }
+
+        return true;
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    return true;
+    return false;
 }
 }; // namespace NativeScript

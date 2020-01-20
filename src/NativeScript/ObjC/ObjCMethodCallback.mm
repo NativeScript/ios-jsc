@@ -149,59 +149,62 @@ void ObjCMethodCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JS
 void ObjCMethodCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     ObjCMethodCallback* methodCallback = reinterpret_cast<ObjCMethodCallback*>(userData);
     ExecState* execState = methodCallback->execState();
+    NS_TRY {
 
-    id target = *static_cast<id*>(argValues[0]);
-    SEL selector = *static_cast<SEL*>(argValues[1]);
+        id target = *static_cast<id*>(argValues[0]);
+        SEL selector = *static_cast<SEL*>(argValues[1]);
 #ifdef DEBUG_OBJC_INVOCATION
-    bool isInstance = !class_isMetaClass(object_getClass(target));
-    NSLog(@"< %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(selector));
+        bool isInstance = !class_isMetaClass(object_getClass(target));
+        NSLog(@"< %@[%@ %@]", isInstance ? @"-" : @"+", NSStringFromClass(object_getClass(target)), NSStringFromSelector(selector));
 #endif
 
-    JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_CATCH_SCOPE(vm);
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_CATCH_SCOPE(vm);
 
-    MarkedArgumentBuffer arguments;
-    methodCallback->marshallArguments(argValues, arguments, methodCallback);
-    if (scope.exception()) {
-        return;
-    }
-
-    // BUG: moved before the call because if the call throws a JS exception, length is reported as 0
-    size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
-
-    JSValue thisValue = toValue(execState, target);
-    methodCallback->callFunction(thisValue, arguments, retValue);
-
-    if (sel_isEqual(selector, @selector(dealloc))) {
-        // When `dealloc` is implemented in JS we were caching a wrapper to the
-        // already deallocated instance. This doesn't do any harm until the same
-        // memory address is reused for another Objective-C instance. When this happens
-        // the new object will be returned to the JS world via the cached wrapper,
-        // which however won't increment its retention count, leading to its premature
-        // deallocation and a crash whenever it's attempted to be used afterwards.
-        if (auto wrapperObject = jsCast<ObjCWrapperObject*>(thisValue)) {
-            wrapperObject->removeFromCache();
+        MarkedArgumentBuffer arguments;
+        methodCallback->marshallArguments(argValues, arguments, methodCallback);
+        if (scope.exception()) {
+            return;
         }
-    }
 
-    if (methodCallback->_hasErrorOutParameter) {
-        //        size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
-        if (methodCallbackLength == methodCallback->parametersCount() - 1) {
-            Exception* exception = scope.exception();
-            if (exception) {
-                scope.clearException();
-                memset(retValue, 0, methodCallback->_returnType.ffiType->size);
+        // BUG: moved before the call because if the call throws a JS exception, length is reported as 0
+        size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
 
-                NSError**** outErrorPtr = reinterpret_cast<NSError****>(argValues + (methodCallback->parametersCount() + methodCallback->_initialArgumentIndex - 1));
-                if (**outErrorPtr) {
-                    NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:@{ @"TNSJavaScriptError": NativeScript::toObject(execState, exception->value()) }];
+        JSValue thisValue = toValue(execState, target);
+        methodCallback->callFunction(thisValue, arguments, retValue);
 
-                    ***outErrorPtr = nserror;
+        if (sel_isEqual(selector, @selector(dealloc))) {
+            // When `dealloc` is implemented in JS we were caching a wrapper to the
+            // already deallocated instance. This doesn't do any harm until the same
+            // memory address is reused for another Objective-C instance. When this happens
+            // the new object will be returned to the JS world via the cached wrapper,
+            // which however won't increment its retention count, leading to its premature
+            // deallocation and a crash whenever it's attempted to be used afterwards.
+            if (auto wrapperObject = jsCast<ObjCWrapperObject*>(thisValue)) {
+                wrapperObject->removeFromCache();
+            }
+        }
+
+        if (methodCallback->_hasErrorOutParameter) {
+            //        size_t methodCallbackLength = jsDynamicCast<JSObject*>(vm, methodCallback->function())->get(execState, vm.propertyNames->length).toUInt32(execState);
+            if (methodCallbackLength == methodCallback->parametersCount() - 1) {
+                Exception* exception = scope.exception();
+                if (exception) {
+                    scope.clearException();
+                    memset(retValue, 0, methodCallback->_returnType.ffiType->size);
+
+                    NSError**** outErrorPtr = reinterpret_cast<NSError****>(argValues + (methodCallback->parametersCount() + methodCallback->_initialArgumentIndex - 1));
+                    if (**outErrorPtr) {
+                        NSError* nserror = [NSError errorWithDomain:@"TNSErrorDomain" code:164 userInfo:@{ @"TNSJavaScriptError": NativeScript::toObject(execState, exception->value()) }];
+
+                        ***outErrorPtr = nserror;
+                    }
+                } else if (methodCallback->_returnTypeCell.get() == static_cast<JSCell*>(jsCast<GlobalObject*>(execState->lexicalGlobalObject())->typeFactory()->boolType())) {
+                    memset(retValue, 1, methodCallback->_returnType.ffiType->size);
                 }
-            } else if (methodCallback->_returnTypeCell.get() == static_cast<JSCell*>(jsCast<GlobalObject*>(execState->lexicalGlobalObject())->typeFactory()->boolType())) {
-                memset(retValue, 1, methodCallback->_returnType.ffiType->size);
             }
         }
     }
+    NS_CATCH_THROW_TO_JS(execState)
 }
 }

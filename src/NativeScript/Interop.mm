@@ -16,6 +16,7 @@
 #include "FunctionReferenceTypeInstance.h"
 #include "IndexedRefInstance.h"
 #include "IndexedRefPrototype.h"
+#include "JSErrors.h"
 #include "NSErrorWrapperConstructor.h"
 #include "ObjCBlockCall.h"
 #include "ObjCBlockType.h"
@@ -197,51 +198,66 @@ static EncodedJSValue JSC_HOST_CALL interopFuncAdopt(ExecState* execState) {
 }
 
 static EncodedJSValue JSC_HOST_CALL interopFuncHandleof(ExecState* execState) {
-    JSValue value = execState->argument(0);
-    JSC::VM& vm = execState->vm();
+    NS_TRY {
+        JSValue value = execState->argument(0);
+        JSC::VM& vm = execState->vm();
 
-    bool hasHandle;
-    void* handle = tryHandleofValue(vm, value, &hasHandle);
-    if (!hasHandle) {
-        auto scope = DECLARE_THROW_SCOPE(vm);
+        bool hasHandle;
+        void* handle = tryHandleofValue(vm, value, &hasHandle);
+        if (!hasHandle) {
+            auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, value, "Unknown type"_s, defaultSourceAppender)));
+            return JSValue::encode(scope.throwException(execState, createError(execState, value, "Unknown type"_s, defaultSourceAppender)));
+        }
+
+        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+        JSValue pointer = globalObject->interop()->pointerInstanceForPointer(execState, handle);
+        return JSValue::encode(pointer);
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    JSValue pointer = globalObject->interop()->pointerInstanceForPointer(execState, handle);
-    return JSValue::encode(pointer);
+    return JSValue::encode(jsUndefined());
 }
 
 static EncodedJSValue JSC_HOST_CALL interopFuncSizeof(ExecState* execState) {
-    JSC::VM& vm = execState->vm();
-    JSValue value = execState->argument(0);
-    size_t size = sizeofValue(vm, value);
+    NS_TRY {
+        JSC::VM& vm = execState->vm();
+        JSValue value = execState->argument(0);
+        size_t size = sizeofValue(vm, value);
 
-    if (size == 0) {
-        auto scope = DECLARE_THROW_SCOPE(vm);
+        if (size == 0) {
+            auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return JSValue::encode(scope.throwException(execState, createError(execState, value, "Unknown type"_s, defaultSourceAppender)));
+            return JSValue::encode(scope.throwException(execState, createError(execState, value, "Unknown type"_s, defaultSourceAppender)));
+        }
+
+        return JSValue::encode(jsNumber(size));
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    return JSValue::encode(jsNumber(size));
+    return JSValue::encode(jsUndefined());
 }
 
 static EncodedJSValue JSC_HOST_CALL interopFuncBufferFromData(ExecState* execState) {
-    JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
+    NS_TRY {
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
 
-    id object = toObject(execState, execState->argument(0));
-    if (scope.exception()) {
-        return JSValue::encode(jsUndefined());
+        id object = toObject(execState, execState->argument(0));
+        if (scope.exception()) {
+            return JSValue::encode(jsUndefined());
+        }
+
+        if ([object isKindOfClass:[NSData class]]) {
+            JSArrayBuffer* buffer = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->bufferFromData(execState, object);
+            return JSValue::encode(buffer);
+        }
+
+        return throwVMTypeError(execState, scope, "Argument must be an NSData instance."_s);
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    if ([object isKindOfClass:[NSData class]]) {
-        JSArrayBuffer* buffer = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->bufferFromData(execState, object);
-        return JSValue::encode(buffer);
-    }
-
-    return throwVMTypeError(execState, scope, "Argument must be an NSData instance."_s);
+    return JSValue::encode(jsUndefined());
 }
 
 void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
@@ -337,30 +353,35 @@ void Interop::finishCreation(VM& vm, GlobalObject* globalObject) {
 }
 
 JSValue Interop::pointerInstanceForPointer(ExecState* execState, void* value) {
-    if (!value) {
-        return jsNull();
-    }
-
-    if (reinterpret_cast<intptr_t>(value) == -1) {
-        if (!this->minusOnePointerInstance) {
-            auto pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
-            this->minusOnePointerInstance = pointerInstance.get();
+    NS_TRY {
+        if (!value) {
+            return jsNull();
         }
 
-        return this->minusOnePointerInstance.get();
-    }
+        if (reinterpret_cast<intptr_t>(value) == -1) {
+            if (!this->minusOnePointerInstance) {
+                auto pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
+                this->minusOnePointerInstance = pointerInstance.get();
+            }
 
-    if (PointerInstance* pointerInstance = this->_pointerToInstance.get(value)) {
-        // Pointer instance could have been freed, reuse it from cache only if it is still alive
-        ASSERT(pointerInstance->data() == value || pointerInstance->data() == nullptr);
-        if (pointerInstance->data()) {
-            return pointerInstance;
+            return this->minusOnePointerInstance.get();
         }
-    }
 
-    auto pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
-    this->_pointerToInstance.set(value, pointerInstance.get());
-    return pointerInstance.get();
+        if (PointerInstance* pointerInstance = this->_pointerToInstance.get(value)) {
+            // Pointer instance could have been freed, reuse it from cache only if it is still alive
+            ASSERT(pointerInstance->data() == value || pointerInstance->data() == nullptr);
+            if (pointerInstance->data()) {
+                return pointerInstance;
+            }
+        }
+
+        auto pointerInstance = PointerInstance::create(execState, this->_pointerInstanceStructure.get(), value);
+        this->_pointerToInstance.set(value, pointerInstance.get());
+        return pointerInstance.get();
+    }
+    NS_CATCH_THROW_TO_JS(execState)
+
+    return jsUndefined();
 }
 
 void Interop::visitChildren(JSCell* cell, SlotVisitor& visitor) {

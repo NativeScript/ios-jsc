@@ -7,6 +7,7 @@
 //
 
 #include "NSErrorWrapperConstructor.h"
+#include "JSErrors.h"
 #include "ObjCTypes.h"
 #include <JavaScriptCore/ErrorPrototype.h>
 
@@ -45,16 +46,21 @@ ErrorInstance* NSErrorWrapperConstructor::createError(ExecState* execState, NSEr
 }
 
 EncodedJSValue JSC_HOST_CALL NSErrorWrapperConstructor::constructErrorWrapper(ExecState* execState) {
-    NSErrorWrapperConstructor* self = jsCast<NSErrorWrapperConstructor*>(execState->callee().asCell());
-    NSError* error = NativeScript::toObject(execState, execState->argument(0));
+    NS_TRY {
+        NSErrorWrapperConstructor* self = jsCast<NSErrorWrapperConstructor*>(execState->callee().asCell());
+        NSError* error = NativeScript::toObject(execState, execState->argument(0));
 
-    if (!error || ![error isKindOfClass:[NSError class]]) {
-        JSC::VM& vm = execState->vm();
-        auto scope = DECLARE_THROW_SCOPE(vm);
+        if (!error || ![error isKindOfClass:[NSError class]]) {
+            JSC::VM& vm = execState->vm();
+            auto scope = DECLARE_THROW_SCOPE(vm);
 
-        return throwVMTypeError(execState, scope);
+            return throwVMTypeError(execState, scope);
+        }
+
+        return JSValue::encode(self->createError(execState, error));
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    return JSValue::encode(self->createError(execState, error));
+    return JSValue::encode(jsUndefined());
 }
 }

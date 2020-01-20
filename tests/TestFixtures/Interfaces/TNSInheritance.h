@@ -96,3 +96,9 @@
 + (id<TNSIBaseProtocol>)instanceFromPublicTypeImplementingProtocol;
 
 @end
+
+@protocol TNSBlacklistedProtocol
+@end
+
+@interface TNSBlacklistedInterface : NSObject <TNSBlacklistedProtocol>
+@end

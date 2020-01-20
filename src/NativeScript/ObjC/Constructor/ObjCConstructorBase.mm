@@ -9,6 +9,7 @@
 #include "ObjCConstructorBase.h"
 #include "AllocatedPlaceholder.h"
 #include "Interop.h"
+#include "JSErrors.h"
 #include "Metadata/Metadata.h"
 #include "ObjCConstructorCall.h"
 #include "ObjCConstructorDerived.h"
@@ -179,15 +180,18 @@ WTF::String ObjCConstructorBase::className(const JSObject* object, VM& vm) {
 }
 
 bool ObjCConstructorBase::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
-    if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
-        return true;
-    }
+    NS_TRY {
+        if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
+            return true;
+        }
 
-    if (propertyName == execState->vm().propertyNames->prototype) {
-        ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(object);
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), constructor->_prototype.get());
-        return true;
+        if (propertyName == execState->vm().propertyNames->prototype) {
+            ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(object);
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), constructor->_prototype.get());
+            return true;
+        }
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
     return false;
 }
@@ -266,105 +270,115 @@ static JSValue getInitializerForSwiftStyleConstruction(ExecState* execState, Obj
 }
 
 EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::constructObjCClass(ExecState* execState) {
-    ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
-    JSC::VM& vm = execState->vm();
+    NS_TRY {
+        ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
+        JSC::VM& vm = execState->vm();
 
-    /// TODO: Revisit and decide if we need to have separate channels for cases without and with arguments.
-    if (execState->argumentCount() <= 1) {
-        MarkedArgumentBuffer initializerArguments;
-        JSValue initializer;
-        if (JSFinalObject* argument = jsDynamicCast<JSFinalObject*>(vm, execState->argument(0))) {
-            initializer = getInitializerForSwiftStyleConstruction(execState, constructor, argument, initializerArguments);
-        } else if (execState->argumentCount() == 0) {
-            initializer = constructor->instancesStructure()->storedPrototype().get(execState, Identifier::fromString(execState, "init"));
-        }
+        /// TODO: Revisit and decide if we need to have separate channels for cases without and with arguments.
+        if (execState->argumentCount() <= 1) {
+            MarkedArgumentBuffer initializerArguments;
+            JSValue initializer;
+            if (JSFinalObject* argument = jsDynamicCast<JSFinalObject*>(vm, execState->argument(0))) {
+                initializer = getInitializerForSwiftStyleConstruction(execState, constructor, argument, initializerArguments);
+            } else if (execState->argumentCount() == 0) {
+                initializer = constructor->instancesStructure()->storedPrototype().get(execState, Identifier::fromString(execState, "init"));
+            }
 
-        if (initializer && initializer.isCell()) {
-            auto scope = DECLARE_CATCH_SCOPE(vm);
-            CallData callData;
-            CallType callType = JSC::getCallData(execState->vm(), initializer, callData);
-            ASSERT(callType != CallType::None);
+            if (initializer && initializer.isCell()) {
+                auto scope = DECLARE_CATCH_SCOPE(vm);
+                CallData callData;
+                CallType callType = JSC::getCallData(execState->vm(), initializer, callData);
+                ASSERT(callType != CallType::None);
 
-            if (initializerArguments.size() == 1 && initializerArguments.at(0).isUndefined()) {
-                // methods such as -[MDLTransform initWithIdentity] are called as new MDLTransform({ identity: void 0 })
-                // check to see if the method takes zero arguments and empty the arguments buffer
-                if (initializer.get(execState, execState->vm().propertyNames->length).asInt32() == 0) {
-                    initializerArguments.clear();
+                if (initializerArguments.size() == 1 && initializerArguments.at(0).isUndefined()) {
+                    // methods such as -[MDLTransform initWithIdentity] are called as new MDLTransform({ identity: void 0 })
+                    // check to see if the method takes zero arguments and empty the arguments buffer
+                    if (initializer.get(execState, execState->vm().propertyNames->length).asInt32() == 0) {
+                        initializerArguments.clear();
+                    }
                 }
-            }
 
-            ObjCConstructorBase* newTarget = jsCast<ObjCConstructorBase*>(execState->newTarget());
-            id instance = [newTarget->klasses().known alloc];
-            if (scope.exception()) {
-                // When allocating a JS Derived native instance, it is possible to throw a JS exception.
-                // Discard the native instance and do not call an initializer for it.
-                return JSValue::encode(jsUndefined());
-            }
+                ObjCConstructorBase* newTarget = jsCast<ObjCConstructorBase*>(execState->newTarget());
+                id instance = [newTarget->klasses().known alloc];
+                if (scope.exception()) {
+                    // When allocating a JS Derived native instance, it is possible to throw a JS exception.
+                    // Discard the native instance and do not call an initializer for it.
+                    return JSValue::encode(jsUndefined());
+                }
 
-            JSValue thisValue;
-            Strong<AllocatedPlaceholder> allocatedPlaceHolder;
-            if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(vm, constructor)) {
-                allocatedPlaceHolder = AllocatedPlaceholder::create(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
-                thisValue = allocatedPlaceHolder.get();
-                // No release -> give ownership to AllocatedPlaceholder, it will be relinquished after the init call in ObjCMethodWrapper::postInvocation
-            } else {
-                thisValue = NativeScript::toValue(execState, instance, ^{
-                  return constructor->instancesStructure();
-                });
-                // Now owned by the wrapper created in toValue
-                [instance release];
-            }
+                JSValue thisValue;
+                Strong<AllocatedPlaceholder> allocatedPlaceHolder;
+                if (ObjCConstructorNative* nativeConstructor = jsDynamicCast<ObjCConstructorNative*>(vm, constructor)) {
+                    allocatedPlaceHolder = AllocatedPlaceholder::create(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()), nativeConstructor->allocatedPlaceholderStructure(), instance, constructor->instancesStructure());
+                    thisValue = allocatedPlaceHolder.get();
+                    // No release -> give ownership to AllocatedPlaceholder, it will be relinquished after the init call in ObjCMethodWrapper::postInvocation
+                } else {
+                    thisValue = NativeScript::toValue(execState, instance, ^{
+                      return constructor->instancesStructure();
+                    });
+                    // Now owned by the wrapper created in toValue
+                    [instance release];
+                }
 
-            return JSValue::encode(JSC::call(execState, initializer.asCell(), callType, callData, thisValue, initializerArguments));
+                return JSValue::encode(JSC::call(execState, initializer.asCell(), callType, callData, thisValue, initializerArguments));
+            }
+        }
+
+        WTF::Vector<ObjCConstructorWrapper*> candidateInitializers;
+
+        for (WriteBarrier<ObjCConstructorWrapper> initializer : constructor->initializers(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()))) {
+            if (initializer->canInvoke(execState)) {
+                candidateInitializers.append(initializer.get());
+            }
+        }
+
+        auto scope = DECLARE_THROW_SCOPE(vm);
+
+        if (candidateInitializers.size() == 0) {
+            return JSValue::encode(scope.throwException(execState, createError(execState, "No initializer found that matches constructor invocation."_s, defaultSourceAppender)));
+        } else if (candidateInitializers.size() > 1) {
+            WTF::StringBuilder errorMessage;
+            errorMessage.append("More than one initializer found that matches constructor invocation:");
+            for (ObjCConstructorWrapper* initializer : candidateInitializers) {
+                errorMessage.append(" ");
+                errorMessage.append(sel_getName(static_cast<ObjCConstructorCall*>(initializer->onlyFuncInContainer())->selector()));
+            }
+            return JSValue::encode(scope.throwException(execState, createError(execState, errorMessage.toString(), defaultSourceAppender)));
+        } else {
+            ObjCConstructorWrapper* initializer = candidateInitializers[0];
+
+            CallData callData;
+            CallType callType = initializer->methodTable(vm)->getCallData(initializer, callData);
+            return JSValue::encode(call(execState, initializer, callType, callData, constructor, execState));
         }
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    WTF::Vector<ObjCConstructorWrapper*> candidateInitializers;
-
-    for (WriteBarrier<ObjCConstructorWrapper> initializer : constructor->initializers(vm, jsCast<GlobalObject*>(execState->lexicalGlobalObject()))) {
-        if (initializer->canInvoke(execState)) {
-            candidateInitializers.append(initializer.get());
-        }
-    }
-
-    auto scope = DECLARE_THROW_SCOPE(vm);
-
-    if (candidateInitializers.size() == 0) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, "No initializer found that matches constructor invocation."_s, defaultSourceAppender)));
-    } else if (candidateInitializers.size() > 1) {
-        WTF::StringBuilder errorMessage;
-        errorMessage.append("More than one initializer found that matches constructor invocation:");
-        for (ObjCConstructorWrapper* initializer : candidateInitializers) {
-            errorMessage.append(" ");
-            errorMessage.append(sel_getName(static_cast<ObjCConstructorCall*>(initializer->onlyFuncInContainer())->selector()));
-        }
-        return JSValue::encode(scope.throwException(execState, createError(execState, errorMessage.toString(), defaultSourceAppender)));
-    } else {
-        ObjCConstructorWrapper* initializer = candidateInitializers[0];
-
-        CallData callData;
-        CallType callType = initializer->methodTable(vm)->getCallData(initializer, callData);
-        return JSValue::encode(call(execState, initializer, callType, callData, constructor, execState));
-    }
+    return JSValue::encode(jsUndefined());
 }
 
 EncodedJSValue JSC_HOST_CALL ObjCConstructorBase::createObjCClass(ExecState* execState) {
-    JSValue argument = execState->argument(0);
+    NS_TRY {
+        JSValue argument = execState->argument(0);
 
-    bool hasHandle;
-    JSC::VM& vm = execState->vm();
-    void* handle = tryHandleofValue(vm, argument, &hasHandle);
-    if (!handle) {
-        auto scope = DECLARE_THROW_SCOPE(vm);
+        bool hasHandle;
+        JSC::VM& vm = execState->vm();
+        void* handle = tryHandleofValue(vm, argument, &hasHandle);
+        if (!handle) {
+            auto scope = DECLARE_THROW_SCOPE(vm);
 
-        WTF::String message = makeString("Value must be a ", PointerInstance::info()->className, ".");
-        return throwVMError(execState, scope, createError(execState, message));
+            WTF::String message = makeString("Value must be a ", PointerInstance::info()->className, ".");
+            return throwVMError(execState, scope, createError(execState, message));
+        }
+
+        ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
+        JSValue result = toValue(execState, static_cast<id>(handle), ^Structure* {
+          return constructor->instancesStructure();
+        });
+        return JSValue::encode(result);
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    ObjCConstructorBase* constructor = jsCast<ObjCConstructorBase*>(execState->callee().asCell());
-    JSValue result = toValue(execState, static_cast<id>(handle), ^Structure* {
-      return constructor->instancesStructure();
-    });
-    return JSValue::encode(result);
+    return JSValue::encode(jsUndefined());
 }
 }

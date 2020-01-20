@@ -7,6 +7,7 @@
 //
 
 #include "ObjCProtocolWrapper.h"
+#include "JSErrors.h"
 #include "Metadata.h"
 #include "ObjCMethodCall.h"
 #include "ObjCPrototype.h"
@@ -32,27 +33,30 @@ WTF::String ObjCProtocolWrapper::className(const JSObject* object, VM&) {
 }
 
 bool ObjCProtocolWrapper::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
-    if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
-        return true;
+    NS_TRY {
+        if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
+            return true;
+        }
+
+        if (UNLIKELY(!propertyName.publicName())) {
+            return false;
+        }
+
+        ObjCProtocolWrapper* protocol = jsCast<ObjCProtocolWrapper*>(object);
+
+        MembersCollection metas = protocol->_metadata->getStaticMethods(propertyName.publicName(), KnownUnknownClassPair(), /*includeProtocols*/ true, ProtocolMetas());
+        if (metas.size() > 0) {
+            SymbolLoader::instance().ensureModule((*metas.begin())->topLevelModule());
+
+            GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+
+            auto wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
+            object->putDirect(execState->vm(), propertyName, wrapper.get());
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper.get());
+            return true;
+        }
     }
-
-    if (UNLIKELY(!propertyName.publicName())) {
-        return false;
-    }
-
-    ObjCProtocolWrapper* protocol = jsCast<ObjCProtocolWrapper*>(object);
-
-    MembersCollection metas = protocol->_metadata->getStaticMethods(propertyName.publicName(), KnownUnknownClassPair(), /*includeProtocols*/ true, ProtocolMetas());
-    if (metas.size() > 0) {
-        SymbolLoader::instance().ensureModule((*metas.begin())->topLevelModule());
-
-        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-
-        auto wrapper = ObjCMethodWrapper::create(execState->vm(), globalObject, globalObject->objCMethodWrapperStructure(), metas);
-        object->putDirect(execState->vm(), propertyName, wrapper.get());
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), wrapper.get());
-        return true;
-    }
+    NS_CATCH_THROW_TO_JS(execState)
 
     return false;
 }

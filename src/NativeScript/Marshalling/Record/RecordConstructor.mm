@@ -38,10 +38,6 @@ static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeC
             bool areEqual = memcmp(record1->data(), record2->data(), record1->size()) == 0;
             return areEqual;
         } else {
-            if (!(v1.isObject() && v2.isObject())) {
-                return false;
-            }
-
             RecordPrototype* recordPrototype = jsDynamicCast<RecordPrototype*>(vm, recordConstructor->get(execState, vm.propertyNames->prototype));
             for (const auto& field : recordPrototype->fields()) {
                 Identifier fieldName = Identifier::fromString(execState, field->fieldName());
@@ -71,19 +67,24 @@ static bool areEqual(ExecState* execState, JSValue v1, JSValue v2, JSCell* typeC
 }
 
 static EncodedJSValue JSC_HOST_CALL recordConstructorFuncEquals(ExecState* execState) {
-    JSValue arg1 = execState->argument(0);
-    JSValue arg2 = execState->argument(1);
-    JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
+    NS_TRY {
+        JSValue arg1 = execState->argument(0);
+        JSValue arg2 = execState->argument(1);
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
 
-    if (execState->argumentCount() != 2) {
-        return JSValue::encode(scope.throwException(execState, createError(execState, "Two arguments required."_s, defaultSourceAppender)));
+        if (execState->argumentCount() != 2) {
+            return JSValue::encode(scope.throwException(execState, createError(execState, "Two arguments required."_s, defaultSourceAppender)));
+        }
+
+        RecordConstructor* recordConstructor = jsCast<RecordConstructor*>(execState->thisValue());
+
+        bool result = areEqual(execState, arg1, arg2, recordConstructor);
+        return JSValue::encode(jsBoolean(result));
     }
+    NS_CATCH_THROW_TO_JS(execState);
 
-    RecordConstructor* recordConstructor = jsCast<RecordConstructor*>(execState->thisValue());
-
-    bool result = areEqual(execState, arg1, arg2, recordConstructor);
-    return JSValue::encode(jsBoolean(result));
+    return JSValue::encode(jsUndefined());
 }
 
 JSValue RecordConstructor::read(ExecState* execState, const void* buffer, JSCell* self) {
@@ -185,27 +186,32 @@ void RecordConstructor::finishCreation(VM& vm, JSGlobalObject* globalObject, Rec
 }
 
 EncodedJSValue JSC_HOST_CALL RecordConstructor::constructRecordInstance(ExecState* execState) {
-    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
-    RecordConstructor* constructor = jsCast<RecordConstructor*>(execState->callee().asCell());
-    const ffi_type* ffiType = constructor->_ffiTypeMethodTable.ffiType;
+    NS_TRY {
+        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+        RecordConstructor* constructor = jsCast<RecordConstructor*>(execState->callee().asCell());
+        const ffi_type* ffiType = constructor->_ffiTypeMethodTable.ffiType;
 
-    void* data = calloc(ffiType->size, 1);
-    PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data));
-    pointer->setAdopted(true);
+        void* data = calloc(ffiType->size, 1);
+        PointerInstance* pointer = jsCast<PointerInstance*>(globalObject->interop()->pointerInstanceForPointer(execState, data));
+        pointer->setAdopted(true);
 
-    auto instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
+        auto instance = RecordInstance::create(execState->vm(), globalObject, constructor->instancesStructure(), ffiType->size, pointer);
 
-    if (execState->argumentCount() == 1) {
-        JSValue value = execState->argument(0);
+        if (execState->argumentCount() == 1) {
+            JSValue value = execState->argument(0);
 
-        if (PointerInstance* pointerArgument = jsDynamicCast<PointerInstance*>(execState->vm(), value)) {
-            memcpy(pointer->data(), pointerArgument->data(), ffiType->size);
-        } else {
-            constructor->_ffiTypeMethodTable.write(execState, value, instance->data(), constructor);
+            if (PointerInstance* pointerArgument = jsDynamicCast<PointerInstance*>(execState->vm(), value)) {
+                memcpy(pointer->data(), pointerArgument->data(), ffiType->size);
+            } else {
+                constructor->_ffiTypeMethodTable.write(execState, value, instance->data(), constructor);
+            }
         }
-    }
 
-    return JSValue::encode(instance.get());
+        return JSValue::encode(instance.get());
+    }
+    NS_CATCH_THROW_TO_JS(execState);
+
+    return JSValue::encode(jsUndefined());
 }
 
 EncodedJSValue JSC_HOST_CALL RecordConstructor::createRecordInstance(ExecState* execState) {

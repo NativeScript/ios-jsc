@@ -1,4 +1,7 @@
 _CFArrayCreateWithString
+_getBlacklistedRusage_info_v0
+_getTNSBlacklisted
+_funcWithTNSBlacklisted
 _functionExplicitCreateNSObject
 _functionImplicitCreate
 _functionReturningFunctionPtrAsVoidPtr
