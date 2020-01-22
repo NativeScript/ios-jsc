@@ -9,6 +9,7 @@
 #include "FFIFunctionCallback.h"
 #include "FFICallbackInlines.h"
 #include "FunctionReferenceTypeInstance.h"
+#include "JSErrors.h"
 
 namespace NativeScript {
 using namespace JSC;
@@ -17,18 +18,21 @@ const ClassInfo FFIFunctionCallback::s_info = { "FFIFunctionCallback", &Base::s_
 
 void FFIFunctionCallback::ffiClosureCallback(void* retValue, void** argValues, void* userData) {
     FFIFunctionCallback* functionCallback = reinterpret_cast<FFIFunctionCallback*>(userData);
+    NS_TRY {
 
-    JSC::VM& vm = functionCallback->execState()->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
+        JSC::VM& vm = functionCallback->execState()->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
 
-    MarkedArgumentBuffer arguments;
-    functionCallback->marshallArguments(argValues, arguments, functionCallback);
-    if (scope.exception()) {
-        return;
+        MarkedArgumentBuffer arguments;
+        functionCallback->marshallArguments(argValues, arguments, functionCallback);
+        if (scope.exception()) {
+            return;
+        }
+
+        ASSERT(!arguments.hasOverflowed());
+        functionCallback->callFunction(functionCallback->execState()->globalThisValue(), arguments, retValue);
     }
-
-    ASSERT(!arguments.hasOverflowed());
-    functionCallback->callFunction(functionCallback->execState()->globalThisValue(), arguments, retValue);
+    NS_CATCH_THROW_TO_JS(functionCallback->execState());
 }
 
 void FFIFunctionCallback::finishCreation(VM& vm, JSGlobalObject* globalObject, JSCell* function, FunctionReferenceTypeInstance* functionReferenceType) {

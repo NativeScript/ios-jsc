@@ -8,6 +8,7 @@
 
 #include "PointerConstructor.h"
 #include "Interop.h"
+#include "JSErrors.h"
 #include "PointerInstance.h"
 #include "PointerPrototype.h"
 #include "ReferenceInstance.h"
@@ -31,36 +32,41 @@ void PointerConstructor::finishCreation(VM& vm, PointerPrototype* pointerPrototy
 }
 
 EncodedJSValue JSC_HOST_CALL PointerConstructor::constructPointerInstance(ExecState* execState) {
-    void* value = nullptr;
-    if (execState->argumentCount() == 1) {
-        auto arg0 = execState->argument(0);
+    NS_TRY {
+        void* value = nullptr;
+        if (execState->argumentCount() == 1) {
+            auto arg0 = execState->argument(0);
 
-        if (arg0.isObject()) {
-            if (JSWrapperObject* wrapper = jsCast<JSWrapperObject*>(arg0)) {
-                arg0 = wrapper->internalValue();
+            if (arg0.isObject()) {
+                if (JSWrapperObject* wrapper = jsCast<JSWrapperObject*>(arg0)) {
+                    arg0 = wrapper->internalValue();
+                }
             }
-        }
 
-        if (!arg0.isAnyInt()) {
-            auto scope = DECLARE_THROW_SCOPE(execState->vm());
-            return throwVMError(execState, scope, createError(execState, "Pointer constructor's first arg must be an integer."_s));
-        }
+            if (!arg0.isAnyInt()) {
+                auto scope = DECLARE_THROW_SCOPE(execState->vm());
+                return throwVMError(execState, scope, createError(execState, "Pointer constructor's first arg must be an integer."_s));
+            }
 #if __SIZEOF_POINTER__ == 8
-        // JSC stores 64-bit integers as doubles in JSValue.
-        // Caution: This means that pointers with more than 54 significant bits
-        // are likely to be rounded and misrepresented!
-        // However, current OS and hardware implementations are using 48 bits,
-        // so we're safe at the time being.
-        // See https://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
-        // and https://en.wikipedia.org/wiki/ARM_architecture#ARMv8-A
-        value = reinterpret_cast<void*>(arg0.asAnyInt());
+            // JSC stores 64-bit integers as doubles in JSValue.
+            // Caution: This means that pointers with more than 54 significant bits
+            // are likely to be rounded and misrepresented!
+            // However, current OS and hardware implementations are using 48 bits,
+            // so we're safe at the time being.
+            // See https://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
+            // and https://en.wikipedia.org/wiki/ARM_architecture#ARMv8-A
+            value = reinterpret_cast<void*>(arg0.asAnyInt());
 #else
-        value = reinterpret_cast<void*>(arg0.toInt32(execState));
+            value = reinterpret_cast<void*>(arg0.toInt32(execState));
 #endif
-    }
+        }
 
-    JSValue result = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->pointerInstanceForPointer(execState, value);
-    return JSValue::encode(result);
+        JSValue result = jsCast<GlobalObject*>(execState->lexicalGlobalObject())->interop()->pointerInstanceForPointer(execState, value);
+        return JSValue::encode(result);
+    }
+    NS_CATCH_THROW_TO_JS(execState);
+
+    return JSValue::encode(jsUndefined());
 }
 
 JSValue PointerConstructor::read(ExecState* execState, const void* buffer, JSCell* self) {

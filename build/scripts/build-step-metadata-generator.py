@@ -37,6 +37,7 @@ def map_and_list(func, iterable):
 # process environment variables
 conf_build_dir = env("CONFIGURATION_BUILD_DIR")
 sdk_root = env("SDKROOT")
+src_root = env("SRCROOT")
 deployment_target_flag_name = env("DEPLOYMENT_TARGET_CLANG_FLAG_NAME")
 deployment_target = env(env("DEPLOYMENT_TARGET_CLANG_ENV_NAME"))
 std = env("GCC_C_LANGUAGE_STANDARD")
@@ -96,6 +97,14 @@ def generate_metadata(arch):
         current_yaml_output_folder = yaml_output_folder + "-" + arch
         generator_call.extend(["-output-yaml", current_yaml_output_folder])
         print("Generating debug metadata in: \"{}\"".format(current_yaml_output_folder))
+
+    whitelist_file_name = os.path.join(src_root, "whitelist.mdg")
+    if os.path.exists(whitelist_file_name):
+      generator_call.extend(["--whitelist-modules-file", whitelist_file_name])
+
+    blacklist_file_name = os.path.join(src_root, "blacklist.mdg")
+    if os.path.exists(blacklist_file_name):
+      generator_call.extend(["--blacklist-modules-file", blacklist_file_name])
 
     # clang arguments
     generator_call.extend(["Xclang",

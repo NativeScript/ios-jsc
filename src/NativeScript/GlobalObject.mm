@@ -126,21 +126,24 @@ static EncodedJSValue JSC_HOST_CALL time(ExecState* execState) {
 }
 
 static EncodedJSValue JSC_HOST_CALL releaseNativeCounterpart(ExecState* execState) {
-    if (execState->argumentCount() != 1) {
-        auto scope = DECLARE_THROW_SCOPE(execState->vm());
-        WTF::String message = makeString("Actual arguments count: \"", execState->argumentCount(), "\". Expected: \"", 1, "\".");
-        return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message, defaultSourceAppender)));
-    }
+    NS_TRY {
+        if (execState->argumentCount() != 1) {
+            auto scope = DECLARE_THROW_SCOPE(execState->vm());
+            WTF::String message = makeString("Actual arguments count: \"", execState->argumentCount(), "\". Expected: \"", 1, "\".");
+            return JSValue::encode(throwException(execState, scope, JSC::createError(execState, message, defaultSourceAppender)));
+        }
 
-    auto arg0 = execState->argument(0);
-    auto wrapper = jsDynamicCast<ObjCWrapperObject*>(execState->vm(), arg0);
-    if (!wrapper) {
-        auto scope = DECLARE_THROW_SCOPE(execState->vm());
-        JSValue error = JSC::createError(execState, arg0, "is an object which is not a native wrapper."_s, defaultSourceAppender);
-        return JSValue::encode(throwException(execState, scope, error));
-    }
+        auto arg0 = execState->argument(0);
+        auto wrapper = jsDynamicCast<ObjCWrapperObject*>(execState->vm(), arg0);
+        if (!wrapper) {
+            auto scope = DECLARE_THROW_SCOPE(execState->vm());
+            JSValue error = JSC::createError(execState, arg0, "is an object which is not a native wrapper."_s, defaultSourceAppender);
+            return JSValue::encode(throwException(execState, scope, error));
+        }
 
-    wrapper->setWrappedObject(nil);
+        wrapper->setWrappedObject(nil);
+    }
+    NS_CATCH_THROW_TO_JS(execState)
 
     return JSValue::encode(jsUndefined());
 }
@@ -306,124 +309,129 @@ void GlobalObject::visitChildren(JSCell* cell, SlotVisitor& visitor) {
 /// This method is called whenever a property on the global JavaScript object is accessed for the first time.
 /// It is called once for each property and cached by JSC, i.e. it is never called again for the same property.
 bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, PropertyName propertyName, PropertySlot& propertySlot) {
-    if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
-        return true;
-    }
-
-    GlobalObject* globalObject = jsCast<GlobalObject*>(object);
-    VM& vm = execState->vm();
-
-    if (propertyName == globalObject->_interopIdentifier) {
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly), globalObject->interop());
-        return true;
-    }
-
-    StringImpl* symbolName = propertyName.publicName();
-    if (symbolName == nullptr)
-        return false;
-
-    const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTableJs()->findMeta(symbolName);
-    if (symbolMeta == nullptr)
-        return false;
-
-    Strong<JSCell> strongSymbolWrapper;
-    JSValue symbolWrapper;
-
-    switch (symbolMeta->type()) {
-    case Interface: {
-        auto interfaceMeta = static_cast<const InterfaceMeta*>(symbolMeta);
-        Class klass = objc_getClass(symbolMeta->name());
-        if (!klass) {
-            SymbolLoader::instance().ensureModule(symbolMeta->topLevelModule());
-            klass = objc_getClass(symbolMeta->name());
+    NS_TRY {
+        if (Base::getOwnPropertySlot(object, execState, propertyName, propertySlot)) {
+            return true;
         }
 
-        if (klass) {
-            auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, ConstructorKey(klass), interfaceMeta);
-            strongSymbolWrapper = constructor;
-            globalObject->_objCConstructors.insert({ ConstructorKey(klass), constructor });
-        }
-        break;
-    }
-    case ProtocolType: {
-        Protocol* aProtocol = objc_getProtocol(symbolMeta->name());
-        if (!aProtocol) {
-            SymbolLoader::instance().ensureModule(symbolMeta->topLevelModule());
-            aProtocol = objc_getProtocol(symbolMeta->name());
+        GlobalObject* globalObject = jsCast<GlobalObject*>(object);
+        VM& vm = execState->vm();
+
+        if (propertyName == globalObject->_interopIdentifier) {
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::DontEnum | PropertyAttribute::DontDelete | PropertyAttribute::ReadOnly), globalObject->interop());
+            return true;
         }
 
-        auto protocol = createProtocolWrapper(globalObject, static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
-        strongSymbolWrapper = protocol;
-        // Protocols that are not implemented or referred with @protocol at compile time do not have corresponding
-        // protocol objects at runtime. `objc_getProtocol` returns `nullptr for them!
-        // See Protocol Objects section at https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Chapters/ocProtocols.html#//apple_ref/doc/uid/TP30001163-CH15
-        if (aProtocol) {
-            globalObject->_objCProtocolWrappers.insert({ aProtocol, protocol });
-        }
-        break;
-    }
-    case Union: {
-        //        symbolWrapper = globalObject->typeFactory()->createOrGetUnionConstructor(globalObject, symbolName);
-        break;
-    }
-    case Struct: {
-        strongSymbolWrapper = globalObject->typeFactory()->getStructConstructor(globalObject, symbolName);
-        break;
-    }
-    case MetaType::Function: {
-        void* functionSymbol = SymbolLoader::instance().loadFunctionSymbol(symbolMeta->topLevelModule(), symbolMeta->name());
-        if (functionSymbol) {
-            const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
-            const Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
-            auto returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr, false);
-            auto parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1, false);
+        StringImpl* symbolName = propertyName.publicName();
+        if (symbolName == nullptr)
+            return false;
 
-            if (functionMeta->returnsUnmanaged()) {
-                JSC::Structure* unmanagedStructure = UnmanagedType::createStructure(vm, globalObject, jsNull());
-                returnType = UnmanagedType::create(vm, returnType.get(), unmanagedStructure);
+        const Meta* symbolMeta = Metadata::MetaFile::instance()->globalTableJs()->findMeta(symbolName);
+        if (symbolMeta == nullptr)
+            return false;
+
+        Strong<JSCell> strongSymbolWrapper;
+        JSValue symbolWrapper;
+
+        switch (symbolMeta->type()) {
+        case Interface: {
+            auto interfaceMeta = static_cast<const InterfaceMeta*>(symbolMeta);
+            Class klass = objc_getClass(symbolMeta->name());
+            if (!klass) {
+                SymbolLoader::instance().ensureModule(symbolMeta->topLevelModule());
+                klass = objc_getClass(symbolMeta->name());
             }
 
-            strongSymbolWrapper = CFunctionWrapper::create(vm, globalObject->ffiFunctionWrapperStructure(), functionSymbol, functionMeta->jsName(), returnType.get(), parametersTypes, functionMeta->ownsReturnedCocoaObject());
+            if (klass) {
+                auto constructor = globalObject->_typeFactory.get()->getObjCNativeConstructor(globalObject, ConstructorKey(klass), interfaceMeta);
+                strongSymbolWrapper = constructor;
+                globalObject->_objCConstructors.insert({ ConstructorKey(klass), constructor });
+            }
+            break;
         }
-        break;
-    }
-    case Var: {
-        const VarMeta* varMeta = static_cast<const VarMeta*>(symbolMeta);
-        void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule(), varMeta->name());
-        if (varSymbol) {
-            const Metadata::TypeEncoding* encoding = varMeta->encoding();
-            JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding, false).get();
-            symbolWrapper = getFFITypeMethodTable(vm, symbolType).read(execState, varSymbol, symbolType);
+        case ProtocolType: {
+            Protocol* aProtocol = objc_getProtocol(symbolMeta->name());
+            if (!aProtocol) {
+                SymbolLoader::instance().ensureModule(symbolMeta->topLevelModule());
+                aProtocol = objc_getProtocol(symbolMeta->name());
+            }
+
+            auto protocol = createProtocolWrapper(globalObject, static_cast<const ProtocolMeta*>(symbolMeta), aProtocol);
+            strongSymbolWrapper = protocol;
+            // Protocols that are not implemented or referred with @protocol at compile time do not have corresponding
+            // protocol objects at runtime. `objc_getProtocol` returns `nullptr for them!
+            // See Protocol Objects section at https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ObjectiveC/Chapters/ocProtocols.html#//apple_ref/doc/uid/TP30001163-CH15
+            if (aProtocol) {
+                globalObject->_objCProtocolWrappers.insert({ aProtocol, protocol });
+            }
+            break;
         }
-        break;
-    }
-    case JsCode: {
-        WTF::String source = WTF::String(static_cast<const JsCodeMeta*>(symbolMeta)->jsCode());
-        symbolWrapper = evaluate(execState, makeSource(source, SourceOrigin()));
-        break;
-    }
-    default: {
-        break;
-    }
-    }
+        case Union: {
+            //        symbolWrapper = globalObject->typeFactory()->createOrGetUnionConstructor(globalObject, symbolName);
+            break;
+        }
+        case Struct: {
+            strongSymbolWrapper = globalObject->typeFactory()->getStructConstructor(globalObject, symbolName);
+            break;
+        }
+        case MetaType::Function: {
+            void* functionSymbol = SymbolLoader::instance().loadFunctionSymbol(symbolMeta->topLevelModule(), symbolMeta->name());
+            if (functionSymbol) {
+                const FunctionMeta* functionMeta = static_cast<const FunctionMeta*>(symbolMeta);
+                const Metadata::TypeEncoding* encodingPtr = functionMeta->encodings()->first();
+                auto returnType = globalObject->typeFactory()->parseType(globalObject, encodingPtr, false);
+                auto parametersTypes = globalObject->typeFactory()->parseTypes(globalObject, encodingPtr, (int)functionMeta->encodings()->count - 1, false);
 
-    if (strongSymbolWrapper) {
-        symbolWrapper = strongSymbolWrapper.get();
-    }
+                if (functionMeta->returnsUnmanaged()) {
+                    JSC::Structure* unmanagedStructure = UnmanagedType::createStructure(vm, globalObject, jsNull());
+                    returnType = UnmanagedType::create(vm, returnType.get(), unmanagedStructure);
+                }
 
-    if (!symbolWrapper) {
-        WTF::String errorMessage = makeString("Metadata for \"", symbolMeta->topLevelModule()->getName(), ".", symbolMeta->name(), "\" found but symbol not available at runtime.");
-        JSC::VM& vm = execState->vm();
-        auto scope = DECLARE_THROW_SCOPE(vm);
+                strongSymbolWrapper = CFunctionWrapper::create(vm, globalObject->ffiFunctionWrapperStructure(), functionSymbol, functionMeta->jsName(), returnType.get(), parametersTypes, functionMeta->ownsReturnedCocoaObject());
+            }
+            break;
+        }
+        case Var: {
+            const VarMeta* varMeta = static_cast<const VarMeta*>(symbolMeta);
+            void* varSymbol = SymbolLoader::instance().loadDataSymbol(varMeta->topLevelModule(), varMeta->name());
+            if (varSymbol) {
+                const Metadata::TypeEncoding* encoding = varMeta->encoding();
+                JSCell* symbolType = globalObject->typeFactory()->parseType(globalObject, encoding, false).get();
+                symbolWrapper = getFFITypeMethodTable(vm, symbolType).read(execState, varSymbol, symbolType);
+            }
+            break;
+        }
+        case JsCode: {
+            WTF::String source = WTF::String(static_cast<const JsCodeMeta*>(symbolMeta)->jsCode());
+            symbolWrapper = evaluate(execState, makeSource(source, SourceOrigin()));
+            break;
+        }
+        default: {
+            break;
+        }
+        }
 
-        throwVMError(execState, scope, createReferenceError(execState, errorMessage));
-        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), jsUndefined());
+        if (strongSymbolWrapper) {
+            symbolWrapper = strongSymbolWrapper.get();
+        }
+
+        if (!symbolWrapper) {
+            WTF::String errorMessage = makeString("Metadata for \"", symbolMeta->topLevelModule()->getName(), ".", symbolMeta->name(), "\" found but symbol not available at runtime.");
+            JSC::VM& vm = execState->vm();
+            auto scope = DECLARE_THROW_SCOPE(vm);
+
+            throwVMError(execState, scope, createReferenceError(execState, errorMessage));
+            propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), jsUndefined());
+            return true;
+        }
+
+        object->putDirect(vm, propertyName, symbolWrapper);
+        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), symbolWrapper);
         return true;
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    object->putDirectWithoutTransition(vm, propertyName, symbolWrapper);
-    propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), symbolWrapper);
-    return true;
+    return false;
 }
 
 #ifdef DEBUG
@@ -436,16 +444,19 @@ bool GlobalObject::getOwnPropertySlot(JSObject* object, ExecState* execState, Pr
 //
 // Once we start grouping declarations by modules, this can be safely restored.
 void GlobalObject::getOwnPropertyNames(JSObject* object, ExecState* execState, PropertyNameArray& propertyNames, EnumerationMode enumerationMode) {
-    if (!jsCast<GlobalObject*>(object)->hasDebugger()) {
-        auto globalTableJs = MetaFile::instance()->globalTableJs();
-        for (const Meta* meta : *globalTableJs) {
-            if (meta->isAvailable()) {
-                propertyNames.add(Identifier::fromString(execState, meta->jsName()));
+    NS_TRY {
+        if (!jsCast<GlobalObject*>(object)->hasDebugger()) {
+            auto globalTableJs = MetaFile::instance()->globalTableJs();
+            for (const Meta* meta : *globalTableJs) {
+                if (meta->isAvailable()) {
+                    propertyNames.add(Identifier::fromString(execState, meta->jsName()));
+                }
             }
         }
-    }
 
-    Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
+        Base::getOwnPropertyNames(object, execState, propertyNames, enumerationMode);
+    }
+    NS_CATCH_THROW_TO_JS(execState)
 }
 #endif
 

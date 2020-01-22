@@ -8,6 +8,7 @@
 
 #include "FFICache.h"
 #include "FFICall.h"
+#include "JSErrors.h"
 #include "ObjCTypes.h"
 #include <JavaScriptCore/JSObjectRef.h>
 #include <JavaScriptCore/JSPromiseDeferred.h>
@@ -70,45 +71,50 @@ FunctionWrapper::~FunctionWrapper() {
 }
 
 EncodedJSValue JSC_HOST_CALL FunctionWrapper::call(ExecState* execState) {
-    FunctionWrapper* call = jsCast<FunctionWrapper*>(execState->callee().asCell());
+    NS_TRY {
+        FunctionWrapper* call = jsCast<FunctionWrapper*>(execState->callee().asCell());
 
-    const std::unique_ptr<FFICall>& c = Metadata::getProperFunctionFromContainer<std::unique_ptr<FFICall>>(call->functionsContainer(), execState->argumentCount(), [](const std::unique_ptr<FFICall>& fficall) { return static_cast<int>(fficall.get()->parametersCount()); });
-    FFICall* callee = c.get();
+        const std::unique_ptr<FFICall>& c = Metadata::getProperFunctionFromContainer<std::unique_ptr<FFICall>>(call->functionsContainer(), execState->argumentCount(), [](const std::unique_ptr<FFICall>& fficall) { return static_cast<int>(fficall.get()->parametersCount()); });
+        FFICall* callee = c.get();
 
-    ASSERT(callee);
+        ASSERT(callee);
 
-    FFICall::Invocation invocation(callee);
-    ReleasePoolHolder releasePoolHolder(execState);
+        FFICall::Invocation invocation(callee);
+        ReleasePoolHolder releasePoolHolder(execState);
 
-    JSC::VM& vm = execState->vm();
+        JSC::VM& vm = execState->vm();
 
-    [[TNSRuntime current] tryCollectGarbage];
+        [[TNSRuntime current] tryCollectGarbage];
 
-    auto scope = DECLARE_THROW_SCOPE(vm);
+        auto scope = DECLARE_THROW_SCOPE(vm);
 
-    callee->preCall(execState, invocation);
-    if (scope.exception()) {
-        return JSValue::encode(scope.exception());
-    }
-
-    @try {
-        {
-            JSLock::DropAllLocks locksDropper(execState);
-            ffi_call(callee->cif()->get(), FFI_FN(invocation.function), invocation.resultBuffer(), reinterpret_cast<void**>(invocation._buffer + callee->argsArrayOffset()));
-        }
-
+        callee->preCall(execState, invocation);
         if (scope.exception()) {
-            // in the ffi call the native method could reach javascript code throwing an error we don't need the code below to execute
             return JSValue::encode(scope.exception());
         }
 
-        JSValue result = callee->returnType().read(execState, invocation._buffer + callee->returnOffset(), callee->returnTypeCell().get());
+        @try {
+            {
+                JSLock::DropAllLocks locksDropper(execState);
+                ffi_call(callee->cif()->get(), FFI_FN(invocation.function), invocation.resultBuffer(), reinterpret_cast<void**>(invocation._buffer + callee->argsArrayOffset()));
+            }
 
-        callee->postCall(execState, invocation);
-        return JSValue::encode(result);
-    } @catch (NSException* exception) {
-        return throwVMError(execState, scope, createErrorFromNSException([TNSRuntime current], execState, exception));
+            if (scope.exception()) {
+                // in the ffi call the native method could reach javascript code throwing an error we don't need the code below to execute
+                return JSValue::encode(scope.exception());
+            }
+
+            JSValue result = callee->returnType().read(execState, invocation._buffer + callee->returnOffset(), callee->returnTypeCell().get());
+
+            callee->postCall(execState, invocation);
+            return JSValue::encode(result);
+        } @catch (NSException* exception) {
+            return throwVMError(execState, scope, createErrorFromNSException([TNSRuntime current], execState, exception));
+        }
     }
+    NS_CATCH_THROW_TO_JS(execState)
+
+    return JSValue::encode(jsUndefined());
 }
 
 JSObject* FunctionWrapper::async(ExecState* execState, JSValue thisValue, const ArgList& arguments) {

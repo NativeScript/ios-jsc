@@ -8,6 +8,7 @@
 
 #include "ObjCWrapperObject.h"
 #include "Interop.h"
+#include "JSErrors.h"
 #include "ObjCTypes.h"
 #include "TNSDerivedClassProtocol.h"
 #include "TNSRuntime+Private.h"
@@ -32,21 +33,31 @@ WTF::String ObjCWrapperObject::className(const JSObject* object, VM&) {
 }
 
 bool ObjCWrapperObject::getOwnPropertySlotByIndex(JSObject* object, ExecState* execState, unsigned propertyName, PropertySlot& propertySlot) {
-    ObjCWrapperObject* wrapper = jsCast<ObjCWrapperObject*>(object);
+    NS_TRY {
+        ObjCWrapperObject* wrapper = jsCast<ObjCWrapperObject*>(object);
 
-    JSValue value = toValue(execState, [wrapper->wrappedObject() objectAtIndexedSubscript:propertyName]);
-    propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), value);
-    return true;
+        JSValue value = toValue(execState, [wrapper->wrappedObject() objectAtIndexedSubscript:propertyName]);
+        propertySlot.setValue(object, static_cast<unsigned>(PropertyAttribute::None), value);
+        return true;
+    }
+    NS_CATCH_THROW_TO_JS(execState)
+
+    return false;
 }
 
 bool ObjCWrapperObject::putByIndex(JSCell* cell, ExecState* execState, unsigned propertyName, JSValue value, bool shouldThrow) {
-    ObjCWrapperObject* wrapper = jsCast<ObjCWrapperObject*>(cell);
-    if (wrapper->_canSetObjectAtIndexedSubscript) {
-        [wrapper->wrappedObject() setObject:NativeScript::toObject(execState, value)
-                         atIndexedSubscript:propertyName];
-    }
+    NS_TRY {
+        ObjCWrapperObject* wrapper = jsCast<ObjCWrapperObject*>(cell);
+        if (wrapper->_canSetObjectAtIndexedSubscript) {
+            [wrapper->wrappedObject() setObject:NativeScript::toObject(execState, value)
+                             atIndexedSubscript:propertyName];
+        }
 
-    return Base::putByIndex(cell, execState, propertyName, value, shouldThrow);
+        return Base::putByIndex(cell, execState, propertyName, value, shouldThrow);
+    }
+    NS_CATCH_THROW_TO_JS(execState)
+
+    return false;
 }
 
 void ObjCWrapperObject::removeFromCache() {

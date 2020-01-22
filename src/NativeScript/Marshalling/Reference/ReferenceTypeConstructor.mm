@@ -8,6 +8,7 @@
 
 #include "ReferenceTypeConstructor.h"
 #include "Interop.h"
+#include "JSErrors.h"
 #include "PointerInstance.h"
 #include "ReferenceTypeInstance.h"
 #include "TypeFactory.h"
@@ -24,22 +25,27 @@ void ReferenceTypeConstructor::finishCreation(VM& vm, JSObject* referenceTypePro
 }
 
 EncodedJSValue JSC_HOST_CALL ReferenceTypeConstructor::constructReferenceType(ExecState* execState) {
-    GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
+    NS_TRY {
+        GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());
 
-    JSC::VM& vm = execState->vm();
-    auto scope = DECLARE_THROW_SCOPE(vm);
+        JSC::VM& vm = execState->vm();
+        auto scope = DECLARE_THROW_SCOPE(vm);
 
-    if (execState->argumentCount() != 1) {
-        return throwVMError(execState, scope, createError(execState, "ReferenceType constructor expects one argument."_s));
+        if (execState->argumentCount() != 1) {
+            return throwVMError(execState, scope, createError(execState, "ReferenceType constructor expects one argument."_s));
+        }
+
+        JSValue type = execState->uncheckedArgument(0);
+        const FFITypeMethodTable* methodTable;
+        if (!tryGetFFITypeMethodTable(vm, type, &methodTable)) {
+            return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter."_s));
+        }
+
+        return JSValue::encode(globalObject->typeFactory()->getReferenceType(globalObject, type.asCell()).get());
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    JSValue type = execState->uncheckedArgument(0);
-    const FFITypeMethodTable* methodTable;
-    if (!tryGetFFITypeMethodTable(vm, type, &methodTable)) {
-        return throwVMError(execState, scope, createError(execState, "Not a valid type object is passed as parameter."_s));
-    }
-
-    return JSValue::encode(globalObject->typeFactory()->getReferenceType(globalObject, type.asCell()).get());
+    return JSValue::encode(jsUndefined());
 }
 
 } // namespace NativeScript

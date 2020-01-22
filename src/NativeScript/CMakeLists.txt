@@ -120,7 +120,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
     Calling/FFICache.cpp
     Calling/FFICall.cpp
-    Calling/FFICallPrototype.cpp
+    Calling/FFICallPrototype.mm
     Calling/CFunctionWrapper.mm
     Calling/FFIFunctionCallback.mm
     Calling/FunctionWrapper.mm
@@ -148,25 +148,25 @@ set(SOURCE_FILES
     Marshalling/FFIType.cpp
     Marshalling/FunctionReference/FunctionReferenceConstructor.cpp
     Marshalling/FunctionReference/FunctionReferenceInstance.cpp
-    Marshalling/FunctionReference/FunctionReferenceTypeConstructor.cpp
+    Marshalling/FunctionReference/FunctionReferenceTypeConstructor.mm
     Marshalling/FunctionReference/FunctionReferenceTypeInstance.cpp
     Marshalling/Fundamentals/FFINumericTypes.mm
     Marshalling/Fundamentals/FFIPrimitiveTypes.cpp
-    Marshalling/Pointer/PointerConstructor.cpp
+    Marshalling/Pointer/PointerConstructor.mm
     Marshalling/Pointer/PointerInstance.cpp
     Marshalling/Pointer/PointerPrototype.cpp
-    Marshalling/Record/RecordConstructor.cpp
+    Marshalling/Record/RecordConstructor.mm
     Marshalling/Record/RecordField.cpp
     Marshalling/Record/RecordInstance.cpp
     Marshalling/Record/RecordPrototype.cpp
     Marshalling/Record/RecordPrototypeFunctions.cpp
-    Marshalling/Reference/ReferenceConstructor.cpp
-    Marshalling/Reference/ReferenceInstance.cpp
+    Marshalling/Reference/ReferenceConstructor.mm
+    Marshalling/Reference/ReferenceInstance.mm
     Marshalling/Reference/ReferencePrototype.cpp
-    Marshalling/Reference/ReferenceTypeConstructor.cpp
+    Marshalling/Reference/ReferenceTypeConstructor.mm
     Marshalling/Reference/ReferenceTypeInstance.cpp
     Marshalling/Reference/IndexedRefTypeInstance.cpp
-    Marshalling/Reference/IndexedRefInstance.cpp
+    Marshalling/Reference/IndexedRefInstance.mm
     Marshalling/Reference/IndexedRefPrototype.cpp
     Marshalling/Reference/ExtVectorTypeInstance.cpp
     Metadata/Metadata.mm
@@ -175,7 +175,7 @@ set(SOURCE_FILES
     ObjC/Block/ObjCBlockCall.mm
     ObjC/Block/ObjCBlockCallback.mm
     ObjC/Block/ObjCBlockType.mm
-    ObjC/Block/ObjCBlockTypeConstructor.cpp
+    ObjC/Block/ObjCBlockTypeConstructor.mm
     ObjC/Constructor/ObjCConstructorBase.mm
     ObjC/Constructor/ObjCConstructorCall.mm
     ObjC/Constructor/ObjCConstructorDerived.cpp

@@ -1,4 +1,5 @@
 #include "UnmanagedPrototype.h"
+#include "JSErrors.h"
 #include "ObjCConstructorBase.h"
 #include "ObjCTypes.h"
 #include "UnmanagedInstance.h"
@@ -11,24 +12,29 @@ using namespace JSC;
 const ClassInfo UnmanagedPrototype::s_info = { "Unmanaged", &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(UnmanagedPrototype) };
 
 static EncodedJSValue takeValue(ExecState* execState, bool retained) {
-    VM& vm = execState->vm();
-    UnmanagedInstance* instance = jsDynamicCast<UnmanagedInstance*>(vm, execState->thisValue());
-    if (instance->data() == &consumedUnmanagedCheck) {
-        auto scope = DECLARE_THROW_SCOPE(vm);
-        return throwVMTypeError(execState, scope, "Unmanaged value has already been consumed."_s);
+    NS_TRY {
+        VM& vm = execState->vm();
+        UnmanagedInstance* instance = jsDynamicCast<UnmanagedInstance*>(vm, execState->thisValue());
+        if (instance->data() == &consumedUnmanagedCheck) {
+            auto scope = DECLARE_THROW_SCOPE(vm);
+            return throwVMTypeError(execState, scope, "Unmanaged value has already been consumed."_s);
+        }
+
+        id result = static_cast<id>(instance->data());
+        instance->setData(&consumedUnmanagedCheck);
+
+        ObjCConstructorBase* returnType = jsCast<ObjCConstructorBase*>(instance->returnType());
+        JSValue retainedValue = NativeScript::toValue(execState, result, returnType->klasses().known);
+
+        if (retained) {
+            [result release];
+        }
+
+        return JSValue::encode(retainedValue);
     }
+    NS_CATCH_THROW_TO_JS(execState)
 
-    id result = static_cast<id>(instance->data());
-    instance->setData(&consumedUnmanagedCheck);
-
-    ObjCConstructorBase* returnType = jsCast<ObjCConstructorBase*>(instance->returnType());
-    JSValue retainedValue = NativeScript::toValue(execState, result, returnType->klasses().known);
-
-    if (retained) {
-        [result release];
-    }
-
-    return JSValue::encode(retainedValue);
+    return JSValue::encode(jsUndefined());
 }
 
 static EncodedJSValue JSC_HOST_CALL takeRetainedValue(ExecState* execState) {
