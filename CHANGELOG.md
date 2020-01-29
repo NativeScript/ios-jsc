@@ -7,8 +7,21 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.4.0 (2020-02-04)
+=====
+
+### Features
+
+* **metadata-generator:** Customize metadata generation to avoid adding unnecessary unused JS wrappers according to specified black/white lists ([#1209](https://github.com/NativeScript/ios-runtime/issues/1209))
+
+### Bug Fixes
+
+* **project-template:** Make the pbxproject fastlane compatible ([#1240](https://github.com/NativeScript/ios-runtime/pull/1240))
+* **runtime:** Correctly retrieve discarded exceptions flag ([fdaffaf](https://github.com/NativeScript/ios-runtime/commit/fdaffaf))
+* **webkit:** Safari Inspector shows error on startup ([#1238]https://github.com/NativeScript/ios-runtime/issues/1238))
+
 6.3.0 (2019-12-11)
-====
+=====
 
 ### Features
 
