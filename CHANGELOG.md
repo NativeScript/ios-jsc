@@ -36,6 +36,7 @@ previous_url: /Changelogs/iOS Runtime
 * **runtime:** Do not hide property with more accessors ([#1226](https://github.com/NativeScript/ios-runtime/pull/1226), fixes [#1223](https://github.com/NativeScript/ios-runtime/issues/1223))
 * **runtime:** Don't crash app if `discardUncaughtJsExceptions` flag is present ([#1230](https://github.com/NativeScript/ios-runtime/pull/1230))
 * **runtime:** Lookup into native MD tables when searching by name ([#1218](https://github.com/NativeScript/ios-runtime/pull/1218), fixes [#712](https://github.com/NativeScript/ios-runtime/issues/712) and [#1223](https://github.com/NativeScript/ios-runtime/issues/1223))
+* **metadata-generator:** Generating TSC declarations fails due to Metadata generator error w/specific imports ([#1233](https://github.com/NativeScript/ios-runtime/issues/1233))
 
 6.2.0 (2019-10-30)
 =====
