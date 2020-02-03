@@ -5,7 +5,7 @@
 	<key>method</key>
 	<string>development</string>
 	<key>teamID</key>
-	<string>W7TGC3P93K</string>
+	<string>R58QAA9NR8</string>
 	<key>signingStyle</key>
 	<string>manual</string>
 	<key>signingCertificate</key>
@@ -13,7 +13,7 @@
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>org.nativescript.TestRunner</key>
-		<string>NativeScriptDevProfile</string>
+		<string>ios_all_devices_provision</string>
 	</dict>
 </dict>
 </plist>
