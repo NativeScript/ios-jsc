@@ -12,4 +12,11 @@ describe("Metadata", function () {
         expect(swiftLikeObj.constructor.name).toBe("NativeScriptTests.TNSSwiftLike");
         expect(NSString.stringWithUTF8String(class_getName(swiftLikeObj.constructor)).toString()).toBe("NativeScriptTests.TNSSwiftLike");
     });
+    
+    it("Objects from nested Swift classes should be marshalled correctly", function () {
+        const swiftLikeInnerObj = TNSSwiftLikeFactory.createInner();
+        expect(swiftLikeInnerObj.constructor).toBe(global.TNSSwiftLikeInner);
+        expect(swiftLikeInnerObj.constructor.name).toBe("_TtCC17NativeScriptTests12TNSSwiftLike5Inner");
+        expect(NSString.stringWithUTF8String(class_getName(swiftLikeInnerObj.constructor)).toString(), "_TtCC17NativeScriptTests12TNSSwiftLike5Inner");
+    });
 });
