@@ -101,17 +101,21 @@ const Meta* GlobalTable<TYPE>::findMeta(const char* identifierString, size_t len
     const ArrayOfPtrTo<Meta>& bucketContent = buckets[bucketIndex].value();
     for (ArrayOfPtrTo<Meta>::iterator it = bucketContent.begin(); it != bucketContent.end(); it++) {
         const Meta* meta = (*it).valuePtr();
-        const char* name = getName(*meta);
-        if (compareIdentifiers(name, identifierString, length) == 0) {
+        if (this->compareName(*meta, identifierString, length)) {
             return onlyIfAvailable ? (meta->isAvailable() ? meta : nullptr) : meta;
         }
     }
     return nullptr;
 }
 
-template <GlobalTableType TYPE>
-inline const char* GlobalTable<TYPE>::getName(const Meta& meta) {
-    return TYPE == GlobalTableType::ByJsName ? meta.jsName() : meta.name();
+template <>
+inline bool GlobalTable<ByJsName>::compareName(const Meta& meta, const char* identifierString, size_t length) {
+    return compareIdentifiers(meta.jsName(), identifierString, length) == 0;
+}
+
+template <>
+inline bool GlobalTable<ByNativeName>::compareName(const Meta& meta, const char* identifierString, size_t length) {
+    return compareIdentifiers(meta.name(), identifierString, length) == 0 || (meta.hasDemangledName() && compareIdentifiers(meta.demangledName(), identifierString, length) == 0);
 }
 
 // GlobalTable::iterator

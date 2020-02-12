@@ -63,6 +63,7 @@ inline UInt8 getMinorVersion(UInt8 encodedVersion) {
 
 // Bit indices in flags section
 enum MetaFlags {
+    HasDemangledName = 8,
     HasName = 7,
     // IsIosAppExtensionAvailable = 6, the flag exists in metadata generator but we never use it in the runtime
     FunctionReturnsUnmanaged = 3,
@@ -319,7 +320,7 @@ struct GlobalTable {
         return buckets.sizeInBytes();
     }
 
-    static const char* getName(const Meta& meta);
+    static bool compareName(const Meta& meta, const char* identifierString, size_t length);
 };
 
 struct ModuleTable {
@@ -546,14 +547,20 @@ public:
     }
 };
 
-struct JsNameAndName {
-    String jsName;
-    String name;
+enum NameIndex {
+    JsName,
+    Name,
+    DemangledName,
+    NameIndexCount,
+};
+
+struct JsNameAndNativeNames {
+    String strings[NameIndexCount];
 };
 
 union MetaNames {
     String name;
-    PtrTo<JsNameAndName> names;
+    PtrTo<JsNameAndNativeNames> names;
 };
 
 struct Meta {
@@ -561,7 +568,7 @@ struct Meta {
 private:
     MetaNames _names;
     PtrTo<ModuleMeta> _topLevelModule;
-    UInt8 _flags;
+    UInt16 _flags;
     UInt8 _introduced;
 
 public:
@@ -577,16 +584,24 @@ public:
         return this->flag(MetaFlags::HasName);
     }
 
+    bool hasDemangledName() const {
+        return this->flag(MetaFlags::HasDemangledName);
+    }
+
     bool flag(int index) const {
         return (this->_flags & (1 << index)) > 0;
     }
 
     const char* jsName() const {
-        return (this->hasName()) ? this->_names.names->jsName.valuePtr() : this->_names.name.valuePtr();
+        return this->getNameByIndex(JsName);
     }
 
     const char* name() const {
-        return (this->hasName()) ? this->_names.names->name.valuePtr() : this->_names.name.valuePtr();
+        return this->getNameByIndex(Name);
+    }
+
+    const char* demangledName() const {
+        return this->getNameByIndex(DemangledName);
     }
 
     /**
@@ -605,6 +620,24 @@ public:
     * > have been introduced in this or prior version;
     */
     bool isAvailable() const;
+
+private:
+    const char* getNameByIndex(enum NameIndex index) const {
+        int i = index;
+        if (!this->hasName() && !this->hasDemangledName()) {
+            return this->_names.name.valuePtr();
+        }
+
+        if (!this->hasDemangledName() && i >= DemangledName) {
+            i--;
+        }
+
+        if (!this->hasName() && i >= Name) {
+            i--;
+        }
+
+        return this->_names.names.value().strings[i].valuePtr();
+    }
 };
 
 struct RecordMeta : Meta {
