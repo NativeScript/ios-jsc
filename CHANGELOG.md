@@ -7,6 +7,22 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.4.2 (2020-02-17)
+=====
+
+### Bug Fixes
+
+* **debugging:** Do not close data socket prematurely ([#1254](https://github.com/NativeScript/ios-runtime/issues/1254))
+
+
+6.4.1 (2020-02-14)
+=====
+
+### Bug Fixes
+
+* **metadata-generator:** Typings generation of global C functions ([cbf89d0](https://github.com/NativeScript/ios-runtime/commit/cbf89d0))
+* **runtime:** iOS runtime Marshalling returns NSObject - Objective-C iOS-onfido-sdk([#1251](https://github.com/NativeScript/ios-runtime/issues/1251))
+
 6.4.0 (2020-02-04)
 =====
 
@@ -18,7 +34,7 @@ previous_url: /Changelogs/iOS Runtime
 
 * **project-template:** Make the pbxproject fastlane compatible ([#1240](https://github.com/NativeScript/ios-runtime/pull/1240))
 * **runtime:** Correctly retrieve discarded exceptions flag ([fdaffaf](https://github.com/NativeScript/ios-runtime/commit/fdaffaf))
-* **webkit:** Safari Inspector shows error on startup ([#1238]https://github.com/NativeScript/ios-runtime/issues/1238))
+* **webkit:** Safari Inspector shows error on startup ([#1238](https://github.com/NativeScript/ios-runtime/issues/1238))
 
 6.3.0 (2019-12-11)
 =====

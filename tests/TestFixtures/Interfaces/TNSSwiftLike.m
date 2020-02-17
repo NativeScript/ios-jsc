@@ -11,8 +11,16 @@
 
 @end
 
+@implementation TNSSwiftLikeInner
+
+@end
+
 @implementation TNSSwiftLikeFactory
 + (TNSSwiftLike*)create {
     return [TNSSwiftLike new];
+}
+
++ (TNSSwiftLikeInner*)createInner {
+    return [TNSSwiftLikeInner new];
 }
 @end

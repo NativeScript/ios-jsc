@@ -122,18 +122,19 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
       __block dispatch_fd_t newSocket = accept(listenSocket, NULL, NULL);
 
       __block dispatch_io_t io = 0;
+      __block int dispatchOpsCount = 0;
+      __block void (^decrementDispatchOpsCount)() = ^{
+        if (--dispatchOpsCount <= 0) {
+            if (newSocket != 0) {
+                close(newSocket);
+                newSocket = 0;
+            }
+        }
+      };
       __block TNSInspectorProtocolHandler protocolHandler = nil;
       __block TNSInspectorIoErrorHandler dataSocketErrorHandler = ^(NSObject* dummy, NSError* error) {
         @synchronized(inspectorLock()) {
-            if (io) {
-                dispatch_io_close(io, DISPATCH_IO_STOP);
-                io = 0;
-            }
-        }
-
-        if (newSocket) {
-            close(newSocket);
-            newSocket = 0;
+            io = 0;
         }
 
         if (protocolHandler) {
@@ -146,8 +147,10 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
       };
 
       @synchronized(inspectorLock()) {
+          ++dispatchOpsCount;
           io = dispatch_io_create(DISPATCH_IO_STREAM, newSocket, queue,
                                   ^(int error) {
+                                    decrementDispatchOpsCount();
                                     CheckError(error, dataSocketErrorHandler);
                                   });
       }
@@ -175,8 +178,12 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
 
         @synchronized(inspectorLock()) {
             if (io) {
+                ++dispatchOpsCount;
                 dispatch_io_write(io, 0, data, queue,
                                   ^(bool done, dispatch_data_t data, int error) {
+                                    if (done) {
+                                        decrementDispatchOpsCount();
+                                    }
                                     CheckError(error, dataSocketErrorHandler);
                                   });
             }
@@ -190,6 +197,9 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
       }
 
       __block dispatch_io_handler_t receiver = ^(bool done, dispatch_data_t data, int error) {
+        if (done) {
+            decrementDispatchOpsCount();
+        }
         if (!CheckError(error, dataSocketErrorHandler)) {
             return;
         }
@@ -204,9 +214,13 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
         @synchronized(inspectorLock()) {
             if (io) {
                 dispatch_io_set_low_water(io, length);
+                ++dispatchOpsCount;
                 dispatch_io_read(
                     io, 0, length, queue,
                     ^(bool done, dispatch_data_t data, int error) {
+                      if (done) {
+                          decrementDispatchOpsCount();
+                      }
                       if (!CheckError(error, dataSocketErrorHandler)) {
                           return;
                       }
@@ -220,6 +234,7 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
 #pragma clang diagnostic ignored "-Warc-retain-cycles"
                       @synchronized(inspectorLock()) {
                           if (io) {
+                              ++dispatchOpsCount;
                               dispatch_io_read(io, 0, 4, queue, receiver);
                           }
                       }
@@ -231,6 +246,7 @@ TNSCreateInspectorServer(TNSInspectorFrontendConnectedHandler connectedHandler,
 
       @synchronized(inspectorLock()) {
           if (io) {
+              ++dispatchOpsCount;
               dispatch_io_read(io, 0, 4, queue, receiver);
           }
       }

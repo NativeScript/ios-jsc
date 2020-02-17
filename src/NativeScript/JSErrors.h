@@ -16,6 +16,8 @@
 
 #define NS_EXCEPTION_SCOPE_ZERO_RECURSION_KEY @"__nsExceptionScopeZeroRecursion"
 
+#define NS_THROW(msg) @throw [NSException exceptionWithName:NSGenericException reason:msg userInfo:nil];
+
 #define NS_TRY @try
 
 #define NS_CATCH_THROW_TO_JS(execState)                                                                  \

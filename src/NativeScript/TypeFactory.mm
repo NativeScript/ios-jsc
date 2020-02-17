@@ -101,7 +101,8 @@ Strong<RecordConstructor> TypeFactory::getStructConstructor(GlobalObject* global
 
     const StructMeta* structInfo = static_cast<const StructMeta*>(MetaFile::instance()->globalTableJs()->findMeta(structName.impl()));
     if (!structInfo) {
-        @throw [NSException exceptionWithName:NSGenericException reason:[NSString stringWithFormat:@"Struct \"%s\" is missing from metadata. It may have been blacklisted.", structName.utf8().data()] userInfo:nil];
+        NSString* errorMsg = [NSString stringWithFormat:@"Struct \"%s\" is missing from metadata. It may have been blacklisted.", structName.utf8().data()];
+        NS_THROW(errorMsg);
     }
 
     ffi_type* ffiType = new ffi_type({ .size = 0,
@@ -277,7 +278,7 @@ Strong<ObjCConstructorNative> TypeFactory::getObjCNativeConstructor(GlobalObject
 
     if (!klass || !metadata) {
         if (strcmp(metadata->name(), "NSObject") == 0) {
-            @throw [NSException exceptionWithName:NSGenericException reason:@"fatal error: NativeScript cannot create constructor for NSObject." userInfo:nil];
+            NS_THROW(@"fatal error: NativeScript cannot create constructor for NSObject.");
         }
 #ifdef DEBUG
         NSLog(@"** Can not create constructor for \"%s\". Casting it to \"NSObject\". **", metadata->name());
@@ -478,9 +479,8 @@ Strong<JSC::JSCell> TypeFactory::parseType(GlobalObject* globalObject, const Met
         if (Class klass = objc_getClass(declarationName.utf8().data())) {
             result = globalObject->constructorFor(klass, additionalProtocols);
         } else {
-            auto scope = DECLARE_THROW_SCOPE(execState->vm());
-            WTF::String message = makeString("Class \"", declarationName, "\" referenced by type encoding not found at runtime.");
-            throwException(execState, scope, JSC::createError(execState, message, defaultSourceAppender));
+            auto errorMsg = [NSString stringWithFormat:@"Class \"%s\" referenced by type encoding not found at runtime.", declarationName.utf8().data()];
+            NS_THROW(errorMsg);
         }
 
         break;
