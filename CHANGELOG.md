@@ -7,6 +7,14 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.4.2 (2020-02-17)
+=====
+
+### Bug Fixes
+
+* **debugging:** Do not close data socket prematurely ([#1254](https://github.com/NativeScript/ios-runtime/issues/1254))
+
+
 6.4.1 (2020-02-14)
 =====
 
