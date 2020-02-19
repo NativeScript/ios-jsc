@@ -24,7 +24,8 @@ public:
 class CFBundleSymbolResolver : public SymbolResolver {
 public:
     CFBundleSymbolResolver(WTF::RetainPtr<CFBundleRef> bundle)
-        : _bundle(bundle) {
+        : _bundle(bundle)
+        , _loaded(false) {
     }
 
     virtual void* loadFunctionSymbol(const char* symbolName) override {
@@ -38,10 +39,39 @@ public:
     }
 
     virtual bool load() override {
-        CFErrorRef error = nullptr;
-        bool loaded = CFBundleLoadExecutableAndReturnError(this->_bundle.get(), &error);
+        if (this->_loaded) {
+            return true;
+        }
+
+        // Use NSBundle for loading because of the following statement in the docs:
+        // For most of its methods, NSBundle simply calls the appropriate CFBundle routine to do its work,
+        // but loading code is different. Because CFBundle does not handle Objective-C symbols, NSBundle has
+        // to use a different mechanism for loading code. NSBundle interacts with the Objective-C runtime
+        // system to correctly load and register all Cocoa classes and other executable code in the bundle
+        // executable file.
+        // See https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingCode/Concepts/CFNSBundle.html
+
+        NSURL* url = (__bridge NSURL*)CFBundleCopyBundleURL(this->_bundle.get());
+        NSBundle* bundle = [NSBundle bundleWithURL:url];
+        [url release];
+
+        bool wasLoaded = bundle.loaded;
+        NSError* error = nullptr;
+        bool loaded = [bundle loadAndReturnError:&error];
+
+        if (loaded) {
+            this->_loaded = true;
+            if (!wasLoaded) {
+                // Unload the bundle if it was not previously loaded. Sometimes framework bundles use
+                // resource bundles of the same name and keeping the framework loaded as a bundle
+                // breaks them. OTH, loading and unloading a framework bundle is sufficient for its
+                // executable code to be registered with the Objective-C runtime.
+                [bundle unload];
+            }
+        }
+
         if (error) {
-            dataLogF("%s\n", [[(NSError*)error localizedDescription] UTF8String]);
+            dataLogF("%s\n", [[error localizedDescription] UTF8String]);
         }
 
         return loaded;
@@ -49,6 +79,7 @@ public:
 
 private:
     WTF::RetainPtr<CFBundleRef> _bundle;
+    bool _loaded;
 };
 
 class DlSymbolResolver : public SymbolResolver {
