@@ -7,6 +7,15 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.5.0 (2020-03-18)
+=====
+
+### Bug Fixes
+
+* **metadata-generator:** Typings generation of global functions ([#1250](https://github.com/NativeScript/ios-runtime/pull/1250))
+* **runtime:** Icons from inner resource bundle named as its framework are missing ([#1252](https://github.com/NativeScript/ios-runtime/pull/1252), [#1257](https://github.com/NativeScript/ios-runtime/pull/1257))
+
+
 6.4.2 (2020-02-17)
 =====
 
