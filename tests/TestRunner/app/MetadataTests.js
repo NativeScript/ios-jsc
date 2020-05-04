@@ -9,8 +9,11 @@ describe("Metadata", function () {
         expect(global.TNSSwiftLikeFactory.name).toBe("TNSSwiftLikeFactory");
         const swiftLikeObj = TNSSwiftLikeFactory.create();
         expect(swiftLikeObj.constructor).toBe(global.TNSSwiftLike);
-        expect(swiftLikeObj.constructor.name).toBe("NativeScriptTests.TNSSwiftLike");
-        expect(NSString.stringWithUTF8String(class_getName(swiftLikeObj.constructor)).toString()).toBe("NativeScriptTests.TNSSwiftLike");
+        const expectedName = NSProcessInfo.processInfo.isOperatingSystemAtLeastVersion({majorVersion: 13, minorVersion: 4, patchVersion: 0})
+                ? "_TtC17NativeScriptTests12TNSSwiftLike"
+                : "NativeScriptTests.TNSSwiftLike";
+        expect(swiftLikeObj.constructor.name).toBe(expectedName);
+        expect(NSString.stringWithUTF8String(class_getName(swiftLikeObj.constructor)).toString()).toBe(expectedName);
     });
     
     it("Objects from nested Swift classes should be marshalled correctly", function () {
