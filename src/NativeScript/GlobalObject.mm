@@ -488,6 +488,10 @@ Strong<ObjCConstructorBase> GlobalObject::constructorFor(Class klass, const Prot
         Class firstBaseWithMeta = klass;
         while (!meta) {
             firstBaseWithMeta = class_getSuperclass(firstBaseWithMeta);
+            if (!firstBaseWithMeta) {
+                // Treat unknown root classes (which don't inherit from NSObject) as `NSObject`
+                firstBaseWithMeta = [NSObject class];
+            }
             meta = MetaFile::instance()->globalTableNativeInterfaces()->findInterfaceMeta(class_getName(firstBaseWithMeta));
         }
 
