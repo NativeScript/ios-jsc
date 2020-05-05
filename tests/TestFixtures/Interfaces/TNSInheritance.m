@@ -193,3 +193,12 @@
 
 @implementation TNSBlacklistedInterface
 @end
+
+OBJC_ROOT_CLASS
+@interface TNSPrivateRootClass
+
+@end
+
+@implementation TNSPrivateRootClass
+
+@end

@@ -121,20 +121,22 @@ JSValue toValue(ExecState* execState, id object, Class fallbackClass, const Meta
         return jsNull();
     }
 
-    if ([object isKindOfClass:[NSString class]] && fallbackClass != [NSMutableString class]) {
-        return jsString(execState, (CFStringRef)object);
-    }
+    if (class_getInstanceMethod(object_getClass(object), @selector(isKindOfClass:))) {
+        if ([object isKindOfClass:[NSString class]] && fallbackClass != [NSMutableString class]) {
+            return jsString(execState, (CFStringRef)object);
+        }
 
-    if ([object isKindOfClass:[@YES class]]) {
-        return jsBoolean([object boolValue]);
-    }
+        if ([object isKindOfClass:[@YES class]]) {
+            return jsBoolean([object boolValue]);
+        }
 
-    if ([object isKindOfClass:[NSNumber class]] && ![object isKindOfClass:[NSDecimalNumber class]]) {
-        return jsNumber([object doubleValue]);
-    }
+        if ([object isKindOfClass:[NSNumber class]] && ![object isKindOfClass:[NSDecimalNumber class]]) {
+            return jsNumber([object doubleValue]);
+        }
 
-    if ([object isKindOfClass:[NSDate class]]) {
-        return DateInstance::create(execState->vm(), execState->lexicalGlobalObject()->dateStructure(), [object timeIntervalSince1970] * 1000.0);
+        if ([object isKindOfClass:[NSDate class]]) {
+            return DateInstance::create(execState->vm(), execState->lexicalGlobalObject()->dateStructure(), [object timeIntervalSince1970] * 1000.0);
+        }
     }
 
     GlobalObject* globalObject = jsCast<GlobalObject*>(execState->lexicalGlobalObject());

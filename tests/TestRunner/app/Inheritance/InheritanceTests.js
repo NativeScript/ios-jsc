@@ -2209,6 +2209,12 @@ describe(module.id, function () {
 
         expect(TNSGetOutput()).toBe(expected);
     });
+    
+    it("Private root class is accessible from JS", function(){
+        const privateClass = objc_getClass("TNSPrivateRootClass");
+        expect(privateClass).toBeDefined();
+        expect(privateClass.__constructorDescription).toBe("Known class: NSObject Unknown class: TNSPrivateRootClass");
+    });
 
     describe("instanceof", function () {
         it("TNSIBaseProtocolImpl_Private returned as TNSIBaseInterface*", function () {
