@@ -7,6 +7,14 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.5.1 (2020-05-20)
+=====
+### Bug Fixes
+
+* **runtime:** Private root classes cause infinite loop ([#1270](https://github.com/NativeScript/ios-runtime/pull/1270))
+* **metadata-generator:** Static frameworks from .o ([#1271](https://github.com/NativeScript/ios-runtime/pull/1271))
+
+
 6.5.0 (2020-03-18)
 =====
 
