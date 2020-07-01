@@ -19,13 +19,4 @@
 extern "C" {
 
 bool IsObjcObject(const void* inPtr);
-
-/**
- Test if a pointer is a tagged pointer
-
- @param inPtr is the pointer to check
- @param outClass returns the registered class for the tagged pointer.
- @return true if the pointer is a tagged pointer.
- */
-bool IsObjcTaggedPointer(const void* inPtr, Class* outClass);
 }
