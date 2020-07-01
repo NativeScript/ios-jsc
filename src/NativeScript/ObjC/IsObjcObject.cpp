@@ -52,21 +52,8 @@
 #define _OBJC_TAG_EXT_INDEX_SHIFT 4
 #endif
 
-#if defined __arm64__ && __arm64__
-#define ISA_MASK 0x0000000ffffffff8ULL
-#define ISA_MAGIC_MASK 0x000003f000000001ULL
-#define ISA_MAGIC_VALUE 0x000001a000000001ULL
-
-#elif defined __x86_64__ && __x86_64__
-#define ISA_MASK 0x00007ffffffffff8ULL
-#define ISA_MAGIC_MASK 0x001f800000000001ULL
-#define ISA_MAGIC_VALUE 0x001d800000000001ULL
-
-#elif (defined __arm__ && __arm__) || (defined __i386__ && __i386__)
+#if (defined __arm__ && __arm__) || (defined __i386__ && __i386__)
 #define SKIP_OBJECTIVE_C_CHECKS 1
-#else
-// Available bits in isa field are architecture-specific.
-#error unknown architecture
 #endif
 
 #if !defined SKIP_OBJECTIVE_C_CHECKS || !SKIP_OBJECTIVE_C_CHECKS
@@ -238,40 +225,12 @@ bool IsObjcObject(const void* inPtr) {
     }
 
 #if !defined SKIP_OBJECTIVE_C_CHECKS || !SKIP_OBJECTIVE_C_CHECKS
-    //
-    // From LLDB:
-    // Objective-C runtime has a rule that pointers in a class_t will only have bits 0 thru 46 set
-    // so if any pointer has bits 47 thru 63 high we know that this is not a valid isa
-    // See http://llvm.org/svn/llvm-project/lldb/trunk/examples/summaries/cocoa/objc_runtime.py
-    //
-    if (((uintptr_t)inPtr & 0xFFFF800000000000) != 0) {
-        return false;
-    }
-
-    //
-    // Get the Class from the pointer
-    // From http://www.sealiesoftware.com/blog/archive/2013/09/24/objc_explain_Non-pointer_isa.html :
-    // If you are writing a debugger-like tool, the Objective-C runtime exports some variables
-    // to help decode isa fields. objc_debug_isa_class_mask describes which bits are the class pointer:
-    // (isa & class_mask) == class pointer.
-    // objc_debug_isa_magic_mask and objc_debug_isa_magic_value describe some bits that help
-    // distinguish valid isa fields from other invalid values:
-    // (isa & magic_mask) == magic_value for isa fields that are not raw class pointers.
-    // These variables may change in the future so do not use them in application code.
-    //
-
-    uintptr_t isa = (*(uintptr_t*)inPtr);
-    Class ptrClass = NULL;
-
-    if ((isa & ~ISA_MASK) == 0) {
-        ptrClass = (Class)isa;
-    } else {
-        if ((isa & ISA_MAGIC_MASK) == ISA_MAGIC_VALUE) {
-            ptrClass = (Class)(isa & ISA_MASK);
-        } else {
-            ptrClass = (Class)isa;
-        }
-    }
+    // refactored to prevent occasional crashes on ios 14
+    // accessing the isa pointers like we used to is a hacky solution
+    // it has worked fine for a long time, but with ios 14 it can now
+    // cause apps to crash. We are instead using object_getClass now.
+    
+    Class ptrClass = object_getClass((id)inPtr);
 
     if (ptrClass == NULL) {
         return false;
