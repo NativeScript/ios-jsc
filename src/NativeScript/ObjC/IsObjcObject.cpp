@@ -30,7 +30,7 @@
 #   define _OBJC_TAG_MASK 1UL
 #else
 //  Everything else - tag bit is MSB
-#   define _OBJC_TAG_MASK (1UL << 63)
+#   define _OBJC_TAG_MASK (1ULL << 63)
 #endif
 
 static inline bool _objc_isTaggedPointer(const void * _Nullable ptr) {
@@ -100,7 +100,7 @@ bool IsObjcObject(const void* inPtr) {
     //
     // Check if the pointer is a tagged objc pointer
     //
-    if(_objc_isTaggedPointer(inPtr)) {
+    if (_objc_isTaggedPointer(inPtr)) {
         return true;
     }
     
