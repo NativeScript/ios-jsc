@@ -7,8 +7,17 @@ slug: ios-changelog
 previous_url: /Changelogs/iOS Runtime
 ---
 
+6.5.2 (2020-07-09)
+===
+
+### Bug Fixes
+
+* **runtime:** invalid isa pointer access in ios 14  ([#1275](https://github.com/NativeScript/ios-runtime/pull/1275))
+ 
+
 6.5.1 (2020-05-20)
 =====
+
 ### Bug Fixes
 
 * **runtime:** Private root classes cause infinite loop ([#1270](https://github.com/NativeScript/ios-runtime/pull/1270))
