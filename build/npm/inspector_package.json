@@ -1,7 +1,7 @@
 {
   "name": "tns-ios-inspector",
-  "description": "Telerik NativeScript Inspector for iOS Runtime",
-  "version": "6.5.1",
+  "description": "NativeScript Inspector for iOS Runtime",
+  "version": "6.5.2",
   "keywords": [
     "NativeScript",
     "iOS",
@@ -12,8 +12,8 @@
     "url": "https://github.com/NativeScript/ios-runtime"
   },
   "author": {
-    "name": "Telerik",
-    "email": "support@telerik.com"
+    "name": "NativeScript",
+    "email": "support@nativescript.org"
   },
   "os": [
     "darwin"
