@@ -96,35 +96,35 @@ bool IsObjcObject(const void* inPtr) {
     if (inPtr == NULL) {
         return false;
     }
-    
+
     //
     // Check if the pointer is a tagged objc pointer
     //
     if (_objc_isTaggedPointer(inPtr)) {
         return true;
     }
-    
+
     //
     // Check if the pointer is aligned
     //
     if (((uintptr_t)inPtr % sizeof(uintptr_t)) != 0) {
         return false;
     }
-    
+
     //
     // Check if the memory is valid and readable
     //
     if (!IsValidReadableMemory(inPtr)) {
         return false;
     }
-    
+
     Class ptrClass = NULL;
     ptrClass = object_getClass((id)inPtr);
-    
+
     if (ptrClass == NULL) {
         return false;
     }
-    
+
     //
     // From Greg Parker
     // https://twitter.com/gparker/status/801894068502433792
