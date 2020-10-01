@@ -1,16 +1,16 @@
 [submodule "src/metadata-generator"]
 	path = src/metadata-generator
-	url = git@github.com:NativeScript/ios-metadata-generator.git
+	url = https://github.com/NativeScript/ios-metadata-generator.git
 [submodule "common-runtime-tests-app"]
 	path = tests/TestRunner/app/shared
-	url = git@github.com:NativeScript/common-runtime-tests-app.git
+	url = https://github.com/NativeScript/common-runtime-tests-app.git
 [submodule "common-runtime-tests-modules"]
 	path = tests/TestRunner/app/tns_modules/tns-core-modules/shared
-	url = git@github.com:NativeScript/common-runtime-tests-modules.git
+	url = https://github.com/NativeScript/common-runtime-tests-modules.git
 [submodule "src/webkit"]
 	path = src/webkit
-	url = git@github.com:NativeScript/webkit.git
+	url = https://github.com/NativeScript/webkit.git
 	shallow = true
 [submodule "src/libffi"]
 	path = src/libffi
-	url = git@github.com:NativeScript/libffi.git
+	url = https://github.com/NativeScript/libffi.git
