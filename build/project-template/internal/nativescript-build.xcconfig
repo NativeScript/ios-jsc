@@ -18,3 +18,6 @@ LDPLUSPLUS = $SRCROOT/internal/nsld.sh
 // * You can learn more about NativeScript metadata in the docs: http://docs.nativescript.org/runtimes/ios/Overview#metadata
 // * It will be generated on each build, so you can find it after running "tns build ios" in "YOUR_APP/platforms/ios".
 // TNS_DEBUG_METADATA_PATH = $(SRCROOT)/debug-metadata
+
+EXCLUDED_ARCHS__PLATFORM_NAME_iphonesimulator__NATIVE_ARCH_64_BIT_x86_64=arm64 arm64e armv7 armv7s armv6 armv8
+EXCLUDED_ARCHS=$(EXCLUDED_ARCHS__PLATFORM_NAME_$(PLATFORM_NAME)__NATIVE_ARCH_64_BIT_$(NATIVE_ARCH_64_BIT))
