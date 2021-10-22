@@ -53,6 +53,13 @@ function build {
     popd
 }
 
-for CURRENT_ARCH in $ARCHS; do
-    build "$CURRENT_ARCH"
-done
+export
+
+# ARCHS_TO_BUILD = ["i386", "x86_64", "armv7", "arm64"]
+build "i386"
+build "x86_64"
+build "armv7"
+build "arm64"
+# for CURRENT_ARCH in ${ARCHS_TO_BUILD[@]}; do
+   
+# done

@@ -1,0 +1,88 @@
+Subversion Revision: 260343
+diff --git a/Source/WTF/ChangeLog b/Source/WTF/ChangeLog
+index b0da441d416e92c64d86967c8fd20d939081e8f6..6fb2cd6613047ae75d13b70706a6049618c663ee 100644
+--- a/Source/WTF/ChangeLog
++++ b/Source/WTF/ChangeLog
+@@ -1,3 +1,22 @@
++2020-04-20  Charlie Turner  <cturner@igalia.com>
++
++        [Clang 10] Fix warning: definition of implicit copy assignment operator for 'PageBlock' is deprecated because it has a user-declared copy constructor
++        https://bugs.webkit.org/show_bug.cgi?id=210748
++
++        Reviewed by NOBODY (OOPS!).
++
++        Recent Clang's will issue a warning if you declare an explicit
++        copy construction, but leave the compiler to fill in an implicit
++        assignment operator. I think this is to catch cases where you do
++        something exciting in an assignment operator/copy constructor and
++        forget to do the same exciting thing in the other.
++
++        * wtf/PageAllocation.h: Import the base's constructor to avoid
++        defining our own identical one.
++        * wtf/PageBlock.h: Remove trivial constructor and replace with
++        member initializers. Remove copy constructor. This looks identical
++        to what the compiler would generate anyway.
++
+ 2020-04-18  Robin Morisset  <rmorisset@apple.com>
+ 
+         Support an inlined representation in JSValue of small BigInts ("BigInt32")
+diff --git a/Source/WTF/wtf/PageAllocation.h b/Source/WTF/wtf/PageAllocation.h
+index b296203a3859afa077696f1f98a7a8a790acbd30..f95e00d767edd097ce01ebdf61cf89721672b6c5 100644
+--- a/Source/WTF/wtf/PageAllocation.h
++++ b/Source/WTF/wtf/PageAllocation.h
+@@ -69,10 +69,7 @@ namespace WTF {
+ 
+ class PageAllocation : private PageBlock {
+ public:
+-    PageAllocation()
+-    {
+-    }
+-
++    using PageBlock::PageBlock;
+     using PageBlock::size;
+     using PageBlock::base;
+ 
+diff --git a/Source/WTF/wtf/PageBlock.h b/Source/WTF/wtf/PageBlock.h
+index e670e43713303cb07ca236471af1bbce9cab1d93..cf5cf31b2c93e0219d3723146b7fb95be840b3a5 100644
+--- a/Source/WTF/wtf/PageBlock.h
++++ b/Source/WTF/wtf/PageBlock.h
+@@ -66,8 +66,7 @@ inline bool isPowerOfTwo(size_t size) { return !(size & (size - 1)); }
+ class PageBlock {
+     WTF_MAKE_FAST_ALLOCATED;
+ public:
+-    PageBlock();
+-    PageBlock(const PageBlock&);
++    PageBlock() = default;
+     PageBlock(void*, size_t, bool hasGuardPages);
+     
+     void* base() const { return m_base; }
+@@ -82,25 +81,11 @@ public:
+     }
+ 
+ private:
+-    void* m_realBase;
+-    void* m_base;
+-    size_t m_size;
++    void* m_realBase { nullptr };
++    void* m_base { nullptr };
++    size_t m_size { 0 };
+ };
+ 
+-inline PageBlock::PageBlock()
+-    : m_realBase(0)
+-    , m_base(0)
+-    , m_size(0)
+-{
+-}
+-
+-inline PageBlock::PageBlock(const PageBlock& other)
+-    : m_realBase(other.m_realBase)
+-    , m_base(other.m_base)
+-    , m_size(other.m_size)
+-{
+-}
+-
+ inline PageBlock::PageBlock(void* base, size_t size, bool hasGuardPages)
+     : m_realBase(base)
+     , m_base(static_cast<char*>(base) + ((base && hasGuardPages) ? pageSize() : 0))
+
