@@ -35,11 +35,38 @@ def map_and_list(func, iterable):
 
 
 # process environment variables
+effective_platofrm_name = env("EFFECTIVE_PLATFORM_NAME")
+docset_platform = "iOS"
+default_deployment_target_flag_name = "-mios-simulator-version-min"
+default_deployment_target_clang_env_name = "IPHONEOS_DEPLOYMENT_TARGET"
+if effective_platofrm_name is "-macosx":
+    docset_platform = "OSX"
+    default_deployment_target_flag_name = "-mmacosx-version-min"
+    default_deployment_target_clang_env_name = "MACOSX_DEPLOYMENT_TARGET"
+elif effective_platofrm_name is "-watchos":
+    docset_platform = "watchOS"
+    default_deployment_target_flag_name = "-mwatchos-version-min"
+    default_deployment_target_clang_env_name = "WATCHOS_DEPLOYMENT_TARGET"
+elif effective_platofrm_name is "-watchsimulator":
+    docset_platform = "watchOS"
+    default_deployment_target_flag_name = "-mwatchos-simulator-version-min"
+    default_deployment_target_clang_env_name = "WATCHOS_DEPLOYMENT_TARGET"
+elif effective_platofrm_name is "-appletvos":
+    docset_platform = "tvOS"
+    default_deployment_target_flag_name = "-mappletvos-version-min"
+    default_deployment_target_clang_env_name = "APPLETVOS_DEPLOYMENT_TARGET"
+elif effective_platofrm_name is "-appletvsimulator":
+    docset_platform = "tvOS"
+    default_deployment_target_flag_name = "-mappletvsimulator-version-min"
+    default_deployment_target_clang_env_name = "APPLETVOS_DEPLOYMENT_TARGET"
+elif effective_platofrm_name is "-iphoneos":
+    default_deployment_target_flag_name = "-miphoneos-version-min"
+
 conf_build_dir = env("CONFIGURATION_BUILD_DIR")
 sdk_root = env("SDKROOT")
 src_root = env("SRCROOT")
-deployment_target_flag_name = env("DEPLOYMENT_TARGET_CLANG_FLAG_NAME")
-deployment_target = env(env("DEPLOYMENT_TARGET_CLANG_ENV_NAME"))
+deployment_target_flag_name = env_or_empty("DEPLOYMENT_TARGET_CLANG_FLAG_NAME") or default_deployment_target_flag_name
+deployment_target = env(env_or_empty("DEPLOYMENT_TARGET_CLANG_ENV_NAME") or default_deployment_target_clang_env_name)
 std = env("GCC_C_LANGUAGE_STANDARD")
 header_search_paths = env_or_empty("HEADER_SEARCH_PATHS")
 header_search_paths_parsed = map_and_list((lambda s: "-I" + s), shlex.split(header_search_paths))
@@ -51,15 +78,9 @@ enable_modules = env_bool("CLANG_ENABLE_MODULES")
 preprocessor_defs = env_or_empty("GCC_PREPROCESSOR_DEFINITIONS")
 preprocessor_defs_parsed = map_and_list((lambda s: "-D" + s), shlex.split(preprocessor_defs, '\''))
 typescript_output_folder = env_or_none("TNS_TYPESCRIPT_DECLARATIONS_PATH")
-docset_platform = "iOS"
-effective_platofrm_name = env("EFFECTIVE_PLATFORM_NAME")
 
-if effective_platofrm_name is "-macosx":
-    docset_platform = "OSX"
-elif effective_platofrm_name is "-watchos" or effective_platofrm_name is "-watchsimulator":
-    docset_platform = "watchOS"
-elif effective_platofrm_name is "-appletvos" or effective_platofrm_name is "-appletvsimulator":
-    docset_platform = "tvOS"
+
+
 
 docset_path = os.path.join(os.path.expanduser("~"),
                            "Library/Developer/Shared/Documentation/DocSets/com.apple.adc.documentation.{}.docset"
@@ -109,9 +130,13 @@ def generate_metadata(arch):
     # clang arguments
     generator_call.extend(["Xclang",
                            "-isysroot", sdk_root,
-                           "-arch", arch,
                            "-" + deployment_target_flag_name + "=" + deployment_target,
                            "-std=" + std])
+
+    if env_or_empty("IS_UIKITFORMAC").capitalize() is "YES":
+      generator_call.extend(["-arch", arch])
+    else:
+      generator_call.extend(["-target", "{}-apple-ios13.0-macabi".format(arch)])
 
     generator_call.extend(header_search_paths_parsed)  # HEADER_SEARCH_PATHS
     generator_call.extend(framework_search_paths_parsed)  # FRAMEWORK_SEARCH_PATHS
