@@ -1,3 +1,9 @@
 #!/usr/bin/env bash
 #Ignore errors while inserting environment variables (some could be readonly)
 (echo "set +e"; echo "set +o posix"; export; echo "set -o posix"; echo "set -e";) > ./.build_env_vars.sh
+
+# create temporary empty metadata files for XCode LD/LDPLUSPLUS flag analysis
+for arch in $VALID_ARCHS
+do :
+    touch "$CONFIGURATION_BUILD_DIR/metadata-$arch.bin"
+done
