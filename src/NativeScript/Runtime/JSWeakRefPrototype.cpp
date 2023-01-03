@@ -21,6 +21,7 @@ void JSWeakRefPrototype::finishCreation(VM& vm, JSGlobalObject* globalObject) {
     Base::finishCreation(vm);
 
     this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->get, 0, weakRefProtoFuncGet, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
+    this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->deref, 0, weakRefProtoFuncGet, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
     this->putDirectNativeFunction(vm, globalObject, vm.propertyNames->clear, 0, weakRefProtoFuncClear, NoIntrinsic, static_cast<unsigned>(PropertyAttribute::DontEnum));
 }
 
